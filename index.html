@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EKKO</title>
+  <link rel="icon" type="image/x-icon" href="/logo-aba.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            app: {
+              bg: 'var(--bg)',
+              surface: 'var(--surface)',
+              'surface-2': 'var(--surface-2)',
+              border: 'var(--border)',
+              'border-strong': 'var(--border-strong)',
+              text: 'var(--text)',
+              'text-strong': 'var(--text-strong)',
+              'text-muted': 'var(--text-muted)',
+              input: 'var(--input-bg)',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    /* Priority: Google Sans Flex, then standard Google Sans, then Inter as high-quality fallback */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    :root {
+      /* LIGHT MODE (High Contrast / Legibility Focused) */
+      --bg: #F1F5F9;
+      /* Slate-100: Distinct cool gray background */
+      --surface: #FFFFFF;
+      /* Pure white for cards */
+      --surface-2: #F8FAFC;
+      /* Slate-50: Very subtle separation */
+      --border: #CBD5E1;
+      /* Slate-300: Strong, visible borders */
+      --border-strong: #94A3B8;
+      /* Slate-400: Interaction borders */
+      --text: #1E293B;
+      /* Slate-800: Primary text (High Legibility) */
+      --text-strong: #020617;
+      /* Slate-950: Headings/Important (Near Black) */
+      --text-muted: #475569;
+      /* Slate-600: Secondary text (Readable) */
+      --input-bg: #FFFFFF;
+      /* White input */
+      --accent: #2563EB;
+      /* Blue-600: Solid primary action */
+      --accent-hover: #1D4ED8;
+      /* Blue-700: Hover state */
+      --font-main: "Google Sans Flex", "Google Sans", "Inter", system-ui, -apple-system, sans-serif;
+    }
+
+    .dark {
+      /* DARK MODE */
+      --bg: #0B0F19;
+      --surface: #111827;
+      --surface-2: #0F172A;
+      --border: #1F2937;
+      --border-strong: #334155;
+      --text: #E5E7EB;
+      --text-strong: #F9FAFB;
+      --text-muted: #9CA3AF;
+      --input-bg: #0F172A;
+      --accent: #3B82F6;
+    }
+
+    body {
+      font-family: var(--font-main);
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      letter-spacing: -0.011em;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Modern Scrollbar - Global Application */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-strong);
+      border-radius: 9999px;
+      /* Pill shape */
+      border: 2px solid transparent;
+      /* Creates padding effect */
+      background-clip: content-box;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background-color: var(--text-muted);
+      border: 1px solid transparent;
+    }
+
+    /* Firefox Support */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-strong) transparent;
+    }
+
+    /* Utility class for specific containers */
+    .custom-scrollbar {
+      scrollbar-gutter: stable;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    .heading-serif {
+      letter-spacing: -0.03em;
+      font-weight: 700;
+    }
+
+    .overlay,
+    .floating-layer,
+    .drag-layer,
+    .sidebar-overlay,
+    iframe,
+    [class*="overlay"],
+    [class*="backdrop"] {
+      pointer-events: none !important;
+    }
+
+    button,
+    a,
+    input,
+    textarea,
+    select,
+    [role="button"],
+    .pointer-events-auto,
+    label {
+      pointer-events: auto !important;
+    }
+
+    .ekko-brand {
+      display: flex;
+      align-items: baseline;
+      gap: 2px;
+      letter-spacing: -0.05em;
+      font-weight: 800;
+      color: var(--text-strong);
+      text-transform: uppercase;
+    }
+
+    .ekko-brand span {
+      display: inline-block;
+    }
+
+    .ekko-k-mirror {
+      transform: scaleX(-1);
+    }
+
+    input,
+    select,
+    textarea {
+      color: var(--text-strong);
+      background: var(--input-bg) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 8px !important;
+      padding: 8px 12px !important;
+      font-family: var(--font-main);
+      transition: all 0.2s;
+    }
+
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-fade {
+      animation: fade-in 0.4s ease-out forwards;
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           FULLCALENDAR REDESIGN — PREMIUM LARGE CALENDAR
+           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .fc {
+      --fc-border-color: #1F2937;
+      --fc-button-bg-color: #1F2937;
+      --fc-button-border-color: #1F2937;
+      --fc-button-hover-bg-color: #334155;
+      --fc-button-active-bg-color: #3B82F6;
+      --fc-today-bg-color: rgba(59, 130, 246, 0.05);
+      font-family: var(--font-main);
+      width: 100%;
+      height: 100%;
+    }
+
+    .fc .fc-view-harness {
+      background: transparent;
+    }
+
+    .fc .fc-toolbar-title {
+      font-size: 1.25rem !important;
+      font-weight: 800 !important;
+      color: var(--text-strong);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .fc .fc-button {
+      font-size: 0.75rem !important;
+      font-weight: 700 !important;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 8px 16px !important;
+      border-radius: 8px !important;
+    }
+
+    .fc .fc-col-header-cell {
+      background: var(--surface-2);
+      padding: 12px 0 !important;
+      font-size: 0.7rem !important;
+      font-weight: 800 !important;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      border: 1px solid var(--border) !important;
+    }
+
+    .fc td,
+    .fc th {
+      border: 1px solid var(--border) !important;
+    }
+
+    .fc .fc-daygrid-day-frame {
+      min-height: 140px !important;
+      /* Increased for better visibility */
+      transition: background 0.2s;
+    }
+
+    .fc .fc-daygrid-day:hover .fc-daygrid-day-frame {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .fc .fc-daygrid-day-number {
+      font-size: 0.75rem !important;
+      font-weight: 700;
+      color: var(--text-muted);
+      padding: 8px !important;
+    }
+
+    .fc .fc-day-today .fc-daygrid-day-number {
+      color: var(--accent);
+      background: rgba(59, 130, 246, 0.1);
+      border-radius: 4px;
+    }
+
+    /* Event Styling for Block Display */
+    .fc-v-event,
+    .fc-h-event {
+      background-color: var(--accent);
+      border: none;
+      padding: 4px 8px;
+      border-radius: 6px;
+      margin-bottom: 4px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .fc-event-title {
+      font-size: 10px !important;
+      font-weight: 800 !important;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: white;
+      letter-spacing: 0.02em;
+    }
+
+    .fc .fc-daygrid-more-link {
+      font-size: 9px !important;
+      font-weight: 900 !important;
+      color: var(--accent) !important;
+      text-transform: uppercase;
+      padding: 4px 0 0 8px;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+
+    .fc .fc-daygrid-more-link:hover {
+      opacity: 1;
+    }
+  </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom": "https://esm.sh/react-dom@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "@fullcalendar/react": "https://esm.sh/@fullcalendar/react@^6.1.15",
+    "@fullcalendar/daygrid": "https://esm.sh/@fullcalendar/daygrid@^6.1.15",
+    "@fullcalendar/timegrid": "https://esm.sh/@fullcalendar/timegrid@^6.1.15",
+    "@fullcalendar/interaction": "https://esm.sh/@fullcalendar/interaction@^6.1.15",
+
+    "@google/genai": "https://esm.sh/@google/genai@^1.40.0",
+
+    "recharts": "https://esm.sh/recharts@^2.12.7",
+    "react/": "https://esm.sh/react@^19.2.4/"
+  }
+}
+</script>
+  <link rel="stylesheet" href="/index.css">
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
+</html>
