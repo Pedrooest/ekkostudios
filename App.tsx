@@ -1717,9 +1717,14 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
               backgroundColor: clients.find((c: any) => c.id === p.Cliente_ID)?.['Cor (HEX)'] || '#3B82F6',
               borderColor: 'transparent'
             }))}
-            height="100%"
+            height="auto"
+            contentHeight="auto"
             locale="pt-br"
-            headerToolbar={{ left: isMobile ? 'prev,next' : 'prev,next today', center: 'title', right: '' }}
+            headerToolbar={{
+              left: isMobile ? 'prev,next' : 'prev,next today',
+              center: 'title',
+              right: isMobile ? 'today' : 'dayGridMonth,listWeek'
+            }}
             dayMaxEvents={3}
             eventClick={(info) => setSelectedEventId(info.event.id)}
             editable={true}
@@ -1761,7 +1766,7 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-app-text-strong">Banco de Conteúdos</h3>
           </div>
 
-          <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-2 custom-scrollbar relative z-10">
+          <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-2 pb-20 custom-scrollbar relative z-10">
             {bankItems.map((item, idx) => (
               <div key={`${item._source}-${idx}`} className="p-5 bg-app-bg/60 border border-white/5 rounded-2xl hover:border-blue-500/30 transition-all group hover:bg-app-bg hover:shadow-xl hover:shadow-blue-900/10">
                 <div className="flex justify-between items-center mb-3">
@@ -1770,7 +1775,7 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
                   </div>
                   <button
                     onClick={() => handleImport(item)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600/10 text-blue-500 text-[9px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all hover:bg-blue-600 hover:text-app-text-strong"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-600/10 text-blue-500 text-[9px] font-black uppercase tracking-widest transition-all hover:bg-blue-600 hover:text-white md:opacity-0 md:group-hover:opacity-100 opacity-100"
                   >
                     <i className="fa-solid fa-plus text-[8px]"></i>
                     Adicionar
