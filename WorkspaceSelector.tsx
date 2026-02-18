@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { Workspace } from './types';
 import { BottomSheet } from './components/BottomSheet';
 
@@ -44,7 +45,6 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
         setIsOpen(false);
     };
 
-    // Close on scroll/resize to avoid detached positioning (Desktop only)
     useEffect(() => {
         if (isOpen && !isMobile) {
             const handleScroll = () => setIsOpen(false);
@@ -157,17 +157,18 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
                 <WorkspaceListContent />
             </BottomSheet>
 
-            {/* Desktop Popover */}
-            {isOpen && !isMobile && (
-                <>
-                    <div className="fixed inset-0 z-[60]" onClick={() => setIsOpen(false)}></div>
+            {/* Desktop Popover using Portal */}
+            {isOpen && !isMobile && ReactDOM.createPortal(
+                <div className="fixed inset-0 z-[9999] pointer-events-none">
+                    <div className="absolute inset-0 bg-transparent pointer-events-auto" onClick={() => setIsOpen(false)} />
                     <div
-                        className="fixed w-64 bg-[#111827] border border-white/10 rounded-2xl shadow-xl z-[70] overflow-hidden animate-in fade-in zoom-in duration-200"
+                        className="absolute w-64 bg-[#111827] border border-white/10 rounded-2xl shadow-xl z-[10000] overflow-hidden animate-fade pointer-events-auto"
                         style={{ top: dropdownPos.top, left: dropdownPos.left }}
                     >
                         <WorkspaceListContent />
                     </div>
-                </>
+                </div>,
+                document.body
             )}
         </div>
     );

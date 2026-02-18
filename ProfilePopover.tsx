@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { UserProfile, Task } from './types';
 import { Button } from './Components';
 import { BottomSheet } from './components/BottomSheet';
@@ -386,47 +387,47 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
     );
 
     return (
-        <>
-            {/* BACKDROP - Desktop Only */}
-            {isOpen && !isMobile && <div className="fixed inset-0 z-[1900] bg-black/20 backdrop-blur-sm" onClick={() => setIsOpen(false)}></div>}
-
-            <div className="relative">
-                {/* TRIGGER AVATAR */}
-                <button
-                    ref={buttonRef}
-                    onClick={togglePopover}
-                    className="relative group focus:outline-none"
-                    aria-label="Abrir Perfil"
-                >
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center border-2 border-app-border text-white font-black text-sm shadow-lg transition-all group-hover:scale-110 group-active:scale-95 overflow-hidden">
-                        {profile.avatar_url ? (
-                            <img src={profile.avatar_url} alt={profile.full_name} className="w-full h-full object-cover" />
-                        ) : (
-                            initials
-                        )}
-                    </div>
-                    <div className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-app-surface ${statusColors[profile.status]} shadow-sm`}></div>
-                </button>
-
-                {/* POPOVER CARD */}
-                {isOpen && (
-                    isMobile ? (
-                        <BottomSheet isOpen={isOpen} onClose={() => setIsOpen(false)}>
-                            {content}
-                        </BottomSheet>
+        <div className="relative">
+            {/* TRIGGER AVATAR */}
+            <button
+                ref={buttonRef}
+                onClick={togglePopover}
+                className="relative group focus:outline-none"
+                aria-label="Abrir Perfil"
+            >
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center border-2 border-app-border text-white font-black text-sm shadow-lg transition-all group-hover:scale-110 group-active:scale-95 overflow-hidden">
+                    {profile.avatar_url ? (
+                        <img src={profile.avatar_url} alt={profile.full_name} className="w-full h-full object-cover" />
                     ) : (
-                        <div
-                            className="fixed w-[420px] max-w-[calc(100vw-32px)] bg-app-surface border border-app-border rounded-[40px] shadow-2xl z-[2000] overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col"
-                            style={{
-                                top: Math.min(window.innerHeight - 600, dropdownPos.top),
-                                left: Math.max(16, Math.min(window.innerWidth - 436, dropdownPos.left))
-                            }}
-                        >
-                            {content}
-                        </div>
-                    )
-                )}
-            </div>
-        </>
+                        initials
+                    )}
+                </div>
+                <div className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-app-surface ${statusColors[profile.status]} shadow-sm`}></div>
+            </button>
+
+            {/* Mobile View */}
+            {isOpen && isMobile && (
+                <BottomSheet isOpen={isOpen} onClose={() => setIsOpen(false)}>
+                    {content}
+                </BottomSheet>
+            )}
+
+            {/* Desktop View using Portal */}
+            {isOpen && !isMobile && ReactDOM.createPortal(
+                <div className="fixed inset-0 z-[1900] pointer-events-none">
+                    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm pointer-events-auto" onClick={() => setIsOpen(false)}></div>
+                    <div
+                        className="absolute w-[420px] max-w-[calc(100vw-32px)] bg-app-surface border border-app-border rounded-[40px] shadow-2xl z-[2000] overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col pointer-events-auto"
+                        style={{
+                            top: Math.min(window.innerHeight - 600, dropdownPos.top),
+                            left: Math.max(16, Math.min(window.innerWidth - 436, dropdownPos.left))
+                        }}
+                    >
+                        {content}
+                    </div>
+                </div>,
+                document.body
+            )}
+        </div>
     );
 }

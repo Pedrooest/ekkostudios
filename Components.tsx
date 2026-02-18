@@ -45,7 +45,7 @@ export const Card: React.FC<{ children: React.ReactNode; title?: string; extra?:
         {extra}
       </div>
     )}
-    <div className="p-0">
+    <div className="p-6 md:p-8">
       {children}
     </div>
   </div>

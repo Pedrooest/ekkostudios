@@ -108,6 +108,9 @@ const getWeekInfo = (dateStr: string) => {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // LOGO COMPONENT (REF IDENTITY)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// LOGO COMPONENT (REF IDENTITY)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const Logo: React.FC<{ collapsed?: boolean; className?: string; theme?: 'dark' | 'light' }> = ({ collapsed, className = "", theme = 'dark' }) => {
   const getLogoSrc = () => {
     if (theme === 'light') {
@@ -121,7 +124,7 @@ const Logo: React.FC<{ collapsed?: boolean; className?: string; theme?: 'dark' |
       <img
         src={getLogoSrc()}
         alt="EKKO Logo"
-        className={`${collapsed ? "w-10 h-10" : "w-48 h-auto"} object-contain transition-all`}
+        className={`${collapsed ? "w-10 h-10" : "w-40 h-auto"} object-contain transition-all duration-300`}
       />
     </div>
   );
@@ -295,6 +298,10 @@ export default function App() {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [toasts, setToasts] = useState<AppNotification[]>([]);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const exportButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileExportButtonRef = useRef<HTMLButtonElement>(null);
+
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -364,7 +371,7 @@ export default function App() {
       setCollaborators(prev => mergeItems(prev, data.collaborators as Collaborator[]));
     }
   }, []);
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+
   const { isExporting, exportExcel, exportPng, exportPdf } = useExport();
 
   // Helper to get current export config
@@ -1132,12 +1139,12 @@ export default function App() {
   if (!currentUser) return <AuthView onSuccess={setCurrentUser} />;
 
   return (
-    <div className="flex h-screen bg-app-bg text-app-text font-sans overflow-hidden transition-colors duration-300">
+    <div className="flex h-screen bg-app-bg text-app-text font-sans overflow-hidden transition-colors duration-300 pb-[env(safe-area-inset-bottom)]">
       {!sidebarCollapsed && (
         <div className="fixed inset-0 bg-black/50 z-50 lg:hidden backdrop-blur-sm animate-fade" onClick={() => setSidebarCollapsed(true)}></div>
       )}
 
-      <aside className={`transition-all duration-300 flex flex-col bg-app-surface-2 border-r border-app-border shrink-0 z-[60] fixed inset-y-0 left-0 lg:relative ${sidebarCollapsed ? '-translate-x-full lg:translate-x-0 lg:w-16' : 'translate-x-0 w-[85vw] sm:w-64 shadow-2xl lg:shadow-none'}`}>
+      <aside className={`transition-all duration-300 flex flex-col bg-app-surface-2 border-r border-app-border shrink-0 z-[2100] fixed inset-y-0 left-0 lg:relative ${sidebarCollapsed ? '-translate-x-full lg:translate-x-0 lg:w-16' : 'translate-x-0 w-[85vw] sm:w-64 shadow-2xl lg:shadow-none'}`}>
         <div className={`h-24 flex items-center border-b border-app-border justify-center overflow-hidden ${sidebarCollapsed ? 'px-0' : 'px-5'}`}>
           <Logo collapsed={sidebarCollapsed} theme={theme} />
         </div>
@@ -1179,7 +1186,7 @@ export default function App() {
           {/* TOP ROW: Menu | Workspace | Mobile Controls (Right) */}
           <div className="flex items-center justify-between gap-4 w-full lg:w-auto">
             <div className="flex items-center gap-3 lg:gap-4 flex-1 min-w-0">
-              <button className="lg:hidden text-app-text-muted hover:text-app-text-strong transition-colors p-2 -ml-2" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
+              <button className="lg:hidden text-app-text-muted hover:text-app-text-strong transition-colors p-2 -ml-2 relative z-[2200]" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
                 <i className="fa-solid fa-bars text-xl"></i>
               </button>
               <WorkspaceSelector
@@ -1320,13 +1327,14 @@ export default function App() {
                   </div>
                 </BottomSheet>
               ) : (
-                <FloatingPopover
+                <PortalPopover
                   isOpen={isClientFilterOpen}
                   onClose={() => setIsClientFilterOpen(false)}
                   triggerRef={clientFilterButtonRef}
                   className="w-64"
+                  align="start"
                 >
-                  <div className="bg-app-surface border border-app-border rounded-xl shadow-2xl p-4">
+                  <div className="bg-app-surface border border-app-border rounded-xl shadow-2xl p-4 max-h-[400px] flex flex-col pointer-events-auto">
                     <div className="mb-3 flex justify-between items-center border-b border-app-border pb-2">
                       <span className="text-[10px] font-bold uppercase text-app-text-muted">Filtrar</span>
                       <button onClick={() => setSelectedClientIds([])} className="text-[8px] font-black uppercase text-blue-500">Limpar</button>
@@ -1340,7 +1348,7 @@ export default function App() {
                       ))}
                     </div>
                   </div>
-                </FloatingPopover>
+                </PortalPopover>
               )}
             </div>
             <button onClick={() => setShowArchived(!showArchived)} className={`shrink-0 text-xs font-bold uppercase px-4 py-2.5 rounded border transition-all whitespace-nowrap ${showArchived ? 'bg-amber-500/10 border-amber-500 text-amber-500' : 'text-app-text-muted border-app-border hover:border-app-border-strong hover:text-app-text-strong'}`}>
@@ -1376,18 +1384,20 @@ export default function App() {
 
                 <div className="h-6 w-px bg-app-border"></div>
 
-                <Button variant="secondary" onClick={() => setIsExportModalOpen(true)}>
-                  <i className="fa-solid fa-download"></i> Exportar
-                </Button>
+                <div className="relative">
+                  <Button ref={exportButtonRef} variant="secondary" onClick={() => setIsExportModalOpen(!isExportModalOpen)}>
+                    <i className="fa-solid fa-download"></i> Exportar
+                  </Button>
+                </div>
 
-                <FloatingPopover
+                <PortalPopover
                   isOpen={isNotificationOpen}
                   onClose={() => setIsNotificationOpen(false)}
                   triggerRef={notificationButtonRef}
                   className="w-80"
                   align="end"
                 >
-                  <div className="bg-app-surface border border-app-border rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden">
+                  <div className="bg-app-surface border border-app-border rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden pointer-events-auto">
                     <div className="p-5 border-b border-app-border flex justify-between items-center bg-app-surface-2/50 backdrop-blur-md">
                       <span className="text-[11px] font-black uppercase text-app-text-strong tracking-[0.2em]">Notificações</span>
                       <button
@@ -1425,7 +1435,7 @@ export default function App() {
                       )}
                     </div>
                   </div>
-                </FloatingPopover>
+                </PortalPopover>
               </div>
               <Button variant="secondary" onClick={() => setIsAssistantOpen(true)} className="!border-blue-600/30 hover:!border-blue-600 !text-blue-500">
                 <i className="fa-solid fa-wand-magic-sparkles mr-2"></i>Assistente Gemini
@@ -1435,7 +1445,7 @@ export default function App() {
 
             {/* Mobile Export / Assistant (Row 2 end) */}
             <div className="flex lg:hidden items-center gap-2">
-              <Button variant="secondary" onClick={() => setIsExportModalOpen(true)} className="shrink-0">
+              <Button ref={mobileExportButtonRef} variant="secondary" onClick={() => setIsExportModalOpen(!isExportModalOpen)} className="shrink-0">
                 <i className="fa-solid fa-download"></i>
               </Button>
               <Button variant="secondary" onClick={() => setIsAssistantOpen(true)} className="!border-blue-600/30 hover:!border-blue-600 !text-blue-500 shrink-0">
@@ -1452,7 +1462,20 @@ export default function App() {
           {activeTab === 'CLIENTES' && <TableView tab="CLIENTES" data={filterArchived(clients)} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('CLIENTES')} clients={clients} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} />}
           {activeTab === 'RDC' && <TableView tab="RDC" data={currentRdc} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('RDC')} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
           {activeTab === 'MATRIZ' && <SystematicModelingView activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} clients={clients} onSelectClient={(id: any) => setSelectedClientIds([id])} rdc={rdc} planning={planejamento} library={contentLibrary} data={systematicModeling} onUpdate={setSystematicModeling} />}
-          {activeTab === 'COBO' && <TableView tab="COBO" data={currentCobo} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('COBO')} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
+          {activeTab === 'COBO' && (
+            <div className="space-y-6 md:space-y-8 animate-fade text-left">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <div>
+                  <h2 className="text-xl md:text-2xl font-black text-app-text-strong uppercase tracking-tighter">Gestão de Operação</h2>
+                  <p className="text-[10px] font-bold text-app-text-muted uppercase tracking-widest">Controle de Fluxo e Canais (COBO)</p>
+                </div>
+                <Button onClick={() => handleAddRow('COBO')} className="shadow-lg shadow-blue-500/20 whitespace-nowrap">
+                  <i className="fa-solid fa-plus mr-2"></i> Novo Registro
+                </Button>
+              </div>
+              <TableView tab="COBO" data={currentCobo} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('COBO')} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />
+            </div>
+          )}
           {activeTab === 'PLANEJAMENTO' && <PlanningView data={currentPlanejamento} clients={clients} onUpdate={handleUpdate} onAdd={handleAddRow} rdc={rdc} matriz={matriz} cobo={cobo} tasks={tasks} iaHistory={iaHistory} setActiveTab={setActiveTab} performArchive={performArchive} performDelete={performDelete} library={contentLibrary} />}
           {activeTab === 'FINANCAS' && <FinanceView data={currentFinancas} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('FINANCAS')} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} />}
           {activeTab === 'TAREFAS' && <TaskFlowView tasks={currentTasks} clients={clients} collaborators={collaborators} activeViewId={activeTaskViewId} setActiveViewId={setActiveTaskViewId} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('TAREFAS')} onSelectTask={setSelectedTaskId} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
@@ -1579,14 +1602,67 @@ export default function App() {
           />
         )
       }
-      <ExportModal
+      <PortalPopover
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
-        onExportExcel={handleExportExcel}
-        onExportPNG={handleExportPNG}
-        onExportPDF={handleExportPDF}
-        isProcessing={isExporting}
-      />
+        triggerRef={isMobile ? mobileExportButtonRef : exportButtonRef}
+        className="w-72"
+        align="end"
+      >
+        <div className="bg-app-surface border border-app-border rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden pointer-events-auto">
+          <div className="p-5 border-b border-app-border bg-app-surface-2/50 backdrop-blur-md">
+            <span className="text-[11px] font-black uppercase text-app-text-strong tracking-[0.2em]">Exportar Relatório</span>
+          </div>
+          <div className="p-2 space-y-1">
+            <button
+              onClick={() => { handleExportExcel(); setIsExportModalOpen(false); }}
+              disabled={isExporting}
+              className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-emerald-500/5 group transition-all text-left"
+            >
+              <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 text-xl group-hover:scale-110 transition-transform">
+                <i className="fa-solid fa-file-excel"></i>
+              </div>
+              <div className="flex-1">
+                <h4 className="text-app-text-strong font-bold text-xs uppercase tracking-tight group-hover:text-emerald-500 transition-colors">Excel</h4>
+                <p className="text-app-text-muted text-[9px] font-medium uppercase mt-0.5">Relatório Completo</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => { handleExportPNG(); setIsExportModalOpen(false); }}
+              disabled={isExporting}
+              className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-blue-500/5 group transition-all text-left"
+            >
+              <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500 text-xl group-hover:scale-110 transition-transform">
+                <i className="fa-solid fa-image"></i>
+              </div>
+              <div className="flex-1">
+                <h4 className="text-app-text-strong font-bold text-xs uppercase tracking-tight group-hover:text-blue-500 transition-colors">Imagem (PNG)</h4>
+                <p className="text-app-text-muted text-[9px] font-medium uppercase mt-0.5">Captura de Slide</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => { handleExportPDF(); setIsExportModalOpen(false); }}
+              disabled={isExporting}
+              className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-rose-500/5 group transition-all text-left"
+            >
+              <div className="w-10 h-10 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-500 text-xl group-hover:scale-110 transition-transform">
+                <i className="fa-solid fa-file-pdf"></i>
+              </div>
+              <div className="flex-1">
+                <h4 className="text-app-text-strong font-bold text-xs uppercase tracking-tight group-hover:text-rose-500 transition-colors">PDF</h4>
+                <p className="text-app-text-muted text-[9px] font-medium uppercase mt-0.5">Relatório Paginado</p>
+              </div>
+            </button>
+          </div>
+          {isExporting && (
+            <div className="p-3 bg-blue-500/5 text-blue-500 text-[9px] font-black uppercase text-center border-t border-blue-500/10 animate-pulse">
+              <i className="fa-solid fa-circle-notch fa-spin mr-2"></i> Exportando...
+            </div>
+          )}
+        </div>
+      </PortalPopover>
 
       {/* Hidden Renderer for PNG Export */}
       {isExporting && (
@@ -2012,14 +2088,17 @@ function SystematicModelingView({ activeClient, clients, onSelectClient, rdc, pl
     <div className="bg-app-surface/40 border border-white/5 rounded-[40px] p-5 md:p-10 backdrop-blur-xl animate-fade overflow-x-auto shadow-2xl relative">
       <div className="mb-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <h2 className="text-xl md:text-2xl font-black uppercase tracking-tighter text-app-text-strong">Modelagem Sistemática</h2>
+          <div>
+            <h2 className="text-xl md:text-2xl font-black uppercase tracking-tighter text-app-text-strong">Modelagem Sistemática</h2>
+            <p className="text-[10px] font-bold text-app-text-muted uppercase tracking-widest leading-none">Matriz Estratégica</p>
+          </div>
           <div className="w-full sm:w-64">
             <InputSelect
               value={activeClient ? activeClient.id : ""}
               onChange={(val) => onSelectClient && onSelectClient(val)}
               options={clients?.map((c: any) => ({ value: c.id, label: c.Nome })) || []}
               placeholder="Selecione um Cliente"
-              className="w-full text-[10px] font-bold uppercase bg-blue-600 text-app-text-strong border-none rounded-xl"
+              className="w-full text-[10px] font-bold uppercase bg-blue-600/10 text-blue-500 border border-blue-500/20 rounded-xl"
             />
           </div>
         </div>
