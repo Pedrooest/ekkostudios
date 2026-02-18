@@ -74,13 +74,13 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
         // RESPONSIVE MODAL CONTAINER
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade p-4">
             <div className="bg-[#0F172A] border border-white/10 w-full max-w-[600px] max-h-[90vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden">
-                <div className="p-5 md:p-6 border-b border-white/5 flex justify-between items-center bg-[#111827]">
+                <div className="p-6 md:p-8 border-b border-white/5 flex justify-between items-center bg-[#111827]">
                     <div>
-                        <h2 className="text-lg md:text-xl font-black text-white uppercase tracking-tight">Gerenciar Workspace</h2>
-                        <p className="text-[10px] md:text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">{workspace.name}</p>
+                        <h2 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight">Gerenciar Workspace</h2>
+                        <p className="text-[11px] md:text-xs text-gray-400 font-bold uppercase tracking-widest mt-1.5">{workspace.name}</p>
                     </div>
-                    <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-all">
-                        <i className="fa-solid fa-xmark text-sm"></i>
+                    <button onClick={onClose} className="w-10 h-10 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-all active:scale-95">
+                        <i className="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
 
@@ -97,21 +97,21 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
                             ) : (
                                 <div className="divide-y divide-white/5">
                                     {members.map(member => (
-                                        <div key={member.user_id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-white/5 transition-all group">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-700 to-gray-600 flex items-center justify-center text-xs font-bold text-white uppercase shrink-0">
+                                        <div key={member.user_id} className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-white/5 transition-all group">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-gray-700 to-gray-600 flex items-center justify-center text-sm font-bold text-white uppercase shrink-0">
                                                     {member.profiles?.full_name?.substring(0, 2) || 'US'}
                                                 </div>
                                                 <div className="overflow-hidden">
-                                                    <p className="text-xs font-bold text-white flex items-center gap-2 truncate">
+                                                    <p className="text-sm font-bold text-white flex items-center gap-2 truncate">
                                                         {member.profiles?.full_name || 'Usuário'}
-                                                        {member.profiles?.email === currentUserEmail && <span className="text-[9px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0">Você</span>}
+                                                        {member.profiles?.email === currentUserEmail && <span className="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded uppercase tracking-wider shrink-0">Você</span>}
                                                     </p>
-                                                    <p className="text-[10px] text-gray-500 truncate">{member.profiles?.email}</p>
+                                                    <p className="text-xs text-app-text-muted truncate">{member.profiles?.email}</p>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center justify-between md:justify-end gap-3 w-full md:w-auto mt-2 md:mt-0">
-                                                <span className={`px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider ${member.role === 'admin' ? 'bg-purple-500/10 text-purple-500' :
+                                            <div className="flex items-center justify-between md:justify-end gap-4 w-full md:w-auto mt-2 md:mt-0">
+                                                <span className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider ${member.role === 'admin' ? 'bg-purple-500/10 text-purple-500' :
                                                     member.role === 'editor' ? 'bg-blue-500/10 text-blue-500' :
                                                         'bg-gray-500/10 text-gray-500'
                                                     }`}>
@@ -121,10 +121,10 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
                                                 {isAdmin && member.profiles?.email !== currentUserEmail && (
                                                     <button
                                                         onClick={() => handleRemoveMember(member.user_id)}
-                                                        className="w-6 h-6 rounded bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white flex items-center justify-center transition-all md:opacity-0 group-hover:opacity-100"
+                                                        className="w-8 h-8 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white flex items-center justify-center transition-all md:opacity-0 group-hover:opacity-100 active:scale-95"
                                                         title="Remover Membro"
                                                     >
-                                                        <i className="fa-solid fa-trash-can text-[10px]"></i>
+                                                        <i className="fa-solid fa-trash-can text-xs"></i>
                                                     </button>
                                                 )}
                                             </div>

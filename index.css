@@ -2,9 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body {
-  overflow: hidden;
+html,
+body {
+  overflow-x: hidden;
   height: 100%;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+img,
+svg,
+video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Modern Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
+
+/* Mobile Container Padding Standard */
+.mobile-container {
+  padding-inline: 16px;
 }
 
 @keyframes toast-in {

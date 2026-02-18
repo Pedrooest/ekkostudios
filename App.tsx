@@ -1111,6 +1111,16 @@ export default function App() {
     // Add other action handlers as needed
   }, [currentUser, currentWorkspace, addNotification]);
 
+  // SCROLL LOCK: Prevent body scroll when sidebar is open on mobile
+  useEffect(() => {
+    if (window.innerWidth < 1024 && !sidebarCollapsed) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [sidebarCollapsed]);
+
 
 
   if (authLoading) return (
@@ -1165,11 +1175,11 @@ export default function App() {
 
 
       <main className="flex-1 flex flex-col min-w-0 relative overflow-hidden bg-app-bg transition-colors duration-300">
-        <header className="flex-none bg-app-bg border-b border-app-border px-4 lg:px-8 flex flex-col lg:flex-row items-stretch lg:items-center justify-between z-[50] transition-colors duration-300 py-3 lg:py-0 min-h-[auto] lg:h-16 gap-3 lg:gap-4">
-          {/* TOP ROW: Menu | Workspace | Notifications | Profile */}
-          <div className="flex items-center justify-between lg:justify-start gap-4 w-full lg:w-auto">
-            <div className="flex items-center gap-3 lg:gap-4">
-              <button className="lg:hidden text-app-text-muted hover:text-app-text-strong transition-colors p-1" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
+        <header className="flex-none bg-app-bg border-b border-app-border px-4 lg:px-8 flex flex-col lg:flex-row items-stretch lg:items-center justify-between z-[50] transition-colors duration-300 py-3 lg:py-0 min-h-[auto] lg:h-16 gap-3 lg:gap-4 mobile-header">
+          {/* TOP ROW: Menu | Workspace | Mobile Controls (Right) */}
+          <div className="flex items-center justify-between gap-4 w-full lg:w-auto">
+            <div className="flex items-center gap-3 lg:gap-4 flex-1 min-w-0">
+              <button className="lg:hidden text-app-text-muted hover:text-app-text-strong transition-colors p-2 -ml-2" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
                 <i className="fa-solid fa-bars text-xl"></i>
               </button>
               <WorkspaceSelector
@@ -1634,11 +1644,11 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm animate-fade" onClick={() => setIsSidebarOpen(false)}></div>
       )}
       <div className="flex-1 transition-all duration-500 h-full flex flex-col min-w-0">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 bg-app-surface/40 p-6 rounded-[32px] border border-white/5 backdrop-blur-md">
-          <div className="flex flex-col gap-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 bg-app-surface/40 p-5 md:p-8 rounded-[32px] border border-white/5 backdrop-blur-md">
+          <div className="flex flex-col gap-5">
             <div className="flex items-center gap-3">
               <div className="w-2 h-8 bg-blue-600 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.4)]"></div>
-              <h2 className="text-3xl font-black uppercase tracking-tighter text-app-text-strong">Planejamento Estratégico</h2>
+              <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tighter text-app-text-strong">Planejamento Estratégico</h2>
             </div>
             <div className="flex flex-wrap gap-2">
               {['All', ...PLANNING_STATUS_OPTIONS].map(s => (
@@ -1669,7 +1679,7 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
             </Button>
           </div>
         </div>
-        <div className="flex-1 bg-app-surface/30 border border-app-border rounded-[32px] p-8 shadow-2xl overflow-hidden min-h-[600px] lg:min-h-0 relative">
+        <div className="flex-1 bg-app-surface/30 border border-app-border rounded-[32px] p-5 md:p-8 shadow-2xl overflow-hidden min-h-[600px] lg:min-h-0 relative">
           <FullCalendar
             plugins={[dayGridPlugin, interactionPlugin, listPlugin]}
             initialView={window.innerWidth < 1024 ? "listWeek" : "dayGridMonth"}
@@ -1695,7 +1705,7 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
       </div>
 
       <div className={`transition-all duration-500 shrink-0 z-50 lg:z-auto fixed inset-y-0 right-0 lg:static ${isSidebarOpen ? 'translate-x-0 w-[85vw] sm:w-[360px] shadow-2xl lg:shadow-none' : 'translate-x-full lg:translate-x-0 lg:w-0 lg:opacity-0 lg:pointer-events-none'}`}>
-        <div className="h-full bg-app-surface/80 backdrop-blur-xl border-l border-white/5 shadow-2xl p-8 flex flex-col relative overflow-hidden">
+        <div className="h-full bg-app-surface/80 backdrop-blur-xl border-l border-white/5 shadow-2xl p-6 md:p-8 flex flex-col relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-[60px] rounded-full"></div>
 
           <div className="flex items-center gap-3 mb-8 shrink-0">
@@ -1860,8 +1870,8 @@ function FinanceView({ data, onUpdate, onDelete, onArchive, onAdd, selection, on
   const toggleCategory = (cat: string) => setActiveCategory(prev => prev === cat ? null : cat);
 
   return (
-    <div className="space-y-8 animate-fade text-left">
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+    <div className="space-y-6 md:space-y-8 animate-fade text-left mobile-container pb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
         <StatCard label="Entradas" value={`R$ ${totals.entradas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} color="emerald" icon="fa-arrow-trend-up" active={activeCategory === 'Entrada'} onClick={() => toggleCategory('Entrada')} />
         <StatCard label="Saídas" value={`R$ ${totals.saidas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} color="rose" icon="fa-arrow-trend-down" active={activeCategory === 'Saída'} onClick={() => toggleCategory('Saída')} />
         <StatCard label="Despesas" value={`R$ ${totals.despesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} color="orange" icon="fa-receipt" active={activeCategory === 'Despesa'} onClick={() => toggleCategory('Despesa')} />
@@ -1870,10 +1880,10 @@ function FinanceView({ data, onUpdate, onDelete, onArchive, onAdd, selection, on
       </div>
 
       {activeCategory && (
-        <div className="bg-app-surface/60 p-8 rounded-[32px] border border-white/10 backdrop-blur-xl flex flex-col md:flex-row items-center justify-between gap-8 animate-fade shadow-2xl">
+        <div className="bg-app-surface/60 p-5 md:p-8 rounded-[32px] border border-white/10 backdrop-blur-xl flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8 animate-fade shadow-2xl">
           <div className="flex flex-col gap-2">
-            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-app-text-strong">Novo Registro: {activeCategory}</h3>
-            <p className="text-[10px] font-bold text-app-text-muted uppercase">Selecione uma opção para otimizar o lançamento</p>
+            <h3 className="text-sm md:text-md font-black uppercase tracking-[0.2em] text-app-text-strong">Novo Registro: {activeCategory}</h3>
+            <p className="text-[10px] md:text-xs text-app-text-muted uppercase">Selecione uma opção para otimizar o lançamento</p>
           </div>
           <div className="flex flex-wrap gap-3">
             {activeCategory === 'Entrada' && FINANCAS_SERVICOS_OPTIONS.map(svc => (
@@ -1946,13 +1956,13 @@ function StatCard({ label, value, icon, color = "blue", onClick, active }: any) 
   return (
     <div
       onClick={onClick}
-      className={`p-6 rounded-3xl border ${active ? borderColors[color] : 'bg-app-surface border-app-border'} flex flex-col gap-3 transition-all ${onClick ? 'cursor-pointer hover:border-[#3B82F6]/20' : ''} shadow-xl group`}
+      className={`p-5 md:p-6 rounded-3xl border ${active ? borderColors[color] : 'bg-app-surface border-app-border'} flex flex-col gap-4 transition-all ${onClick ? 'cursor-pointer hover:border-[#3B82F6]/20' : ''} shadow-xl group w-full`}
     >
       <div className="flex justify-between items-start">
-        <span className={`text-[9px] font-black tracking-[0.2em] transition-colors uppercase ${active ? 'text-app-text-strong' : 'text-app-text-muted group-hover:text-app-text-strong'}`}>{label}</span>
-        {icon && <i className={`fa-solid ${icon} transition-colors ${active ? colors[color] : 'text-[#334155] group-hover:text-[#3B82F6]'}`}></i>}
+        <span className={`text-[9px] font-black tracking-[0.2em] transition-colors uppercase flex-1 ${active ? 'text-app-text-strong' : 'text-app-text-muted group-hover:text-app-text-strong'}`}>{label}</span>
+        {icon && <i className={`fa-solid ${icon} transition-colors shrink-0 ml-2 ${active ? colors[color] : 'text-[#334155] group-hover:text-[#3B82F6]'}`}></i>}
       </div>
-      <p className={`text-2xl font-black tracking-tighter leading-none ${colors[color]}`}>{value}</p>
+      <p className={`text-2xl md:text-3xl font-black tracking-tighter leading-none break-all ${colors[color]}`}>{value}</p>
     </div>
   );
 }
@@ -1999,11 +2009,11 @@ function SystematicModelingView({ activeClient, clients, onSelectClient, rdc, pl
 
 
   return (
-    <div className="bg-app-surface/40 border border-white/5 rounded-[40px] p-10 backdrop-blur-xl animate-fade overflow-x-auto shadow-2xl relative">
-      <div className="mb-8 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h2 className="text-xl font-black uppercase tracking-tighter text-app-text-strong">Modelagem Sistemática</h2>
-          <div className="w-full md:w-64">
+    <div className="bg-app-surface/40 border border-white/5 rounded-[40px] p-5 md:p-10 backdrop-blur-xl animate-fade overflow-x-auto shadow-2xl relative">
+      <div className="mb-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <h2 className="text-xl md:text-2xl font-black uppercase tracking-tighter text-app-text-strong">Modelagem Sistemática</h2>
+          <div className="w-full sm:w-64">
             <InputSelect
               value={activeClient ? activeClient.id : ""}
               onChange={(val) => onSelectClient && onSelectClient(val)}
@@ -2013,17 +2023,17 @@ function SystematicModelingView({ activeClient, clients, onSelectClient, rdc, pl
             />
           </div>
         </div>
-        <div className="flex gap-4">
-          <div className="px-4 py-2 bg-rose-500/10 rounded-xl border border-rose-500/20 flex items-center gap-2">
-            <span className="text-[10px] font-bold uppercase text-rose-500/70">Equilíbrio:</span>
+        <div className="flex flex-wrap gap-3">
+          <div className="px-3 md:px-4 py-2 bg-rose-500/10 rounded-xl border border-rose-500/20 flex items-center gap-2">
+            <span className="text-[9px] md:text-[10px] font-bold uppercase text-rose-500/70">Equilíbrio:</span>
             <span className="text-xs font-black text-rose-500">HERO: {counts.hero}</span>
           </div>
-          <div className="px-4 py-2 bg-blue-500/10 rounded-xl border border-blue-500/20 flex items-center gap-2">
-            <span className="text-[10px] font-bold uppercase text-blue-500/70">Equilíbrio:</span>
+          <div className="px-3 md:px-4 py-2 bg-blue-500/10 rounded-xl border border-blue-500/20 flex items-center gap-2">
+            <span className="text-[9px] md:text-[10px] font-bold uppercase text-blue-500/70">Equilíbrio:</span>
             <span className="text-xs font-black text-blue-500">HUB: {counts.hub}</span>
           </div>
-          <div className="px-4 py-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20 flex items-center gap-2">
-            <span className="text-[10px] font-bold uppercase text-emerald-500/70">Equilíbrio:</span>
+          <div className="px-3 md:px-4 py-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20 flex items-center gap-2">
+            <span className="text-[9px] md:text-[10px] font-bold uppercase text-emerald-500/70">Equilíbrio:</span>
             <span className="text-xs font-black text-emerald-500">HELP: {counts.help}</span>
           </div>
         </div>
@@ -2102,9 +2112,9 @@ function SystematicModelingView({ activeClient, clients, onSelectClient, rdc, pl
       </div>
 
       {/* MOBILE LIST VIEW */}
-      <div className="md:hidden space-y-8">
+      <div className="md:hidden space-y-6">
         {days.map(day => (
-          <div key={day} className="bg-app-bg/50 border border-white/5 rounded-[32px] p-6 overflow-hidden relative">
+          <div key={day} className="bg-app-bg/50 border border-white/5 rounded-[32px] p-5 md:p-8 overflow-hidden relative">
             <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 blur-[40px] rounded-full"></div>
             <h3 className="text-xl font-black uppercase tracking-tighter text-app-text-strong mb-6 pl-2 border-l-4 border-blue-500">{day}</h3>
             <div className="space-y-5">
@@ -2165,17 +2175,17 @@ function DashboardView({ clients, tasks, financas, planejamento, rdc }: any) {
   }, [clients, tasks, planejamento, financas]);
 
   return (
-    <div className="space-y-8 animate-fade text-left">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div className="pb-10 space-y-6 md:space-y-8 animate-fade text-left mobile-container">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <StatCard label="Receita Bruta" value={`R$ ${stats.revenue.toLocaleString('pt-BR')}`} icon="fa-money-bill-trend-up" color="emerald" />
         <StatCard label="Contratos Ativos" value={stats.activeClients} icon="fa-users" color="blue" />
         <StatCard label="Produção Ativa" value={stats.pendingPlanning} icon="fa-calendar-check" color="orange" />
         <StatCard label="Sprint Pendente" value={stats.pendingTasks} icon="fa-list-check" color="rose" />
       </div>
-      <Card title="Operações Globais">
-        <div className="p-8 h-[350px] flex items-center justify-center opacity-30">
+      <Card title="Operações Globais" className="w-full">
+        <div className="p-8 h-[300px] md:h-[350px] flex items-center justify-center opacity-30">
           <i className="fa-solid fa-chart-simple text-4xl mr-4"></i>
-          <span className="font-black uppercase tracking-widest">Painel Consolidado</span>
+          <span className="font-black uppercase tracking-widest text-center">Painel Consolidado</span>
         </div>
       </Card>
 
@@ -2200,7 +2210,7 @@ function TaskFlowView({ tasks, clients, collaborators, activeViewId, setActiveVi
         {viewType === 'List' && (<div className="space-y-4 pb-20">{DEFAULT_TASK_STATUSES.map(status => { const statusTasks = filteredTasks.filter((t: any) => t.Status === status.id); const isExpanded = expandedGroups.includes(status.id); return (<div key={status.id} className="space-y-1"><div className="flex items-center gap-3 p-2 bg-app-surface/30 rounded-lg cursor-pointer hover:bg-app-surface transition-all group" onClick={() => setExpandedGroups(prev => isExpanded ? prev.filter(g => g !== status.id) : [...prev, status.id])}><i className={`fa-solid ${isExpanded ? 'fa-chevron-down' : 'fa-chevron-right'} text-[10px] text-[#334155]`}></i><div className="w-2 h-2 rounded-full" style={{ backgroundColor: status.color }}></div><span className="text-[11px] font-black uppercase text-app-text-strong tracking-widest">{status.label}</span><button onClick={(e) => { e.stopPropagation(); onAdd('TAREFAS', { Status: status.id }); }} className="ml-auto opacity-0 group-hover:opacity-100 text-[10px] font-bold text-[#3B82F6]">+ Nova</button></div>{isExpanded && (<div className="space-y-1 ml-4 animate-fade">{statusTasks.map((t: any) => (<div key={t.id} onClick={() => onSelectTask(t.id)} className={`flex items-center gap-4 p-3 bg-app-surface border border-app-border rounded-xl hover:border-[#3B82F6]/50 cursor-pointer group ${selection.includes(t.id) ? 'bg-[#3B82F6]/5 border-[#3B82F6]' : ''}`}><div className="flex items-center gap-3 shrink-0" onClick={e => { e.stopPropagation(); onSelect(t.id); }}><input type="checkbox" checked={selection.includes(t.id)} readOnly /></div><div className="flex-1 min-w-0"><span className="text-[9px] font-black text-[#334155] uppercase block mb-1 leading-none">{clients.find((c: any) => c.id === t.Cliente_ID)?.Nome}</span><h5 className="text-xs font-bold text-app-text-strong uppercase truncate">{t.Título}</h5></div><div className="flex items-center gap-4 shrink-0"><select value={t.Prioridade} onClick={e => e.stopPropagation()} onChange={e => onUpdate(t.id, 'TAREFAS', 'Prioridade', e.target.value)} className="!p-0 !h-6 !bg-transparent border-none text-[10px] font-black uppercase w-20 text-app-text-muted">{PRIORIDADE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select><div className="w-8 h-8 rounded-lg bg-[#3B82F6]/10 text-[#3B82F6] flex items-center justify-center text-[10px] font-black border border-[#3B82F6]/20">{t.Responsável?.slice(0, 1).toUpperCase() || '?'}</div></div></div>))}</div>)}</div>); })}</div>)}
         {viewType === 'Board' && (<div className="flex gap-6 h-full overflow-x-auto pb-6 custom-scrollbar pr-4">{DEFAULT_TASK_STATUSES.map(status => (<div key={status.id} className="min-w-[300px] w-[300px] flex flex-col gap-4 bg-app-surface/30 p-4 rounded-2xl border border-app-border"><div className="flex items-center justify-between border-b border-app-border pb-3"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full" style={{ backgroundColor: status.color }}></div><span className="text-[11px] font-black uppercase text-app-text-strong tracking-widest">{status.label}</span></div></div><div className="flex-1 space-y-4 overflow-y-auto no-scrollbar">{filteredTasks.filter((t: any) => t.Status === status.id).map((t: any) => (<div key={t.id} onClick={() => onSelectTask(t.id)} className={`p-5 bg-app-surface border border-app-border rounded-2xl shadow-xl hover:border-[#3B82F6]/50 transition-all cursor-pointer relative overflow-hidden group`}><div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: status.color }}></div><h5 className="text-sm font-bold text-app-text-strong mb-6 uppercase leading-tight">{t.Título}</h5><div className="flex items-center justify-between"><Badge color={t.Prioridade === 'Urgente' ? 'red' : 'blue'}>{t.Prioridade}</Badge><div className="w-6 h-6 rounded-lg bg-[#3B82F6]/10 text-[#3B82F6] flex items-center justify-center text-[8px] font-black border border-[#3B82F6]/20">{t.Responsável?.slice(0, 1).toUpperCase() || '?'}</div></div></div>))}</div></div>))}</div>)}
         {viewType === 'Calendar' && (
-          <div className="h-[calc(100vh-250px)] min-h-[600px] bg-app-surface/30 border border-app-border rounded-[32px] p-8 shadow-2xl overflow-hidden relative">
+          <div className="h-[calc(100vh-250px)] min-h-[600px] bg-app-surface/30 border border-app-border rounded-[32px] p-5 md:p-8 shadow-2xl overflow-hidden relative">
             <FullCalendar
               plugins={[dayGridPlugin, interactionPlugin]}
               initialView="dayGridMonth"
@@ -2359,7 +2369,7 @@ function TaskDetailPanel({ taskId, tasks, clients, collaborators, onClose, onUpd
               onKeyDown={e => e.key === 'Enter' && onUpdate(t.id, 'TAREFAS', 'Título', (e.target as any).value)} />
           </section>
 
-          <section className="grid grid-cols-2 gap-8 bg-[#1B2535]/30 p-8 rounded-[32px] border border-app-border/50 backdrop-blur-sm shadow-xl">
+          <section className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-8 bg-[#1B2535]/30 p-5 md:p-8 rounded-[32px] border border-app-border/50 backdrop-blur-sm shadow-xl">
             {[
               { label: 'Status', field: 'Status', icon: 'fa-circle-half-stroke', color: 'text-[#3B82F6]', options: DEFAULT_TASK_STATUSES.map(s => ({ id: s.id, label: s.label })) },
               { label: 'Prioridade', field: 'Prioridade', icon: 'fa-flag', color: 'text-rose-500', options: PRIORIDADE_OPTIONS.map(opt => ({ id: opt, label: opt })) },
@@ -2436,7 +2446,7 @@ function TaskDetailPanel({ taskId, tasks, clients, collaborators, onClose, onUpd
             <div className="flex justify-between items-center mb-4 border-b border-app-border pb-2">
               <h4 className="text-[10px] font-black uppercase text-[#3B82F6] tracking-widest">Descrição da Operação</h4>
             </div>
-            <textarea className="w-full h-40 bg-app-surface border border-app-border rounded-[32px] p-6 text-[11px] text-gray-300 font-bold uppercase leading-relaxed outline-none focus:border-[#3B82F6]/50 transition-all custom-scrollbar shadow-inner"
+            <textarea className="w-full h-40 bg-app-surface border border-app-border rounded-[32px] p-5 md:p-6 text-[11px] text-gray-300 font-bold uppercase leading-relaxed outline-none focus:border-[#3B82F6]/50 transition-all custom-scrollbar shadow-inner"
               value={t.Descrição || ''}
               onChange={e => onUpdate(t.id, 'TAREFAS', 'Descrição', e.target.value, true)}
               onBlur={e => onUpdate(t.id, 'TAREFAS', 'Descrição', e.target.value)}
@@ -2455,7 +2465,7 @@ function TaskDetailPanel({ taskId, tasks, clients, collaborators, onClose, onUpd
               onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDragActive(true); }}
               onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setDragActive(false); }}
               onDrop={handleDrop}
-              className={`grid grid-cols-2 gap-4 p-8 border-2 border-dashed rounded-[40px] transition-all min-h-[200px] ${dragActive ? 'border-[#3B82F6] bg-[#3B82F6]/5 scale-[0.98]' : 'border-app-border bg-app-surface/30'}`}
+              className={`grid grid-cols-1 sm:grid-cols-2 gap-4 p-5 md:p-8 border-2 border-dashed rounded-[40px] transition-all min-h-[200px] ${dragActive ? 'border-[#3B82F6] bg-[#3B82F6]/5 scale-[0.98]' : 'border-app-border bg-app-surface/30'}`}
             >
               {(t.Anexos || []).map((file) => (
                 <div key={file.id} className="bg-app-surface border border-app-border rounded-2xl p-4 space-y-4 group overflow-hidden relative shadow-lg">
@@ -2703,9 +2713,9 @@ function VhManagementView({ config, setConfig, collaborators, setCollaborators, 
   }, [simParams, vhResults]);
 
   return (
-    <div className="space-y-10 animate-fade text-left pb-20 max-w-7xl mx-auto">
+    <div className="space-y-6 md:space-y-10 animate-fade text-left pb-20 max-w-7xl mx-auto px-4 md:px-0">
       {/* Tab Navigation */}
-      <div className="flex bg-app-surface p-1.5 rounded-2xl border border-app-border w-fit mx-auto shadow-2xl">
+      <div className="flex bg-app-surface p-1.5 rounded-2xl border border-app-border w-full md:w-fit mx-auto shadow-2xl overflow-x-auto no-scrollbar">
         {[
           { id: 'DASHBOARD', label: 'Dashboard', icon: 'fa-chart-pie' },
           { id: 'CLIENTES', label: 'Gestão por Cliente', icon: 'fa-users-gear' },
@@ -2714,16 +2724,16 @@ function VhManagementView({ config, setConfig, collaborators, setCollaborators, 
           <button
             key={t.id}
             onClick={() => setActiveSubTab(t.id as any)}
-            className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3 ${activeSubTab === t.id ? 'bg-[#3B82F6] text-app-text-strong shadow-lg' : 'text-[#4B5563] hover:text-app-text-muted'}`}
+            className={`px-4 md:px-8 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 md:gap-3 shrink-0 ${activeSubTab === t.id ? 'bg-[#3B82F6] text-app-text-strong shadow-lg' : 'text-[#4B5563] hover:text-app-text-muted'}`}
           >
-            <i className={`fa-solid ${t.icon} text-xs`}></i>
+            <i className={`fa-solid ${t.icon} text-[10px] md:text-xs`}></i>
             {t.label}
           </button>
         ))}
       </div>
 
       {activeSubTab === 'DASHBOARD' && (
-        <div className="space-y-10 animate-fade">
+        <div className="space-y-6 md:space-y-10 animate-fade">
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <StatCard label="VH Médio Agência" value={`R$ ${vhResults.avgVh.toFixed(2)}`} color="blue" icon="fa-bullseye" />
@@ -2768,8 +2778,8 @@ function VhManagementView({ config, setConfig, collaborators, setCollaborators, 
       )}
 
       {activeSubTab === 'CONFIG' && (
-        <div className="space-y-10 animate-fade">
-          <Card title="Configuração da Equipe" extra={<Button onClick={handleAddCollab} className="!h-9 !px-4 !text-[9px] shadow-lg shadow-emerald-500/10"><i className="fa-solid fa-plus mr-2"></i>Adicionar Colaborador</Button>}>
+        <div className="space-y-6 md:space-y-10 animate-fade">
+          <Card title="Configuração da Equipe" extra={<Button onClick={handleAddCollab} className="h-9 px-4 text-[9px] shadow-lg shadow-emerald-500/10"><i className="fa-solid fa-plus mr-2"></i>Adicionar</Button>}>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-[11px]">
                 <thead>
@@ -2988,7 +2998,7 @@ function TableView({ tab, data, onUpdate, onDelete, onArchive, onAdd, clients, l
   if (tab === 'RDC' && !activeClient) {
     return (
       <Card title={TABLE_LABELS['RDC']}>
-        <div className="p-12 flex flex-col items-center justify-center text-center space-y-6 animate-fade">
+        <div className="p-8 md:p-12 flex flex-col items-center justify-center text-center space-y-6 animate-fade">
           <div className="w-20 h-20 bg-blue-600/10 rounded-full flex items-center justify-center text-blue-500 text-4xl shadow-[0_0_30px_rgba(37,99,235,0.2)]">
             <i className="fa-solid fa-bolt"></i>
           </div>
@@ -3019,7 +3029,7 @@ function TableView({ tab, data, onUpdate, onDelete, onArchive, onAdd, clients, l
   // Custom RDC Header Logic
   const isRDC = tab === 'RDC';
   const rdcHeader = (
-    <div className="px-5 py-5 border-b border-app-border flex flex-col gap-4 md:grid md:grid-cols-3 items-center bg-app-surface-2">
+    <div className="p-5 md:p-6 border-b border-app-border flex flex-col gap-4 md:grid md:grid-cols-3 items-center bg-app-surface-2">
       <div className="text-center md:text-left w-full">
         <h3 className="font-bold text-app-text-strong text-xs uppercase tracking-widest">{TABLE_LABELS['RDC']} (R×D×C)</h3>
       </div>
@@ -3119,9 +3129,9 @@ function TableView({ tab, data, onUpdate, onDelete, onArchive, onAdd, clients, l
       </div>
 
       {/* MOBILE CARD VIEW */}
-      <div className="md:hidden space-y-4">
+      <div className="md:hidden space-y-4 px-1">
         {data.map((row: any) => (
-          <div key={row.id} className={`p-5 rounded-2xl border ${selection.includes(row.id) ? 'bg-[#3B82F6]/5 border-[#3B82F6]/30' : 'bg-app-surface/50 border-app-border'} transition-all`}>
+          <div key={row.id} className={`p-4 md:p-5 rounded-2xl border ${selection.includes(row.id) ? 'bg-[#3B82F6]/5 border-[#3B82F6]/30' : 'bg-app-surface/50 border-app-border'} transition-all shadow-lg`}>
             <div className="flex justify-between items-start mb-4 border-b border-app-border pb-3">
               <input type="checkbox" checked={selection.includes(row.id)} onChange={() => onSelect(row.id)} className="rounded bg-app-bg border-app-border text-blue-500 focus:ring-0 w-6 h-6" />
               <div className="flex gap-2">
@@ -3495,17 +3505,17 @@ function OrganickIAView({ clients, cobo, matriz, rdc, planning, selectedClientId
   const filteredHistory = history.filter((h: any) => showArchived ? true : !h.__archived);
 
   return (
-    <div className="space-y-8 animate-fade max-w-5xl mx-auto pointer-events-auto pb-20 text-left">
-      <div className="text-center space-y-4 mb-12">
-        <div className="inline-flex p-4 rounded-3xl bg-blue-500/10 border border-blue-500/20 mb-4"><i className="fa-solid fa-wand-magic-sparkles text-3xl text-blue-500"></i></div>
-        <h1 className="text-4xl font-black uppercase tracking-tighter text-app-text-strong">ORGANICKIA</h1>
-        <p className="text-app-text-muted font-bold text-sm uppercase tracking-widest">A inteligência operacional do Método Organick.</p>
+    <div className="space-y-6 md:space-y-8 animate-fade max-w-5xl mx-auto pointer-events-auto pb-20 text-left px-4 md:px-0">
+      <div className="text-center space-y-4 mb-8 md:mb-12 transition-all">
+        <div className="inline-flex p-4 rounded-3xl bg-blue-500/10 border border-blue-500/20 mb-4 hover:scale-110 transition-transform"><i className="fa-solid fa-wand-magic-sparkles text-2xl md:text-3xl text-blue-500"></i></div>
+        <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tighter text-app-text-strong">ORGANICKIA</h1>
+        <p className="text-app-text-muted font-bold text-[10px] md:text-sm uppercase tracking-widest px-4">A inteligência operacional do Método Organick.</p>
       </div>
 
       <Card title="Seletor de Contexto">
-        <div className="p-8">
-          <label className="text-[10px] font-black uppercase text-[#3B82F6] block mb-3 tracking-widest">Selecionar cliente (Obrigatório)</label>
-          <select value={selectedClientId} onChange={(e) => setSelectedClientId(e.target.value)} className="w-full h-12 !bg-app-bg border-app-border text-sm font-bold uppercase text-app-text-strong rounded">
+        <div className="p-5 md:p-8">
+          <label className="text-[9px] md:text-[10px] font-black uppercase text-[#3B82F6] block mb-3 tracking-widest">Selecionar cliente (Obrigatório)</label>
+          <select value={selectedClientId} onChange={(e) => setSelectedClientId(e.target.value)} className="w-full h-12 !bg-app-bg border-app-border text-sm font-bold uppercase text-app-text-strong rounded outline-none focus:border-blue-500/50">
             <option value="">-- Escolha um cliente --</option>
             {clients.map((c: any) => <option key={c.id} value={c.id} className="bg-app-bg">{c.Nome}</option>)}
           </select>
@@ -3516,25 +3526,25 @@ function OrganickIAView({ clients, cobo, matriz, rdc, planning, selectedClientId
         <>
 
           <Card title="Base de Conhecimento (Arquivos)">
-            <div className="p-8 space-y-8">
+            <div className="p-5 md:p-8 space-y-6 md:space-y-8">
               <div className="flex flex-col md:flex-row gap-6">
                 {/* Audio Upload */}
                 <div className="flex-1 space-y-4">
                   <input type="file" accept="audio/*" multiple ref={audioInputRef} className="hidden" onChange={(e) => handleFileUpload(e, 'audio')} />
-                  <div className="flex flex-col items-center justify-center border-2 border-dashed border-app-border rounded-2xl py-8 px-6 text-center transition-all hover:border-[#3B82F6] cursor-pointer bg-app-surface/50" onClick={() => audioInputRef.current?.click()}>
-                    <i className="fa-solid fa-microphone-lines text-3xl text-[#3B82F6] mb-3"></i>
+                  <div className="flex flex-col items-center justify-center border-2 border-dashed border-app-border rounded-2xl py-6 px-4 md:py-8 md:px-6 text-center transition-all hover:border-[#3B82F6] cursor-pointer bg-app-surface/50 active:scale-[0.98]" onClick={() => audioInputRef.current?.click()}>
+                    <i className="fa-solid fa-microphone-lines text-2xl md:text-3xl text-[#3B82F6] mb-3"></i>
                     <p className="text-[10px] text-app-text-muted font-bold uppercase mb-4 tracking-widest">Pautas / Áudios</p>
-                    <Button onClick={(e) => { e.stopPropagation(); audioInputRef.current?.click(); }} disabled={loading} className="w-full text-[10px] !bg-[#3B82F6]/20 !text-[#3B82F6] hover:!bg-[#3B82F6] hover:!text-app-text-strong border border-[#3B82F6]/20">{loading ? 'Processando...' : 'Carregar Áudio'}</Button>
+                    <Button onClick={(e) => { e.stopPropagation(); audioInputRef.current?.click(); }} disabled={loading} className="w-full text-[9px] md:text-[10px] !bg-[#3B82F6]/20 !text-[#3B82F6] hover:!bg-[#3B82F6] hover:!text-app-text-strong border border-[#3B82F6]/20">{loading ? 'Processando...' : 'Carregar Áudio'}</Button>
                   </div>
                 </div>
 
                 {/* PDF Upload */}
                 <div className="flex-1 space-y-4">
                   <input type="file" accept="application/pdf" multiple ref={pdfInputRef} className="hidden" onChange={(e) => handleFileUpload(e, 'pdf')} />
-                  <div className="flex flex-col items-center justify-center border-2 border-dashed border-app-border rounded-2xl py-8 px-6 text-center transition-all hover:border-rose-500 cursor-pointer bg-app-surface/50" onClick={() => pdfInputRef.current?.click()}>
-                    <i className="fa-solid fa-file-pdf text-3xl text-rose-500 mb-3"></i>
+                  <div className="flex flex-col items-center justify-center border-2 border-dashed border-app-border rounded-2xl py-6 px-4 md:py-8 md:px-6 text-center transition-all hover:border-rose-500 cursor-pointer bg-app-surface/50 active:scale-[0.98]" onClick={() => pdfInputRef.current?.click()}>
+                    <i className="fa-solid fa-file-pdf text-2xl md:text-3xl text-rose-500 mb-3"></i>
                     <p className="text-[10px] text-app-text-muted font-bold uppercase mb-4 tracking-widest">Documentos PDF</p>
-                    <Button onClick={(e) => { e.stopPropagation(); pdfInputRef.current?.click(); }} disabled={loading} className="w-full text-[10px] !bg-rose-500/20 !text-rose-500 hover:!bg-rose-500 hover:!text-app-text-strong border border-rose-500/20">{loading ? 'Analisando...' : 'Carregar PDF'}</Button>
+                    <Button onClick={(e) => { e.stopPropagation(); pdfInputRef.current?.click(); }} disabled={loading} className="w-full text-[9px] md:text-[10px] !bg-rose-500/20 !text-rose-500 hover:!bg-rose-500 hover:!text-app-text-strong border border-rose-500/20">{loading ? 'Analisando...' : 'Carregar PDF'}</Button>
                   </div>
                 </div>
               </div>

@@ -98,7 +98,7 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
             // Position: Top-Right aligned with button, shifted down
             setDropdownPos({
                 top: rect.bottom + 12,
-                left: rect.right - 400 // Width of popover is 400px
+                left: Math.max(16, rect.right - 400) // Ensure it doesn't go off screen on tablet
             });
         }
         setIsOpen(!isOpen);
@@ -119,10 +119,10 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
     const isMobile = window.innerWidth < 1024;
 
     const content = (
-        <div className="bg-app-surface h-full flex flex-col">
+        <div className="bg-app-surface h-full flex flex-col overflow-hidden">
             {/* POPUP HEADER */}
-            <div className="p-6 md:p-8 pb-4 shrink-0">
-                <div className="flex items-start justify-between mb-6">
+            <div className="p-6 md:p-10 pb-4 shrink-0">
+                <div className="flex items-start justify-between mb-8">
                     <div className="relative group/avatar cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                         <div className="w-16 h-16 md:w-20 md:h-20 rounded-3xl bg-gradient-to-br from-[#4B3A2F] to-[#2D221B] flex items-center justify-center text-white text-2xl md:text-3xl font-black shadow-xl border border-white/5 overflow-hidden">
                             {profile.avatar_url ? (
@@ -134,21 +134,21 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
                         <div className="absolute inset-0 bg-black/40 rounded-3xl flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity">
                             <i className="fa-solid fa-camera text-white text-xl"></i>
                         </div>
-                        <div className={`absolute -bottom-1 -right-1 w-5 h-5 md:w-6 md:h-6 rounded-full border-4 border-[#111827] ${statusColors[profile.status]} shadow-lg`}></div>
+                        <div className={`absolute -bottom-1 -right-1 w-5 h-5 md:w-6 md:h-6 rounded-full border-4 border border-app-surface ${statusColors[profile.status]} shadow-lg`}></div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-3">
                         <button
                             onClick={onLogout}
                             title="Sair"
-                            className="w-10 h-10 flex items-center justify-center rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 transition-all border border-rose-500/20"
+                            className="w-11 h-11 flex items-center justify-center rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 transition-all border border-rose-500/20 active:scale-95"
                         >
                             <i className="fa-solid fa-right-from-bracket"></i>
                         </button>
                         <button
                             onClick={() => setIsOpen(false)}
-                            className="w-10 h-10 flex items-center justify-center rounded-2xl bg-white/5 hover:bg-white/10 text-gray-400 transition-all border border-white/10"
+                            className="w-11 h-11 flex items-center justify-center rounded-2xl bg-white/5 hover:bg-white/10 text-app-text-muted transition-all border border-white/10 active:scale-95"
                         >
-                            <i className="fa-solid fa-close text-lg"></i>
+                            <i className="fa-solid fa-xmark text-lg"></i>
                         </button>
                     </div>
                 </div>
@@ -161,17 +161,17 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
                             onChange={(e) => setNewName(e.target.value)}
                             onBlur={handleNameSubmit}
                             onKeyDown={(e) => e.key === 'Enter' && handleNameSubmit()}
-                            className="bg-[#0B0F19] border border-blue-500/30 rounded-xl px-3 py-1 text-xl font-bold text-white outline-none w-full shadow-inner shadow-blue-500/5"
+                            className="bg-app-surface-2 border border-blue-500/30 rounded-xl px-4 py-2 text-xl font-bold text-app-text-strong outline-none w-full shadow-inner shadow-blue-500/5 mb-2"
                         />
                     ) : (
                         <div
-                            className="group flex items-center gap-2 cursor-pointer"
+                            className="group flex items-center gap-3 cursor-pointer py-1"
                             onClick={() => setIsEditingName(true)}
                         >
-                            <h3 className="text-lg md:text-xl font-black text-white leading-tight tracking-tighter">
+                            <h3 className="text-xl md:text-2xl font-black text-app-text-strong leading-tight tracking-tighter">
                                 {profile.full_name || 'Configurar Nome'}
                             </h3>
-                            <i className="fa-solid fa-pen text-gray-700 text-[10px] group-hover:text-blue-500 transition-colors"></i>
+                            <i className="fa-solid fa-pen text-app-text-muted text-xs md:opacity-0 group-hover:opacity-100 transition-all"></i>
                         </div>
                     )}
 
@@ -183,41 +183,41 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
                             value={newRole}
                             onChange={(e) => setNewRole(e.target.value)}
                             placeholder="Seu Cargo..."
-                            className="bg-[#0B0F19]/50 border border-gray-700 rounded-lg px-2 py-0.5 text-[11px] font-black text-white uppercase tracking-widest outline-none w-full"
+                            className="bg-app-surface-2/50 border border-app-border rounded-lg px-3 py-1.5 text-[11px] font-black text-app-text-strong uppercase tracking-widest outline-none w-full"
                         />
                     ) : (
                         <button
                             onClick={() => setIsEditingRole(true)}
-                            className="text-[10px] md:text-[11px] font-black text-gray-500 hover:text-white transition-colors flex items-center gap-2 uppercase tracking-widest group"
+                            className="text-[11px] md:text-[12px] font-black text-app-text-muted hover:text-app-text-strong transition-colors flex items-center gap-3 uppercase tracking-widest group py-1"
                         >
                             {profile.role || 'ESPECIALISTA EKKO'}
-                            <i className="fa-solid fa-pencil text-[8px] opacity-0 group-hover:opacity-100"></i>
+                            <i className="fa-solid fa-pencil text-[9px] md:opacity-0 group-hover:opacity-100 transition-all"></i>
                         </button>
                     )}
 
                     <div className="flex items-center gap-3 mt-4">
-                        <div className="flex items-center gap-2 bg-[#0B0F19] rounded-xl px-3 py-2 border border-white/5 shadow-inner">
-                            <div className={`w-2 h-2 rounded-full ${statusColors[profile.status]} shadow-[0_0_8px_rgba(16,185,129,0.3)] animate-pulse`}></div>
+                        <div className="flex items-center gap-2 bg-app-surface-2 rounded-xl px-4 py-2.5 border border-app-border-light shadow-inner">
+                            <div className={`w-2.5 h-2.5 rounded-full ${statusColors[profile.status]} shadow-[0_0_8px_rgba(16,185,129,0.3)] animate-pulse`}></div>
                             <select
                                 value={profile.status}
                                 onChange={(e) => onUpdate({ status: e.target.value as any })}
                                 className="bg-transparent text-[10px] font-black uppercase text-emerald-500 tracking-widest outline-none cursor-pointer border-none p-0 hover:text-emerald-400 transition-colors appearance-none"
                             >
-                                <option value="online" className="bg-[#111827]">On-line</option>
-                                <option value="ocupado" className="bg-[#111827]">Ocupado</option>
-                                <option value="ausente" className="bg-[#111827]">Ausente</option>
-                                <option value="offline" className="bg-[#111827]">Off-line</option>
+                                <option value="online" className="bg-app-surface">On-line</option>
+                                <option value="ocupado" className="bg-app-surface">Ocupado</option>
+                                <option value="ausente" className="bg-app-surface">Ausente</option>
+                                <option value="offline" className="bg-app-surface">Off-line</option>
                             </select>
-                            <i className="fa-solid fa-angle-down text-[8px] text-gray-600"></i>
+                            <i className="fa-solid fa-angle-down text-[8px] text-app-text-muted"></i>
                         </div>
-                        <span className="text-[10px] font-bold text-gray-600 truncate opacity-60 max-w-[150px]">{profile.email}</span>
+                        <span className="text-[10px] font-bold text-app-text-muted truncate opacity-60 max-w-[150px]">{profile.email}</span>
                     </div>
                 </div>
 
-                <div className="mt-6">
+                <div className="mt-8">
                     <button
                         onClick={() => alert('Gerando seu StandUp diário com IA... Aguarde um instante.')}
-                        className="w-full justify-center px-4 py-3 bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30 rounded-2xl text-purple-400 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-purple-950/20"
+                        className="w-full justify-center px-4 py-4 bg-gradient-to-r from-purple-600/10 to-blue-600/10 border border-purple-500/20 rounded-2xl text-purple-400 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-lg"
                     >
                         <i className="fa-solid fa-wand-magic-sparkles"></i>
                         Obter StandUp Diário
@@ -226,7 +226,7 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
             </div>
 
             {/* TABS SELECTOR */}
-            <div className="flex px-6 md:px-8 border-b border-white/5 gap-6 md:gap-8 mt-4 overflow-x-auto no-scrollbar shrink-0">
+            <div className="flex px-6 md:px-10 border-b border-app-border gap-6 md:gap-10 mt-4 overflow-x-auto no-scrollbar shrink-0">
                 {['Atividade', `Tarefas (${myTasks.length})`, 'Calendário'].map(tab => (
                     <button
                         key={tab}
@@ -234,31 +234,28 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
                             setActiveTab(tab.split(' ')[0]);
                             setIsContentExpanded(true);
                         }}
-                        className={`py-4 text-[10px] font-black uppercase tracking-widest transition-all relative whitespace-nowrap ${activeTab === tab.split(' ')[0] ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                        className={`py-4 text-[10px] font-black uppercase tracking-widest transition-all relative whitespace-nowrap ${activeTab === tab.split(' ')[0] ? 'text-app-text-strong border-b-2 border-blue-500' : 'text-app-text-muted hover:text-app-text-strong'}`}
                     >
                         {tab}
-                        {activeTab === tab.split(' ')[0] && (
-                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"></div>
-                        )}
                     </button>
                 ))}
             </div>
 
             {/* COLLAPSIBLE CONTENT AREA */}
             <div className={`transition-all duration-300 flex-1 overflow-hidden flex flex-col ${isContentExpanded ? 'opacity-100' : 'max-h-0 opacity-0'}`}>
-                <div className="p-6 md:p-8 space-y-8 bg-[#0B0F19]/50 overflow-y-auto custom-scrollbar flex-1">
+                <div className="p-6 md:p-10 space-y-8 bg-app-surface-2/30 overflow-y-auto custom-scrollbar flex-1">
                     {activeTab === 'Atividade' && (
                         <div className="space-y-6">
                             <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-black uppercase text-white tracking-widest">Feed de Ações</span>
-                                <button onClick={() => setIsContentExpanded(false)} className="text-[10px] font-bold text-gray-500 hover:text-white">Recolher</button>
+                                <span className="text-[10px] font-black uppercase text-app-text-strong tracking-widest">Feed de Ações</span>
+                                <button onClick={() => setIsContentExpanded(false)} className="text-[10px] font-bold text-app-text-muted hover:text-app-text-strong">Recolher</button>
                             </div>
                             <div className="space-y-4">
                                 {tasks.flatMap(t => t.Activities || []).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 5).map(act => (
-                                    <div key={act.id} className="flex gap-3 border-l-2 border-white/5 pl-4 py-1">
+                                    <div key={act.id} className="flex gap-4 border-l-2 border-app-border-light pl-6 py-2">
                                         <div className="flex-1">
-                                            <p className="text-[11px] text-gray-400 font-bold uppercase"><span className="text-white">{act.user.split('@')[0]}</span> {act.message}</p>
-                                            <span className="text-[9px] text-gray-600 font-bold">{new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                            <p className="text-[11px] text-app-text-muted font-bold uppercase"><span className="text-app-text-strong">{act.user.split('@')[0]}</span> {act.message}</p>
+                                            <span className="text-[9px] text-app-text-muted font-bold opacity-60">{new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -269,21 +266,21 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
                     {activeTab === 'Tarefas' && (
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-black uppercase text-white tracking-widest">Minhas Urgências</span>
-                                <button onClick={() => setIsContentExpanded(false)} className="text-[10px] font-bold text-gray-500 hover:text-white">Recolher</button>
+                                <span className="text-[10px] font-black uppercase text-app-text-strong tracking-widest">Minhas Urgências</span>
+                                <button onClick={() => setIsContentExpanded(false)} className="text-[10px] font-bold text-app-text-muted hover:text-app-text-strong">Recolher</button>
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                                 {myTasks.length > 0 ? myTasks.map(t => (
-                                    <div key={t.id} className="p-4 bg-white/[0.03] border border-white/5 rounded-2xl flex items-center gap-3 hover:bg-white/[0.06] transition-all cursor-pointer">
-                                        <div className={`w-1.5 h-1.5 rounded-full ${t.Prioridade === 'Urgente' ? 'bg-rose-500' : 'bg-blue-500'}`}></div>
+                                    <div key={t.id} className="p-5 bg-app-surface border border-app-border rounded-2xl flex items-center gap-4 hover:border-blue-500/30 transition-all cursor-pointer shadow-sm">
+                                        <div className={`w-2 h-2 rounded-full ${t.Prioridade === 'Urgente' ? 'bg-rose-500' : 'bg-blue-500'}`}></div>
                                         <div className="flex-1 overflow-hidden">
-                                            <p className="text-[11px] font-black text-white uppercase truncate">{t.Título}</p>
-                                            <p className="text-[9px] font-bold text-gray-600 uppercase italic">Prazo: {t.Data_Entrega || 'S/D'}</p>
+                                            <p className="text-[11px] font-black text-app-text-strong uppercase truncate">{t.Título}</p>
+                                            <p className="text-[9px] font-bold text-app-text-muted uppercase italic opacity-60">Prazo: {t.Data_Entrega || 'S/D'}</p>
                                         </div>
-                                        <i className="fa-solid fa-chevron-right text-[10px] text-gray-700"></i>
+                                        <i className="fa-solid fa-chevron-right text-[10px] text-app-text-muted"></i>
                                     </div>
                                 )) : (
-                                    <p className="text-[10px] text-gray-600 font-bold uppercase text-center py-4 italic">Sem tarefas pendentes</p>
+                                    <p className="text-[10px] text-app-text-muted font-bold uppercase text-center py-6 italic opacity-60">Sem tarefas pendentes</p>
                                 )}
                             </div>
                         </div>
@@ -292,25 +289,25 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
                     {activeTab === 'Calendário' && (
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-black uppercase text-white tracking-widest">Meus Prazos</span>
-                                <button onClick={() => setIsContentExpanded(false)} className="text-[10px] font-bold text-gray-500 hover:text-white">Recolher</button>
+                                <span className="text-[10px] font-black uppercase text-app-text-strong tracking-widest">Meus Prazos</span>
+                                <button onClick={() => setIsContentExpanded(false)} className="text-[10px] font-bold text-app-text-muted hover:text-app-text-strong">Recolher</button>
                             </div>
-                            <div className="bg-[#0B0F19] p-4 rounded-2xl border border-white/5">
-                                <div className="flex flex-col gap-3">
+                            <div className="bg-app-surface p-6 rounded-2xl border border-app-border shadow-sm">
+                                <div className="flex flex-col gap-4">
                                     {myTasks.filter(t => t.Data_Entrega).sort((a, b) => a.Data_Entrega!.localeCompare(b.Data_Entrega!)).map(t => (
-                                        <div key={t.id} className="flex items-center gap-3 pb-3 border-b border-white/5 last:border-0 last:pb-0">
-                                            <div className="flex flex-col items-center justify-center bg-blue-500/10 rounded-xl px-2 py-1 min-w-[45px]">
-                                                <span className="text-[10px] font-black text-blue-500 leading-none">{t.Data_Entrega?.split('-')[2]}</span>
-                                                <span className="text-[7px] font-black text-blue-400 uppercase">{new Date(t.Data_Entrega! + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}</span>
+                                        <div key={t.id} className="flex items-center gap-4 pb-4 border-b border-app-border last:border-0 last:pb-0">
+                                            <div className="flex flex-col items-center justify-center bg-blue-500/10 rounded-xl px-2 py-2 min-w-[50px]">
+                                                <span className="text-[11px] font-black text-blue-500 leading-none">{t.Data_Entrega?.split('-')[2]}</span>
+                                                <span className="text-[8px] font-black text-blue-400 uppercase">{new Date(t.Data_Entrega! + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}</span>
                                             </div>
                                             <div className="flex-1 overflow-hidden">
-                                                <p className="text-[10px] font-black text-white uppercase truncate">{t.Título}</p>
-                                                <span className="text-[8px] font-bold text-gray-600 uppercase">{t.Hora_Entrega || '09:00'}</span>
+                                                <p className="text-[11px] font-black text-app-text-strong uppercase truncate">{t.Título}</p>
+                                                <span className="text-[9px] font-bold text-app-text-muted uppercase opacity-60">{t.Hora_Entrega || '09:00'}</span>
                                             </div>
                                         </div>
                                     ))}
                                     {myTasks.filter(t => t.Data_Entrega).length === 0 && (
-                                        <p className="text-[10px] text-gray-600 font-bold text-center italic">Nenhum prazo definido</p>
+                                        <p className="text-[10px] text-app-text-muted font-bold text-center italic opacity-60">Nenhum prazo definido</p>
                                     )}
                                 </div>
                             </div>
@@ -318,48 +315,48 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
                     )}
 
                     {/* PRIORITIES SECTION */}
-                    <div className="pt-6 border-t border-white/5">
-                        <div className="flex items-center justify-between mb-4">
+                    <div className="pt-8 border-t border-app-border">
+                        <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-black uppercase text-white tracking-widest">Prioridades Focadas</span>
+                                <span className="text-[10px] font-black uppercase text-app-text-strong tracking-widest">Prioridades Focadas</span>
                                 <i className="fa-solid fa-bullseye text-blue-500 text-[10px]"></i>
                             </div>
                             <button
                                 onClick={() => setIsAddingPriority(true)}
-                                className="text-[10px] font-black uppercase text-[#3B82F6] hover:text-white flex items-center gap-1 transition-all"
+                                className="text-[10px] font-black uppercase text-[#3B82F6] hover:text-blue-400 flex items-center gap-2 transition-all"
                             >
-                                <i className="fa-solid fa-plus"></i> Adicionar
+                                <i className="fa-solid fa-plus text-[8px]"></i> Adicionar
                             </button>
                         </div>
 
                         {isAddingPriority && (
-                            <div className="mb-4 flex gap-2">
+                            <div className="mb-6 flex gap-3">
                                 <input
                                     autoFocus
                                     value={newPriority}
                                     onChange={e => setNewPriority(e.target.value)}
                                     onKeyDown={e => e.key === 'Enter' && handleAddPriority()}
-                                    placeholder="Desfio de hoje..."
-                                    className="flex-1 bg-[#0B0F19] border border-blue-500/30 rounded-xl px-3 py-2 text-[10px] font-bold text-white uppercase outline-none"
+                                    placeholder="Foco de hoje..."
+                                    className="flex-1 bg-app-surface-2 border border-blue-500/30 rounded-xl px-4 py-3 text-[10px] font-bold text-app-text-strong uppercase outline-none shadow-inner"
                                 />
-                                <button onClick={handleAddPriority} className="bg-blue-600 text-white px-3 rounded-xl text-xs"><i className="fa-solid fa-check"></i></button>
-                                <button onClick={() => setIsAddingPriority(false)} className="text-gray-500 px-1"><i className="fa-solid fa-xmark"></i></button>
+                                <button onClick={handleAddPriority} className="bg-blue-600 text-white px-4 rounded-xl text-xs active:scale-90 transition-transform"><i className="fa-solid fa-check"></i></button>
+                                <button onClick={() => setIsAddingPriority(false)} className="text-app-text-muted px-2 active:scale-90 transition-transform"><i className="fa-solid fa-xmark"></i></button>
                             </div>
                         )}
 
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                             {(profile.priorities || []).map((p, i) => (
-                                <div key={i} className="group flex items-center gap-3 p-3 bg-white/[0.02] border border-white/5 rounded-xl">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.3)]"></div>
-                                    <span className="text-[10px] font-black text-gray-300 uppercase flex-1 truncate">{p}</span>
-                                    <button onClick={() => removePriority(i)} className="opacity-0 group-hover:opacity-100 text-rose-500/50 hover:text-rose-500 transition-all">
-                                        <i className="fa-solid fa-trash-can text-[9px]"></i>
+                                <div key={i} className="group flex items-center gap-4 p-4 bg-app-surface border border-app-border rounded-xl shadow-sm hover:border-blue-500/20 transition-all">
+                                    <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.3)]"></div>
+                                    <span className="text-[10px] font-black text-app-text-muted uppercase flex-1 truncate">{p}</span>
+                                    <button onClick={() => removePriority(i)} className="md:opacity-0 group-hover:opacity-100 text-rose-500/50 hover:text-rose-500 transition-all active:scale-90">
+                                        <i className="fa-solid fa-trash-can text-[10px]"></i>
                                     </button>
                                 </div>
                             ))}
                             {(!profile.priorities || profile.priorities.length === 0) && !isAddingPriority && (
-                                <div className="p-6 border border-dashed border-white/5 rounded-2xl flex items-center justify-center bg-white/[0.01]">
-                                    <p className="text-[10px] uppercase font-black tracking-widest text-gray-600 text-center italic">Liste seus focos principais.</p>
+                                <div className="p-10 border border-dashed border-app-border rounded-2xl flex items-center justify-center bg-app-surface/50">
+                                    <p className="text-[10px] uppercase font-black tracking-widest text-app-text-muted text-center italic opacity-60">Liste seus focos principais.</p>
                                 </div>
                             )}
                         </div>
@@ -368,10 +365,10 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
             </div>
 
             {!isContentExpanded && (
-                <div className="px-6 md:px-8 pb-8 pt-2 shrink-0">
+                <div className="px-6 md:px-10 pb-10 pt-4 shrink-0">
                     <button
                         onClick={() => setIsContentExpanded(true)}
-                        className="w-full py-3 border border-dashed border-white/10 rounded-2xl text-[9px] font-black uppercase tracking-[0.3em] text-gray-600 hover:text-white hover:border-white/20 transition-all"
+                        className="w-full py-4 border border-dashed border-app-border rounded-2xl text-[9px] font-black uppercase tracking-[0.3em] text-app-text-muted hover:text-app-text-strong hover:border-app-text-muted transition-all bg-app-surface/50 active:scale-95"
                     >
                         <i className="fa-solid fa-angle-down mr-2 animate-bounce"></i>
                         Expandir Painel Completo
@@ -390,8 +387,8 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
 
     return (
         <>
-            {/* BACKDROP - Desktop Only involved in popover logic often but if mobile uses sheet it has its own backdrop */}
-            {isOpen && !isMobile && <div className="fixed inset-0 z-[1900] bg-transparent" onClick={() => setIsOpen(false)}></div>}
+            {/* BACKDROP - Desktop Only */}
+            {isOpen && !isMobile && <div className="fixed inset-0 z-[1900] bg-black/20 backdrop-blur-sm" onClick={() => setIsOpen(false)}></div>}
 
             <div className="relative">
                 {/* TRIGGER AVATAR */}
@@ -399,6 +396,7 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
                     ref={buttonRef}
                     onClick={togglePopover}
                     className="relative group focus:outline-none"
+                    aria-label="Abrir Perfil"
                 >
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center border-2 border-app-border text-white font-black text-sm shadow-lg transition-all group-hover:scale-110 group-active:scale-95 overflow-hidden">
                         {profile.avatar_url ? (
@@ -418,8 +416,11 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
                         </BottomSheet>
                     ) : (
                         <div
-                            className="fixed w-[400px] bg-app-surface border border-app-border rounded-[40px] shadow-2xl z-[2000] overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col"
-                            style={{ top: dropdownPos.top, left: dropdownPos.left }}
+                            className="fixed w-[420px] max-w-[calc(100vw-32px)] bg-app-surface border border-app-border rounded-[40px] shadow-2xl z-[2000] overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col"
+                            style={{
+                                top: Math.min(window.innerHeight - 600, dropdownPos.top),
+                                left: Math.max(16, Math.min(window.innerWidth - 436, dropdownPos.left))
+                            }}
                         >
                             {content}
                         </div>
