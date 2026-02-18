@@ -114,35 +114,15 @@ export const DatabaseService = {
     },
 
     async acceptInvite(token: string) {
-        const { data: invite, error: fetchError } = await supabase
-            .from('invites')
-            .select('*')
-            .eq('token', token)
-            .single();
+        // Use RPC to bypass RLS for membership insertion
+        const { data, error } = await supabase.rpc('accept_invite', { token_in: token });
 
-        if (fetchError || !invite) throw new Error('Convite inválido ou expirado.');
-
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('Faça login para aceitar o convite.');
-
-        // Add to members
-        const { error: joinError } = await supabase
-            .from('workspace_members')
-            .insert({
-                workspace_id: invite.workspace_id,
-                user_id: user.id,
-                role: invite.role
-            });
-
-        if (joinError) {
-            // Ignore if already member
-            if (!joinError.message.includes('duplicate key')) throw joinError;
+        if (error) {
+            console.error('Error accepting invite:', error);
+            throw new Error(error.message || 'Erro ao aceitar convite.');
         }
 
-        // Delete invite (optional, or keep for history)
-        // await supabase.from('invites').delete().eq('id', invite.id);
-
-        return invite.workspace_id;
+        return data?.workspace_id;
     },
 
     async removeMember(workspaceId: string, userId: string) {
