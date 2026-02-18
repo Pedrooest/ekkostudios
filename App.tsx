@@ -648,7 +648,7 @@ export default function App() {
 
     const updateFn = (list: any[]) => list.map(i => {
       if (i.id === id) {
-        let updated = { ...i, [field]: value, Updated_At: new Date().toISOString() };
+        let updated = { ...i, [field]: value, updated_at: new Date().toISOString() };
 
         // Notification Triggers
         if (tab === 'TAREFAS') {
@@ -733,7 +733,7 @@ export default function App() {
 
         if (error) {
           console.error(`[EKKO-SYNC] UPDATE_FAILURE | Table: ${tableName} | ID: ${itemToSync.id}`, error);
-          addNotification('error', 'Falha ao salvar (DEBUG)', `Erro: ${error.message || JSON.stringify(error) || 'Não foi possível sincronizar as alterações.'}`);
+          addNotification('error', 'Falha ao salvar', `Erro: ${error.message || JSON.stringify(error) || 'Não foi possível sincronizar as alterações.'}`);
         } else if (!skipLog) {
           addNotification('success', 'Alterações salvas', `O campo ${field} foi atualizado.`);
         }
@@ -809,7 +809,7 @@ export default function App() {
           else if (tab === 'MATRIZ') setMatriz(filterFn);
           else if (tab === 'RDC') setRdc(filterFn);
 
-          addNotification('error', 'Erro ao salvar (DEBUG)', `Erro: ${error.message || JSON.stringify(error) || 'O registro não pôde ser criado no servidor.'}`);
+          addNotification('error', 'Erro ao salvar', `Erro: ${error.message || JSON.stringify(error) || 'O registro não pôde ser criado no servidor.'}`);
         } else {
           if (tab === 'CLIENTES') addNotification('success', 'Cliente criado com sucesso', 'Um novo perfil de cliente foi adicionado.');
           else if (tab === 'TAREFAS') addNotification('success', 'Nova tarefa adicionada', 'A tarefa foi criada no fluxo de trabalho.');
