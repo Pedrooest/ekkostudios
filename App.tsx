@@ -1457,7 +1457,7 @@ export default function App() {
 
 
 
-        <div className="flex-1 overflow-y-auto p-4 lg:p-10 custom-scrollbar animate-fade bg-app-bg">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-10 pb-24 lg:pb-10 custom-scrollbar animate-fade bg-app-bg">
           {activeTab === 'DASHBOARD' && <DashboardView clients={clients} tasks={currentTasks} financas={currentFinancas} planejamento={currentPlanejamento} rdc={currentRdc} />}
           {activeTab === 'CLIENTES' && <TableView tab="CLIENTES" data={filterArchived(clients)} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('CLIENTES')} clients={clients} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} />}
           {activeTab === 'RDC' && <TableView tab="RDC" data={currentRdc} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('RDC')} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
@@ -1504,10 +1504,10 @@ export default function App() {
 
         {
           selectedTaskId && (
-            <div className={`fixed inset-0 z-[100] flex animate-fade pointer-events-none ${taskDetailViewMode === 'sidebar' ? 'justify-end' : 'items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-auto'}`}>
+            <div className={`fixed inset-0 z-[2000] flex animate-fade pointer-events-none ${taskDetailViewMode === 'sidebar' ? 'justify-end' : 'items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-auto'}`}>
               <div className={`bg-app-surface-2 shadow-2xl transition-all pointer-events-auto overflow-hidden
-              ${taskDetailViewMode === 'sidebar' ? 'h-[calc(100vh-32px)] w-[550px] my-4 mr-4 rounded-3xl border border-app-border' : ''}
-              ${taskDetailViewMode === 'modal' ? 'w-[900px] h-[85vh] rounded-[32px] border border-app-border' : ''}
+              ${taskDetailViewMode === 'sidebar' ? 'h-[calc(100dvh-32px)] w-[550px] my-4 mr-4 rounded-3xl border border-app-border' : ''}
+              ${taskDetailViewMode === 'modal' ? 'w-[900px] h-[85dvh] rounded-[32px] border border-app-border' : ''}
               ${taskDetailViewMode === 'fullscreen' ? 'fixed inset-4 rounded-[40px] border border-app-border' : ''}
             `}>
                 <TaskDetailPanel
@@ -1554,7 +1554,7 @@ export default function App() {
       {
         isPresentationOpen && presentationBrief && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-xl md:p-10 pointer-events-auto">
-            <div className="w-full h-full md:h-[90vh] md:max-w-6xl bg-app-surface border border-white/10 md:rounded-[30px] shadow-2xl flex flex-col overflow-hidden text-left">
+            <div className="w-full h-full md:h-[90dvh] md:max-w-6xl bg-app-surface border border-white/10 md:rounded-[30px] shadow-2xl flex flex-col overflow-hidden text-left">
               <div className="h-20 flex items-center justify-between px-6 md:px-10 border-b border-white/5 bg-app-surface-2 shrink-0">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-500"><i className="fa-solid fa-wand-magic-sparkles"></i></div>
@@ -2286,10 +2286,10 @@ function TaskFlowView({ tasks, clients, collaborators, activeViewId, setActiveVi
         <div className="flex gap-2"><DeletionBar count={selection.length} onDelete={() => onDelete(selection, 'TAREFAS')} onArchive={() => onArchive(selection, 'TAREFAS', true)} onClear={onClearSelection} /><Button onClick={() => onAdd('TAREFAS')} className="hidden md:flex !bg-[#3B82F6] h-10 shadow-lg shadow-blue-500/20"><i className="fa-solid fa-plus mr-2"></i>Nova Tarefa</Button></div>
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-2">
-        {viewType === 'List' && (<div className="space-y-4 pb-20">{DEFAULT_TASK_STATUSES.map(status => { const statusTasks = filteredTasks.filter((t: any) => t.Status === status.id); const isExpanded = expandedGroups.includes(status.id); return (<div key={status.id} className="space-y-1"><div className="flex items-center gap-3 p-2 bg-app-surface/30 rounded-lg cursor-pointer hover:bg-app-surface transition-all group" onClick={() => setExpandedGroups(prev => isExpanded ? prev.filter(g => g !== status.id) : [...prev, status.id])}><i className={`fa-solid ${isExpanded ? 'fa-chevron-down' : 'fa-chevron-right'} text-[10px] text-[#334155]`}></i><div className="w-2 h-2 rounded-full" style={{ backgroundColor: status.color }}></div><span className="text-[11px] font-black uppercase text-app-text-strong tracking-widest">{status.label}</span><button onClick={(e) => { e.stopPropagation(); onAdd('TAREFAS', { Status: status.id }); }} className="ml-auto opacity-0 group-hover:opacity-100 text-[10px] font-bold text-[#3B82F6]">+ Nova</button></div>{isExpanded && (<div className="space-y-1 ml-4 animate-fade">{statusTasks.map((t: any) => (<div key={t.id} onClick={() => onSelectTask(t.id)} className={`flex items-center gap-4 p-3 bg-app-surface border border-app-border rounded-xl hover:border-[#3B82F6]/50 cursor-pointer group ${selection.includes(t.id) ? 'bg-[#3B82F6]/5 border-[#3B82F6]' : ''}`}><div className="flex items-center gap-3 shrink-0" onClick={e => { e.stopPropagation(); onSelect(t.id); }}><input type="checkbox" checked={selection.includes(t.id)} readOnly /></div><div className="flex-1 min-w-0"><span className="text-[9px] font-black text-[#334155] uppercase block mb-1 leading-none">{clients.find((c: any) => c.id === t.Cliente_ID)?.Nome}</span><h5 className="text-xs font-bold text-app-text-strong uppercase truncate">{t.Título}</h5></div><div className="flex items-center gap-4 shrink-0"><select value={t.Prioridade} onClick={e => e.stopPropagation()} onChange={e => onUpdate(t.id, 'TAREFAS', 'Prioridade', e.target.value)} className="!p-0 !h-6 !bg-transparent border-none text-[10px] font-black uppercase w-20 text-app-text-muted">{PRIORIDADE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select><div className="w-8 h-8 rounded-lg bg-[#3B82F6]/10 text-[#3B82F6] flex items-center justify-center text-[10px] font-black border border-[#3B82F6]/20">{t.Responsável?.slice(0, 1).toUpperCase() || '?'}</div></div></div>))}</div>)}</div>); })}</div>)}
+        {viewType === 'List' && (<div className="space-y-4 pb-32">{DEFAULT_TASK_STATUSES.map(status => { const statusTasks = filteredTasks.filter((t: any) => t.Status === status.id); const isExpanded = expandedGroups.includes(status.id); return (<div key={status.id} className="space-y-1"><div className="flex items-center gap-3 p-2 bg-app-surface/30 rounded-lg cursor-pointer hover:bg-app-surface transition-all group" onClick={() => setExpandedGroups(prev => isExpanded ? prev.filter(g => g !== status.id) : [...prev, status.id])}><i className={`fa-solid ${isExpanded ? 'fa-chevron-down' : 'fa-chevron-right'} text-[10px] text-[#334155]`}></i><div className="w-2 h-2 rounded-full" style={{ backgroundColor: status.color }}></div><span className="text-[11px] font-black uppercase text-app-text-strong tracking-widest">{status.label}</span><button onClick={(e) => { e.stopPropagation(); onAdd('TAREFAS', { Status: status.id }); }} className="ml-auto opacity-0 group-hover:opacity-100 text-[10px] font-bold text-[#3B82F6]">+ Nova</button></div>{isExpanded && (<div className="space-y-1 ml-4 animate-fade">{statusTasks.map((t: any) => (<div key={t.id} onClick={() => onSelectTask(t.id)} className={`flex items-center gap-4 p-3 bg-app-surface border border-app-border rounded-xl hover:border-[#3B82F6]/50 cursor-pointer group ${selection.includes(t.id) ? 'bg-[#3B82F6]/5 border-[#3B82F6]' : ''}`}><div className="flex items-center gap-3 shrink-0" onClick={e => { e.stopPropagation(); onSelect(t.id); }}><input type="checkbox" checked={selection.includes(t.id)} readOnly /></div><div className="flex-1 min-w-0"><span className="text-[9px] font-black text-[#334155] uppercase block mb-1 leading-none">{clients.find((c: any) => c.id === t.Cliente_ID)?.Nome}</span><h5 className="text-xs font-bold text-app-text-strong uppercase truncate">{t.Título}</h5></div><div className="flex items-center gap-4 shrink-0"><select value={t.Prioridade} onClick={e => e.stopPropagation()} onChange={e => onUpdate(t.id, 'TAREFAS', 'Prioridade', e.target.value)} className="!p-0 !h-6 !bg-transparent border-none text-[10px] font-black uppercase w-20 text-app-text-muted">{PRIORIDADE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select><div className="w-8 h-8 rounded-lg bg-[#3B82F6]/10 text-[#3B82F6] flex items-center justify-center text-[10px] font-black border border-[#3B82F6]/20">{t.Responsável?.slice(0, 1).toUpperCase() || '?'}</div></div></div>))}</div>)}</div>); })}</div>)}
         {viewType === 'Board' && (<div className="flex gap-6 h-full overflow-x-auto pb-6 custom-scrollbar pr-4">{DEFAULT_TASK_STATUSES.map(status => (<div key={status.id} className="min-w-[300px] w-[300px] flex flex-col gap-4 bg-app-surface/30 p-4 rounded-2xl border border-app-border"><div className="flex items-center justify-between border-b border-app-border pb-3"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full" style={{ backgroundColor: status.color }}></div><span className="text-[11px] font-black uppercase text-app-text-strong tracking-widest">{status.label}</span></div></div><div className="flex-1 space-y-4 overflow-y-auto no-scrollbar">{filteredTasks.filter((t: any) => t.Status === status.id).map((t: any) => (<div key={t.id} onClick={() => onSelectTask(t.id)} className={`p-5 bg-app-surface border border-app-border rounded-2xl shadow-xl hover:border-[#3B82F6]/50 transition-all cursor-pointer relative overflow-hidden group`}><div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: status.color }}></div><h5 className="text-sm font-bold text-app-text-strong mb-6 uppercase leading-tight">{t.Título}</h5><div className="flex items-center justify-between"><Badge color={t.Prioridade === 'Urgente' ? 'red' : 'blue'}>{t.Prioridade}</Badge><div className="w-6 h-6 rounded-lg bg-[#3B82F6]/10 text-[#3B82F6] flex items-center justify-center text-[8px] font-black border border-[#3B82F6]/20">{t.Responsável?.slice(0, 1).toUpperCase() || '?'}</div></div></div>))}</div></div>))}</div>)}
         {viewType === 'Calendar' && (
-          <div className="h-[calc(100vh-250px)] min-h-[600px] bg-app-surface/30 border border-app-border rounded-[32px] p-5 md:p-8 shadow-2xl overflow-hidden relative">
+          <div className="h-[calc(100dvh-250px)] min-h-[600px] bg-app-surface/30 border border-app-border rounded-[32px] p-5 md:p-8 shadow-2xl overflow-hidden relative">
             <FullCalendar
               plugins={[dayGridPlugin, interactionPlugin]}
               initialView="dayGridMonth"
@@ -3209,26 +3209,64 @@ function TableView({ tab, data, onUpdate, onDelete, onArchive, onAdd, clients, l
 
       {/* MOBILE CARD VIEW */}
       <div className="md:hidden space-y-4 px-1">
-        {data.map((row: any) => (
-          <div key={row.id} className={`p-4 md:p-5 rounded-2xl border ${selection.includes(row.id) ? 'bg-[#3B82F6]/5 border-[#3B82F6]/30' : 'bg-app-surface/50 border-app-border'} transition-all shadow-lg`}>
-            <div className="flex justify-between items-start mb-4 border-b border-app-border pb-3">
-              <input type="checkbox" checked={selection.includes(row.id)} onChange={() => onSelect(row.id)} className="rounded bg-app-bg border-app-border text-blue-500 focus:ring-0 w-6 h-6" />
-              <div className="flex gap-2">
+        {data.map((row: any) => {
+          // Define groups for mobile view
+          const mobileGroups = tab === 'COBO' ? [
+            { title: 'Veiculação', cols: ['Canal', 'Frequência'] },
+            { title: 'Público & Voz', cols: ['Público', 'Voz'] },
+            { title: 'Estratégia', cols: ['Zona', 'Intenção', 'Formato'] },
+          ] : tab === 'RDC' ? [
+            { title: 'Conteúdo', cols: ['Ideia de Conteúdo', 'Rede_Social', 'Tipo de conteúdo'] },
+            { title: 'Avaliação', cols: ['Resolução (1–5)', 'Demanda (1–5)', 'Competição (1–5)'] },
+            { title: 'Resultado', cols: ['Score (R×D×C)', 'Decisão'] },
+          ] : null;
+
+          return (
+            <div key={row.id} className={`p-4 md:p-5 rounded-2xl border ${selection.includes(row.id) ? 'bg-[#3B82F6]/5 border-[#3B82F6]/30' : 'bg-app-surface/50 border-app-border'} transition-all shadow-lg`}>
+              <div className="flex justify-between items-start mb-4 border-b border-app-border pb-3">
+                <input type="checkbox" checked={selection.includes(row.id)} onChange={() => onSelect(row.id)} className="rounded bg-app-bg border-app-border text-blue-500 focus:ring-0 w-6 h-6" />
                 <div className="flex gap-2">
-                  <button onClick={() => setMobileActionRow(row)} className="w-10 h-10 rounded-xl bg-app-surface-2 border border-app-border text-app-text-muted hover:text-app-text-strong flex items-center justify-center transition-colors active:bg-app-surface-3"><i className="fa-solid fa-ellipsis-vertical text-sm"></i></button>
+                  <div className="flex gap-2">
+                    <button onClick={() => setMobileActionRow(row)} className="w-10 h-10 rounded-xl bg-app-surface-2 border border-app-border text-app-text-muted hover:text-app-text-strong flex items-center justify-center transition-colors active:bg-app-surface-3"><i className="fa-solid fa-ellipsis-vertical text-sm"></i></button>
+                  </div>
                 </div>
               </div>
+              <div className="space-y-6">
+                {mobileGroups ? (
+                  mobileGroups.map((group, idx) => {
+                    const groupCols = group.cols.filter(c => cols.includes(c));
+                    if (groupCols.length === 0) return null;
+                    return (
+                      <div key={idx} className={idx > 0 ? "border-t border-app-border/10 pt-4" : ""}>
+                        <h4 className="text-[10px] font-black uppercase text-app-text-strong mb-4 tracking-[0.2em] opacity-80 flex items-center gap-2">
+                          <span className="w-1 h-1 bg-blue-500 rounded-full"></span>
+                          {group.title}
+                        </h4>
+                        <div className="space-y-4">
+                          {groupCols.map((col: string) => (
+                            <div key={col}>
+                              <label className="text-[9px] font-black uppercase text-app-text-muted tracking-widest block mb-1.5">{col}</label>
+                              <div>{renderCell(tab, row, col, onUpdate, clients, library, onOpenColorPicker)}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="space-y-4">
+                    {cols.map((col: string) => (
+                      <div key={col}>
+                        <label className="text-[9px] font-black uppercase text-app-text-muted tracking-widest block mb-1.5">{col}</label>
+                        <div>{renderCell(tab, row, col, onUpdate, clients, library, onOpenColorPicker)}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="space-y-4">
-              {cols.map((col: string) => (
-                <div key={col}>
-                  <label className="text-[9px] font-black uppercase text-app-text-muted tracking-widest block mb-1.5">{col}</label>
-                  <div>{renderCell(tab, row, col, onUpdate, clients, library, onOpenColorPicker)}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       <BottomSheet
         isOpen={!!mobileActionRow}

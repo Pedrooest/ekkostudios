@@ -37,7 +37,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
     if (!isRendered) return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center sm:justify-center">
+        <div className="fixed inset-0 z-[2500] flex items-end sm:items-center sm:justify-center">
             {/* Backdrop */}
             <div
                 className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${animate ? 'opacity-100' : 'opacity-0'}`}
@@ -49,7 +49,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                 className={`
                     relative w-full sm:w-[500px] sm:rounded-2xl bg-app-surface border-t sm:border border-app-border 
                     rounded-t-[2rem] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] 
-                    flex flex-col max-h-[85vh] sm:max-h-[80vh]
+                    flex flex-col max-h-[85dvh] sm:max-h-[80dvh]
                     transition-transform duration-300 ease-out
                     ${animate ? 'translate-y-0' : 'translate-y-full sm:translate-y-10 sm:opacity-0'}
                     ${className}
