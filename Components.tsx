@@ -244,3 +244,28 @@ export const InputSelect: React.FC<{
     </>
   );
 };
+
+export const MobileFloatingAction: React.FC<{
+  onClick: () => void;
+  icon?: string;
+  label?: string;
+  className?: string;
+}> = ({ onClick, icon = "fa-plus", label = "Novo", className = "" }) => {
+  return (
+    <button
+      onClick={onClick}
+      className={`
+        md:hidden fixed z-[90] right-4 bottom-[calc(24px+env(safe-area-inset-bottom))]
+        flex items-center gap-3 px-5 py-4
+        bg-[#2563EB] text-white rounded-[20px] shadow-[0_10px_40px_-10px_rgba(37,99,235,0.6)]
+        active:scale-95 transition-all
+        font-black uppercase tracking-widest text-[10px]
+        border border-white/10 backdrop-blur-md
+        ${className}
+      `}
+    >
+      <i className={`fa-solid ${icon} text-sm`}></i>
+      {label && <span>{label}</span>}
+    </button>
+  );
+};

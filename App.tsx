@@ -35,7 +35,7 @@ import {
   SYSTEMATIC_MODELING_ROWS, MODELAGEM_OPTIONS, PERMEABILIDADE_OPTIONS, CONVERSAO_OPTIONS, DESDOBRAMENTO_OPTIONS, HORARIO_RESUMO_OPTIONS,
   PLANEJAMENTO_COLS, TAREFAS_COLS
 } from './constants';
-import { Button, Card, Badge, Stepper, FloatingPopover, InputSelect } from './Components';
+import { Button, Card, Badge, Stepper, FloatingPopover, InputSelect, MobileFloatingAction } from './Components';
 import { BottomSheet } from './components/BottomSheet';
 
 import { transcribeAndExtractInsights, generatePresentationBriefing, extractStructuredDataFromPDF, analyzeContextualData } from './geminiService';
@@ -1457,7 +1457,7 @@ export default function App() {
 
 
 
-        <div className="flex-1 overflow-y-auto p-4 lg:p-10 pb-24 lg:pb-10 custom-scrollbar animate-fade bg-app-bg">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-10 pb-[calc(100px+env(safe-area-inset-bottom))] lg:pb-10 custom-scrollbar animate-fade bg-app-bg">
           {activeTab === 'DASHBOARD' && <DashboardView clients={clients} tasks={currentTasks} financas={currentFinancas} planejamento={currentPlanejamento} rdc={currentRdc} />}
           {activeTab === 'CLIENTES' && <TableView tab="CLIENTES" data={filterArchived(clients)} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('CLIENTES')} clients={clients} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} />}
           {activeTab === 'RDC' && <TableView tab="RDC" data={currentRdc} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('RDC')} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
@@ -1679,6 +1679,17 @@ export default function App() {
           />
         ))}
       </div>
+
+      {/* Mobile Floating Action Button */}
+      {!['DASHBOARD', 'ORGANICKIA', 'VH'].includes(activeTab) && (
+        <MobileFloatingAction
+          onClick={() => {
+            if (activeTab === 'TAREFAS' && activeTaskViewId === 'board') return; // Board handles its own add? Check logic.
+            handleAddRow(activeTab);
+          }}
+          label="Novo"
+        />
+      )}
     </div >
   );
 }
@@ -1687,6 +1698,14 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth >= 1024);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('All');
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const selectedEvent = useMemo(() => data.find((e: any) => e.id === selectedEventId), [data, selectedEventId]);
 
@@ -1741,7 +1760,7 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
           <div className="flex items-center gap-3 self-end lg:self-center">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all hover:scale-105 active:scale-95 ${isSidebarOpen ? 'bg-blue-600/10 border-blue-500 text-blue-500' : 'bg-gray-800/40 border-white/5 text-app-text-muted hover:text-app-text-strong hover:border-white/10'}`}
+              className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all hover:scale-105 active:scale-95 relative z-[60] ${isSidebarOpen ? 'bg-blue-600/10 border-blue-500 text-blue-500' : 'bg-gray-800/40 border-white/5 text-app-text-muted hover:text-app-text-strong hover:border-white/10'}`}
             >
               <i className={`fa-solid ${isSidebarOpen ? 'fa-eye-slash' : 'fa-database'}`}></i>
               {isSidebarOpen ? 'Esconder Banco' : 'Banco de Conteúdo'}
@@ -1768,7 +1787,7 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
             }))}
             height="100%"
             locale="pt-br"
-            headerToolbar={{ left: 'prev,next today', center: 'title', right: '' }}
+            headerToolbar={{ left: isMobile ? 'prev,next' : 'prev,next today', center: 'title', right: '' }}
             dayMaxEvents={3}
             eventClick={(info) => setSelectedEventId(info.event.id)}
             editable={true}
@@ -2278,6 +2297,13 @@ function TaskFlowView({ tasks, clients, collaborators, activeViewId, setActiveVi
   const filteredTasks = useMemo(() => tasks.filter((t: any) => (!globalSearch || t.Título.toLowerCase().includes(globalSearch.toLowerCase())) && t.Status !== 'arquivado'), [tasks, globalSearch]);
   const viewType = useMemo(() => DEFAULT_TASK_VIEWS.find(v => v.id === activeViewId)?.type || 'List', [activeViewId]);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <div className="h-full flex flex-col space-y-6 pointer-events-auto text-left">
       <div className="bg-app-surface p-4 rounded-xl border border-app-border flex flex-wrap items-center gap-4 shrink-0 shadow-2xl">
@@ -2291,8 +2317,8 @@ function TaskFlowView({ tasks, clients, collaborators, activeViewId, setActiveVi
         {viewType === 'Calendar' && (
           <div className="h-[calc(100dvh-250px)] min-h-[600px] bg-app-surface/30 border border-app-border rounded-[32px] p-5 md:p-8 shadow-2xl overflow-hidden relative">
             <FullCalendar
-              plugins={[dayGridPlugin, interactionPlugin]}
-              initialView="dayGridMonth"
+              plugins={[dayGridPlugin, interactionPlugin, listPlugin]}
+              initialView={isMobile ? "listWeek" : "dayGridMonth"}
               events={filteredTasks.filter(t => t.Data_Entrega).map(t => {
                 const client = clients.find((c: any) => c.id === t.Cliente_ID);
                 return {
@@ -2306,7 +2332,7 @@ function TaskFlowView({ tasks, clients, collaborators, activeViewId, setActiveVi
               })}
               height="100%"
               locale="pt-br"
-              headerToolbar={{ left: 'prev,next today', center: 'title', right: '' }}
+              headerToolbar={{ left: isMobile ? 'prev,next' : 'prev,next today', center: 'title', right: '' }}
               dayMaxEvents={3}
               eventClick={(info) => onSelectTask(info.event.id)}
               editable={true}
@@ -2859,7 +2885,46 @@ function VhManagementView({ config, setConfig, collaborators, setCollaborators, 
       {activeSubTab === 'CONFIG' && (
         <div className="space-y-6 md:space-y-10 animate-fade">
           <Card title="Configuração da Equipe" extra={<Button onClick={handleAddCollab} className="h-9 px-4 text-[9px] shadow-lg shadow-emerald-500/10"><i className="fa-solid fa-plus mr-2"></i>Adicionar</Button>}>
-            <div className="overflow-x-auto">
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-4">
+              {vhResults.collabVHs.map((c) => (
+                <div key={c.id} className="p-5 bg-app-surface border border-app-border rounded-2xl space-y-4 relative group">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <label className="text-[9px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Colaborador</label>
+                      <input value={c.Nome} onChange={e => handleUpdateCollab(c.id, 'Nome', e.target.value)} className="w-full !bg-transparent border-none p-0 focus:ring-0 font-bold uppercase text-app-text-strong text-sm" />
+                    </div>
+                    <button onClick={() => setCollaborators((prev: Collaborator[]) => prev.filter(p => p.id !== c.id))} className="text-rose-500/50 hover:text-rose-500 p-2"><i className="fa-solid fa-trash-can"></i></button>
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Cargo</label>
+                    <input value={c.Cargo} onChange={e => handleUpdateCollab(c.id, 'Cargo', e.target.value)} className="w-full !bg-transparent border-none p-0 focus:ring-0 font-medium text-app-text-muted uppercase text-xs" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[9px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Custos</label>
+                      <div className="flex items-center gap-2"><span className="text-gray-600 font-black">R$</span><input type="number" value={c.CustosIndividuais} onChange={e => handleUpdateCollab(c.id, 'CustosIndividuais', e.target.value)} className="w-20 !bg-transparent border-none p-0 focus:ring-0 font-bold text-app-text-strong" /></div>
+                    </div>
+                    <div>
+                      <label className="text-[9px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Pró-labore</label>
+                      <div className="flex items-center gap-2"><span className="text-gray-600 font-black">R$</span><input type="number" value={c.ProLabore} onChange={e => handleUpdateCollab(c.id, 'ProLabore', e.target.value)} className="w-20 !bg-transparent border-none p-0 focus:ring-0 font-bold text-app-text-strong" /></div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[9px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Horas Prod.</label>
+                      <input type="number" value={c.HorasProdutivas} onChange={e => handleUpdateCollab(c.id, 'HorasProdutivas', e.target.value)} className="w-20 !bg-transparent border-none p-0 focus:ring-0 font-bold text-app-text-strong" />
+                    </div>
+                    <div>
+                      <label className="text-[9px] font-black uppercase text-[#3B82F6] block mb-1 tracking-widest">VH Calc.</label>
+                      <span className="font-black text-[#3B82F6] text-sm">R$ {c.calculatedVh.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-[11px]">
                 <thead>
                   <tr className="border-b border-app-border bg-app-surface-2">
@@ -2904,7 +2969,36 @@ function VhManagementView({ config, setConfig, collaborators, setCollaborators, 
                   <button onClick={() => setViewMode('COLLABORATOR')} className={`px-4 py-1 rounded text-[8px] font-black uppercase transition-all ${viewMode === 'COLLABORATOR' ? 'bg-[#3B82F6] text-app-text-strong shadow-md' : 'text-[#4B5563]'}`}>Time</button>
                 </div>
               }>
-                <div className="overflow-x-auto">
+                {/* Mobile Card View */}
+                <div className="md:hidden space-y-4">
+                  {vhResults.profitability.map((p) => (
+                    <div key={p.id} className="p-5 bg-app-surface border border-app-border rounded-2xl relative">
+                      <div className="flex justify-between items-start mb-4">
+                        <h4 className="font-bold text-app-text-strong uppercase text-sm">{p.name}</h4>
+                        <div className="text-right">
+                          <span className={`font-black text-sm block ${p.result >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>R$ {p.result.toLocaleString('pt-BR')}</span>
+                          <span className="text-[8px] font-black uppercase text-[#4B5563] tracking-widest">Resultado</span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-y-4 gap-x-2 text-xs border-t border-app-border pt-4">
+                        <div>
+                          <label className="text-[9px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Horas Reais</label>
+                          <span className="font-medium text-app-text-muted flex items-center gap-1.5"><i className="fa-solid fa-clock text-[9px] opacity-40"></i> {p.hours.toFixed(1)}h</span>
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Faturamento</label>
+                          <span className="font-bold text-gray-300">R$ {p.billing.toLocaleString('pt-BR')}</span>
+                        </div>
+                        <div className="col-span-2">
+                          <label className="text-[9px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Custo Operacional</label>
+                          <span className="font-bold text-gray-300">R$ {p.cost.toLocaleString('pt-BR')}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-left text-[10px]">
                     <thead>
                       <tr className="border-b border-app-border bg-app-surface-2">
@@ -3219,16 +3313,26 @@ function TableView({ tab, data, onUpdate, onDelete, onArchive, onAdd, clients, l
             { title: 'Conteúdo', cols: ['Ideia de Conteúdo', 'Rede_Social', 'Tipo de conteúdo'] },
             { title: 'Avaliação', cols: ['Resolução (1–5)', 'Demanda (1–5)', 'Competição (1–5)'] },
             { title: 'Resultado', cols: ['Score (R×D×C)', 'Decisão'] },
+          ] : tab === 'CLIENTES' ? [
+            { title: 'Dados', cols: ['Nicho', 'Responsável'] },
+            { title: 'Contato', cols: ['WhatsApp', 'Instagram'] },
+            { title: 'Detalhes', cols: ['Objetivo', 'Cor (HEX)', 'Status'] },
           ] : null;
 
           return (
             <div key={row.id} className={`p-4 md:p-5 rounded-2xl border ${selection.includes(row.id) ? 'bg-[#3B82F6]/5 border-[#3B82F6]/30' : 'bg-app-surface/50 border-app-border'} transition-all shadow-lg`}>
               <div className="flex justify-between items-start mb-4 border-b border-app-border pb-3">
-                <input type="checkbox" checked={selection.includes(row.id)} onChange={() => onSelect(row.id)} className="rounded bg-app-bg border-app-border text-blue-500 focus:ring-0 w-6 h-6" />
+                <div className="flex items-center gap-3">
+                  <input type="checkbox" checked={selection.includes(row.id)} onChange={() => onSelect(row.id)} className="rounded bg-app-bg border-app-border text-blue-500 focus:ring-0 w-5 h-5" />
+                  {tab === 'CLIENTES' && (
+                    <div className="flex flex-col">
+                      <span className="text-sm font-black text-app-text-strong uppercase leading-none">{row.Nome}</span>
+                      <span className={`text-[9px] font-bold uppercase mt-1 ${row.Status === 'Ativo' ? 'text-emerald-500' : 'text-gray-500'}`}>{row.Status}</span>
+                    </div>
+                  )}
+                </div>
                 <div className="flex gap-2">
-                  <div className="flex gap-2">
-                    <button onClick={() => setMobileActionRow(row)} className="w-10 h-10 rounded-xl bg-app-surface-2 border border-app-border text-app-text-muted hover:text-app-text-strong flex items-center justify-center transition-colors active:bg-app-surface-3"><i className="fa-solid fa-ellipsis-vertical text-sm"></i></button>
-                  </div>
+                  <button onClick={() => setMobileActionRow(row)} className="w-8 h-8 rounded-lg bg-app-surface-2 border border-app-border text-app-text-muted hover:text-app-text-strong flex items-center justify-center transition-colors active:bg-app-surface-3"><i className="fa-solid fa-ellipsis-vertical text-xs"></i></button>
                 </div>
               </div>
               <div className="space-y-6">
