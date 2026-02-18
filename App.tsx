@@ -7,6 +7,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
+import listPlugin from '@fullcalendar/list';
 
 import { AssistantDrawer } from './AssistantDrawer';
 import { AssistantAction } from './ai/types';
@@ -34,7 +35,8 @@ import {
   SYSTEMATIC_MODELING_ROWS, MODELAGEM_OPTIONS, PERMEABILIDADE_OPTIONS, CONVERSAO_OPTIONS, DESDOBRAMENTO_OPTIONS, HORARIO_RESUMO_OPTIONS,
   PLANEJAMENTO_COLS, TAREFAS_COLS
 } from './constants';
-import { Button, Card, Badge, Stepper, FloatingPopover } from './Components';
+import { Button, Card, Badge, Stepper, FloatingPopover, InputSelect } from './Components';
+import { BottomSheet } from './components/BottomSheet';
 
 import { transcribeAndExtractInsights, generatePresentationBriefing, extractStructuredDataFromPDF, analyzeContextualData } from './geminiService';
 import { CopilotChat } from './CopilotChat';
@@ -291,10 +293,18 @@ export default function App() {
   const [iaHistory, setIaHistory] = useState<any[]>([]);
 
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [toasts, setToasts] = useState<AppNotification[]>([]);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
@@ -543,10 +553,14 @@ export default function App() {
           try {
             await DatabaseService.acceptInvite(inviteToken);
             window.history.replaceState({}, document.title, window.location.pathname);
-            alert('Você entrou no workspace com sucesso!');
+            // alert('Você entrou no workspace com sucesso!');
+            setToasts(prev => [...prev, { id: generateId(), type: 'success', title: 'Sucesso', message: 'Você entrou no workspace com sucesso!', timestamp: new Date().toISOString(), read: false }]);
             window.location.reload();
           } catch (e: any) {
-            alert('Erro ao aceitar convite: ' + e.message);
+            // alert('Erro ao aceitar convite: ' + e.message);
+            let msg = e.message;
+            if (msg.includes('policy')) msg = 'Você não tem permissão para entrar neste workspace ou o convite expirou.';
+            setToasts(prev => [...prev, { id: generateId(), type: 'error', title: 'Erro no Convite', message: msg, timestamp: new Date().toISOString(), read: false }]);
           }
         }
       } else {
@@ -556,10 +570,14 @@ export default function App() {
           try {
             await DatabaseService.acceptInvite(pending);
             sessionStorage.removeItem('pending_invite');
-            alert('Você entrou no workspace com sucesso!');
+            // alert('Você entrou no workspace com sucesso!');
+            setToasts(prev => [...prev, { id: generateId(), type: 'success', title: 'Sucesso', message: 'Você entrou no workspace com sucesso!', timestamp: new Date().toISOString(), read: false }]);
             window.location.reload();
           } catch (e: any) {
             // alert('Erro ao aceitar convite pendente: ' + e.message);
+            let msg = e.message;
+            if (msg.includes('policy')) msg = 'Você não tem permissão para entrar neste workspace ou o convite expirou.';
+            setToasts(prev => [...prev, { id: generateId(), type: 'error', title: 'Erro no Convite', message: msg, timestamp: new Date().toISOString(), read: false }]);
             sessionStorage.removeItem('pending_invite');
           }
         }
@@ -1147,93 +1165,47 @@ export default function App() {
 
 
       <main className="flex-1 flex flex-col min-w-0 relative overflow-hidden bg-app-bg transition-colors duration-300">
-        <header className="h-16 bg-app-bg border-b border-app-border px-4 lg:px-8 flex items-center justify-between z-[50] shrink-0 overflow-x-auto custom-scrollbar gap-4 transition-colors duration-300">
-          <div className="flex items-center gap-4">
-            <button className="lg:hidden text-app-text-muted hover:text-app-text-strong transition-colors" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
-              <i className="fa-solid fa-bars text-xl"></i>
-            </button>
-            <WorkspaceSelector
-              workspaces={workspaces}
-              currentWorkspace={currentWorkspace}
-              onSelect={setCurrentWorkspace}
-              onManageMembers={() => setIsSettingsModalOpen(true)}
-              onCreate={async (name) => {
-                try {
-                  const newWs = await DatabaseService.createWorkspace(name);
-                  setWorkspaces(prev => [newWs, ...prev]);
-                  setCurrentWorkspace(newWs);
-                  alert('Workspace criado com sucesso!');
-                } catch (e: any) {
-                  console.error(e);
-                  alert('Erro ao criar workspace: ' + (e.message || e));
-                }
-              }}
-              loading={workspaceLoading}
-            />
-            {isSettingsModalOpen && currentWorkspace && (
-              <WorkspaceSettingsModal
-                workspace={currentWorkspace}
-                onClose={() => setIsSettingsModalOpen(false)}
-                currentUserEmail={currentUser?.email}
-                onWorkspaceDeleted={() => {
-                  setIsSettingsModalOpen(false);
-                  setCurrentWorkspace(null);
-                  refreshWorkspaces();
-                }}
-              />
-            )}
-            <div className="w-px h-6 bg-white/5 mx-1"></div>
-            <div className="relative">
-              <button
-                ref={clientFilterButtonRef}
-                onClick={() => setIsClientFilterOpen(!isClientFilterOpen)}
-                className={`flex items-center gap-2 text-xs font-bold uppercase transition-all border px-3 md:px-4 py-2.5 rounded-md whitespace-nowrap ${selectedClientIds.length > 0 ? 'bg-blue-600/10 border-blue-600 text-blue-600' : 'text-app-text-muted border-app-border hover:border-app-border-strong hover:text-app-text'}`}
-              >
-                <i className="fa-solid fa-filter"></i>
-                {selectedClientIds.length > 0 ? `${selectedClientIds.length} Clientes` : <><span className="md:hidden">Todos</span><span className="hidden md:inline">Todos Clientes</span></>}
+        <header className="flex-none bg-app-bg border-b border-app-border px-4 lg:px-8 flex flex-col lg:flex-row items-stretch lg:items-center justify-between z-[50] transition-colors duration-300 py-3 lg:py-0 min-h-[auto] lg:h-16 gap-3 lg:gap-4">
+          {/* TOP ROW: Menu | Workspace | Notifications | Profile */}
+          <div className="flex items-center justify-between lg:justify-start gap-4 w-full lg:w-auto">
+            <div className="flex items-center gap-3 lg:gap-4">
+              <button className="lg:hidden text-app-text-muted hover:text-app-text-strong transition-colors p-1" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
+                <i className="fa-solid fa-bars text-xl"></i>
               </button>
-              <FloatingPopover
-                isOpen={isClientFilterOpen}
-                onClose={() => setIsClientFilterOpen(false)}
-                triggerRef={clientFilterButtonRef}
-                className="w-64"
-              >
-                <div className="bg-app-surface border border-app-border rounded-xl shadow-2xl p-4">
-                  <div className="mb-3 flex justify-between items-center border-b border-app-border pb-2">
-                    <span className="text-[10px] font-bold uppercase text-app-text-muted">Filtrar</span>
-                    <button onClick={() => setSelectedClientIds([])} className="text-[8px] font-black uppercase text-blue-500">Limpar</button>
-                  </div>
-                  <div className="max-h-60 overflow-y-auto custom-scrollbar space-y-1">
-                    {clients.map(c => (
-                      <div key={`filter-c-${c.id}`} onClick={() => toggleClientSelection(c.id)} className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-all ${selectedClientIds.includes(c.id) ? 'bg-blue-500/10 text-blue-500' : 'text-app-text-muted hover:bg-app-bg'}`}>
-                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: c["Cor (HEX)"] }}></div>
-                        <span className="text-xs font-semibold">{c.Nome}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </FloatingPopover>
-            </div>
-            <button onClick={() => setShowArchived(!showArchived)} className={`text-xs font-bold uppercase px-4 py-2.5 rounded border transition-all whitespace-nowrap ${showArchived ? 'bg-amber-500/10 border-amber-500 text-amber-500' : 'text-app-text-muted border-app-border hover:border-app-border-strong hover:text-app-text-strong'}`}>
-              <i className={`fa-solid ${showArchived ? 'fa-eye' : 'fa-eye-slash'} mr-2`}></i>
-              {showArchived ? 'Ocultar Arquivados' : 'Mostrar Arquivados'}
-            </button>
-          </div>
-          <div className="flex items-center gap-3">
-            {userProfile && (
-              <ProfilePopover
-                profile={userProfile}
-                tasks={tasks}
-                onUpdate={(updates) => {
-                  const newProfile = { ...userProfile, ...updates };
-                  setUserProfile(newProfile);
-                  localStorage.setItem(`profile_${userProfile.id}`, JSON.stringify(newProfile));
+              <WorkspaceSelector
+                workspaces={workspaces}
+                currentWorkspace={currentWorkspace}
+                onSelect={setCurrentWorkspace}
+                onManageMembers={() => setIsSettingsModalOpen(true)}
+                onCreate={async (name) => {
+                  try {
+                    const newWs = await DatabaseService.createWorkspace(name);
+                    setWorkspaces(prev => [newWs, ...prev]);
+                    setCurrentWorkspace(newWs);
+                    alert('Workspace criado com sucesso!');
+                  } catch (e: any) {
+                    console.error(e);
+                    alert('Erro ao criar workspace: ' + (e.message || e));
+                  }
                 }}
-                onLogout={() => supabase.auth.signOut()}
+                loading={workspaceLoading}
               />
-            )}
-            <div className="w-px h-6 bg-app-border mx-1"></div>
-            <div className="relative flex items-center gap-2 md:gap-4">
+              {isSettingsModalOpen && currentWorkspace && (
+                <WorkspaceSettingsModal
+                  workspace={currentWorkspace}
+                  onClose={() => setIsSettingsModalOpen(false)}
+                  currentUserEmail={currentUser?.email}
+                  onWorkspaceDeleted={() => {
+                    setIsSettingsModalOpen(false);
+                    setCurrentWorkspace(null);
+                    refreshWorkspaces();
+                  }}
+                />
+              )}
+            </div>
+
+            {/* Mobile Controls (Profile + Updates) */}
+            <div className="flex lg:hidden items-center gap-3">
               <button onClick={toggleTheme} className="w-8 h-8 rounded-full flex items-center justify-center text-app-text-muted hover:text-app-text transition-colors">
                 <i className={`fa-solid ${theme === 'dark' ? 'fa-sun' : 'fa-moon'} text-lg`}></i>
               </button>
@@ -1243,22 +1215,25 @@ export default function App() {
                   <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-[#0B0B0E]"></span>
                 )}
               </Button>
-
-              <div className="h-6 w-px bg-app-border"></div>
-
-              <Button variant="secondary" onClick={() => setIsExportModalOpen(true)}>
-                <i className="fa-solid fa-download"></i> Exportar
-              </Button>
-
-              <FloatingPopover
-                isOpen={isNotificationOpen}
+              {userProfile && (
+                <ProfilePopover
+                  profile={userProfile}
+                  tasks={tasks}
+                  onUpdate={(updates) => {
+                    const newProfile = { ...userProfile, ...updates };
+                    setUserProfile(newProfile);
+                    localStorage.setItem(`profile_${userProfile.id}`, JSON.stringify(newProfile));
+                  }}
+                  onLogout={() => supabase.auth.signOut()}
+                />
+              )}
+              {/* Mobile Notification Sheet */}
+              <BottomSheet
+                isOpen={isMobile && isNotificationOpen}
                 onClose={() => setIsNotificationOpen(false)}
-                triggerRef={notificationButtonRef}
-                className="w-80"
-                align="end"
               >
-                <div className="bg-app-surface border border-app-border rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden">
-                  <div className="p-5 border-b border-app-border flex justify-between items-center bg-app-surface-2/50 backdrop-blur-md">
+                <div className="bg-app-surface border-t border-app-border rounded-t-2xl shadow-[0_-20px_50px_rgba(0,0,0,0.5)] overflow-hidden max-h-[80vh] flex flex-col">
+                  <div className="p-5 border-b border-app-border flex justify-between items-center bg-app-surface-2/50 backdrop-blur-md shrink-0">
                     <span className="text-[11px] font-black uppercase text-app-text-strong tracking-[0.2em]">Notificações</span>
                     <button
                       onClick={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))}
@@ -1267,7 +1242,7 @@ export default function App() {
                       Limpar Tudo
                     </button>
                   </div>
-                  <div className="max-h-[450px] overflow-y-auto custom-scrollbar bg-app-surface">
+                  <div className="overflow-y-auto custom-scrollbar bg-app-surface">
                     {notifications.length === 0 ? (
                       <div className="p-12 text-center opacity-20">
                         <i className="fa-solid fa-bell-slash text-4xl mb-4"></i>
@@ -1295,18 +1270,174 @@ export default function App() {
                     )}
                   </div>
                 </div>
-              </FloatingPopover>
+              </BottomSheet>
             </div>
-            <Button variant="secondary" onClick={() => setIsAssistantOpen(true)} className="!border-blue-600/30 hover:!border-blue-600 !text-blue-500">
-              <i className="fa-solid fa-wand-magic-sparkles mr-2"></i>Assistente Gemini
-            </Button>
+          </div>
 
+          {/* SECOND ROW (Mobile): Filters | Actions (Scrollable) */}
+          <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar lg:overflow-visible pb-1 lg:pb-0 w-full lg:w-auto no-scrollbar mask-linear-fade">
+
+            <div className="w-px h-6 bg-white/5 mx-1 hidden lg:block"></div>
+
+            <div className="relative shrink-0">
+              <button
+                ref={clientFilterButtonRef}
+                onClick={() => setIsClientFilterOpen(!isClientFilterOpen)}
+                className={`flex items-center gap-2 text-xs font-bold uppercase transition-all border px-3 md:px-4 py-2.5 rounded-md whitespace-nowrap ${selectedClientIds.length > 0 ? 'bg-blue-600/10 border-blue-600 text-blue-600' : 'text-app-text-muted border-app-border hover:border-app-border-strong hover:text-app-text'}`}
+              >
+                <i className="fa-solid fa-filter"></i>
+                {selectedClientIds.length > 0 ? `${selectedClientIds.length} Clientes` : <><span className="md:hidden">Todos</span><span className="hidden md:inline">Todos Clientes</span></>}
+              </button>
+
+              {isMobile ? (
+                <BottomSheet
+                  isOpen={isClientFilterOpen}
+                  onClose={() => setIsClientFilterOpen(false)}
+                >
+                  <div className="bg-app-surface border-t border-app-border rounded-t-2xl shadow-2xl p-4 max-h-[80vh] flex flex-col">
+                    <div className="mb-3 flex justify-between items-center border-b border-app-border pb-2 shrink-0">
+                      <span className="text-[10px] font-bold uppercase text-app-text-muted">Filtrar Clientes</span>
+                      <button onClick={() => setSelectedClientIds([])} className="text-[8px] font-black uppercase text-blue-500">Limpar</button>
+                    </div>
+                    <div className="overflow-y-auto custom-scrollbar space-y-1">
+                      {clients.map(c => (
+                        <div key={`filter-c-${c.id}`} onClick={() => toggleClientSelection(c.id)} className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${selectedClientIds.includes(c.id) ? 'bg-blue-500/10 text-blue-500' : 'text-app-text-muted hover:bg-app-bg'}`}>
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: c["Cor (HEX)"] }}></div>
+                          <span className="text-sm font-semibold">{c.Nome}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </BottomSheet>
+              ) : (
+                <FloatingPopover
+                  isOpen={isClientFilterOpen}
+                  onClose={() => setIsClientFilterOpen(false)}
+                  triggerRef={clientFilterButtonRef}
+                  className="w-64"
+                >
+                  <div className="bg-app-surface border border-app-border rounded-xl shadow-2xl p-4">
+                    <div className="mb-3 flex justify-between items-center border-b border-app-border pb-2">
+                      <span className="text-[10px] font-bold uppercase text-app-text-muted">Filtrar</span>
+                      <button onClick={() => setSelectedClientIds([])} className="text-[8px] font-black uppercase text-blue-500">Limpar</button>
+                    </div>
+                    <div className="max-h-60 overflow-y-auto custom-scrollbar space-y-1">
+                      {clients.map(c => (
+                        <div key={`filter-c-${c.id}`} onClick={() => toggleClientSelection(c.id)} className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-all ${selectedClientIds.includes(c.id) ? 'bg-blue-500/10 text-blue-500' : 'text-app-text-muted hover:bg-app-bg'}`}>
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: c["Cor (HEX)"] }}></div>
+                          <span className="text-xs font-semibold">{c.Nome}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </FloatingPopover>
+              )}
+            </div>
+            <button onClick={() => setShowArchived(!showArchived)} className={`shrink-0 text-xs font-bold uppercase px-4 py-2.5 rounded border transition-all whitespace-nowrap ${showArchived ? 'bg-amber-500/10 border-amber-500 text-amber-500' : 'text-app-text-muted border-app-border hover:border-app-border-strong hover:text-app-text-strong'}`}>
+              <i className={`fa-solid ${showArchived ? 'fa-eye' : 'fa-eye-slash'} mr-2`}></i>
+              {showArchived ? 'Ocultar' : 'Arquivados'}
+            </button>
+
+            {/* DESKTOP Controls (Theme, Notifs, Profile) - Hidden on mobile, shown on lg */}
+            <div className="hidden lg:flex items-center gap-3 ml-auto">
+              {userProfile && (
+                <ProfilePopover
+                  profile={userProfile}
+                  tasks={tasks}
+                  onUpdate={(updates) => {
+                    const newProfile = { ...userProfile, ...updates };
+                    setUserProfile(newProfile);
+                    localStorage.setItem(`profile_${userProfile.id}`, JSON.stringify(newProfile));
+                  }}
+                  onLogout={() => supabase.auth.signOut()}
+                />
+              )}
+              <div className="w-px h-6 bg-app-border mx-1"></div>
+              <div className="relative flex items-center gap-2 md:gap-4">
+                <button onClick={toggleTheme} className="w-8 h-8 rounded-full flex items-center justify-center text-app-text-muted hover:text-app-text transition-colors">
+                  <i className={`fa-solid ${theme === 'dark' ? 'fa-sun' : 'fa-moon'} text-lg`}></i>
+                </button>
+                <Button ref={notificationButtonRef} variant="ghost" onClick={() => setIsNotificationOpen(!isNotificationOpen)} className="relative !p-2 text-app-text-strong hover:text-blue-500 transition-colors">
+                  <i className="fa-regular fa-bell text-lg"></i>
+                  {notifications.some(n => !n.read) && (
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-[#0B0B0E]"></span>
+                  )}
+                </Button>
+
+                <div className="h-6 w-px bg-app-border"></div>
+
+                <Button variant="secondary" onClick={() => setIsExportModalOpen(true)}>
+                  <i className="fa-solid fa-download"></i> Exportar
+                </Button>
+
+                <FloatingPopover
+                  isOpen={isNotificationOpen}
+                  onClose={() => setIsNotificationOpen(false)}
+                  triggerRef={notificationButtonRef}
+                  className="w-80"
+                  align="end"
+                >
+                  <div className="bg-app-surface border border-app-border rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden">
+                    <div className="p-5 border-b border-app-border flex justify-between items-center bg-app-surface-2/50 backdrop-blur-md">
+                      <span className="text-[11px] font-black uppercase text-app-text-strong tracking-[0.2em]">Notificações</span>
+                      <button
+                        onClick={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))}
+                        className="text-[9px] font-black uppercase text-blue-500 hover:text-app-text-strong transition-all"
+                      >
+                        Limpar Tudo
+                      </button>
+                    </div>
+                    <div className="max-h-[450px] overflow-y-auto custom-scrollbar bg-app-surface">
+                      {notifications.length === 0 ? (
+                        <div className="p-12 text-center opacity-20">
+                          <i className="fa-solid fa-bell-slash text-4xl mb-4"></i>
+                          <p className="text-[10px] font-black uppercase tracking-widest">Silêncio absoluto</p>
+                        </div>
+                      ) : (
+                        notifications.map(n => (
+                          <div key={n.id} className={`p-5 border-b border-app-border/50 hover:bg-app-bg transition-all cursor-pointer group ${!n.read ? 'bg-blue-500/5' : ''}`}>
+                            <div className="flex gap-4">
+                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${n.type === 'success' ? 'text-emerald-500' :
+                                n.type === 'warning' ? 'text-rose-500' : 'text-blue-500'
+                                }`}>
+                                <i className={`fa-solid ${n.type === 'success' ? 'fa-circle-check' : n.type === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-info'} text-xs`}></i>
+                              </div>
+                              <div className="flex-1 space-y-1">
+                                <div className="flex justify-between items-baseline">
+                                  <p className="text-[11px] font-black text-app-text-strong uppercase tracking-tight">{n.title}</p>
+                                  <span className="text-[8px] font-bold text-[#334155] uppercase">{new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                </div>
+                                <p className="text-[10px] font-medium text-app-text-muted leading-relaxed uppercase tracking-tight">{n.message}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </FloatingPopover>
+              </div>
+              <Button variant="secondary" onClick={() => setIsAssistantOpen(true)} className="!border-blue-600/30 hover:!border-blue-600 !text-blue-500">
+                <i className="fa-solid fa-wand-magic-sparkles mr-2"></i>Assistente Gemini
+              </Button>
+
+            </div>
+
+            {/* Mobile Export / Assistant (Row 2 end) */}
+            <div className="flex lg:hidden items-center gap-2">
+              <Button variant="secondary" onClick={() => setIsExportModalOpen(true)} className="shrink-0">
+                <i className="fa-solid fa-download"></i>
+              </Button>
+              <Button variant="secondary" onClick={() => setIsAssistantOpen(true)} className="!border-blue-600/30 hover:!border-blue-600 !text-blue-500 shrink-0">
+                <i className="fa-solid fa-wand-magic-sparkles"></i>
+              </Button>
+            </div>
           </div>
         </header>
 
 
 
-        <div className="flex-1 overflow-y-auto p-10 custom-scrollbar animate-fade bg-app-bg">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-10 custom-scrollbar animate-fade bg-app-bg">
           {activeTab === 'DASHBOARD' && <DashboardView clients={clients} tasks={currentTasks} financas={currentFinancas} planejamento={currentPlanejamento} rdc={currentRdc} />}
           {activeTab === 'CLIENTES' && <TableView tab="CLIENTES" data={filterArchived(clients)} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('CLIENTES')} clients={clients} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} />}
           {activeTab === 'RDC' && <TableView tab="RDC" data={currentRdc} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('RDC')} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
@@ -1363,6 +1494,18 @@ export default function App() {
             </div>
           )
         }
+
+        {/* Mobile Global FAB */}
+        {activeTab !== 'DASHBOARD' && activeTab !== 'VH' && activeTab !== 'ORGANICKIA' && (
+          <div className="md:hidden fixed bottom-6 right-4 z-30 animate-fade-in">
+            <button
+              onClick={() => handleAddRow(activeTab)}
+              className="w-14 h-14 bg-blue-600 rounded-full shadow-2xl shadow-blue-600/30 flex items-center justify-center text-white text-xl active:scale-90 transition-transform"
+            >
+              <i className="fa-solid fa-plus"></i>
+            </button>
+          </div>
+        )}
 
         <CopilotChat appData={fullAppContext} />
         <AssistantDrawer
@@ -1439,6 +1582,17 @@ export default function App() {
       {isExporting && (
         <SlideRenderer config={getExportConfig()} elementId="export-slide-renderer" />
       )}
+
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 z-[200] flex flex-col items-end gap-2 pointer-events-none">
+        {toasts.map(t => (
+          <NotificationToast
+            key={t.id}
+            notification={t}
+            onClose={(id) => setToasts(prev => prev.filter(n => n.id !== id))}
+          />
+        ))}
+      </div>
     </div >
   );
 }
@@ -1508,7 +1662,7 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
             </button>
             <Button
               onClick={() => onAdd('PLANEJAMENTO')}
-              className="!px-6 !py-3 !rounded-2xl !bg-gradient-to-r !from-blue-600 !to-indigo-700 !shadow-xl !shadow-blue-900/20"
+              className="hidden lg:flex !px-6 !py-3 !rounded-2xl !bg-gradient-to-r !from-blue-600 !to-indigo-700 !shadow-xl !shadow-blue-900/20"
             >
               <i className="fa-solid fa-plus mr-2"></i>
               Novo Conteúdo
@@ -1517,8 +1671,8 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
         </div>
         <div className="flex-1 bg-app-surface/30 border border-app-border rounded-[32px] p-8 shadow-2xl overflow-hidden min-h-[600px] lg:min-h-0 relative">
           <FullCalendar
-            plugins={[dayGridPlugin, interactionPlugin]}
-            initialView="dayGridMonth"
+            plugins={[dayGridPlugin, interactionPlugin, listPlugin]}
+            initialView={window.innerWidth < 1024 ? "listWeek" : "dayGridMonth"}
             events={filteredData.map((p: any) => ({
               id: p.id,
               title: p.Conteúdo,
@@ -1598,16 +1752,51 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
             </section>
 
             <div className="grid grid-cols-2 gap-6 bg-app-surface p-6 rounded-2xl border border-app-border">
-              <div><label className="text-[9px] font-black text-[#334155] uppercase block mb-1">Cliente</label><select className="w-full text-[11px] font-bold uppercase bg-transparent text-app-text-strong" value={selectedEvent.Cliente_ID} onChange={e => onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Cliente_ID', e.target.value)}><option value="GERAL">Geral</option>{clients.map((c: any) => <option key={c.id} value={c.id}>{c.Nome}</option>)}</select></div>
-              <div><label className="text-[9px] font-black text-[#334155] uppercase block mb-1">Status</label><select className="w-full text-[11px] font-bold uppercase bg-transparent text-app-text-strong" value={selectedEvent['Status do conteúdo']} onChange={e => onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Status do conteúdo', e.target.value)}>{PLANNING_STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
+              <div>
+                <InputSelect
+                  value={selectedEvent.Cliente_ID}
+                  onChange={(val) => onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Cliente_ID', val)}
+                  options={[{ value: 'GERAL', label: 'Geral' }, ...clients.map((c: any) => ({ value: c.id, label: c.Nome }))]}
+                  className="w-full text-[11px] font-bold uppercase bg-transparent text-app-text-strong"
+                  label="Cliente"
+                  placeholder="Selecione..."
+                />
+              </div>
+              <div>
+                <InputSelect
+                  value={selectedEvent['Status do conteúdo']}
+                  onChange={(val) => onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Status do conteúdo', val)}
+                  options={PLANNING_STATUS_OPTIONS.map(s => ({ value: s, label: s }))}
+                  className="w-full text-[11px] font-bold uppercase bg-transparent text-app-text-strong"
+                  label="Status"
+                  placeholder="Selecione..."
+                />
+              </div>
               <div><label className="text-[9px] font-black text-[#334155] uppercase block mb-1">Data</label><input type="date" className="w-full text-[11px] font-bold bg-transparent text-app-text-strong" value={selectedEvent.Data} onChange={e => onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Data', e.target.value)} /></div>
               <div><label className="text-[9px] font-black text-[#334155] uppercase block mb-1">Hora</label><input type="time" className="w-full text-[11px] font-bold bg-transparent text-app-text-strong" value={selectedEvent.Hora} onChange={e => onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Hora', e.target.value)} /></div>
             </div>
 
             <section className="space-y-4">
-              <div><label className="text-[9px] font-black text-[#334155] uppercase block mb-1">Canal/Rede</label><select className="w-full text-[11px] font-bold uppercase bg-transparent text-app-text-strong border-b border-app-border pb-2" value={selectedEvent.Rede_Social} onChange={e => onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Rede_Social', e.target.value)}>{RDC_NETWORKS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select></div>
-              {/* Fixed missing 'onUpdate' call below */}
-              <div><label className="text-[9px] font-black text-[#334155] uppercase block mb-1">Tipo/Formato</label><select className="w-full text-[11px] font-bold uppercase bg-transparent text-app-text-strong border-b border-app-border pb-2" value={selectedEvent['Tipo de conteúdo']} onChange={e => onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Tipo de conteúdo', e.target.value)}><option value="">-- Selecione --</option>{(RDC_FORMATS[selectedEvent.Rede_Social] || []).map(opt => <option key={opt} value={opt}>{opt}</option>)}</select></div>
+              <div>
+                <InputSelect
+                  value={selectedEvent.Rede_Social}
+                  onChange={(val) => onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Rede_Social', val)}
+                  options={RDC_NETWORKS.map(opt => ({ value: opt, label: opt }))}
+                  className="w-full text-[11px] font-bold uppercase bg-transparent text-app-text-strong border-b border-app-border pb-2"
+                  label="Canal/Rede"
+                  placeholder="Selecione..."
+                />
+              </div>
+              <div>
+                <InputSelect
+                  value={selectedEvent['Tipo de conteúdo']}
+                  onChange={(val) => onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Tipo de conteúdo', val)}
+                  options={(RDC_FORMATS[selectedEvent.Rede_Social] || []).map(opt => ({ value: opt, label: opt }))}
+                  className="w-full text-[11px] font-bold uppercase bg-transparent text-app-text-strong border-b border-app-border pb-2"
+                  label="Tipo/Formato"
+                  placeholder="-- Selecione --"
+                />
+              </div>
             </section>
 
             <section>
@@ -1814,20 +2003,14 @@ function SystematicModelingView({ activeClient, clients, onSelectClient, rdc, pl
       <div className="mb-8 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-black uppercase tracking-tighter text-app-text-strong">Modelagem Sistemática</h2>
-          <div className="relative">
-            <select
+          <div className="w-full md:w-64">
+            <InputSelect
               value={activeClient ? activeClient.id : ""}
-              onChange={(e) => onSelectClient && onSelectClient(e.target.value)}
-              className="bg-blue-600 text-app-text-strong text-[10px] font-bold uppercase py-2 pl-4 pr-8 rounded-xl outline-none appearance-none cursor-pointer hover:bg-blue-700 transition-colors shadow-lg shadow-blue-900/20"
-            >
-              <option value="" disabled>Selecione um Cliente</option>
-              {clients?.map((c: any) => (
-                <option key={c.id} value={c.id} className="bg-app-surface text-app-text-strong">{c.Nome}</option>
-              ))}
-            </select>
-            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-              <i className="fa-solid fa-chevron-down text-[8px] text-app-text-strong"></i>
-            </div>
+              onChange={(val) => onSelectClient && onSelectClient(val)}
+              options={clients?.map((c: any) => ({ value: c.id, label: c.Nome })) || []}
+              placeholder="Selecione um Cliente"
+              className="w-full text-[10px] font-bold uppercase bg-blue-600 text-app-text-strong border-none rounded-xl"
+            />
           </div>
         </div>
         <div className="flex gap-4">
@@ -1931,41 +2114,35 @@ function SystematicModelingView({ activeClient, clients, onSelectClient, rdc, pl
                   <div key={row.id}>
                     <label className="text-[9px] font-black uppercase tracking-[0.2em] text-app-text-muted block mb-2 ml-1">{row.label}</label>
                     {row.id === 'conteudo' ? (
-                      <select
+                      <InputSelect
                         value={value}
-                        onChange={(e) => updateCell(day, row.id, e.target.value)}
-                        disabled={!activeClient}
+                        onChange={(val) => updateCell(day, row.id, val)}
+                        options={contentOptions.map(opt => ({ value: opt, label: opt }))}
                         className="w-full bg-app-surface border border-white/10 rounded-2xl px-5 py-4 text-[11px] font-bold text-app-text-strong outline-none focus:border-blue-500/50 uppercase tracking-wide appearance-none"
-                      >
-                        {contentOptions.map(opt => <option key={opt} value={opt} className="bg-app-surface">{opt}</option>)}
-                      </select>
+                        placeholder="Selecione..."
+                        label={row.label}
+                      />
                     ) : (
-                      <div className="relative">
-                        <select
-                          value={value}
-                          onChange={(e) => updateCell(day, row.id, e.target.value)}
-                          disabled={!activeClient}
-                          className="w-full bg-app-surface border border-white/10 rounded-2xl px-5 py-4 text-[11px] font-bold text-app-text-strong outline-none focus:border-blue-500/50 uppercase tracking-wide appearance-none"
-                        >
-                          <option value="" className="bg-app-surface">-</option>
-                          {(() => {
-                            if (row.id === 'formato') {
-                              const selectedContent = activeClient && data && data[activeClient.id] ? data[activeClient.id][`${day}-conteudo`] : null;
-                              if (selectedContent) {
-                                const rdcItem = rdc.find((r: any) => r['Ideia de Conteúdo'] === selectedContent && r.Cliente_ID === activeClient.id);
-                                const planItem = planning.find((p: any) => p.Conteúdo === selectedContent && p.Cliente_ID === activeClient.id);
-                                const network = rdcItem?.Rede_Social || planItem?.Rede_Social;
-                                if (network && library[network]) return library[network].map((opt: any) => <option key={opt} value={opt} className="bg-app-surface">{opt}</option>);
-                              }
-                              return Object.values(library).flat().map((opt: any) => <option key={opt} value={opt} className="bg-app-surface">{opt}</option>);
+                      <InputSelect
+                        value={value}
+                        onChange={(val) => updateCell(day, row.id, val)}
+                        options={(() => {
+                          if (row.id === 'formato') {
+                            const selectedContent = activeClient && data && data[activeClient.id] ? data[activeClient.id][`${day}-conteudo`] : null;
+                            if (selectedContent) {
+                              const rdcItem = rdc.find((r: any) => r['Ideia de Conteúdo'] === selectedContent && r.Cliente_ID === activeClient.id);
+                              const planItem = planning.find((p: any) => p.Conteúdo === selectedContent && p.Cliente_ID === activeClient.id);
+                              const network = rdcItem?.Rede_Social || planItem?.Rede_Social;
+                              if (network && library[network]) return library[network].map((opt: any) => ({ value: opt, label: opt }));
                             }
-                            return row.options?.map((opt: any) => <option key={opt} value={opt} className="bg-app-surface">{opt}</option>);
-                          })()}
-                        </select>
-                        <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                          <i className="fa-solid fa-chevron-down text-[10px] text-app-text-muted"></i>
-                        </div>
-                      </div>
+                            return Object.values(library).flat().map((opt: any) => ({ value: opt, label: opt }));
+                          }
+                          return row.options?.map((opt: any) => ({ value: opt, label: opt })) || [];
+                        })()}
+                        className="w-full bg-app-surface border border-white/10 rounded-2xl px-5 py-4 text-[11px] font-bold text-app-text-strong outline-none focus:border-blue-500/50 uppercase tracking-wide appearance-none"
+                        placeholder="-"
+                        label={row.label}
+                      />
                     )}
                   </div>
                 );
@@ -2017,7 +2194,7 @@ function TaskFlowView({ tasks, clients, collaborators, activeViewId, setActiveVi
       <div className="bg-app-surface p-4 rounded-xl border border-app-border flex flex-wrap items-center gap-4 shrink-0 shadow-2xl">
         <div className="flex bg-app-bg p-1 rounded-lg border border-app-border">{DEFAULT_TASK_VIEWS.map((v: any) => (<button key={v.id} onClick={() => setActiveViewId(v.id)} className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${activeViewId === v.id ? 'bg-[#3B82F6] text-app-text-strong shadow-lg' : 'text-[#4B5563] hover:text-app-text-strong'}`}>{v.name}</button>))}</div>
         <div className="flex-1 relative max-w-md"><i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] text-xs"></i><input value={globalSearch} onChange={e => setGlobalSearch(e.target.value)} placeholder="Buscar tarefas..." className="w-full !pl-10 h-10 !bg-app-bg outline-none" /></div>
-        <div className="flex gap-2"><DeletionBar count={selection.length} onDelete={() => onDelete(selection, 'TAREFAS')} onArchive={() => onArchive(selection, 'TAREFAS', true)} onClear={onClearSelection} /><Button onClick={() => onAdd('TAREFAS')} className="!bg-[#3B82F6] h-10 shadow-lg shadow-blue-500/20"><i className="fa-solid fa-plus mr-2"></i>Nova Tarefa</Button></div>
+        <div className="flex gap-2"><DeletionBar count={selection.length} onDelete={() => onDelete(selection, 'TAREFAS')} onArchive={() => onArchive(selection, 'TAREFAS', true)} onClear={onClearSelection} /><Button onClick={() => onAdd('TAREFAS')} className="hidden md:flex !bg-[#3B82F6] h-10 shadow-lg shadow-blue-500/20"><i className="fa-solid fa-plus mr-2"></i>Nova Tarefa</Button></div>
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-2">
         {viewType === 'List' && (<div className="space-y-4 pb-20">{DEFAULT_TASK_STATUSES.map(status => { const statusTasks = filteredTasks.filter((t: any) => t.Status === status.id); const isExpanded = expandedGroups.includes(status.id); return (<div key={status.id} className="space-y-1"><div className="flex items-center gap-3 p-2 bg-app-surface/30 rounded-lg cursor-pointer hover:bg-app-surface transition-all group" onClick={() => setExpandedGroups(prev => isExpanded ? prev.filter(g => g !== status.id) : [...prev, status.id])}><i className={`fa-solid ${isExpanded ? 'fa-chevron-down' : 'fa-chevron-right'} text-[10px] text-[#334155]`}></i><div className="w-2 h-2 rounded-full" style={{ backgroundColor: status.color }}></div><span className="text-[11px] font-black uppercase text-app-text-strong tracking-widest">{status.label}</span><button onClick={(e) => { e.stopPropagation(); onAdd('TAREFAS', { Status: status.id }); }} className="ml-auto opacity-0 group-hover:opacity-100 text-[10px] font-bold text-[#3B82F6]">+ Nova</button></div>{isExpanded && (<div className="space-y-1 ml-4 animate-fade">{statusTasks.map((t: any) => (<div key={t.id} onClick={() => onSelectTask(t.id)} className={`flex items-center gap-4 p-3 bg-app-surface border border-app-border rounded-xl hover:border-[#3B82F6]/50 cursor-pointer group ${selection.includes(t.id) ? 'bg-[#3B82F6]/5 border-[#3B82F6]' : ''}`}><div className="flex items-center gap-3 shrink-0" onClick={e => { e.stopPropagation(); onSelect(t.id); }}><input type="checkbox" checked={selection.includes(t.id)} readOnly /></div><div className="flex-1 min-w-0"><span className="text-[9px] font-black text-[#334155] uppercase block mb-1 leading-none">{clients.find((c: any) => c.id === t.Cliente_ID)?.Nome}</span><h5 className="text-xs font-bold text-app-text-strong uppercase truncate">{t.Título}</h5></div><div className="flex items-center gap-4 shrink-0"><select value={t.Prioridade} onClick={e => e.stopPropagation()} onChange={e => onUpdate(t.id, 'TAREFAS', 'Prioridade', e.target.value)} className="!p-0 !h-6 !bg-transparent border-none text-[10px] font-black uppercase w-20 text-app-text-muted">{PRIORIDADE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select><div className="w-8 h-8 rounded-lg bg-[#3B82F6]/10 text-[#3B82F6] flex items-center justify-center text-[10px] font-black border border-[#3B82F6]/20">{t.Responsável?.slice(0, 1).toUpperCase() || '?'}</div></div></div>))}</div>)}</div>); })}</div>)}
@@ -2193,16 +2370,14 @@ function TaskDetailPanel({ taskId, tasks, clients, collaborators, onClose, onUpd
                 <label className="text-[10px] font-black text-[#475569] uppercase flex items-center gap-2 tracking-widest leading-none mb-2">
                   <i className={`fa-solid ${item.icon} text-[10px] ${item.color}`}></i> {item.label}
                 </label>
-                <div className="relative">
-                  <select
-                    className="w-full text-xs font-black uppercase bg-app-bg/50 hover:bg-app-bg border border-app-border hover:border-[#3B82F6]/50 rounded-xl px-4 py-3 text-app-text-strong transition-all appearance-none cursor-pointer"
-                    value={t[item.field as keyof Task] as string}
-                    onChange={e => onUpdate(t.id, 'TAREFAS', item.field, e.target.value)}
-                  >
-                    {item.options.map(opt => <option key={opt.id} value={opt.id} className="bg-app-surface-2">{opt.label}</option>)}
-                  </select>
-                  <i className="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-[#475569] pointer-events-none group-hover:text-[#3B82F6]"></i>
-                </div>
+                <InputSelect
+                  value={t[item.field as keyof Task] as string}
+                  onChange={(val) => onUpdate(t.id, 'TAREFAS', item.field, val)}
+                  options={item.options.map(opt => ({ value: opt.id, label: opt.label }))}
+                  className="w-full text-xs font-black uppercase bg-app-bg/50 hover:bg-app-bg border border-app-border hover:border-[#3B82F6]/50 rounded-xl px-4 py-3 text-app-text-strong transition-all appearance-none cursor-pointer"
+                  placeholder="Selecione..."
+                  label={item.label}
+                />
               </div>
             ))}
             <div className="space-y-1.5 group">
@@ -2798,6 +2973,8 @@ function TableRow({ row, tab, cols, onUpdate, clients, library, onOpenColorPicke
 }
 
 function TableView({ tab, data, onUpdate, onDelete, onArchive, onAdd, clients, library, selection, onSelect, onClearSelection, onOpenColorPicker, activeCategory, activeClient, onSelectClient }: any) {
+  const [mobileActionRow, setMobileActionRow] = useState<any>(null);
+
   const cols = useMemo(() => {
     let c = tab === 'CLIENTES' ? CLIENTES_COLS : tab === 'MATRIZ' ? MATRIZ_ESTRATEGICA_COLS : tab === 'COBO' ? COBO_COLS : tab === 'RDC' ? RDC_COLS : tab === 'FINANCAS' ? (
       activeCategory === 'Assinatura' ? FINANCAS_COLS : FINANCAS_COLS.filter(c => !['Recorrência', 'Dia_Pagamento', 'Data_Início', 'Data_Fim'].includes(c))
@@ -2849,28 +3026,22 @@ function TableView({ tab, data, onUpdate, onDelete, onArchive, onAdd, clients, l
       <div className="flex justify-center w-full px-0 md:px-4">
         {onSelectClient && (
           <div className="relative w-full max-w-md group">
-            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none z-10">
               <i className="fa-solid fa-user text-[10px] text-blue-500"></i>
             </div>
-            <select
+            <InputSelect
               value={activeClient ? activeClient.id : ""}
-              onChange={(e) => onSelectClient && onSelectClient(e.target.value)}
-              className="w-full bg-app-bg text-app-text-strong text-xs font-bold uppercase py-3 pl-10 pr-10 rounded-xl border border-app-border outline-none appearance-none cursor-pointer hover:border-blue-500 focus:border-blue-500 transition-all shadow-lg text-center tracking-widest"
-            >
-              <option value="" disabled>Selecionar Cliente</option>
-              {clients?.map((c: any) => (
-                <option key={c.id} value={c.id} className="bg-app-surface text-app-text-strong">{c.Nome}</option>
-              ))}
-            </select>
-            <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-              <i className="fa-solid fa-chevron-down text-[10px] text-app-text-muted group-hover:text-app-text-strong transition-colors"></i>
-            </div>
+              onChange={(val) => onSelectClient && onSelectClient(val)}
+              options={clients?.map((c: any) => ({ value: c.id, label: c.Nome })) || []}
+              placeholder="Selecionar Cliente"
+              className="w-full bg-app-bg text-app-text-strong text-xs font-bold uppercase py-3 pl-10 pr-10 rounded-xl border border-app-border outline-none transition-all shadow-lg text-center tracking-widest hover:border-blue-500"
+            />
           </div>
         )}
       </div>
       <div className="flex justify-center md:justify-end gap-4 items-center w-full">
         <DeletionBar count={selection.length} onDelete={() => onDelete(selection, tab)} onArchive={() => onArchive(selection, tab, true)} onClear={onClearSelection} />
-        {onAdd && <Button onClick={onAdd} className="w-full md:w-auto !bg-blue-600 !text-white hover:!bg-blue-700 !border-none shadow-lg">+ Novo Registro</Button>}
+        {onAdd && <Button onClick={onAdd} className="hidden md:flex w-full md:w-auto !bg-blue-600 !text-white hover:!bg-blue-700 !border-none shadow-lg">+ Novo Registro</Button>}
       </div>
     </div>
   );
@@ -2882,24 +3053,18 @@ function TableView({ tab, data, onUpdate, onDelete, onArchive, onAdd, clients, l
       extra={isRDC ? undefined : (
         <div className="flex gap-4 items-center">
           {tab !== 'CLIENTES' && onSelectClient && (
-            <div className="relative">
-              <select
+            <div className="relative w-48">
+              <InputSelect
                 value={activeClient ? activeClient.id : ""}
-                onChange={(e) => onSelectClient && onSelectClient(e.target.value)}
-                className="bg-blue-600 text-app-text-strong text-[10px] font-bold uppercase py-1.5 pl-4 pr-8 rounded-lg outline-none appearance-none cursor-pointer hover:bg-blue-700 transition-colors shadow-lg shadow-blue-900/20"
-              >
-                <option value="" disabled>Selecionar Cliente</option>
-                {clients?.map((c: any) => (
-                  <option key={c.id} value={c.id} className="bg-app-surface text-app-text-strong">{c.Nome}</option>
-                ))}
-              </select>
-              <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                <i className="fa-solid fa-chevron-down text-[8px] text-app-text-strong"></i>
-              </div>
+                onChange={(val) => onSelectClient && onSelectClient(val)}
+                options={clients?.map((c: any) => ({ value: c.id, label: c.Nome })) || []}
+                placeholder="Selecionar Cliente"
+                className="bg-blue-600 text-app-text-strong text-[10px] font-bold uppercase py-1.5 pl-4 pr-8 rounded-lg outline-none transition-colors shadow-lg shadow-blue-900/20 w-full hover:bg-blue-700"
+              />
             </div>
           )}
           <DeletionBar count={selection.length} onDelete={() => onDelete(selection, tab)} onArchive={() => onArchive(selection, tab, true)} onClear={onClearSelection} />
-          {tab !== 'FINANCAS' && onAdd && <Button onClick={onAdd} variant="secondary" className="!bg-blue-600 !text-white hover:!bg-blue-700 !border-none shadow-lg">+ Novo Registro</Button>}
+          {tab !== 'FINANCAS' && onAdd && <Button onClick={onAdd} variant="secondary" className="hidden md:flex !bg-blue-600 !text-white hover:!bg-blue-700 !border-none shadow-lg">+ Novo Registro</Button>}
         </div>
       )}
     >
@@ -2961,8 +3126,7 @@ function TableView({ tab, data, onUpdate, onDelete, onArchive, onAdd, clients, l
               <input type="checkbox" checked={selection.includes(row.id)} onChange={() => onSelect(row.id)} className="rounded bg-app-bg border-app-border text-blue-500 focus:ring-0 w-6 h-6" />
               <div className="flex gap-2">
                 <div className="flex gap-2">
-                  <button onClick={() => onArchive([row.id], tab, !row.__archived)} className="w-10 h-10 rounded-xl bg-app-surface-2 border border-app-border text-app-text-muted hover:text-blue-400 flex items-center justify-center transition-colors"><i className={`fa-solid ${row.__archived ? 'fa-box-open' : 'fa-box-archive'} text-sm`}></i></button>
-                  <button onClick={() => onDelete([row.id], tab)} className="w-10 h-10 rounded-xl bg-app-surface-2 border border-app-border text-app-text-muted hover:text-rose-500 flex items-center justify-center transition-colors"><i className="fa-solid fa-trash-can text-sm"></i></button>
+                  <button onClick={() => setMobileActionRow(row)} className="w-10 h-10 rounded-xl bg-app-surface-2 border border-app-border text-app-text-muted hover:text-app-text-strong flex items-center justify-center transition-colors active:bg-app-surface-3"><i className="fa-solid fa-ellipsis-vertical text-sm"></i></button>
                 </div>
               </div>
             </div>
@@ -2977,6 +3141,36 @@ function TableView({ tab, data, onUpdate, onDelete, onArchive, onAdd, clients, l
           </div>
         ))}
       </div>
+      <BottomSheet
+        isOpen={!!mobileActionRow}
+        onClose={() => setMobileActionRow(null)}
+        title="Ações do Registro"
+      >
+        <div className="p-4 space-y-3 bg-app-surface">
+          <Button
+            variant="secondary"
+            onClick={() => {
+              if (mobileActionRow) onArchive([mobileActionRow.id], tab, !mobileActionRow.__archived);
+              setMobileActionRow(null);
+            }}
+            className="w-full !justify-start !h-12 !text-[13px]"
+          >
+            <i className={`fa-solid ${mobileActionRow?.__archived ? 'fa-box-open' : 'fa-box-archive'} mr-3 w-5 text-center`}></i>
+            {mobileActionRow?.__archived ? 'Desarquivar Registro' : 'Arquivar Registro'}
+          </Button>
+
+          <Button
+            variant="danger"
+            onClick={() => {
+              if (mobileActionRow) onDelete([mobileActionRow.id], tab);
+              setMobileActionRow(null);
+            }}
+            className="w-full !justify-start !h-12 !text-[13px] !bg-rose-500/10 !border-rose-500/20 !text-rose-500"
+          >
+            <i className="fa-solid fa-trash-can mr-3 w-5 text-center"></i> Excluir Permanentemente
+          </Button>
+        </div>
+      </BottomSheet>
     </Card>
   );
 }
@@ -2985,11 +3179,11 @@ function renderCell(tab: TableType, row: any, col: string, update: Function, cli
   const common = "w-full text-[11px] font-bold bg-transparent border-none text-app-text-strong pointer-events-auto outline-none transition-all focus:text-[#3B82F6]";
 
   if (tab === 'RDC') {
-    if (col === 'Rede_Social') return (<select value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={common}>{RDC_NETWORKS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select>);
+    if (col === 'Rede_Social') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={RDC_NETWORKS} className={common} placeholder="Selecione..." label={col} />);
     if (col === 'Tipo de conteúdo') {
       const social = row['Rede_Social'] || 'Instagram';
       const formats = RDC_FORMATS[social] || [];
-      return (<select value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={common}><option value="">-- Selecione --</option>{formats.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select>);
+      return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={formats} className={common} placeholder="-- Selecione --" label={col} />);
     }
     if (["Resolução (1–5)", "Demanda (1–5)", "Competição (1–5)"].includes(col)) {
       return (
@@ -3032,25 +3226,25 @@ function renderCell(tab: TableType, row: any, col: string, update: Function, cli
   }
 
   if (tab === 'COBO') {
-    if (col === 'Canal') return (<select value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={common}><option value="">-- Selecione --</option>{COBO_CANAL_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select>);
-    if (col === 'Frequência') return (<select value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={common}><option value="">-- Selecione --</option>{COBO_FREQUENCIA_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select>);
-    if (col === 'Público') return (<select value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={common}><option value="">-- Selecione --</option>{COBO_PUBLICO_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select>);
-    if (col === 'Voz') return (<select value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={common}><option value="">-- Selecione --</option>{COBO_VOZ_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select>);
-    if (col === 'Zona') return (<select value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={common}><option value="">-- Selecione --</option>{COBO_ZONA_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select>);
-    if (col === 'Intenção') return (<select value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={common}><option value="">-- Selecione --</option>{COBO_INTENCAO_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select>);
-    if (col === 'Formato') return (<select value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={common}><option value="">-- Selecione --</option>{COBO_FORMATO_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select>);
+    if (col === 'Canal') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_CANAL_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
+    if (col === 'Frequência') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_FREQUENCIA_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
+    if (col === 'Público') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_PUBLICO_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
+    if (col === 'Voz') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_VOZ_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
+    if (col === 'Zona') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_ZONA_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
+    if (col === 'Intenção') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_INTENCAO_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
+    if (col === 'Formato') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_FORMATO_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
   }
 
-  if (col === 'Cliente_ID' && tab !== 'FINANCAS') return (<select value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={common}><option value="GERAL">AGÊNCIA</option>{clients.map(c => <option key={c.id} value={c.id}>{c.Nome}</option>)}</select>);
-  if (col === 'Tipo' && tab === 'FINANCAS') return (<select value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={common}>{FINANCAS_TIPO_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select>);
-  if ((col === 'Rede_Social' || col === 'Canal') && tab !== 'COBO') return (<select value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={common}>{Object.keys(library).map(opt => <option key={opt} value={opt}>{opt}</option>)}</select>);
+  if (col === 'Cliente_ID' && tab !== 'FINANCAS') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={[{ value: "GERAL", label: "AGÊNCIA" }, ...clients.map(c => ({ value: c.id, label: c.Nome }))]} className={common} placeholder="AGÊNCIA" label={col} />);
+  if (col === 'Tipo' && tab === 'FINANCAS') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={FINANCAS_TIPO_OPTIONS} className={common} placeholder="Selecione..." label={col} />);
+  if ((col === 'Rede_Social' || col === 'Canal') && tab !== 'COBO') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={Object.keys(library)} className={common} placeholder="Selecione..." label={col} />);
 
   if (tab === 'FINANCAS') {
     const isSub = row.Tipo === 'Assinatura';
-    if (col === 'Recorrência') return isSub ? (<select value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={common}><option value="Mensal">Mensal</option><option value="Única">Única</option></select>) : null;
+    if (col === 'Recorrência') return isSub ? (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={["Mensal", "Única"]} className={common} placeholder="Selecione..." label={col} />) : null;
     if (col === 'Dia_Pagamento') return isSub ? (<input type="number" min="1" max="31" value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={common} />) : null;
     if (col === 'Data_Início' || col === 'Data_Fim') return isSub ? (<input type="date" value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={common} />) : null;
-    if (col === 'Observações' && row.Tipo === 'Entrada') return (<select value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={common}><option value="">-- Serviço --</option>{FINANCAS_SERVICOS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select>);
+    if (col === 'Observações' && row.Tipo === 'Entrada') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={FINANCAS_SERVICOS_OPTIONS} className={common} placeholder="-- Serviço --" label={col} />);
   }
 
   if (col === 'Cor (HEX)') {

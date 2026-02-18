@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { BottomSheet } from './components/BottomSheet';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'success';
@@ -156,5 +157,90 @@ export const FloatingPopover: React.FC<{
     >
       {children}
     </div>
+  );
+};
+
+export const InputSelect: React.FC<{
+  value: string | number;
+  onChange: (val: string) => void;
+  options: (string | { value: string | number; label: string })[];
+  placeholder?: string;
+  className?: string; // Additional classes for the trigger
+  label?: string; // Label for BottomSheet
+}> = ({ value, onChange, options, placeholder = "Selecione...", className = "", label }) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 1024);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Normalize options
+  const normalizedOptions = options.map(o => typeof o === 'object' ? o : { value: o, label: o });
+  const currentLabel = normalizedOptions.find(o => String(o.value) === String(value))?.label || value || placeholder;
+
+  // Handle desktop popover toggle
+  const toggleOpen = () => setIsOpen(!isOpen);
+
+  // Content for both Mobile (Sheet) and Desktop (Popover)
+  const OptionList = () => (
+    <div className="flex flex-col max-h-[60vh] overflow-y-auto custom-scrollbar bg-app-surface">
+      {normalizedOptions.map((opt) => (
+        <button
+          key={opt.value}
+          onClick={() => {
+            onChange(String(opt.value));
+            setIsOpen(false);
+          }}
+          className={`px-4 py-3 text-left text-xs font-bold border-b border-app-border last:border-0 hover:bg-app-surface-2 transition-colors flex items-center justify-between group ${String(value) === String(opt.value) ? 'bg-blue-600/5 text-blue-500' : 'text-app-text-muted hover:text-app-text-strong'}`}
+        >
+          <span>{opt.label}</span>
+          {String(value) === String(opt.value) && <i className="fa-solid fa-check text-blue-500"></i>}
+        </button>
+      ))}
+    </div>
+  );
+
+  return (
+    <>
+      <button
+        type="button"
+        ref={triggerRef}
+        onClick={toggleOpen}
+        className={`flex items-center justify-between gap-2 px-3 py-2 bg-transparent border-none text-app-text-strong text-[11px] font-bold outline-none transition-all hover:text-blue-500 w-full text-left ${className}`}
+      >
+        <span className="truncate">{currentLabel}</span>
+        <i className={`fa-solid fa-chevron-down text-[9px] opacity-50 transition-transform ${isOpen ? 'rotate-180' : ''}`}></i>
+      </button>
+
+      {/* Mobile Bottom Sheet */}
+      {isMobile && (
+        <BottomSheet
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          title={label || placeholder}
+        >
+          <div className="bg-app-surface">
+            <OptionList />
+          </div>
+        </BottomSheet>
+      )}
+
+      {/* Desktop Popover */}
+      {!isMobile && (
+        <FloatingPopover
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          triggerRef={triggerRef}
+          align="start"
+          className="w-48 bg-app-surface border border-app-border rounded-xl shadow-xl overflow-hidden mt-2"
+        >
+          <OptionList />
+        </FloatingPopover>
+      )}
+    </>
   );
 };

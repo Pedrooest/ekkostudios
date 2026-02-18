@@ -42,6 +42,17 @@ begin
     return jsonb_build_object('workspace_id', invite_record.workspace_id, 'status', 'already_member');
   end if;
 
+  -- 3.5 Ensure Profile Exists (Fix FK Violation)
+  -- If the profile trigger failed or hasn't run, we force create it here
+  insert into public.profiles (id, email, full_name)
+  select 
+    id, 
+    email, 
+    coalesce(raw_user_meta_data->>'full_name', email)
+  from auth.users
+  where id = user_id_in
+  on conflict (id) do nothing;
+
   -- 4. Add Member
   insert into public.workspace_members (workspace_id, user_id, role)
   values (invite_record.workspace_id, user_id_in, invite_record.role);

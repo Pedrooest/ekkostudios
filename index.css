@@ -1,3 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+  overflow: hidden;
+  height: 100%;
+}
+
 @keyframes toast-in {
   from {
     transform: translateY(100%) scale(0.9);

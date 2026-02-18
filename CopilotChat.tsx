@@ -85,8 +85,8 @@ export const CopilotChat: React.FC<CopilotChatProps> = ({ appData }) => {
               {messages.map((msg, idx) => (
                 <div key={idx} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                   <div className={`max-w-[85%] px-4 py-3 rounded-2xl text-[11px] leading-relaxed font-medium ${msg.role === 'user'
-                      ? 'bg-[#3B82F6] text-white rounded-tr-none'
-                      : 'bg-[#1F2937] text-gray-200 rounded-tl-none border border-[#334155]/30'
+                    ? 'bg-[#3B82F6] text-white rounded-tr-none'
+                    : 'bg-[#1F2937] text-gray-200 rounded-tl-none border border-[#334155]/30'
                     }`}>
                     <div className="whitespace-pre-wrap">{msg.text}</div>
                   </div>
@@ -103,7 +103,7 @@ export const CopilotChat: React.FC<CopilotChatProps> = ({ appData }) => {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 bg-[#0F172A] border-t border-[#1F2937] flex gap-3 items-center shrink-0 mb-safe-area">
+            <div className="p-4 bg-[#0F172A] border-t border-[#1F2937] flex gap-3 items-center shrink-0 pb-[max(1rem,env(safe-area-inset-bottom))]">
               <input
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
@@ -124,7 +124,7 @@ export const CopilotChat: React.FC<CopilotChatProps> = ({ appData }) => {
       )}
 
       {/* Floating Toggle Button */}
-      <div className="fixed bottom-6 right-6 z-[100] flex flex-col items-end pointer-events-none">
+      <div className="fixed bottom-24 right-4 md:bottom-6 md:right-6 z-[100] flex flex-col items-end pointer-events-none">
         <button
           onClick={() => { setIsOpen(!isOpen); logAction('Copilot Toggle'); }}
           className="w-14 h-14 rounded-2xl bg-[#3B82F6] text-white shadow-[0_8px_30px_rgb(59,130,246,0.5)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center text-2xl z-50 pointer-events-auto border-4 border-[#0B0F19]"
