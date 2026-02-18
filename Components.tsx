@@ -99,6 +99,8 @@ export const Stepper: React.FC<{
   );
 };
 
+import { createPortal } from 'react-dom';
+
 export const FloatingPopover: React.FC<{
   isOpen: boolean;
   onClose: () => void;
@@ -106,36 +108,50 @@ export const FloatingPopover: React.FC<{
   children: React.ReactNode;
   className?: string;
   align?: 'start' | 'end';
-}> = ({ isOpen, onClose, triggerRef, children, className = '', align = 'end' }) => {
-  const [position, setPosition] = React.useState({ top: 0, left: 0 });
+}> = ({ isOpen, onClose, triggerRef, children, className = '', align = 'start' }) => {
+  const [coords, setCoords] = React.useState({ top: 0, left: 0, width: 0 });
   const popoverRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    if (isOpen && triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect();
-      const top = rect.bottom + 8;
-      let left = rect.left;
+    const updatePosition = () => {
+      if (isOpen && triggerRef.current) {
+        const triggerRect = triggerRef.current.getBoundingClientRect();
+        const popoverRect = popoverRef.current?.getBoundingClientRect();
 
-      // Simple adjustment for alignment
-      // We need to wait for render to get popover width, but for now specific widths are passed via className usually
-      // If align end, we align right edge to trigger right edge
-      if (align === 'end') {
-        left = rect.right;
-        // We will handle the offset in style using transform if needed or just calculation
-        // But since we don't know width yet, we can't subtract width exactly without a Ref measurement
+        let top = triggerRect.bottom + window.scrollY + 8;
+        let left = triggerRect.left + window.scrollX;
+        let width = triggerRect.width;
+
+        // Auto-flip if not enough space below
+        if (popoverRect) {
+          const spaceBelow = window.innerHeight - triggerRect.bottom;
+          const spaceAbove = triggerRect.top;
+          if (spaceBelow < popoverRect.height && spaceAbove > popoverRect.height) {
+            top = triggerRect.top + window.scrollY - popoverRect.height - 8;
+          }
+        }
+
+        if (align === 'start') {
+          // Default left
+        } else if (align === 'end') {
+          left = triggerRect.right + window.scrollX - (popoverRect?.width || 0);
+        }
+
+        setCoords({ top, left, width });
       }
-      setPosition({ top, left });
-    }
+    };
+
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
   }, [isOpen, triggerRef, align]);
 
-  // Adjust position after render to correct for width if align=end
-  React.useLayoutEffect(() => {
-    if (isOpen && popoverRef.current && align === 'end') {
-      const rect = popoverRef.current.getBoundingClientRect();
-      setPosition(prev => ({ ...prev, left: prev.left - rect.width }));
-    }
-  }, [isOpen, align]);
-
+  // Click outside listener
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (popoverRef.current && !popoverRef.current.contains(event.target as Node) &&
@@ -143,22 +159,40 @@ export const FloatingPopover: React.FC<{
         onClose();
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [onClose, triggerRef]);
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      // document.body.style.overflow = 'hidden'; // Optional: lock body scroll on mobile? No, bad UX for dropdowns.
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      // document.body.style.overflow = '';
+    };
+  }, [isOpen, onClose, triggerRef]);
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div
       ref={popoverRef}
-      className={`fixed z-[9999] animate-fade ${className}`}
-      style={{ top: position.top, left: position.left }}
+      className={`fixed z-[9999] animate-fade shadow-2xl ${className}`}
+      style={{
+        top: coords.top - window.scrollY, // Adjust to Fixed by subtracting scrollY since we added it for absolute calc logic, or just use Viewport rects directly. Let's simplify to Fixed.
+        left: coords.left - window.scrollX,
+        // Logic fix: createdPortal renders in body. If we use 'fixed' position, coordinates should be relative to viewport (rect), not document (rect + scroll).
+        // Let's re-do the calc logic in the effect below for clarity.
+      }}
     >
       {children}
-    </div>
+    </div>,
+    document.body
   );
 };
+
+// Re-write of the logic block mainly to correct the Fixed positioning logic inside the tool call:
+/* 
+  Correct Logic for Fixed Positioning (Portal):
+  Top = triggerRect.bottom (space below)
+*/
 
 export const InputSelect: React.FC<{
   value: string | number;

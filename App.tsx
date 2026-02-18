@@ -1396,7 +1396,7 @@ export default function App() {
                   <h2 className="text-xl md:text-2xl font-black text-app-text-strong uppercase tracking-tighter">Matriz Estratégica</h2>
                   <p className="text-[10px] font-bold text-app-text-muted uppercase tracking-widest">Definição de Papéis e Canais</p>
                 </div>
-                <Button onClick={() => handleAddRow('MATRIZ')} className="shadow-lg shadow-blue-500/20 whitespace-nowrap">
+                <Button onClick={() => handleAddRow('MATRIZ')} className="shadow-lg shadow-blue-500/20 whitespace-nowrap hidden md:flex">
                   <i className="fa-solid fa-plus mr-2"></i> Novo Registro
                 </Button>
               </div>
@@ -1410,7 +1410,7 @@ export default function App() {
                   <h2 className="text-xl md:text-2xl font-black text-app-text-strong uppercase tracking-tighter">Gestão de Operação</h2>
                   <p className="text-[10px] font-bold text-app-text-muted uppercase tracking-widest">Controle de Fluxo e Canais (COBO)</p>
                 </div>
-                <Button onClick={() => handleAddRow('COBO')} className="shadow-lg shadow-blue-500/20 whitespace-nowrap">
+                <Button onClick={() => handleAddRow('COBO')} className="shadow-lg shadow-blue-500/20 whitespace-nowrap hidden md:flex">
                   <i className="fa-solid fa-plus mr-2"></i> Novo Registro
                 </Button>
               </div>
@@ -1618,6 +1618,8 @@ export default function App() {
             handleAddRow(activeTab);
           }}
           label="Novo"
+          // Ensure it respects safe area and doesn't overlap excessively 
+          className="bottom-[calc(24px+env(safe-area-inset-bottom))]"
         />
       )}
     </div >
