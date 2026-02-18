@@ -11,16 +11,40 @@ export const DatabaseService = {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return [];
 
-        const { data, error } = await supabase
+        // 1. Get workspaces I own
+        const { data: owned, error: ownError } = await supabase
             .from('workspaces')
             .select('*, workspace_members(role, user_id)')
+            .eq('owner_id', user.id)
             .order('created_at', { ascending: false });
 
-        if (error) {
-            console.error('Error fetching workspaces:', error);
-            return [];
+        // 2. Get workspaces I am a member of (but not owner)
+        // We first find the IDs from workspace_members to be safe against RLS recursion issues on the main table join
+        const { data: memberships, error: memberError } = await supabase
+            .from('workspace_members')
+            .select('workspace_id, role, user_id')
+            .eq('user_id', user.id);
+
+        let memberWorkspaces: any[] = [];
+
+        if (memberships && memberships.length > 0) {
+            const workspaceIds = memberships.map(m => m.workspace_id);
+            const { data: memberWs, error: mwError } = await supabase
+                .from('workspaces')
+                .select('*, workspace_members(role, user_id)') // We still try to fetch members for role info
+                .in('id', workspaceIds)
+                .neq('owner_id', user.id); // Exclude owned ones to avoid duplicates
+
+            if (!mwError && memberWs) {
+                memberWorkspaces = memberWs;
+            }
         }
-        return data;
+
+        const allWorkspaces = [...(owned || []), ...memberWorkspaces];
+        // Deduplicate just in case
+        const unique = Array.from(new Map(allWorkspaces.map(item => [item.id, item])).values());
+
+        return unique.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     },
 
     async createWorkspace(name: string) {
