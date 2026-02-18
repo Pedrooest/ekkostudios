@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { UserProfile, Task } from './types';
 import { Button } from './Components';
 import { BottomSheet } from './components/BottomSheet';
+import { PortalPopover } from './components/PortalPopover';
 
 interface ProfilePopoverProps {
     profile: UserProfile;
@@ -90,32 +91,11 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
     // Filter tasks for the logged in user
     const myTasks = tasks.filter(t => t.Responsável === profile.full_name && t.Status !== 'concluido');
 
-    const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
     const buttonRef = useRef<HTMLButtonElement>(null);
 
     const togglePopover = () => {
-        if (!isOpen && buttonRef.current) {
-            const rect = buttonRef.current.getBoundingClientRect();
-            // Position: Top-Right aligned with button, shifted down
-            setDropdownPos({
-                top: rect.bottom + 12,
-                left: Math.max(16, rect.right - 400) // Ensure it doesn't go off screen on tablet
-            });
-        }
         setIsOpen(!isOpen);
     };
-
-    // Close on scroll/resize
-    useEffect(() => {
-        const handleScroll = () => isOpen && setIsOpen(false);
-        const handleResize = () => setIsOpen(false); // Close on resize to reset positioning logic
-        window.addEventListener('scroll', handleScroll, true);
-        window.addEventListener('resize', handleResize);
-        return () => {
-            window.removeEventListener('scroll', handleScroll, true);
-            window.removeEventListener('resize', handleResize);
-        };
-    }, [isOpen]);
 
     const isMobile = window.innerWidth < 1024;
 
@@ -413,21 +393,17 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
             )}
 
             {/* Desktop View using Portal */}
-            {isOpen && !isMobile && ReactDOM.createPortal(
-                <div className="fixed inset-0 z-[1900] pointer-events-none">
-                    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm pointer-events-auto" onClick={() => setIsOpen(false)}></div>
-                    <div
-                        className="absolute w-[420px] max-w-[calc(100vw-32px)] bg-app-surface border border-app-border rounded-[40px] shadow-2xl z-[2000] overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col pointer-events-auto"
-                        style={{
-                            top: Math.min(window.innerHeight - 600, dropdownPos.top),
-                            left: Math.max(16, Math.min(window.innerWidth - 436, dropdownPos.left))
-                        }}
-                    >
-                        {content}
-                    </div>
-                </div>,
-                document.body
-            )}
+            <PortalPopover
+                isOpen={isOpen && !isMobile}
+                onClose={() => setIsOpen(false)}
+                triggerRef={buttonRef}
+                className="w-[420px] max-w-[calc(100vw-32px)]"
+                align="end"
+            >
+                <div className="bg-app-surface border border-app-border rounded-[40px] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col pointer-events-auto max-h-[85vh]">
+                    {content}
+                </div>
+            </PortalPopover>
         </div>
     );
 }

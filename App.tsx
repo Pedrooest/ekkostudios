@@ -174,87 +174,7 @@ const getTableName = (tab: string): string | null => {
 
 
 
-const PortalPopover: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  triggerRef: React.RefObject<HTMLElement>;
-  children: React.ReactNode;
-  className?: string; // Optional width/styling
-  align?: 'start' | 'end'; // Alignment slightly relative to trigger
-}> = ({ isOpen, onClose, triggerRef, children, className = "", align = 'start' }) => {
-  const [position, setPosition] = useState({ top: 0, left: 0 });
-
-  // Update position when opened
-  useEffect(() => {
-    if (isOpen && triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect();
-      const scrollY = window.scrollY;
-
-      // Basic positioning: below the trigger
-      let top = rect.bottom + scrollY + 8; // 8px offset
-      let left = rect.left;
-
-      // Adjust for alignment
-      // If end-aligned, we want the right edge of popover to align with right edge of trigger
-      // But we don't know popover width easily without measuring ref. 
-      // Simplified: Just use left alignment for now or approximate.
-      // Actually, let's try to just set left such that it pulls back.
-      // If we use right: ... style, we need to know window width.
-
-      setPosition({ top, left });
-    }
-  }, [isOpen, triggerRef, align, className]);
-
-  useEffect(() => {
-    const handleScroll = () => { if (isOpen) onClose(); }; // Close on scroll for simplicity
-    const handleResize = () => { if (isOpen) onClose(); };
-    window.addEventListener('scroll', handleScroll, true);
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('scroll', handleScroll, true);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
-  return ReactDOM.createPortal(
-    <div id="portal-popover-container" className="fixed inset-0 z-[9999] flex items-end sm:block sm:items-start pointer-events-none">
-      {/* Backdrop: Transparent on desktop, maybe semi-transparent on mobile? keeping transparent for now as per request for "overlay layer" */}
-      <div className="absolute inset-0 bg-transparent pointer-events-auto" onClick={onClose} />
-
-      {/* Content Wrapper */}
-      <div
-        className={`
-           absolute z-[10000] pointer-events-auto animate-fade 
-           w-full sm:w-auto sm:fixed
-           bottom-0 sm:bottom-auto
-           left-0 sm:left-auto
-           ${className}
-         `}
-        style={{
-          // Mobile: fixed bottom (handled by css classes above - left-0, bottom-0, w-full)
-          // Desktop: calculated position
-          ...(window.innerWidth >= 640 ? {
-            top: position.top,
-            left: align === 'end' ? 'auto' : position.left,
-            right: align === 'end' ? (document.body.clientWidth - (triggerRef.current?.getBoundingClientRect().right || 0)) : 'auto'
-          } : {
-            // Mobile overrides
-            bottom: 0,
-            left: 0,
-            right: 0,
-            top: 'auto'
-          })
-        }}
-        onClick={e => e.stopPropagation()}
-      >
-        {children}
-      </div>
-    </div>,
-    document.body
-  );
-};
+import { PortalPopover } from './components/PortalPopover';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TableType>('DASHBOARD');
@@ -832,6 +752,11 @@ export default function App() {
       alert("Selecione um Workspace primeiro.");
       return;
     }
+    // Fix: Prevent creation of items with invalid Foreign Key if no clients exist
+    if (clients.length === 0 && !['CLIENTES', 'DASHBOARD', 'VH', 'ORGANICKIA'].includes(tab)) {
+      alert('Para criar itens nesta tabela, cadastre pelo menos um Cliente primeiro.');
+      return;
+    }
     const id = generateId();
     const defaultClientId = selectedClientIds.length === 1 ? selectedClientIds[0] : (clients[0]?.id || 'GERAL');
     let newItem: any = null;
@@ -1139,18 +1064,18 @@ export default function App() {
   if (!currentUser) return <AuthView onSuccess={setCurrentUser} />;
 
   return (
-    <div className="flex h-screen bg-app-bg text-app-text font-sans overflow-hidden transition-colors duration-300 pb-[env(safe-area-inset-bottom)]">
+    <div className="flex h-[100dvh] bg-app-bg text-app-text font-sans overflow-hidden transition-colors duration-300">
       {!sidebarCollapsed && (
-        <div className="fixed inset-0 bg-black/50 z-50 lg:hidden backdrop-blur-sm animate-fade" onClick={() => setSidebarCollapsed(true)}></div>
+        <div className="fixed inset-0 bg-black/50 z-[2000] lg:hidden backdrop-blur-sm animate-fade" onClick={() => setSidebarCollapsed(true)}></div>
       )}
 
-      <aside className={`transition-all duration-300 flex flex-col bg-app-surface-2 border-r border-app-border shrink-0 z-[2100] fixed inset-y-0 left-0 lg:relative ${sidebarCollapsed ? '-translate-x-full lg:translate-x-0 lg:w-16' : 'translate-x-0 w-[85vw] sm:w-64 shadow-2xl lg:shadow-none'}`}>
+      <aside className={`transition-all duration-300 flex flex-col dark:bg-app-surface-2 bg-white border-r border-app-border shrink-0 z-[2100] fixed inset-y-0 left-0 lg:relative ${sidebarCollapsed ? '-translate-x-full lg:translate-x-0 lg:w-16' : 'translate-x-0 w-[85vw] sm:w-64 shadow-2xl lg:shadow-none'}`}>
         <div className={`h-24 flex items-center border-b border-app-border justify-center overflow-hidden ${sidebarCollapsed ? 'px-0' : 'px-5'}`}>
           <Logo collapsed={sidebarCollapsed} theme={theme} />
         </div>
         <nav className="flex-1 py-6 px-0 space-y-2 overflow-y-auto custom-scrollbar flex flex-col items-center">
           {tabOrder.map(tab => (
-            <button key={`nav-tab-${tab}`} onClick={() => { setActiveTab(tab); if (window.innerWidth < 1024) setSidebarCollapsed(true); }} className={`w-[90%] flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-4'} py-3 rounded-xl transition-all group ${activeTab === tab ? 'bg-blue-500 text-app-text-strong shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'text-app-text-muted hover:bg-app-surface hover:text-app-text-strong'}`}>
+            <button key={`nav-tab-${tab}`} onClick={() => { setActiveTab(tab); if (window.innerWidth < 1024) setSidebarCollapsed(true); }} className={`w-[90%] flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-4'} py-3 rounded-xl transition-all group ${activeTab === tab ? 'bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'text-app-text-muted hover:bg-app-surface hover:text-app-text-strong'}`}>
               <i className={`fa-solid ${getIcon(tab)} text-xl transition-transform group-hover:scale-110`}></i>
               {!sidebarCollapsed && <span className="text-[11px] font-bold uppercase tracking-widest truncate">{TABLE_LABELS[tab]}</span>}
             </button>
@@ -1221,10 +1146,13 @@ export default function App() {
               )}
             </div>
 
-            {/* Mobile Controls (Profile + Updates) */}
-            <div className="flex lg:hidden items-center gap-3">
+            {/* Mobile Controls (Profile + Updates) - Hidden on Tablet (md) and up */}
+            <div className="flex md:hidden items-center gap-3">
               <button onClick={toggleTheme} className="w-8 h-8 rounded-full flex items-center justify-center text-app-text-muted hover:text-app-text transition-colors">
                 <i className={`fa-solid ${theme === 'dark' ? 'fa-sun' : 'fa-moon'} text-lg`}></i>
+              </button>
+              <button onClick={() => setIsExportModalOpen(true)} className="w-8 h-8 rounded-full flex items-center justify-center text-app-text-muted hover:text-app-text transition-colors">
+                <i className="fa-solid fa-download text-lg"></i>
               </button>
               <Button ref={notificationButtonRef} variant="ghost" onClick={() => setIsNotificationOpen(!isNotificationOpen)} className="relative !p-2 text-app-text-strong hover:text-blue-500 transition-colors">
                 <i className="fa-regular fa-bell text-lg"></i>
@@ -1356,8 +1284,8 @@ export default function App() {
               {showArchived ? 'Ocultar' : 'Arquivados'}
             </button>
 
-            {/* DESKTOP Controls (Theme, Notifs, Profile) - Hidden on mobile, shown on lg */}
-            <div className="hidden lg:flex items-center gap-3 ml-auto">
+            {/* DESKTOP Controls (Theme, Notifs, Profile) - Hidden on mobile, shown on md+ */}
+            <div className="hidden md:flex items-center gap-3 ml-auto">
               {userProfile && (
                 <ProfilePopover
                   profile={userProfile}
@@ -1461,7 +1389,20 @@ export default function App() {
           {activeTab === 'DASHBOARD' && <DashboardView clients={clients} tasks={currentTasks} financas={currentFinancas} planejamento={currentPlanejamento} rdc={currentRdc} />}
           {activeTab === 'CLIENTES' && <TableView tab="CLIENTES" data={filterArchived(clients)} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('CLIENTES')} clients={clients} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} />}
           {activeTab === 'RDC' && <TableView tab="RDC" data={currentRdc} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('RDC')} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
-          {activeTab === 'MATRIZ' && <SystematicModelingView activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} clients={clients} onSelectClient={(id: any) => setSelectedClientIds([id])} rdc={rdc} planning={planejamento} library={contentLibrary} data={systematicModeling} onUpdate={setSystematicModeling} />}
+          {activeTab === 'MATRIZ' && (
+            <div className="space-y-6 md:space-y-8 animate-fade text-left">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <div>
+                  <h2 className="text-xl md:text-2xl font-black text-app-text-strong uppercase tracking-tighter">Matriz Estratégica</h2>
+                  <p className="text-[10px] font-bold text-app-text-muted uppercase tracking-widest">Definição de Papéis e Canais</p>
+                </div>
+                <Button onClick={() => handleAddRow('MATRIZ')} className="shadow-lg shadow-blue-500/20 whitespace-nowrap">
+                  <i className="fa-solid fa-plus mr-2"></i> Novo Registro
+                </Button>
+              </div>
+              <TableView tab="MATRIZ" data={matriz} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('MATRIZ')} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />
+            </div>
+          )}
           {activeTab === 'COBO' && (
             <div className="space-y-6 md:space-y-8 animate-fade text-left">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -1528,17 +1469,6 @@ export default function App() {
           )
         }
 
-        {/* Mobile Global FAB */}
-        {activeTab !== 'DASHBOARD' && activeTab !== 'VH' && activeTab !== 'ORGANICKIA' && (
-          <div className="md:hidden fixed bottom-6 right-4 z-30 animate-fade-in">
-            <button
-              onClick={() => handleAddRow(activeTab)}
-              className="w-14 h-14 bg-blue-600 rounded-full shadow-2xl shadow-blue-600/30 flex items-center justify-center text-white text-xl active:scale-90 transition-transform"
-            >
-              <i className="fa-solid fa-plus"></i>
-            </button>
-          </div>
-        )}
 
         <CopilotChat appData={fullAppContext} />
         <AssistantDrawer
@@ -1794,6 +1724,25 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
             eventDrop={(info) => {
               onUpdate(info.event.id, 'PLANEJAMENTO', 'Data', info.event.startStr.split('T')[0]);
               if (info.event.startStr.includes('T')) onUpdate(info.event.id, 'PLANEJAMENTO', 'Hora', info.event.startStr.split('T')[1].slice(0, 5));
+            }}
+            eventContent={(eventInfo) => {
+              const client = clients.find((c: any) => c.id === data.find((p: any) => p.id === eventInfo.event.id)?.Cliente_ID);
+              const item = data.find((p: any) => p.id === eventInfo.event.id);
+              return (
+                <div className="p-1.5 overflow-hidden w-full h-full flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-1 truncate">
+                      <div className="w-2 h-2 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: eventInfo.backgroundColor }}></div>
+                      <span className="text-[8px] font-black uppercase text-app-text-muted tracking-tighter truncate">{client?.Nome || 'Geral'}</span>
+                    </div>
+                    <div className="text-[10px] font-bold text-app-text-strong uppercase truncate mb-1 leading-tight">{eventInfo.event.title}</div>
+                  </div>
+                  <div className="flex items-center justify-between opacity-50 mt-1">
+                    <span className="text-[8px] font-black uppercase tracking-tighter text-blue-400">{item?.Rede_Social}</span>
+                    <i className={`fa-solid ${item?.['Status do conteúdo'] === 'Concluído' ? 'fa-check-circle text-emerald-500' : 'fa-clock text-orange-500'} text-[8px]`}></i>
+                  </div>
+                </div>
+              );
             }}
           />
         </div>
@@ -2888,36 +2837,50 @@ function VhManagementView({ config, setConfig, collaborators, setCollaborators, 
             {/* Mobile Card View */}
             <div className="md:hidden space-y-4">
               {vhResults.collabVHs.map((c) => (
-                <div key={c.id} className="p-5 bg-app-surface border border-app-border rounded-2xl space-y-4 relative group">
-                  <div className="flex justify-between items-start">
+                <div key={c.id} className="p-5 bg-app-surface border border-app-border rounded-[2rem] space-y-5 relative group shadow-lg">
+                  <div className="flex justify-between items-start border-b border-app-border pb-4">
                     <div className="flex-1">
                       <label className="text-[9px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Colaborador</label>
-                      <input value={c.Nome} onChange={e => handleUpdateCollab(c.id, 'Nome', e.target.value)} className="w-full !bg-transparent border-none p-0 focus:ring-0 font-bold uppercase text-app-text-strong text-sm" />
+                      <input
+                        value={c.Nome}
+                        onChange={e => handleUpdateCollab(c.id, 'Nome', e.target.value)}
+                        className="w-full !bg-transparent border-none p-0 focus:ring-0 font-black uppercase text-app-text-strong text-sm"
+                      />
                     </div>
-                    <button onClick={() => setCollaborators((prev: Collaborator[]) => prev.filter(p => p.id !== c.id))} className="text-rose-500/50 hover:text-rose-500 p-2"><i className="fa-solid fa-trash-can"></i></button>
+                    <button onClick={() => setCollaborators((prev: Collaborator[]) => prev.filter(p => p.id !== c.id))} className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"><i className="fa-solid fa-trash-can text-xs"></i></button>
                   </div>
                   <div>
                     <label className="text-[9px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Cargo</label>
-                    <input value={c.Cargo} onChange={e => handleUpdateCollab(c.id, 'Cargo', e.target.value)} className="w-full !bg-transparent border-none p-0 focus:ring-0 font-medium text-app-text-muted uppercase text-xs" />
+                    <input
+                      value={c.Cargo}
+                      onChange={e => handleUpdateCollab(c.id, 'Cargo', e.target.value)}
+                      className="w-full !bg-app-bg/50 border border-app-border rounded-xl px-3 py-2 focus:ring-0 font-bold text-app-text-muted uppercase text-xs"
+                    />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-[9px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Custos</label>
-                      <div className="flex items-center gap-2"><span className="text-gray-600 font-black">R$</span><input type="number" value={c.CustosIndividuais} onChange={e => handleUpdateCollab(c.id, 'CustosIndividuais', e.target.value)} className="w-20 !bg-transparent border-none p-0 focus:ring-0 font-bold text-app-text-strong" /></div>
+                    <div className="bg-app-bg/30 p-3 rounded-xl border border-app-border">
+                      <label className="text-[8px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Custos</label>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[10px] text-gray-500 font-black">R$</span>
+                        <input type="number" value={c.CustosIndividuais} onChange={e => handleUpdateCollab(c.id, 'CustosIndividuais', e.target.value)} className="w-full !bg-transparent border-none p-0 focus:ring-0 font-bold text-app-text-strong text-sm" />
+                      </div>
                     </div>
-                    <div>
-                      <label className="text-[9px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Pró-labore</label>
-                      <div className="flex items-center gap-2"><span className="text-gray-600 font-black">R$</span><input type="number" value={c.ProLabore} onChange={e => handleUpdateCollab(c.id, 'ProLabore', e.target.value)} className="w-20 !bg-transparent border-none p-0 focus:ring-0 font-bold text-app-text-strong" /></div>
+                    <div className="bg-app-bg/30 p-3 rounded-xl border border-app-border">
+                      <label className="text-[8px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Pró-labore</label>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[10px] text-gray-500 font-black">R$</span>
+                        <input type="number" value={c.ProLabore} onChange={e => handleUpdateCollab(c.id, 'ProLabore', e.target.value)} className="w-full !bg-transparent border-none p-0 focus:ring-0 font-bold text-app-text-strong text-sm" />
+                      </div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4 items-center pt-2">
                     <div>
-                      <label className="text-[9px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Horas Prod.</label>
-                      <input type="number" value={c.HorasProdutivas} onChange={e => handleUpdateCollab(c.id, 'HorasProdutivas', e.target.value)} className="w-20 !bg-transparent border-none p-0 focus:ring-0 font-bold text-app-text-strong" />
+                      <label className="text-[8px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Horas Prod.</label>
+                      <input type="number" value={c.HorasProdutivas} onChange={e => handleUpdateCollab(c.id, 'HorasProdutivas', e.target.value)} className="w-20 !bg-app-bg/50 border border-app-border rounded-lg px-2 py-1 text-center font-bold text-app-text-strong text-xs" />
                     </div>
-                    <div>
-                      <label className="text-[9px] font-black uppercase text-[#3B82F6] block mb-1 tracking-widest">VH Calc.</label>
-                      <span className="font-black text-[#3B82F6] text-sm">R$ {c.calculatedVh.toFixed(2)}</span>
+                    <div className="text-right">
+                      <label className="text-[8px] font-black uppercase text-[#3B82F6] block mb-1 tracking-widest">VH Calc.</label>
+                      <span className="font-black text-[#3B82F6] text-lg">R$ {c.calculatedVh.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
@@ -2972,26 +2935,31 @@ function VhManagementView({ config, setConfig, collaborators, setCollaborators, 
                 {/* Mobile Card View */}
                 <div className="md:hidden space-y-4">
                   {vhResults.profitability.map((p) => (
-                    <div key={p.id} className="p-5 bg-app-surface border border-app-border rounded-2xl relative">
-                      <div className="flex justify-between items-start mb-4">
-                        <h4 className="font-bold text-app-text-strong uppercase text-sm">{p.name}</h4>
+                    <div key={p.id} className="p-5 bg-app-surface border border-app-border rounded-[2rem] relative shadow-lg">
+                      <div className="flex justify-between items-start mb-4 border-b border-app-border pb-4">
+                        <h4 className="font-black text-app-text-strong uppercase text-sm tracking-tight">{p.name}</h4>
                         <div className="text-right">
-                          <span className={`font-black text-sm block ${p.result >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>R$ {p.result.toLocaleString('pt-BR')}</span>
+                          <span className={`font-black text-lg block ${p.result >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>R$ {p.result.toLocaleString('pt-BR')}</span>
                           <span className="text-[8px] font-black uppercase text-[#4B5563] tracking-widest">Resultado</span>
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-y-4 gap-x-2 text-xs border-t border-app-border pt-4">
-                        <div>
-                          <label className="text-[9px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Horas Reais</label>
-                          <span className="font-medium text-app-text-muted flex items-center gap-1.5"><i className="fa-solid fa-clock text-[9px] opacity-40"></i> {p.hours.toFixed(1)}h</span>
+                      <div className="grid grid-cols-2 gap-y-4 gap-x-2 text-xs pt-2">
+                        <div className="bg-app-bg/30 p-3 rounded-xl border border-app-border">
+                          <label className="text-[8px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Horas</label>
+                          <span className="font-black text-app-text-strong flex items-center gap-1.5"><i className="fa-solid fa-clock text-[9px] text-[#3B82F6]"></i> {p.hours.toFixed(1)}h</span>
                         </div>
-                        <div>
-                          <label className="text-[9px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Faturamento</label>
-                          <span className="font-bold text-gray-300">R$ {p.billing.toLocaleString('pt-BR')}</span>
+                        <div className="bg-app-bg/30 p-3 rounded-xl border border-app-border">
+                          <label className="text-[8px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Faturamento</label>
+                          <span className="font-black text-emerald-500">R$ {p.billing.toLocaleString('pt-BR')}</span>
                         </div>
-                        <div className="col-span-2">
-                          <label className="text-[9px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Custo Operacional</label>
-                          <span className="font-bold text-gray-300">R$ {p.cost.toLocaleString('pt-BR')}</span>
+                        <div className="col-span-2 bg-app-bg/30 p-3 rounded-xl border border-app-border">
+                          <div className="flex justify-between items-center">
+                            <label className="text-[8px] font-black uppercase text-[#4B5563] tracking-widest">Custo Operacional</label>
+                            <span className="font-black text-rose-500">R$ {p.cost.toLocaleString('pt-BR')}</span>
+                          </div>
+                          <div className="w-full h-1.5 bg-gray-800 rounded-full mt-2 overflow-hidden">
+                            <div className="h-full bg-rose-500 rounded-full" style={{ width: `${Math.min((p.cost / (p.billing || 1)) * 100, 100)}%` }}></div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -3302,7 +3270,7 @@ function TableView({ tab, data, onUpdate, onDelete, onArchive, onAdd, clients, l
       </div>
 
       {/* MOBILE CARD VIEW */}
-      <div className="md:hidden space-y-4 px-1">
+      <div className="md:hidden space-y-6 px-1 pb-20">
         {data.map((row: any) => {
           // Define groups for mobile view
           const mobileGroups = tab === 'COBO' ? [
@@ -3314,59 +3282,68 @@ function TableView({ tab, data, onUpdate, onDelete, onArchive, onAdd, clients, l
             { title: 'Avaliação', cols: ['Resolução (1–5)', 'Demanda (1–5)', 'Competição (1–5)'] },
             { title: 'Resultado', cols: ['Score (R×D×C)', 'Decisão'] },
           ] : tab === 'CLIENTES' ? [
-            { title: 'Dados', cols: ['Nicho', 'Responsável'] },
-            { title: 'Contato', cols: ['WhatsApp', 'Instagram'] },
-            { title: 'Detalhes', cols: ['Objetivo', 'Cor (HEX)', 'Status'] },
+            { title: 'Dados Gerais', cols: ['Nicho', 'Responsável', 'Objetivo'] },
+            { title: 'Contato & Social', cols: ['WhatsApp', 'Instagram'] },
+            { title: 'Configuração', cols: ['Cor (HEX)', 'Status'] },
           ] : null;
 
           return (
-            <div key={row.id} className={`p-4 md:p-5 rounded-2xl border ${selection.includes(row.id) ? 'bg-[#3B82F6]/5 border-[#3B82F6]/30' : 'bg-app-surface/50 border-app-border'} transition-all shadow-lg`}>
-              <div className="flex justify-between items-start mb-4 border-b border-app-border pb-3">
-                <div className="flex items-center gap-3">
-                  <input type="checkbox" checked={selection.includes(row.id)} onChange={() => onSelect(row.id)} className="rounded bg-app-bg border-app-border text-blue-500 focus:ring-0 w-5 h-5" />
-                  {tab === 'CLIENTES' && (
-                    <div className="flex flex-col">
-                      <span className="text-sm font-black text-app-text-strong uppercase leading-none">{row.Nome}</span>
-                      <span className={`text-[9px] font-bold uppercase mt-1 ${row.Status === 'Ativo' ? 'text-emerald-500' : 'text-gray-500'}`}>{row.Status}</span>
+            <div key={row.id} className={`p-6 rounded-[2rem] border ${selection.includes(row.id) ? 'bg-blue-600/5 border-blue-500/50 shadow-[0_8px_30px_rgba(37,99,235,0.15)]' : 'bg-app-surface border-app-border shadow-xl'} transition-all relative overflow-hidden group`}>
+
+              {/* Card Decoration */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/5 to-transparent rounded-bl-[4rem] pointer-events-none -z-0"></div>
+
+              <div className="relative z-10">
+                <div className="flex justify-between items-start mb-6 border-b border-app-border pb-4">
+                  <div className="flex items-center gap-4">
+                    <input type="checkbox" checked={selection.includes(row.id)} onChange={() => onSelect(row.id)} className="rounded-lg bg-app-bg border-app-border text-blue-600 focus:ring-0 w-6 h-6 transition-all" />
+                    {tab === 'CLIENTES' && (
+                      <div className="flex flex-col gap-1">
+                        <span className="text-base font-black text-app-text-strong uppercase leading-none tracking-tight">{row.Nome}</span>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${row.Status === 'Ativo' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-gray-500/10 text-gray-500 border border-gray-500/20'}`}>{row.Status}</span>
+                          {row['Nicho'] && <span className="text-[9px] font-bold text-app-text-muted uppercase tracking-wider">{row['Nicho']}</span>}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => setMobileActionRow(row)} className="w-10 h-10 rounded-xl bg-app-surface-2 border border-app-border text-app-text-muted hover:text-app-text-strong flex items-center justify-center transition-all active:scale-95 shadow-sm"><i className="fa-solid fa-ellipsis-vertical text-sm"></i></button>
+                  </div>
+                </div>
+                <div className="space-y-8">
+                  {mobileGroups ? (
+                    mobileGroups.map((group, idx) => {
+                      const groupCols = group.cols.filter(c => cols.includes(c));
+                      if (groupCols.length === 0) return null;
+                      return (
+                        <div key={idx} className={idx > 0 ? "border-t border-app-border pt-6" : ""}>
+                          <h4 className="text-[10px] font-black uppercase text-app-text-muted mb-5 tracking-[0.2em] flex items-center gap-3">
+                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full shadow-[0_0_10px_#3B82F6]"></span>
+                            {group.title}
+                          </h4>
+                          <div className="grid grid-cols-1 gap-5">
+                            {groupCols.map((col: string) => (
+                              <div key={col}>
+                                <label className="text-[9px] font-black uppercase text-[#4B5563] tracking-widest block mb-2">{col}</label>
+                                <div className="text-sm">{renderCell(tab, row, col, onUpdate, clients, library, onOpenColorPicker)}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="grid grid-cols-1 gap-6">
+                      {cols.map((col: string) => (
+                        <div key={col}>
+                          <label className="text-[9px] font-black uppercase text-[#4B5563] tracking-widest block mb-2">{col}</label>
+                          <div className="text-sm">{renderCell(tab, row, col, onUpdate, clients, library, onOpenColorPicker)}</div>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
-                <div className="flex gap-2">
-                  <button onClick={() => setMobileActionRow(row)} className="w-8 h-8 rounded-lg bg-app-surface-2 border border-app-border text-app-text-muted hover:text-app-text-strong flex items-center justify-center transition-colors active:bg-app-surface-3"><i className="fa-solid fa-ellipsis-vertical text-xs"></i></button>
-                </div>
-              </div>
-              <div className="space-y-6">
-                {mobileGroups ? (
-                  mobileGroups.map((group, idx) => {
-                    const groupCols = group.cols.filter(c => cols.includes(c));
-                    if (groupCols.length === 0) return null;
-                    return (
-                      <div key={idx} className={idx > 0 ? "border-t border-app-border/10 pt-4" : ""}>
-                        <h4 className="text-[10px] font-black uppercase text-app-text-strong mb-4 tracking-[0.2em] opacity-80 flex items-center gap-2">
-                          <span className="w-1 h-1 bg-blue-500 rounded-full"></span>
-                          {group.title}
-                        </h4>
-                        <div className="space-y-4">
-                          {groupCols.map((col: string) => (
-                            <div key={col}>
-                              <label className="text-[9px] font-black uppercase text-app-text-muted tracking-widest block mb-1.5">{col}</label>
-                              <div>{renderCell(tab, row, col, onUpdate, clients, library, onOpenColorPicker)}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="space-y-4">
-                    {cols.map((col: string) => (
-                      <div key={col}>
-                        <label className="text-[9px] font-black uppercase text-app-text-muted tracking-widest block mb-1.5">{col}</label>
-                        <div>{renderCell(tab, row, col, onUpdate, clients, library, onOpenColorPicker)}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
           );

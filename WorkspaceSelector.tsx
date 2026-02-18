@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import ReactDOM from 'react-dom';
 import { Workspace } from './types';
 import { BottomSheet } from './components/BottomSheet';
+import { PortalPopover } from './components/PortalPopover';
 
 interface WorkspaceSelectorProps {
     workspaces: Workspace[];
@@ -17,7 +17,6 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
     const [isCreating, setIsCreating] = useState(false);
     const [newName, setNewName] = useState('');
     const buttonRef = useRef<HTMLButtonElement>(null);
-    const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
     const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
 
     useEffect(() => {
@@ -27,13 +26,6 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
     }, []);
 
     const toggleOpen = () => {
-        if (!isOpen && buttonRef.current && !isMobile) {
-            const rect = buttonRef.current.getBoundingClientRect();
-            setDropdownPos({
-                top: rect.bottom + 8,
-                left: rect.left
-            });
-        }
         setIsOpen(!isOpen);
     };
 
@@ -44,18 +36,6 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
         setIsCreating(false);
         setIsOpen(false);
     };
-
-    useEffect(() => {
-        if (isOpen && !isMobile) {
-            const handleScroll = () => setIsOpen(false);
-            window.addEventListener('scroll', handleScroll, true);
-            window.addEventListener('resize', handleScroll);
-            return () => {
-                window.removeEventListener('scroll', handleScroll, true);
-                window.removeEventListener('resize', handleScroll);
-            };
-        }
-    }, [isOpen, isMobile]);
 
     const WorkspaceListContent = () => (
         <div className="flex flex-col h-full lg:h-auto">
@@ -130,22 +110,22 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
     );
 
     return (
-        <div className="relative w-full lg:w-auto">
+        <div className="relative w-full lg:w-auto min-w-0">
             <button
                 ref={buttonRef}
                 onClick={toggleOpen}
-                className="flex items-center gap-2 px-3 py-2 lg:px-4 lg:py-2 bg-[#111827] border border-white/10 rounded-xl hover:bg-white/5 transition-all w-full justify-between group"
+                className="flex items-center gap-2 px-3 py-2 lg:px-4 lg:py-2 bg-[#111827] border border-white/10 rounded-xl hover:bg-white/5 transition-all w-full justify-between group min-w-0"
             >
-                <div className="flex items-center gap-2 lg:gap-3 overflow-hidden">
+                <div className="flex items-center gap-2 lg:gap-3 overflow-hidden min-w-0">
                     <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-[10px] lg:text-xs shrink-0 shadow-lg shadow-blue-900/20 group-hover:scale-105 transition-transform">
                         {currentWorkspace?.name.substring(0, 2).toUpperCase() || 'WS'}
                     </div>
-                    <div className="flex flex-col items-start truncate leading-tight">
+                    <div className="flex flex-col items-start truncate leading-tight min-w-0">
                         <span className="text-[8px] lg:text-[10px] text-gray-400 font-bold uppercase tracking-wider">Workspace</span>
                         <span className="text-[11px] lg:text-xs text-white font-black truncate max-w-[100px] lg:max-w-[120px]">{currentWorkspace?.name || 'Selecione...'}</span>
                     </div>
                 </div>
-                <i className={`fa-solid fa-chevron-down text-gray-500 text-[10px] lg:text-xs transition-transform ${isOpen ? 'rotate-180' : ''}`}></i>
+                <i className={`fa-solid fa-chevron-down text-gray-500 text-[10px] lg:text-xs transition-transform ${isOpen ? 'rotate-180' : ''} ml-2 shrink-0`}></i>
             </button>
 
             {/* Mobile BottomSheet */}
@@ -158,18 +138,18 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
             </BottomSheet>
 
             {/* Desktop Popover using Portal */}
-            {isOpen && !isMobile && ReactDOM.createPortal(
-                <div className="fixed inset-0 z-[9999] pointer-events-none">
-                    <div className="absolute inset-0 bg-transparent pointer-events-auto" onClick={() => setIsOpen(false)} />
-                    <div
-                        className="absolute w-64 bg-[#111827] border border-white/10 rounded-2xl shadow-xl z-[10000] overflow-hidden animate-fade pointer-events-auto"
-                        style={{ top: dropdownPos.top, left: dropdownPos.left }}
-                    >
-                        <WorkspaceListContent />
-                    </div>
-                </div>,
-                document.body
-            )}
+            <PortalPopover
+                isOpen={isOpen && !isMobile}
+                onClose={() => setIsOpen(false)}
+                triggerRef={buttonRef}
+                className="w-64"
+                align="start"
+            >
+                <div className="bg-[#111827] border border-white/10 rounded-2xl shadow-xl overflow-hidden pointer-events-auto">
+                    <WorkspaceListContent />
+                </div>
+            </PortalPopover>
         </div>
     );
 }
+
