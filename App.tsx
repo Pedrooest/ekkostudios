@@ -33,7 +33,8 @@ import {
   DEFAULT_TASK_VIEWS, DEFAULT_VH_CONFIG, DEFAULT_CONTENT_LIBRARY,
   FINANCAS_COLS, FINANCAS_TIPO_OPTIONS, FINANCAS_SERVICOS_OPTIONS, PLANNING_STATUS_OPTIONS, EXPORT_LEGENDS,
   SYSTEMATIC_MODELING_ROWS, MODELAGEM_OPTIONS, PERMEABILIDADE_OPTIONS, CONVERSAO_OPTIONS, DESDOBRAMENTO_OPTIONS, HORARIO_RESUMO_OPTIONS,
-  PLANEJAMENTO_COLS, TAREFAS_COLS
+  PLANEJAMENTO_COLS, TAREFAS_COLS,
+  MATRIZ_FUNCAO_OPTIONS, MATRIZ_QUEM_FALA_OPTIONS, MATRIZ_PAPEL_ESTRATEGICO_OPTIONS, MATRIZ_TIPO_CONTEUDO_OPTIONS, MATRIZ_RESULTADO_ESPERADO_OPTIONS
 } from './constants';
 import { Button, Card, Badge, Stepper, FloatingPopover, InputSelect, MobileFloatingAction } from './Components';
 import { BottomSheet } from './components/BottomSheet';
@@ -3440,6 +3441,14 @@ function renderCell(tab: TableType, row: any, col: string, update: Function, cli
     if (col === 'Zona') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_ZONA_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
     if (col === 'Intenção') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_INTENCAO_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
     if (col === 'Formato') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_FORMATO_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
+  }
+
+  if (tab === 'MATRIZ') {
+    if (col === 'Função') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={MATRIZ_FUNCAO_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
+    if (col === 'Quem fala') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={MATRIZ_QUEM_FALA_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
+    if (col === 'Papel estratégico') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={MATRIZ_PAPEL_ESTRATEGICO_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
+    if (col === 'Tipo de conteúdo') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={MATRIZ_TIPO_CONTEUDO_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
+    if (col === 'Resultado esperado') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={MATRIZ_RESULTADO_ESPERADO_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
   }
 
   if (col === 'Cliente_ID' && tab !== 'FINANCAS') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={[{ value: "GERAL", label: "AGÊNCIA" }, ...clients.map(c => ({ value: c.id, label: c.Nome }))]} className={common} placeholder="AGÊNCIA" label={col} />);

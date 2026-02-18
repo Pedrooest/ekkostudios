@@ -15,6 +15,33 @@ export const CLIENTES_COLS = ["Nome", "Nicho", "Responsável", "WhatsApp", "Inst
 export const COBO_COLS = ["Cliente_ID", "Canal", "Frequência", "Público", "Voz", "Zona", "Intenção", "Formato"];
 export const MATRIZ_ESTRATEGICA_COLS = ["Cliente_ID", "Rede_Social", "Função", "Quem fala", "Papel estratégico", "Tipo de conteúdo", "Resultado esperado"];
 
+// CONSTANTES MATRIZ ESTRATEGICA (Dropdowns)
+export const MATRIZ_FUNCAO_OPTIONS = [
+  "Autoridade", "Posicionamento", "Conversão", "Relacionamento",
+  "Educação", "Prova Social", "Diferenciação", "Aquecimento de Lead", "Retenção"
+];
+
+export const MATRIZ_QUEM_FALA_OPTIONS = [
+  "Fundador", "Sócio", "Especialista", "Equipe",
+  "Marca (Institucional)", "Cliente", "Parceiro", "Narrador / IA"
+];
+
+export const MATRIZ_PAPEL_ESTRATEGICO_OPTIONS = [
+  "Gerar demanda", "Aumentar percepção de valor", "Diminuir objeção",
+  "Educar mercado", "Atrair lead qualificado", "Reforçar autoridade",
+  "Engajar base", "Preparar para oferta", "Escalar awareness"
+];
+
+export const MATRIZ_TIPO_CONTEUDO_OPTIONS = [
+  "Conteúdo raiz", "Corte", "Reaproveitamento", "Bastidores", "Tutorial",
+  "Storytelling", "Prova social", "Diagnóstico", "Lista / Carrossel", "Opinião"
+];
+
+export const MATRIZ_RESULTADO_ESPERADO_OPTIONS = [
+  "Comentário", "Direct", "Clique no link", "Salvamento",
+  "Compartilhamento", "Agendamento", "Compra", "Seguir perfil", "Responder Story"
+];
+
 // CONSTANTES COBO (Dropdowns)
 export const COBO_CANAL_OPTIONS = [
   "Instagram Reels", "Instagram Feed", "Instagram Stories", "YouTube Shorts", "YouTube Vídeo longo",
