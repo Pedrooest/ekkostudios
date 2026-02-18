@@ -1128,8 +1128,8 @@ export default function App() {
           <button onClick={() => setIsReorderOpen(true)} className={`w-[90%] flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-4'} py-3 rounded-xl text-app-text-muted hover:text-app-text-strong hover:bg-app-surface transition-all group`}>
             <i className="fa-solid fa-arrows-up-down-left-right text-xl transition-transform group-hover:scale-110"></i>{!sidebarCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest">Ordem</span>}
           </button>
-          <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className={`w-[90%] flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-4'} py-3 rounded-xl text-app-text-muted hover:text-app-text-strong hover:bg-app-surface transition-all group hidden lg:flex`}>
-            <i className={`fa-solid ${sidebarCollapsed ? 'fa-expand' : 'fa-compress'} text-xl transition-transform group-hover:scale-110`}></i>{!sidebarCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest">{sidebarCollapsed ? 'Expandir' : 'Recolher'}</span>}
+          <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className={`w-[90%] flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-4'} py-3 rounded-xl text-app-text-muted hover:text-app-text-strong hover:bg-app-surface transition-all group flex`}>
+            <i className={`fa-solid ${sidebarCollapsed ? 'fa-expand' : 'fa-arrow-left'} text-xl transition-transform group-hover:scale-110`}></i>{!sidebarCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest">Recolher</span>}
           </button>
         </div>
       </aside>
