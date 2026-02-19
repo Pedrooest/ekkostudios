@@ -1,23 +1,19 @@
 import React from 'react';
 import { useEditor } from 'tldraw';
+import { useWhiteboardCollaboration } from '../hooks/useWhiteboardCollaboration';
 
-interface Peer {
-    id: string;
-    x: number;
-    y: number;
-    name: string;
-    color: string;
-    lastUpdated: number;
-}
-
-export const WhiteboardCursors = ({ peers }: { peers: Record<string, Peer> }) => {
+export const WhiteboardCursors = ({ workspaceId, user }: { workspaceId: string, user: any }) => {
     const editor = useEditor();
+    const { peers } = useWhiteboardCollaboration(workspaceId, user);
 
-    // We need to transform page coordinates to screen coordinates
-    // Actually, sticking to page coordinates and transforming CSS is better if we are inside the canvas container?
-    // But tldraw canvas moves. 
-    // Best is to use editor.viewportPageBounds to project or just render absolute in a container that moves?
-    // Simpler: Render fixed on screen, but calculate screen pos from page pos.
+    if (!editor) return null;
+
+    // We rely on useEditor for coordinate transform, so we need to be careful about rerenders.
+    // However, for cursors, we might want to just map directly if possible.
+    // But pageToViewport is needed.
+    // The issue is that `editor` reference might be stable but viewport changes.
+    // We should probably use `useValue` or just let React handle it via state/effect, but here we are mapping peers directly.
+    // Note: useWhiteboardCollaboration updates `peers` state, which triggers rerender here.
 
     return (
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-[500]">
@@ -33,8 +29,8 @@ export const WhiteboardCursors = ({ peers }: { peers: Record<string, Peer> }) =>
                             opacity: 0.8
                         }}
                     >
-                        <i className="fa-solid fa-location-arrow text-lg -rotate-45" style={{ color: peer.color }}></i>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold text-white whitespace-nowrap" style={{ backgroundColor: peer.color }}>
+                        <i className={`fa-solid fa-location-arrow text-lg -rotate-45`} style={{ color: peer.color }}></i>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold text-white whitespace-nowrap shadow-sm" style={{ backgroundColor: peer.color }}>
                             {peer.name}
                         </span>
                     </div>

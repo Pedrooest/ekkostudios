@@ -10,7 +10,6 @@ import { WhiteboardInspector } from './whiteboard/ui/WhiteboardInspector';
 import { WhiteboardProvider } from './whiteboard/WhiteboardContext';
 
 import { WhiteboardTemplates } from './whiteboard/ui/WhiteboardTemplates';
-import { useWhiteboardCollaboration } from './whiteboard/hooks/useWhiteboardCollaboration';
 import { WhiteboardCursors } from './whiteboard/ui/WhiteboardCursors';
 import { WhiteboardAIModal } from './whiteboard/ui/WhiteboardAIModal';
 import { generateBrainstormingIdeas } from '../geminiService';
@@ -33,8 +32,7 @@ export const WhiteboardView = React.memo(function WhiteboardView({ data, onSave,
     const [isTemplatesOpen, setIsTemplatesOpen] = React.useState(false);
     const [isAIOpen, setIsAIOpen] = React.useState(false);
 
-    // Collaboration
-    const { peers } = useWhiteboardCollaboration(currentWorkspace?.id, currentUser);
+    // Note: Collaboration hook moved to WhiteboardCursors to access Tldraw context safely
     const editorRef = useRef<any>(null);
 
     const onEditorMount = useCallback((editor: any) => {
@@ -100,7 +98,7 @@ export const WhiteboardView = React.memo(function WhiteboardView({ data, onSave,
                     <WhiteboardToolbar onToggleTemplates={() => setIsTemplatesOpen(!isTemplatesOpen)} onToggleAI={() => setIsAIOpen(true)} />
                     <WhiteboardInspector />
                     <WhiteboardTemplates isOpen={isTemplatesOpen} onClose={() => setIsTemplatesOpen(false)} />
-                    <WhiteboardCursors peers={peers} />
+                    <WhiteboardCursors workspaceId={currentWorkspace?.id} user={currentUser} />
                     <WhiteboardAIModal
                         isOpen={isAIOpen}
                         onClose={() => setIsAIOpen(false)}
