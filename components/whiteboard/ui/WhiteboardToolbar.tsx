@@ -12,6 +12,7 @@ export function WhiteboardToolbar({ onToggleTemplates }: { onToggleTemplates?: (
         { id: 'hand', icon: 'fa-hand', label: 'Mover', action: () => editor.setCurrentTool('hand') },
         { id: 'draw', icon: 'fa-pen', label: 'Desenhar', action: () => editor.setCurrentTool('draw') },
         { id: 'note', icon: 'fa-note-sticky', label: 'Nota', action: () => editor.setCurrentTool('note') },
+        { id: 'comment', icon: 'fa-comment', label: 'Comentário', action: () => editor.setCurrentTool('comment') },
         { id: 'ekko-task', icon: 'fa-check-to-slot', label: 'Tarefa', action: () => editor.setCurrentTool('ekko-task') },
     ];
 
