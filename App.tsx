@@ -2438,46 +2438,52 @@ function TaskDetailPanel({ taskId, tasks, clients, collaborators, onClose, onUpd
         {/* LEFT COLUMN: DETAILS */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-10 custom-scrollbar border-b md:border-b-0 md:border-r border-app-border">
           <section>
-            <label className="text-[9px] font-black uppercase text-[#334155] block mb-2 tracking-widest">Título da Tarefa</label>
-            <input className="text-2xl font-black text-app-text-strong bg-transparent border-none p-0 w-full focus:ring-0 uppercase tracking-tighter"
+            <label className="text-[9px] font-black uppercase text-[#334155] block mb-2 tracking-widest pl-1">Título da Tarefa</label>
+            <input className="text-xl md:text-2xl font-black text-app-text-strong bg-transparent border-none p-0 w-full focus:ring-0 uppercase tracking-tighter truncate"
               value={t.Título}
               onChange={e => onUpdate(t.id, 'TAREFAS', 'Título', e.target.value, true)}
               onBlur={e => onUpdate(t.id, 'TAREFAS', 'Título', e.target.value)}
               onKeyDown={e => e.key === 'Enter' && onUpdate(t.id, 'TAREFAS', 'Título', (e.target as any).value)} />
           </section>
 
-          <section className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-8 bg-[#1B2535]/30 p-5 md:p-8 rounded-[32px] border border-app-border/50 backdrop-blur-sm shadow-xl">
+          <section className="flex flex-col gap-3 bg-[#1B2535]/30 p-4 md:p-6 rounded-[24px] border border-app-border/50 backdrop-blur-sm shadow-xl">
             {[
               { label: 'Status', field: 'Status', icon: 'fa-circle-half-stroke', color: 'text-[#3B82F6]', options: DEFAULT_TASK_STATUSES.map(s => ({ id: s.id, label: s.label })) },
               { label: 'Prioridade', field: 'Prioridade', icon: 'fa-flag', color: 'text-rose-500', options: PRIORIDADE_OPTIONS.map(opt => ({ id: opt, label: opt })) },
               { label: 'Responsável', field: 'Responsável', icon: 'fa-user-tie', color: 'text-amber-500', options: [{ id: '', label: 'Sem Resp.' }, ...collaborators.map((c: any) => ({ id: c.Nome, label: c.Nome }))] },
               { label: 'Cliente', field: 'Cliente_ID', icon: 'fa-building-user', color: 'text-emerald-500', options: [{ id: 'GERAL', label: 'Agência' }, ...clients.map((c: any) => ({ id: c.id, label: c.Nome }))] }
             ].map((item) => (
-              <div key={item.field} className="space-y-1.5 group cursor-pointer">
-                <label className="text-[10px] font-black text-[#475569] uppercase flex items-center gap-2 tracking-widest leading-none mb-2">
-                  <i className={`fa-solid ${item.icon} text-[10px] ${item.color}`}></i> {item.label}
+              <div key={item.field} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-1 group">
+                <label className="text-[10px] font-black text-[#475569] uppercase flex items-center gap-2 tracking-widest leading-none shrink-0 min-w-[120px]">
+                  <i className={`fa-solid ${item.icon} text-[10px] ${item.color} w-4 text-center`}></i> {item.label}
                 </label>
-                <InputSelect
-                  value={t[item.field as keyof Task] as string}
-                  onChange={(val) => onUpdate(t.id, 'TAREFAS', item.field, val)}
-                  options={item.options.map(opt => ({ value: opt.id, label: opt.label }))}
-                  className="w-full text-xs font-black uppercase bg-app-bg/50 hover:bg-app-bg border border-app-border hover:border-[#3B82F6]/50 rounded-xl px-4 py-3 text-app-text-strong transition-all appearance-none cursor-pointer"
-                  placeholder="Selecione..."
-                  label={item.label}
-                />
+                <div className="w-full sm:w-[60%] relative">
+                  <InputSelect
+                    value={t[item.field as keyof Task] as string}
+                    onChange={(val) => onUpdate(t.id, 'TAREFAS', item.field, val)}
+                    options={item.options.map(opt => ({ value: opt.id, label: opt.label }))}
+                    className="w-full h-11 text-[11px] font-bold uppercase bg-app-bg hover:bg-app-bg/80 border border-app-border hover:border-[#3B82F6]/50 rounded-xl px-4 text-app-text-strong transition-all appearance-none cursor-pointer outline-none focus:ring-2 focus:ring-[#3B82F6]/20"
+                    placeholder="Selecione..."
+                    label={item.label}
+                  />
+                </div>
               </div>
             ))}
-            <div className="space-y-1.5 group">
-              <label className="text-[10px] font-black text-[#475569] uppercase flex items-center gap-2 tracking-widest leading-none mb-2">
-                <i className="fa-solid fa-calendar-days text-[10px] text-indigo-500"></i> Entrega
+
+            <div className="w-full h-px bg-app-border/50 my-1"></div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-1 group">
+              <label className="text-[10px] font-black text-[#475569] uppercase flex items-center gap-2 tracking-widest leading-none shrink-0 min-w-[120px]">
+                <i className="fa-solid fa-calendar-days text-[10px] text-indigo-500 w-4 text-center"></i> Entrega
               </label>
-              <input type="date" className="w-full text-xs font-black uppercase bg-app-bg/50 hover:bg-app-bg border border-app-border hover:border-[#3B82F6]/50 rounded-xl px-4 py-3 text-app-text-strong transition-all cursor-pointer" value={t.Data_Entrega || ''} onChange={e => onUpdate(t.id, 'TAREFAS', 'Data_Entrega', e.target.value)} />
+              <input type="date" className="w-full sm:w-[60%] h-11 text-[11px] font-bold uppercase bg-app-bg hover:bg-app-bg/80 border border-app-border hover:border-[#3B82F6]/50 rounded-xl px-4 text-app-text-strong transition-all cursor-pointer outline-none focus:ring-2 focus:ring-[#3B82F6]/20" value={t.Data_Entrega || ''} onChange={e => onUpdate(t.id, 'TAREFAS', 'Data_Entrega', e.target.value)} />
             </div>
-            <div className="space-y-1.5 group">
-              <label className="text-[10px] font-black text-[#475569] uppercase flex items-center gap-2 tracking-widest leading-none mb-2">
-                <i className="fa-solid fa-clock text-[10px] text-cyan-500"></i> Horário
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-1 group">
+              <label className="text-[10px] font-black text-[#475569] uppercase flex items-center gap-2 tracking-widest leading-none shrink-0 min-w-[120px]">
+                <i className="fa-solid fa-clock text-[10px] text-cyan-500 w-4 text-center"></i> Horário
               </label>
-              <input type="time" className="w-full text-xs font-black uppercase bg-app-bg/50 hover:bg-app-bg border border-app-border hover:border-[#3B82F6]/50 rounded-xl px-4 py-3 text-app-text-strong transition-all cursor-pointer" value={t.Hora_Entrega || '09:00'} onChange={e => onUpdate(t.id, 'TAREFAS', 'Hora_Entrega', e.target.value)} />
+              <input type="time" className="w-full sm:w-[60%] h-11 text-[11px] font-bold uppercase bg-app-bg hover:bg-app-bg/80 border border-app-border hover:border-[#3B82F6]/50 rounded-xl px-4 text-app-text-strong transition-all cursor-pointer outline-none focus:ring-2 focus:ring-[#3B82F6]/20" value={t.Hora_Entrega || '09:00'} onChange={e => onUpdate(t.id, 'TAREFAS', 'Hora_Entrega', e.target.value)} />
             </div>
           </section>
 

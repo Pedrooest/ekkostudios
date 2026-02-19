@@ -140,44 +140,70 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
                         <h3 className="text-xs font-black text-emerald-500 uppercase tracking-widest mb-4 flex items-center gap-2">
                             <i className="fa-solid fa-user-plus"></i> Convidar Membro
                         </h3>
-                        <div className="bg-[#111827] border border-white/5 rounded-2xl p-4 md:p-5 space-y-4">
-                            <div className="flex flex-col md:flex-row gap-3">
-                                <select
-                                    value={inviteRole}
-                                    onChange={(e) => setInviteRole(e.target.value)}
-                                    className="bg-[#0B0F19] border border-white/10 text-white text-xs rounded-xl px-3 py-3 md:py-2 outline-none focus:border-blue-500 w-full md:w-auto"
-                                >
-                                    <option value="viewer">Visualizador</option>
-                                    <option value="editor">Editor</option>
-                                    <option value="admin">Admin</option>
-                                </select>
+                        <div className="bg-[#111827] border border-white/5 rounded-2xl p-5 md:p-6 space-y-6">
+
+                            {/* Invite Form */}
+                            <div className="flex flex-col md:flex-row gap-4 items-end">
+                                <div className="w-full md:flex-1 space-y-2">
+                                    <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Função de Acesso</label>
+                                    <select
+                                        value={inviteRole}
+                                        onChange={(e) => setInviteRole(e.target.value)}
+                                        className="w-full bg-[#0B0F19] border border-white/10 text-white text-xs rounded-xl px-4 h-12 outline-none focus:border-blue-500 transition-colors appearance-none cursor-pointer"
+                                    >
+                                        <option value="viewer">Visualizador (Somente Leitura)</option>
+                                        <option value="editor">Editor (Pode Editar)</option>
+                                        <option value="admin">Administrador (Controle Total)</option>
+                                    </select>
+                                    <p className="text-[9px] text-gray-500 px-1">Defina o nível de permissão do novo membro.</p>
+                                </div>
+
                                 <button
                                     onClick={handleCreateInvite}
-                                    className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wide rounded-xl py-3 md:py-2 transition-all w-full"
+                                    className="w-full md:w-auto px-8 h-12 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wide rounded-xl transition-all shadow-lg shadow-emerald-900/20 active:scale-95 flex items-center justify-center gap-2"
                                 >
-                                    Gerar Link de Convite
+                                    <i className="fa-solid fa-link"></i> Gerar Link
                                 </button>
                             </div>
 
+                            {/* Generated Link Result */}
                             {generatedLink && (
-                                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 flex items-center gap-3 animate-fade">
-                                    <div className="flex-1 bg-[#0B0F19] rounded px-3 py-1.5 text-xs text-emerald-400 font-mono truncate">
+                                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 flex flex-col gap-3 animate-fade">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Link Gerado com Sucesso</span>
+                                        <button onClick={copyLink} className="text-emerald-400 hover:text-white transition-colors text-xs font-black uppercase flex items-center gap-2 bg-emerald-500/10 px-3 py-1.5 rounded-lg hover:bg-emerald-500/20">
+                                            <i className="fa-regular fa-copy"></i> Copiar
+                                        </button>
+                                    </div>
+                                    <div className="bg-[#0B0F19] rounded-lg px-4 py-3 text-xs text-gray-300 font-mono break-all border border-white/5 select-all">
                                         {generatedLink}
                                     </div>
-                                    <button onClick={copyLink} className="text-emerald-500 hover:text-white transition-all">
-                                        <i className="fa-regular fa-copy"></i>
-                                    </button>
+                                    <p className="text-[9px] text-emerald-500/60 font-medium">Envie este link para o convidado. Ele expira em 24h.</p>
                                 </div>
                             )}
 
+                            {/* Pending Invites List */}
                             {invites.length > 0 && (
-                                <div className="mt-4 pt-4 border-t border-white/5">
-                                    <p className="text-[10px] font-bold text-gray-500 uppercase mb-2">Convites Pendentes</p>
-                                    <div className="space-y-2">
+                                <div className="mt-6 pt-6 border-t border-white/5">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-orange-500"></div>
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Convites Pendentes ({invites.length})</p>
+                                    </div>
+                                    <div className="space-y-3 bg-black/20 rounded-xl p-2 max-h-[150px] overflow-y-auto custom-scrollbar">
                                         {invites.map(inv => (
-                                            <div key={inv.id} className="flex justify-between items-center text-xs text-gray-400 bg-white/5 px-3 py-2 rounded-lg">
-                                                <span>Função: <strong className="text-white uppercase">{inv.role}</strong></span>
-                                                <span>Expira em: {new Date(inv.expires_at).toLocaleDateString()}</span>
+                                            <div key={inv.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/5">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded bg-gray-700/50 flex items-center justify-center text-gray-400 text-xs">
+                                                        <i className="fa-solid fa-ticket"></i>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-gray-300 uppercase">Função: <span className="text-white">{inv.role}</span></p>
+                                                        <p className="text-[9px] text-gray-500">Expira: {new Date(inv.expires_at).toLocaleDateString()}</p>
+                                                    </div>
+                                                </div>
+                                                <button className="text-[9px] font-bold text-rose-500/50 hover:text-rose-500 uppercase tracking-wider px-2 py-1 hover:bg-rose-500/10 rounded transition-all">
+                                                    Cancelar
+                                                </button>
                                             </div>
                                         ))}
                                     </div>
