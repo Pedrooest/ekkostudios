@@ -1,6 +1,8 @@
+
 import React, { useMemo, useEffect } from 'react';
 import { ErrorBoundary } from './ErrorBoundary';
-import { WhiteboardCanvas } from './WhiteboardCanvas';
+// import { WhiteboardCanvas } from './WhiteboardCanvas'; // DISABLED FOR DEBUG
+import { WhiteboardSafeMode } from './WhiteboardSafeMode';
 import { logDebug } from './DebugOverlay';
 
 interface WhiteboardViewProps {
@@ -16,6 +18,12 @@ interface WhiteboardViewProps {
 
 export const WhiteboardView = React.memo(function WhiteboardView({ data, onSave, tasks = [], clients = [], currentWorkspace, onUpdateTask, onAddItem, currentUser }: WhiteboardViewProps) {
 
+    useEffect(() => {
+        logDebug('WhiteboardView MOUNTED');
+        return () => logDebug('WhiteboardView UNMOUNTED');
+    }, []);
+
+    // Context still computed but unused in Safe Mode
     const contextValue = useMemo(() => ({
         tasks,
         clients,
@@ -30,11 +38,7 @@ export const WhiteboardView = React.memo(function WhiteboardView({ data, onSave,
             style={{ height: 'calc(100vh - 100px)', minHeight: '600px', display: 'block' }}
         >
             <ErrorBoundary fallback={<div className="p-10 text-white">Whiteboard Error. Please refresh.</div>}>
-                <WhiteboardCanvas
-                    currentWorkspace={currentWorkspace}
-                    currentUser={currentUser}
-                    contextValue={contextValue}
-                />
+                <WhiteboardSafeMode />
             </ErrorBoundary>
         </div>
     );
