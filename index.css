@@ -127,3 +127,115 @@ video {
 .toast-progress-bar-paused {
   animation-play-state: paused;
 }
+/* FULLCALENDAR DARK MODE OVERRIDES */
+.fc {
+  --fc-border-color: rgba(255, 255, 255, 0.1);
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: rgba(255, 255, 255, 0.05);
+  --fc-list-event-hover-bg-color: rgba(255, 255, 255, 0.1);
+  --fc-today-bg-color: rgba(59, 130, 246, 0.15) !important;
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th {
+  border-color: var(--fc-border-color);
+}
+
+.fc-col-header-cell-cushion {
+  color: #F8FAFC; /* White text for days */
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.fc-daygrid-day-number {
+  color: #94A3B8; /* Slate-400 */
+  font-weight: 700;
+  font-size: 0.8rem;
+  margin: 4px;
+}
+
+.fc-day-today .fc-daygrid-day-number {
+  color: #3B82F6; /* Blue-500 */
+}
+
+/* Event Cards */
+.fc-daygrid-event {
+  border-radius: 6px;
+  margin-top: 2px;
+  transition: all 0.2s;
+}
+
+.fc-daygrid-event:hover {
+  transform: scale(1.02);
+  z-index: 5;
+}
+
+/* List View */
+.fc-list {
+  border: none !important;
+}
+
+.fc-list-day-cushion {
+  background-color: transparent !important;
+}
+
+.fc-list-day-text,
+.fc-list-day-side-text {
+  color: #F8FAFC; /* White text */
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 1rem;
+}
+
+.fc-list-event:hover td {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+}
+
+.fc-list-event-title {
+  color: #F8FAFC;
+  font-weight: 700;
+}
+
+.fc-list-event-time {
+  color: #94A3B8;
+  font-weight: 600;
+}
+
+/* Header Toolbar Buttons */
+.fc-button-primary {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #F8FAFC !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  border-radius: 0.75rem !important;
+  padding: 0.5rem 1rem !important;
+  box-shadow: none !important;
+  transition: all 0.2s !important;
+}
+
+.fc-button-primary:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  transform: scale(1.05);
+}
+
+.fc-button-active {
+  background-color: #3B82F6 !important;
+  border-color: #3B82F6 !important;
+  color: white !important;
+}
+
+.fc-toolbar-title {
+  font-size: 1.1rem !important;
+  font-weight: 900 !important;
+  color: #F8FAFC !important;
+  text-transform: uppercase !important;
+  letter-spacing: -0.02em !important;
+}
+

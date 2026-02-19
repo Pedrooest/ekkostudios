@@ -3488,6 +3488,19 @@ function renderCell(tab: TableType, row: any, col: string, update: Function, cli
   }
 
 
+  if (tab === 'FINANCAS' && col === 'Valor') {
+    return (
+      <input
+        type="number"
+        step="0.01"
+        value={row[col]}
+        onChange={e => update(row.id, tab, col, e.target.value)}
+        className={common}
+        placeholder="0.00"
+      />
+    );
+  }
+
   const inputType = (col === 'Data') ? 'date' : col === 'Hora' ? 'time' : 'text';
   return (<input type={inputType} value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={common} placeholder="..." />);
 }
