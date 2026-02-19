@@ -1,7 +1,7 @@
 import React from 'react';
 import { useEditor, useValue } from 'tldraw';
 
-export function WhiteboardToolbar({ onToggleTemplates, onToggleAI }: { onToggleTemplates?: () => void; onToggleAI?: () => void }) {
+export function WhiteboardToolbar({ onToggleTemplates, onToggleAI, onRefresh }: { onToggleTemplates?: () => void; onToggleAI?: () => void; onRefresh?: () => void }) {
     const editor = useEditor();
 
     // Subscribe to current tool change to highlight active button
@@ -48,6 +48,16 @@ export function WhiteboardToolbar({ onToggleTemplates, onToggleAI }: { onToggleT
                 >
                     <i className="fa-solid fa-layer-group"></i>
                 </button>
+
+                <div className="w-8 h-[1px] bg-white/10 mx-auto my-1"></div>
+
+                <button
+                    onClick={onRefresh}
+                    className="w-10 h-10 rounded-xl flex items-center justify-center transition-all text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                    title="Recarregar Quadro"
+                >
+                    <i className="fa-solid fa-rotate-right"></i>
+                </button>
             </div>
 
             {/* Mobile Bottom Dock */}
@@ -61,6 +71,9 @@ export function WhiteboardToolbar({ onToggleTemplates, onToggleAI }: { onToggleT
                         <i className={`fa-solid ${tool.icon}`}></i>
                     </button>
                 ))}
+
+                <div className="w-[1px] h-6 bg-white/10 mx-1"></div>
+
                 <button
                     onClick={onToggleAI}
                     className="w-10 h-10 rounded-full bg-purple-500/10 text-purple-400 flex items-center justify-center"
@@ -72,6 +85,12 @@ export function WhiteboardToolbar({ onToggleTemplates, onToggleAI }: { onToggleT
                     className="w-10 h-10 rounded-full bg-white/5 text-slate-400 flex items-center justify-center"
                 >
                     <i className="fa-solid fa-layer-group"></i>
+                </button>
+                <button
+                    onClick={onRefresh}
+                    className="w-10 h-10 rounded-full bg-red-500/10 text-red-400 flex items-center justify-center"
+                >
+                    <i className="fa-solid fa-rotate-right"></i>
                 </button>
             </div>
         </>

@@ -35,12 +35,18 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({ currentWorkspac
 
     const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
     const [isAIOpen, setIsAIOpen] = useState(false);
+    const [mountKey, setMountKey] = useState(0); // For Hard Refresh
     const editorRef = useRef<any>(null);
 
     const onEditorMount = useCallback((editor: any) => {
         console.log('[WhiteboardCanvas] Editor mounted');
         editorRef.current = editor;
-        // No snapshot loading logic here if data is always null, Tldraw handles persistence
+    }, []);
+
+    const handleRefresh = useCallback(() => {
+        console.log('[WhiteboardCanvas] Hard Refresh Triggered');
+        editorRef.current = null; // Clear ref before remount
+        setMountKey(prev => prev + 1);
     }, []);
 
     const handleAIGenerate = async (prompt: string) => {
@@ -80,14 +86,19 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({ currentWorkspac
         <div style={{ width: '100%', height: '100%', position: 'relative' }}>
             <WhiteboardProvider data={contextValue}>
                 <Tldraw
-                    persistenceKey="ekko-whiteboard-debug-v1"
+                    key={mountKey} // FORCE RE-MOUNT
+                    persistenceKey="ekko-whiteboard-v1"
                     shapeUtils={customShapeUtils}
                     onMount={onEditorMount}
                     inferDarkMode={true}
                     options={{ maxPages: 1 }}
                     hideUi={true}
                 >
-                    <WhiteboardToolbar onToggleTemplates={() => setIsTemplatesOpen(!isTemplatesOpen)} onToggleAI={() => setIsAIOpen(true)} />
+                    <WhiteboardToolbar
+                        onToggleTemplates={() => setIsTemplatesOpen(!isTemplatesOpen)}
+                        onToggleAI={() => setIsAIOpen(true)}
+                        onRefresh={handleRefresh}
+                    />
                     <WhiteboardInspector />
                     <WhiteboardTemplates isOpen={isTemplatesOpen} onClose={() => setIsTemplatesOpen(false)} />
 
