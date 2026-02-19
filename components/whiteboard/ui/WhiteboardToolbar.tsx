@@ -1,7 +1,7 @@
 import React from 'react';
 import { useEditor, useValue } from 'tldraw';
 
-export function WhiteboardToolbar({ onToggleTemplates }: { onToggleTemplates?: () => void }) {
+export function WhiteboardToolbar({ onToggleTemplates, onToggleAI }: { onToggleTemplates?: () => void; onToggleAI?: () => void }) {
     const editor = useEditor();
 
     // Subscribe to current tool change to highlight active button
@@ -34,6 +34,14 @@ export function WhiteboardToolbar({ onToggleTemplates }: { onToggleTemplates?: (
                 <div className="w-8 h-[1px] bg-white/10 mx-auto my-1"></div>
 
                 <button
+                    onClick={onToggleAI}
+                    className="w-10 h-10 rounded-xl flex items-center justify-center transition-all text-purple-400 hover:bg-purple-500/10 hover:text-purple-300"
+                    title="Ekko AI"
+                >
+                    <i className="fa-solid fa-wand-magic-sparkles"></i>
+                </button>
+
+                <button
                     onClick={onToggleTemplates}
                     className="w-10 h-10 rounded-xl flex items-center justify-center transition-all text-slate-400 hover:bg-white/5 hover:text-white"
                     title="Modelos"
@@ -53,6 +61,12 @@ export function WhiteboardToolbar({ onToggleTemplates }: { onToggleTemplates?: (
                         <i className={`fa-solid ${tool.icon}`}></i>
                     </button>
                 ))}
+                <button
+                    onClick={onToggleAI}
+                    className="w-10 h-10 rounded-full bg-purple-500/10 text-purple-400 flex items-center justify-center"
+                >
+                    <i className="fa-solid fa-wand-magic-sparkles"></i>
+                </button>
                 <button
                     onClick={onToggleTemplates}
                     className="w-10 h-10 rounded-full bg-white/5 text-slate-400 flex items-center justify-center"
