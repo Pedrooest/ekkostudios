@@ -77,30 +77,32 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({ currentWorkspac
     };
 
     return (
-        <WhiteboardProvider data={contextValue}>
-            <Tldraw
-                persistenceKey="ekko-whiteboard-v5"
-                shapeUtils={customShapeUtils}
-                onMount={onEditorMount}
-                inferDarkMode={true}
-                options={{ maxPages: 1 }}
-                hideUi={true}
-            >
-                <WhiteboardToolbar onToggleTemplates={() => setIsTemplatesOpen(!isTemplatesOpen)} onToggleAI={() => setIsAIOpen(true)} />
-                <WhiteboardInspector />
-                <WhiteboardTemplates isOpen={isTemplatesOpen} onClose={() => setIsTemplatesOpen(false)} />
+        <div style={{ width: '100%', height: '100%', border: '5px solid red', position: 'relative' }}>
+            <WhiteboardProvider data={contextValue}>
+                <Tldraw
+                    persistenceKey={null} // DEBUG: Disable persistence
+                    shapeUtils={customShapeUtils}
+                    onMount={onEditorMount}
+                    inferDarkMode={true}
+                    options={{ maxPages: 1 }}
+                    hideUi={true}
+                >
+                    <WhiteboardToolbar onToggleTemplates={() => setIsTemplatesOpen(!isTemplatesOpen)} onToggleAI={() => setIsAIOpen(true)} />
+                    <WhiteboardInspector />
+                    <WhiteboardTemplates isOpen={isTemplatesOpen} onClose={() => setIsTemplatesOpen(false)} />
 
-                <ErrorBoundary>
-                    <WhiteboardCursors workspaceId={currentWorkspace?.id} user={currentUser} />
-                </ErrorBoundary>
+                    {/* <ErrorBoundary>
+                        <WhiteboardCursors workspaceId={currentWorkspace?.id} user={currentUser} />
+                    </ErrorBoundary> */}
 
-                <WhiteboardAIModal
-                    isOpen={isAIOpen}
-                    onClose={() => setIsAIOpen(false)}
-                    onGenerate={handleAIGenerate}
-                />
-            </Tldraw>
-        </WhiteboardProvider>
+                    <WhiteboardAIModal
+                        isOpen={isAIOpen}
+                        onClose={() => setIsAIOpen(false)}
+                        onGenerate={handleAIGenerate}
+                    />
+                </Tldraw>
+            </WhiteboardProvider>
+        </div>
     );
 }, (prevProps, nextProps) => {
     // Only re-render if workspace or user changes significantly
