@@ -9,7 +9,6 @@ import { WhiteboardInspector } from './whiteboard/ui/WhiteboardInspector';
 import { WhiteboardProvider } from './whiteboard/WhiteboardContext';
 
 import { WhiteboardTemplates } from './whiteboard/ui/WhiteboardTemplates';
-import { MiniMap } from 'tldraw';
 
 interface WhiteboardViewProps {
     data?: any;

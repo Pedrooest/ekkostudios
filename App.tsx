@@ -1453,7 +1453,7 @@ export default function App() {
             showArchived={showArchived}
             onGenerateSlide={handleStartPresentationGen}
           />}
-          {activeTab === 'WHITEBOARD' && <WhiteboardView tasks={tasks} clients={clients} currentWorkspace={currentWorkspace} onUpdateTask={handleUpdateTask} onAddItem={handleAddRow} />}
+          {activeTab === 'WHITEBOARD' && <WhiteboardView tasks={tasks} clients={clients} currentWorkspace={currentWorkspace} onUpdateTask={handleUpdateTask} onAddItem={handleAddRow} currentUser={currentUser} />}
         </div>
 
         {

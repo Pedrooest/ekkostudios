@@ -8,14 +8,13 @@ export function WhiteboardTemplates({ isOpen, onClose }: { isOpen: boolean; onCl
 
     const addSWOT = () => {
         const center = editor.getViewportPageBounds().center;
-        const id = Date.now().toString();
 
         editor.createShapes([
             { type: 'note', x: center.x - 210, y: center.y - 210, props: { color: 'green', text: 'FORÇAS' } },
             { type: 'note', x: center.x + 10, y: center.y - 210, props: { color: 'red', text: 'FRAQUEZAS' } },
             { type: 'note', x: center.x - 210, y: center.y + 10, props: { color: 'blue', text: 'OPORTUNIDADES' } },
             { type: 'note', x: center.x + 10, y: center.y + 10, props: { color: 'yellow', text: 'AMEAÇAS' } },
-        ]);
+        ] as any);
         onClose();
     };
 
@@ -27,7 +26,7 @@ export function WhiteboardTemplates({ isOpen, onClose }: { isOpen: boolean; onCl
             { type: 'geo', x: center.x - 300, y: center.y - 200, props: { w: 200, h: 500, color: 'grey', text: 'A FAZER' } },
             { type: 'geo', x: center.x - 50, y: center.y - 200, props: { w: 200, h: 500, color: 'blue', text: 'FAZENDO' } },
             { type: 'geo', x: center.x + 200, y: center.y - 200, props: { w: 200, h: 500, color: 'green', text: 'FEITO' } },
-        ]);
+        ] as any);
         onClose();
     };
 
