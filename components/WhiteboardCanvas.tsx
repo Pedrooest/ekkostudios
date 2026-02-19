@@ -84,6 +84,16 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({ currentWorkspac
 
     return (
         <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+            {/* EMERGENCY REFRESH BUTTON - OUTSIDE TLDRAW */}
+            <button
+                onClick={handleRefresh}
+                className="absolute top-4 right-4 z-[9999] bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white p-2 rounded-lg transition-all shadow-lg border border-red-500/20"
+                title="Emergency Refresh (Recarregar Quadro)"
+            >
+                <i className="fa-solid fa-rotate-right mr-2"></i>
+                Recarregar
+            </button>
+
             <WhiteboardProvider data={contextValue}>
                 <Tldraw
                     key={mountKey} // FORCE RE-MOUNT
@@ -97,7 +107,6 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({ currentWorkspac
                     <WhiteboardToolbar
                         onToggleTemplates={() => setIsTemplatesOpen(!isTemplatesOpen)}
                         onToggleAI={() => setIsAIOpen(true)}
-                        onRefresh={handleRefresh}
                     />
                     <WhiteboardInspector />
                     <WhiteboardTemplates isOpen={isTemplatesOpen} onClose={() => setIsTemplatesOpen(false)} />
