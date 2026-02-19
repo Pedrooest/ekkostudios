@@ -77,10 +77,10 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({ currentWorkspac
     };
 
     return (
-        <div style={{ width: '100%', height: '100%', border: '5px solid red', position: 'relative' }}>
+        <div style={{ width: '100%', height: '100%', position: 'relative' }}>
             <WhiteboardProvider data={contextValue}>
                 <Tldraw
-                    persistenceKey={null} // DEBUG: Disable persistence
+                    persistenceKey="ekko-whiteboard-debug-v1"
                     shapeUtils={customShapeUtils}
                     onMount={onEditorMount}
                     inferDarkMode={true}
@@ -91,9 +91,9 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({ currentWorkspac
                     <WhiteboardInspector />
                     <WhiteboardTemplates isOpen={isTemplatesOpen} onClose={() => setIsTemplatesOpen(false)} />
 
-                    {/* <ErrorBoundary>
+                    <ErrorBoundary>
                         <WhiteboardCursors workspaceId={currentWorkspace?.id} user={currentUser} />
-                    </ErrorBoundary> */}
+                    </ErrorBoundary>
 
                     <WhiteboardAIModal
                         isOpen={isAIOpen}
@@ -105,24 +105,8 @@ export const WhiteboardCanvas = memo(function WhiteboardCanvas({ currentWorkspac
         </div>
     );
 }, (prevProps, nextProps) => {
-    // Only re-render if workspace or user changes significantly
-    // Ignore deep context value changes unless we really need them (tasks handled by internal context)
-    // Actually, Tldraw relies on contextValue passed to WhiteboardProvider. 
-    // If tasks change, contextValue changes. WhiteboardProvider re-renders. 
-    // Children of WhiteboardProvider (Tldraw children) might re-render.
-    // Tldraw itself should NOT re-mount.
-
-    // We return false if we WANT re-render.
-    // We return true if Props are Equal.
-
-    const workspaceSame = prevProps.currentWorkspace?.id === nextProps.currentWorkspace?.id;
-    const userSame = prevProps.currentUser?.id === nextProps.currentUser?.id;
-    const contextSame = prevProps.contextValue === nextProps.contextValue;
-
-    // If context changed (tasks update), we DO want to re-render to update the PROVIDER.
-    // But we want Tldraw to stay mounted.
-    // React.memo on WhiteboardCanvas will prevent re-render of WhiteboardCanvas if props are same.
-    // If tasks change, contextValue changes -> re-render happens.
-
-    return workspaceSame && userSame && contextSame;
+    // FORCE NO RE-RENDER for debugging
+    // This effectively disconnects the whiteboard from live App data updates (tasks, clients)
+    // but ensures the board never unmounts/resets due to parent re-renders.
+    return true;
 });
