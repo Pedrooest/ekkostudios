@@ -8,6 +8,9 @@ import { WhiteboardToolbar } from './whiteboard/ui/WhiteboardToolbar';
 import { WhiteboardInspector } from './whiteboard/ui/WhiteboardInspector';
 import { WhiteboardProvider } from './whiteboard/WhiteboardContext';
 
+import { WhiteboardTemplates } from './whiteboard/ui/WhiteboardTemplates';
+import { MiniMap } from 'tldraw';
+
 interface WhiteboardViewProps {
     data?: any;
     onSave?: (snapshot: any) => void;
@@ -22,6 +25,8 @@ interface WhiteboardViewProps {
 const customShapeUtils = [TaskShapeUtil, NoteShapeUtil]
 
 export const WhiteboardView = React.memo(function WhiteboardView({ data, onSave, tasks = [], clients = [], currentWorkspace, onUpdateTask, onAddItem }: WhiteboardViewProps) {
+    const [isTemplatesOpen, setIsTemplatesOpen] = React.useState(false);
+
     const handleMount = useCallback((editor: any) => {
         if (data) editor.loadSnapshot(data);
     }, [data]);
@@ -45,8 +50,12 @@ export const WhiteboardView = React.memo(function WhiteboardView({ data, onSave,
                     options={{ maxPages: 1 }}
                     hideUi={true}
                 >
-                    <WhiteboardToolbar />
+                    <WhiteboardToolbar onToggleTemplates={() => setIsTemplatesOpen(!isTemplatesOpen)} />
                     <WhiteboardInspector />
+                    <WhiteboardTemplates isOpen={isTemplatesOpen} onClose={() => setIsTemplatesOpen(false)} />
+                    <div className="absolute bottom-4 right-4 z-[500] pointer-events-auto">
+                        <MiniMap />
+                    </div>
                 </Tldraw>
             </WhiteboardProvider>
         </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useEditor, useValue } from 'tldraw';
 
-export function WhiteboardToolbar() {
+export function WhiteboardToolbar({ onToggleTemplates }: { onToggleTemplates?: () => void }) {
     const editor = useEditor();
 
     // Subscribe to current tool change to highlight active button
@@ -13,7 +13,6 @@ export function WhiteboardToolbar() {
         { id: 'draw', icon: 'fa-pen', label: 'Desenhar', action: () => editor.setCurrentTool('draw') },
         { id: 'note', icon: 'fa-note-sticky', label: 'Nota', action: () => editor.setCurrentTool('note') },
         { id: 'ekko-task', icon: 'fa-check-to-slot', label: 'Tarefa', action: () => editor.setCurrentTool('ekko-task') },
-        // { id: 'arrow', icon: 'fa-arrow-right', label: 'Conectar', action: () => editor.setCurrentTool('arrow') },
     ];
 
     return (
@@ -30,6 +29,16 @@ export function WhiteboardToolbar() {
                         <i className={`fa-solid ${tool.icon}`}></i>
                     </button>
                 ))}
+
+                <div className="w-8 h-[1px] bg-white/10 mx-auto my-1"></div>
+
+                <button
+                    onClick={onToggleTemplates}
+                    className="w-10 h-10 rounded-xl flex items-center justify-center transition-all text-slate-400 hover:bg-white/5 hover:text-white"
+                    title="Modelos"
+                >
+                    <i className="fa-solid fa-layer-group"></i>
+                </button>
             </div>
 
             {/* Mobile Bottom Dock */}
@@ -43,8 +52,11 @@ export function WhiteboardToolbar() {
                         <i className={`fa-solid ${tool.icon}`}></i>
                     </button>
                 ))}
-                <button className="w-10 h-10 rounded-full bg-white/5 text-slate-400 flex items-center justify-center">
-                    <i className="fa-solid fa-ellipsis-vertical"></i>
+                <button
+                    onClick={onToggleTemplates}
+                    className="w-10 h-10 rounded-full bg-white/5 text-slate-400 flex items-center justify-center"
+                >
+                    <i className="fa-solid fa-layer-group"></i>
                 </button>
             </div>
         </>
