@@ -40,7 +40,7 @@ import {
 import { Button, Card, Badge, Stepper, FloatingPopover, InputSelect, MobileFloatingAction } from './Components';
 import { BottomSheet } from './components/BottomSheet';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { WhiteboardView } from './components/WhiteboardView';
+import { Whiteboard } from './components/Whiteboard';
 
 import { transcribeAndExtractInsights, generatePresentationBriefing, extractStructuredDataFromPDF, analyzeContextualData } from './geminiService';
 import { CopilotChat } from './CopilotChat';
@@ -1458,7 +1458,7 @@ export default function App() {
           />}
           {activeTab === 'WHITEBOARD' && (
             <ErrorBoundary>
-              <WhiteboardView tasks={tasks} clients={clients} currentWorkspace={currentWorkspace} onUpdateTask={handleUpdateTask} onAddItem={handleAddRow} currentUser={currentUser} />
+              <Whiteboard />
             </ErrorBoundary>
           )}
         </div>
