@@ -72,22 +72,28 @@ export function useWhiteboardCollaboration(workspaceId: string, user: any) {
         const loop = () => {
             const now = Date.now();
             if (now - lastBroadcast > 50) { // Broadcast every 50ms
-                const { x, y } = editor.inputs.currentPagePoint;
+                try {
+                    if (editor && editor.inputs && editor.inputs.currentPagePoint) {
+                        const { x, y } = editor.inputs.currentPagePoint;
 
-                // Only send if inside bounds/valid (optional check)
-                if (user && user.id) {
-                    channelRef.current.send({
-                        type: 'broadcast',
-                        event: 'cursor',
-                        payload: {
-                            id: user.id,
-                            name: user.email?.split('@')[0] || 'User',
-                            color: user.color || '#3B82F6',
-                            x,
-                            y
+                        // Only send if inside bounds/valid (optional check)
+                        if (user && user.id) {
+                            channelRef.current.send({
+                                type: 'broadcast',
+                                event: 'cursor',
+                                payload: {
+                                    id: user.id,
+                                    name: user.email?.split('@')[0] || 'User',
+                                    color: user.color || '#3B82F6',
+                                    x,
+                                    y
+                                }
+                            });
+                            lastBroadcast = now;
                         }
-                    });
-                    lastBroadcast = now;
+                    }
+                } catch (e) {
+                    // Silently fail or log sparingly to avoid spam
                 }
             }
             rAF = requestAnimationFrame(loop);

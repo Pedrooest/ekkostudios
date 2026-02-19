@@ -84,13 +84,13 @@ export const WhiteboardView = React.memo(function WhiteboardView({ data, onSave,
         editor.createShapes(shapes);
     };
 
-    const contextValue = {
+    const contextValue = React.useMemo(() => ({
         tasks,
         clients,
         workspace: currentWorkspace,
         onUpdateTask: onUpdateTask || (async () => { }),
         onAddItem: onAddItem || (async () => { }),
-    };
+    }), [tasks, clients, currentWorkspace, onUpdateTask, onAddItem]);
 
     return (
         <div className="w-full h-[calc(100dvh-100px)] relative bg-[#111827] isolate overflow-hidden">
@@ -106,7 +106,9 @@ export const WhiteboardView = React.memo(function WhiteboardView({ data, onSave,
                     <WhiteboardToolbar onToggleTemplates={() => setIsTemplatesOpen(!isTemplatesOpen)} onToggleAI={() => setIsAIOpen(true)} />
                     <WhiteboardInspector />
                     <WhiteboardTemplates isOpen={isTemplatesOpen} onClose={() => setIsTemplatesOpen(false)} />
-                    <WhiteboardCursors workspaceId={currentWorkspace?.id} user={currentUser} />
+                    <ErrorBoundary>
+                        <WhiteboardCursors workspaceId={currentWorkspace?.id} user={currentUser} />
+                    </ErrorBoundary>
                     <WhiteboardAIModal
                         isOpen={isAIOpen}
                         onClose={() => setIsAIOpen(false)}
