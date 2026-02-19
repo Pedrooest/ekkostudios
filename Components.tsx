@@ -289,7 +289,7 @@ export const MobileFloatingAction: React.FC<{
     <button
       onClick={onClick}
       className={`
-        md:hidden fixed z-[90] right-4 bottom-[calc(24px+env(safe-area-inset-bottom))]
+        md:hidden fixed z-[9999] right-4 bottom-[calc(24px+env(safe-area-inset-bottom))]
         flex items-center gap-3 px-5 py-4
         bg-[#2563EB] text-white rounded-[20px] shadow-[0_10px_40px_-10px_rgba(37,99,235,0.6)]
         active:scale-95 transition-all

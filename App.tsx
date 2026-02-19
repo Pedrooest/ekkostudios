@@ -1763,15 +1763,23 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
         </div>
       </div>
 
-      <div className={`transition-all duration-500 shrink-0 z-50 lg:z-auto fixed inset-y-0 right-0 lg:static ${isSidebarOpen ? 'translate-x-0 w-[85vw] sm:w-[360px] shadow-2xl lg:shadow-none' : 'translate-x-full lg:translate-x-0 lg:w-0 lg:opacity-0 lg:pointer-events-none'}`}>
-        <div className="h-full bg-app-surface/80 backdrop-blur-xl border-l border-white/5 shadow-2xl p-6 md:p-8 flex flex-col relative overflow-hidden">
+      <div className={`transition-all duration-500 shrink-0 z-[100] lg:z-auto fixed inset-x-0 bottom-0 lg:inset-auto lg:static ${isSidebarOpen ? 'translate-y-0 lg:translate-x-0 h-[85dvh] lg:h-auto lg:w-[360px] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] lg:shadow-none' : 'translate-y-full lg:translate-x-0 lg:w-0 lg:opacity-0 lg:pointer-events-none'}`}>
+        <div className="h-full bg-app-surface/95 backdrop-blur-xl border-t lg:border-t-0 lg:border-l border-white/10 shadow-2xl p-6 md:p-8 flex flex-col relative overflow-hidden rounded-t-[32px] lg:rounded-none">
           <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-[60px] rounded-full"></div>
 
-          <div className="flex items-center gap-3 mb-8 shrink-0">
-            <div className="w-8 h-8 rounded-xl bg-blue-600/10 flex items-center justify-center text-blue-500 border border-blue-500/20">
-              <i className="fa-solid fa-folder-open text-xs"></i>
+          <div className="flex items-center justify-between mb-8 shrink-0 sticky top-0 bg-transparent z-20">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-blue-600/10 flex items-center justify-center text-blue-500 border border-blue-500/20">
+                <i className="fa-solid fa-folder-open text-xs"></i>
+              </div>
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-app-text-strong">Banco de Conteúdos</h3>
             </div>
-            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-app-text-strong">Banco de Conteúdos</h3>
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-app-surface border border-white/10 text-app-text-muted hover:text-white"
+            >
+              <i className="fa-solid fa-xmark"></i>
+            </button>
           </div>
 
           <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-2 pb-20 custom-scrollbar relative z-10">
@@ -3309,21 +3317,21 @@ function TableView({ tab, data, onUpdate, onDelete, onArchive, onAdd, clients, l
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/5 to-transparent rounded-bl-[4rem] pointer-events-none -z-0"></div>
 
               <div className="relative z-10">
-                <div className="flex justify-between items-start mb-6 border-b border-app-border pb-4">
-                  <div className="flex items-center gap-4">
-                    <input type="checkbox" checked={selection.includes(row.id)} onChange={() => onSelect(row.id)} className="rounded-lg bg-app-bg border-app-border text-blue-600 focus:ring-0 w-6 h-6 transition-all" />
+                <div className="flex justify-between items-center mb-6 border-b border-app-border pb-4 gap-4">
+                  <div className="flex items-center gap-4 min-w-0 flex-1">
+                    <input type="checkbox" checked={selection.includes(row.id)} onChange={() => onSelect(row.id)} className="shrink-0 rounded-lg bg-app-bg border-app-border text-blue-600 focus:ring-0 w-6 h-6 transition-all" />
                     {tab === 'CLIENTES' && (
-                      <div className="flex flex-col gap-1">
-                        <span className="text-base font-black text-app-text-strong uppercase leading-none tracking-tight">{row.Nome}</span>
+                      <div className="flex flex-col gap-1 min-w-0">
+                        <span className="text-base font-black text-app-text-strong uppercase leading-none tracking-tight truncate">{row.Nome}</span>
                         <div className="flex items-center gap-2">
                           <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${row.Status === 'Ativo' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-gray-500/10 text-gray-500 border border-gray-500/20'}`}>{row.Status}</span>
-                          {row['Nicho'] && <span className="text-[9px] font-bold text-app-text-muted uppercase tracking-wider">{row['Nicho']}</span>}
+                          {row['Nicho'] && <span className="text-[9px] font-bold text-app-text-muted uppercase tracking-wider truncate">{row['Nicho']}</span>}
                         </div>
                       </div>
                     )}
                   </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => setMobileActionRow(row)} className="w-10 h-10 rounded-xl bg-app-surface-2 border border-app-border text-app-text-muted hover:text-app-text-strong flex items-center justify-center transition-all active:scale-95 shadow-sm"><i className="fa-solid fa-ellipsis-vertical text-sm"></i></button>
+                  <div className="flex gap-2 shrink-0">
+                    <button onClick={() => setMobileActionRow(row)} className="w-[44px] h-[44px] rounded-xl bg-app-surface-2 border border-app-border text-app-text-muted hover:text-app-text-strong flex items-center justify-center transition-all active:scale-95 shadow-sm"><i className="fa-solid fa-ellipsis-vertical text-lg"></i></button>
                   </div>
                 </div>
                 <div className="space-y-8">
