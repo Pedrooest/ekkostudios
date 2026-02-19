@@ -24,6 +24,7 @@ import {
 import { WorkspaceSelector } from './WorkspaceSelector';
 import { WorkspaceSettingsModal } from './WorkspaceSettingsModal';
 import { DatabaseService } from './DatabaseService';
+import { DebugOverlay, logDebug } from './components/DebugOverlay';
 import {
   CLIENTES_COLS, RDC_COLS,
   COBO_CANAL_OPTIONS, COBO_FREQUENCIA_OPTIONS, COBO_PUBLICO_OPTIONS, COBO_VOZ_OPTIONS, COBO_ZONA_OPTIONS, COBO_INTENCAO_OPTIONS, COBO_FORMATO_OPTIONS,
@@ -567,6 +568,7 @@ export default function App() {
   // SMART NOTIFICATIONS (CHECKS)
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   useEffect(() => {
+    logDebug('ActiveTab Changed', { activeTab });
     if (!currentUser || activeTab === 'DASHBOARD') return;
 
     const checkSmart = () => {
@@ -1496,7 +1498,7 @@ export default function App() {
           appState={{ clients, cobo, matriz, planejamento, rdc, tasks, financas, collaborators, vhConfig, systematicModeling }}
           onApplyAction={handleApplyAction}
         />
-
+        <DebugOverlay />
       </main >
 
       {

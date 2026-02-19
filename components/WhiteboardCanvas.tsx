@@ -1,5 +1,5 @@
 
-import React, { memo, useCallback, useRef, useState } from 'react';
+import React, { memo, useCallback, useRef, useState, useEffect } from 'react';
 import { Tldraw } from 'tldraw';
 import 'tldraw/tldraw.css';
 import './whiteboard/whiteboard.css';
@@ -14,6 +14,7 @@ import { WhiteboardAIModal } from './whiteboard/ui/WhiteboardAIModal';
 import { generateBrainstormingIdeas } from '../geminiService';
 import { ErrorBoundary } from './ErrorBoundary';
 import { WhiteboardProvider } from './whiteboard/WhiteboardContext';
+import { logDebug } from './DebugOverlay';
 
 interface WhiteboardCanvasProps {
     currentWorkspace: any;
@@ -26,6 +27,12 @@ const customShapeUtils = [TaskShapeUtil, NoteShapeUtil, CommentShapeUtil];
 // Memoized Canvas Component
 export const WhiteboardCanvas = memo(function WhiteboardCanvas({ currentWorkspace, currentUser, contextValue }: WhiteboardCanvasProps) {
     console.log('[WhiteboardCanvas] Rendering', { workspaceId: currentWorkspace?.id, userId: currentUser?.id });
+
+    React.useEffect(() => {
+        logDebug('WhiteboardCanvas MOUNTED');
+        return () => logDebug('WhiteboardCanvas UNMOUNTED');
+    }, []);
+
     const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
     const [isAIOpen, setIsAIOpen] = useState(false);
     const editorRef = useRef<any>(null);

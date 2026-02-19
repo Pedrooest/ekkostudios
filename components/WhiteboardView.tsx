@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { ErrorBoundary } from './ErrorBoundary';
 import { WhiteboardCanvas } from './WhiteboardCanvas';
+import { logDebug } from './DebugOverlay';
 
 interface WhiteboardViewProps {
     data?: any;
