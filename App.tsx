@@ -182,7 +182,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TableType>('DASHBOARD');
   const [theme, setTheme] = useState<'dark' | 'light'>(() => (localStorage.getItem('theme') as 'dark' | 'light') || 'dark');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 1024);
-  const [tabOrder, setTabOrder] = useState<TableType[]>(['DASHBOARD', 'CLIENTES', 'ORGANICKIA', 'RDC', 'MATRIZ', 'COBO', 'PLANEJAMENTO', 'FINANCAS', 'TAREFAS', 'VH']);
+  const [tabOrder, setTabOrder] = useState<TableType[]>(['DASHBOARD', 'CLIENTES', 'ORGANICKIA', 'RDC', 'MATRIZ', 'COBO', 'PLANEJAMENTO', 'FINANCAS', 'TAREFAS', 'VH', 'WHITEBOARD']);
 
   const [clients, setClients] = useState<Client[]>([]);
   const [cobo, setCobo] = useState<CoboItem[]>([]);
@@ -605,7 +605,12 @@ export default function App() {
     const saved = localStorage.getItem('ekko_os_ui_v17');
     if (saved) {
       const p = JSON.parse(saved);
-      if (p.tabOrder) setTabOrder(p.tabOrder);
+      if (p.tabOrder) {
+        // Merge saved order with new tabs to ensure missing ones appear
+        const defaultOrder: TableType[] = ['DASHBOARD', 'CLIENTES', 'ORGANICKIA', 'RDC', 'MATRIZ', 'COBO', 'PLANEJAMENTO', 'FINANCAS', 'TAREFAS', 'VH', 'WHITEBOARD'];
+        const uniqueTabs = new Set([...p.tabOrder, ...defaultOrder]);
+        setTabOrder(Array.from(uniqueTabs));
+      }
       if (p.vhConfig) setVhConfig(p.vhConfig);
       if (p.contentLibrary) setContentLibrary(p.contentLibrary);
       if (p.selectedClientIdIA) setSelectedClientIdIA(p.selectedClientIdIA);
