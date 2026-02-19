@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Tldraw } from 'tldraw';
 import 'tldraw/tldraw.css';
 import './whiteboard/whiteboard.css';
@@ -12,6 +12,8 @@ import { WhiteboardProvider } from './whiteboard/WhiteboardContext';
 import { WhiteboardTemplates } from './whiteboard/ui/WhiteboardTemplates';
 import { useWhiteboardCollaboration } from './whiteboard/hooks/useWhiteboardCollaboration';
 import { WhiteboardCursors } from './whiteboard/ui/WhiteboardCursors';
+import { WhiteboardAIModal } from './whiteboard/ui/WhiteboardAIModal';
+import { generateBrainstormingIdeas } from '../geminiService';
 
 interface WhiteboardViewProps {
     data?: any;
@@ -29,13 +31,52 @@ const customShapeUtils = [TaskShapeUtil, NoteShapeUtil, CommentShapeUtil]
 
 export const WhiteboardView = React.memo(function WhiteboardView({ data, onSave, tasks = [], clients = [], currentWorkspace, onUpdateTask, onAddItem, currentUser }: WhiteboardViewProps) {
     const [isTemplatesOpen, setIsTemplatesOpen] = React.useState(false);
+    const [isAIOpen, setIsAIOpen] = React.useState(false);
 
     // Collaboration
     const { peers } = useWhiteboardCollaboration(currentWorkspace?.id, currentUser);
+    const editorRef = useRef<any>(null);
 
-    const handleMount = useCallback((editor: any) => {
+    const onEditorMount = useCallback((editor: any) => {
+        editorRef.current = editor;
         if (data) editor.loadSnapshot(data);
     }, [data]);
+
+    const handleAIGenerate = async (prompt: string) => {
+        const editor = editorRef.current;
+        if (!editor) return;
+
+        const ideas = await generateBrainstormingIdeas(prompt);
+
+        if (!ideas || ideas.length === 0) return;
+
+        const center = editor.getViewportPageBounds().center;
+        const shapes: any[] = [];
+
+        // Arrange in a grid or stack
+        ideas.forEach((idea, index) => {
+            const row = Math.floor(index / 3);
+            const col = index % 3;
+            const offsetX = (col * 220) - 220;
+            const offsetY = (row * 220) - 100;
+
+            // Random rotation for organic feel
+            const rotation = (Math.random() * 0.1) - 0.05;
+
+            shapes.push({
+                type: 'note',
+                x: center.x + offsetX,
+                y: center.y + offsetY,
+                rotation,
+                props: {
+                    text: idea,
+                    color: ['yellow', 'blue', 'green', 'red', 'purple'][index % 5]
+                }
+            });
+        });
+
+        editor.createShapes(shapes);
+    };
 
     const contextValue = {
         tasks,
@@ -51,15 +92,20 @@ export const WhiteboardView = React.memo(function WhiteboardView({ data, onSave,
                 <Tldraw
                     persistenceKey="ekko-whiteboard-v5"
                     shapeUtils={customShapeUtils}
-                    onMount={handleMount}
+                    onMount={onEditorMount}
                     inferDarkMode={true}
                     options={{ maxPages: 1 }}
                     hideUi={true}
                 >
-                    <WhiteboardToolbar onToggleTemplates={() => setIsTemplatesOpen(!isTemplatesOpen)} />
+                    <WhiteboardToolbar onToggleTemplates={() => setIsTemplatesOpen(!isTemplatesOpen)} onToggleAI={() => setIsAIOpen(true)} />
                     <WhiteboardInspector />
                     <WhiteboardTemplates isOpen={isTemplatesOpen} onClose={() => setIsTemplatesOpen(false)} />
                     <WhiteboardCursors peers={peers} />
+                    <WhiteboardAIModal
+                        isOpen={isAIOpen}
+                        onClose={() => setIsAIOpen(false)}
+                        onGenerate={handleAIGenerate}
+                    />
                 </Tldraw>
             </WhiteboardProvider>
         </div>
