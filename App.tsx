@@ -1666,7 +1666,7 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
   };
 
   return (
-    <div className="flex flex-col lg:flex-row h-full gap-6 animate-fade text-left relative overflow-hidden">
+    <div className="flex flex-col lg:flex-row lg:h-full h-auto gap-6 animate-fade text-left relative lg:overflow-hidden overflow-visible">
       {isSidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm animate-fade" onClick={() => setIsSidebarOpen(false)}></div>
       )}
@@ -1706,7 +1706,7 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
             </Button>
           </div>
         </div>
-        <div className="flex-1 bg-app-surface/30 border border-app-border rounded-[32px] p-5 md:p-8 shadow-2xl md:overflow-hidden min-h-[100dvh] lg:min-h-0 relative pb-[calc(120px+env(safe-area-inset-bottom))] md:pb-8">
+        <div className="flex-1 bg-app-surface/30 border border-app-border rounded-[32px] p-5 md:p-8 shadow-2xl md:overflow-hidden min-h-[100dvh] lg:min-h-0 relative pb-[calc(160px+env(safe-area-inset-bottom))] md:pb-8">
           <FullCalendar
             plugins={[dayGridPlugin, interactionPlugin, listPlugin]}
             initialView={window.innerWidth < 1024 ? "listWeek" : "dayGridMonth"}
