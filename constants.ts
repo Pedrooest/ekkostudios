@@ -112,7 +112,8 @@ export const TABLE_LABELS: Record<TableType, string> = {
   FINANCAS: 'Finanças',
   TAREFAS: 'Fluxo de Tarefas',
   VH: 'Gestão de VH',
-  ORGANICKIA: 'ORGANICKIA'
+  ORGANICKIA: 'ORGANICKIA',
+  WHITEBOARD: 'Quadro Branco'
 };
 
 export const WEEKDAYS_BR = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];

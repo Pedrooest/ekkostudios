@@ -38,6 +38,7 @@ import {
 } from './constants';
 import { Button, Card, Badge, Stepper, FloatingPopover, InputSelect, MobileFloatingAction } from './Components';
 import { BottomSheet } from './components/BottomSheet';
+import { WhiteboardView } from './components/WhiteboardView';
 
 import { transcribeAndExtractInsights, generatePresentationBriefing, extractStructuredDataFromPDF, analyzeContextualData } from './geminiService';
 import { CopilotChat } from './CopilotChat';
@@ -1441,6 +1442,7 @@ export default function App() {
             showArchived={showArchived}
             onGenerateSlide={handleStartPresentationGen}
           />}
+          {activeTab === 'WHITEBOARD' && <WhiteboardView />}
         </div>
 
         {
@@ -3520,7 +3522,7 @@ function renderCell(tab: TableType, row: any, col: string, update: Function, cli
 }
 
 function getIcon(tab: TableType) {
-  const icons: any = { DASHBOARD: 'fa-table-columns', CLIENTES: 'fa-address-card', ORGANICKIA: 'fa-robot', RDC: 'fa-bolt', MATRIZ: 'fa-chess-rook', COBO: 'fa-tower-cell', PLANEJAMENTO: 'fa-calendar-days', FINANCAS: 'fa-coins', TAREFAS: 'fa-list-check', VH: 'fa-hourglass' };
+  const icons: any = { DASHBOARD: 'fa-table-columns', CLIENTES: 'fa-address-card', ORGANICKIA: 'fa-robot', RDC: 'fa-bolt', MATRIZ: 'fa-chess-rook', COBO: 'fa-tower-cell', PLANEJAMENTO: 'fa-calendar-days', FINANCAS: 'fa-coins', TAREFAS: 'fa-list-check', VH: 'fa-hourglass', WHITEBOARD: 'fa-object-group' };
   return icons[tab] || 'fa-folder';
 }
 
