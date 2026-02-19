@@ -1706,7 +1706,7 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
             </Button>
           </div>
         </div>
-        <div className="flex-1 bg-app-surface/30 border border-app-border rounded-[32px] p-5 md:p-8 shadow-2xl overflow-hidden min-h-[600px] lg:min-h-0 relative">
+        <div className="flex-1 bg-app-surface/30 border border-app-border rounded-[32px] p-5 md:p-8 shadow-2xl md:overflow-hidden min-h-[100dvh] lg:min-h-0 relative pb-[calc(120px+env(safe-area-inset-bottom))] md:pb-8">
           <FullCalendar
             plugins={[dayGridPlugin, interactionPlugin, listPlugin]}
             initialView={window.innerWidth < 1024 ? "listWeek" : "dayGridMonth"}
@@ -1719,11 +1719,19 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
             }))}
             height="auto"
             contentHeight="auto"
+            handleWindowResize={true}
             locale="pt-br"
             headerToolbar={{
               left: isMobile ? 'prev,next' : 'prev,next today',
               center: 'title',
               right: isMobile ? 'today' : 'dayGridMonth,listWeek'
+            }}
+            buttonText={{
+              today: 'Hoje',
+              month: 'Mês',
+              week: 'Semana',
+              day: 'Dia',
+              list: 'Lista'
             }}
             dayMaxEvents={3}
             eventClick={(info) => setSelectedEventId(info.event.id)}
