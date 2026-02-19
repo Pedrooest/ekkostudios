@@ -13,6 +13,7 @@ import { WhiteboardTemplates } from './whiteboard/ui/WhiteboardTemplates';
 import { WhiteboardCursors } from './whiteboard/ui/WhiteboardCursors';
 import { WhiteboardAIModal } from './whiteboard/ui/WhiteboardAIModal';
 import { generateBrainstormingIdeas } from '../geminiService';
+import { ErrorBoundary } from './ErrorBoundary';
 
 interface WhiteboardViewProps {
     data?: any;
@@ -29,6 +30,7 @@ interface WhiteboardViewProps {
 const customShapeUtils = [TaskShapeUtil, NoteShapeUtil, CommentShapeUtil]
 
 export const WhiteboardView = React.memo(function WhiteboardView({ data, onSave, tasks = [], clients = [], currentWorkspace, onUpdateTask, onAddItem, currentUser }: WhiteboardViewProps) {
+    console.log('[WhiteboardView] Rendering', { hasData: !!data, workspaceId: currentWorkspace?.id });
     const [isTemplatesOpen, setIsTemplatesOpen] = React.useState(false);
     const [isAIOpen, setIsAIOpen] = React.useState(false);
 
@@ -36,8 +38,14 @@ export const WhiteboardView = React.memo(function WhiteboardView({ data, onSave,
     const editorRef = useRef<any>(null);
 
     const onEditorMount = useCallback((editor: any) => {
+        console.log('[WhiteboardView] Editor mounted');
         editorRef.current = editor;
-        if (data) editor.loadSnapshot(data);
+        if (data) {
+            console.log('[WhiteboardView] Loading snapshot data', data);
+            editor.loadSnapshot(data);
+        } else {
+            console.log('[WhiteboardView] No snapshot data provided');
+        }
     }, [data]);
 
     const handleAIGenerate = async (prompt: string) => {

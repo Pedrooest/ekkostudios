@@ -38,6 +38,7 @@ import {
 } from './constants';
 import { Button, Card, Badge, Stepper, FloatingPopover, InputSelect, MobileFloatingAction } from './Components';
 import { BottomSheet } from './components/BottomSheet';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { WhiteboardView } from './components/WhiteboardView';
 
 import { transcribeAndExtractInsights, generatePresentationBriefing, extractStructuredDataFromPDF, analyzeContextualData } from './geminiService';
@@ -1453,7 +1454,11 @@ export default function App() {
             showArchived={showArchived}
             onGenerateSlide={handleStartPresentationGen}
           />}
-          {activeTab === 'WHITEBOARD' && <WhiteboardView tasks={tasks} clients={clients} currentWorkspace={currentWorkspace} onUpdateTask={handleUpdateTask} onAddItem={handleAddRow} currentUser={currentUser} />}
+          {activeTab === 'WHITEBOARD' && (
+            <ErrorBoundary>
+              <WhiteboardView tasks={tasks} clients={clients} currentWorkspace={currentWorkspace} onUpdateTask={handleUpdateTask} onAddItem={handleAddRow} currentUser={currentUser} />
+            </ErrorBoundary>
+          )}
         </div>
 
         {

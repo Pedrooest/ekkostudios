@@ -328,3 +328,32 @@ export async function extractStructuredDataFromPDF(files: { data: string, mimeTy
     return { error: "Falha na extração. Tente novamente." };
   }
 }
+
+/**
+ * Brainstorming Ideas generator for Whiteboard
+ */
+export async function generateBrainstormingIdeas(prompt: string): Promise<string[]> {
+  const finalPrompt = `You are a creative brainstorming assistant.
+  User Prompt: "${prompt}"
+
+  Generate a list of 6-12 creative, short, and actionable ideas related to the prompt.
+  Return ONLY a JSON array of strings. Example: ["Idea 1", "Idea 2"]`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents: finalPrompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING }
+        }
+      }
+    });
+    return JSON.parse(response.text || "[]");
+  } catch (error) {
+    console.error("Gemini Brainstorming Error:", error);
+    return [];
+  }
+}
