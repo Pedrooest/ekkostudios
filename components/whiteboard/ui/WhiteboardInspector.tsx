@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useEditor, useValue, TLShapeId, TLShape } from 'tldraw';
 import { useWhiteboardData } from '../WhiteboardContext';
 import { TaskShape } from '../shapes/TaskShape';
@@ -7,6 +7,14 @@ import { NoteShape } from '../shapes/NoteShape';
 export function WhiteboardInspector() {
     const editor = useEditor();
     const { tasks, onUpdateTask, onAddItem } = useWhiteboardData();
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     // Get selected shapes
     const selectedShapes = useValue('selected shapes', () => editor.getSelectedShapes(), [editor]);
@@ -14,6 +22,11 @@ export function WhiteboardInspector() {
     if (!selectedShapes || selectedShapes.length === 0) return null;
 
     const shape = selectedShapes[0] as any;
+
+    // Common container styles
+    const containerClasses = isMobile
+        ? "fixed bottom-0 left-0 right-0 bg-[#1E293B] border-t border-white/10 rounded-t-xl p-4 shadow-2xl z-[2000] text-white animate-fade-up"
+        : "absolute top-20 right-4 w-72 bg-[#1E293B] border border-white/10 rounded-xl p-4 shadow-2xl z-[1000] text-white";
 
     // Handle Task Shape Selection
     if (shape.type === 'ekko-task') {
@@ -36,8 +49,11 @@ export function WhiteboardInspector() {
         };
 
         return (
-            <div className="absolute top-20 right-4 w-72 bg-[#1E293B] border border-white/10 rounded-xl p-4 shadow-2xl z-[1000] text-white">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-4">Propriedades da Tarefa</h3>
+            <div className={containerClasses}>
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Propriedades da Tarefa</h3>
+                    {isMobile && <button onClick={() => editor.deselectAll()} className="text-slate-400"><i className="fa-solid fa-chevron-down"></i></button>}
+                </div>
 
                 <div className="space-y-4">
                     <div>
@@ -57,7 +73,6 @@ export function WhiteboardInspector() {
                     {taskShape.props.taskId && (
                         <div className="p-3 bg-[#0F172A] rounded-lg border border-white/5 space-y-2">
                             <p className="text-xs text-slate-400">ID: {taskShape.props.taskId}</p>
-
                             <div>
                                 <label className="text-[10px] text-slate-500 uppercase font-bold mb-1 block">Status</label>
                                 <select
@@ -65,13 +80,11 @@ export function WhiteboardInspector() {
                                     value={taskShape.props.status}
                                     onChange={(e) => {
                                         const newStatus = e.target.value;
-                                        // Update Whiteboard Shape
                                         editor.updateShape({
                                             id: shape.id,
                                             type: 'ekko-task',
                                             props: { status: newStatus }
                                         } as any);
-                                        // Update Database
                                         onUpdateTask(taskShape.props.taskId, { Status: newStatus });
                                     }}
                                 >
@@ -94,8 +107,11 @@ export function WhiteboardInspector() {
         const colors = ['blue', 'red', 'green', 'yellow', 'purple'];
 
         return (
-            <div className="absolute top-20 right-4 w-64 bg-[#1E293B] border border-white/10 rounded-xl p-4 shadow-2xl z-[1000] text-white">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-4">Editar Nota</h3>
+            <div className={containerClasses}>
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Editar Nota</h3>
+                    {isMobile && <button onClick={() => editor.deselectAll()} className="text-slate-400"><i className="fa-solid fa-chevron-down"></i></button>}
+                </div>
 
                 <div className="space-y-4">
                     <div>
@@ -109,7 +125,7 @@ export function WhiteboardInspector() {
                                         type: 'note',
                                         props: { color: c }
                                     } as any)}
-                                    className={`w-6 h-6 rounded-full border-2 ${noteShape.props.color === c ? 'border-white' : 'border-transparent'}`}
+                                    className={`w-8 h-8 md:w-6 md:h-6 rounded-full border-2 ${noteShape.props.color === c ? 'border-white' : 'border-transparent'}`}
                                     style={{ backgroundColor: c === 'blue' ? '#3B82F6' : c }}
                                 />
                             ))}
@@ -122,7 +138,7 @@ export function WhiteboardInspector() {
                                 const text = (noteShape.props as any).text || 'Nova Tarefa';
                                 onAddItem('create_task', { Title: text, Status: 'todo' });
                             }}
-                            className="w-full py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-xs font-bold uppercase transition-colors flex items-center justify-center gap-2"
+                            className="w-full py-3 md:py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-xs font-bold uppercase transition-colors flex items-center justify-center gap-2"
                         >
                             <i className="fa-solid fa-check-to-slot"></i>
                             Converter em Tarefa
