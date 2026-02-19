@@ -5,6 +5,7 @@ interface WhiteboardContextType {
     clients: any[];
     workspace: any;
     onUpdateTask: (taskId: string, data: any) => Promise<void>;
+    onAddItem: (type: string, payload?: any) => Promise<void>;
 }
 
 const WhiteboardContext = createContext<WhiteboardContextType>({
@@ -12,6 +13,7 @@ const WhiteboardContext = createContext<WhiteboardContextType>({
     clients: [],
     workspace: null,
     onUpdateTask: async () => { },
+    onAddItem: async () => { },
 });
 
 export const useWhiteboardData = () => useContext(WhiteboardContext);

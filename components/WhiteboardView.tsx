@@ -14,12 +14,14 @@ interface WhiteboardViewProps {
     tasks?: any[];
     clients?: any[];
     currentWorkspace?: any;
+    onUpdateTask?: (taskId: string, data: any) => Promise<void>;
+    onAddItem?: (type: string, payload?: any) => Promise<void>;
 }
 
 // Pass the classes (Constructors) directly
 const customShapeUtils = [TaskShapeUtil, NoteShapeUtil]
 
-export const WhiteboardView = React.memo(function WhiteboardView({ data, onSave, tasks = [], clients = [], currentWorkspace }: WhiteboardViewProps) {
+export const WhiteboardView = React.memo(function WhiteboardView({ data, onSave, tasks = [], clients = [], currentWorkspace, onUpdateTask, onAddItem }: WhiteboardViewProps) {
     const handleMount = useCallback((editor: any) => {
         if (data) editor.loadSnapshot(data);
     }, [data]);
@@ -28,7 +30,8 @@ export const WhiteboardView = React.memo(function WhiteboardView({ data, onSave,
         tasks,
         clients,
         workspace: currentWorkspace,
-        onUpdateTask: async () => { },
+        onUpdateTask: onUpdateTask || (async () => { }),
+        onAddItem: onAddItem || (async () => { }),
     };
 
     return (

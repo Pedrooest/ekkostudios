@@ -1049,6 +1049,12 @@ export default function App() {
     // Add other action handlers as needed
   }, [currentUser, currentWorkspace, addNotification]);
 
+  const handleUpdateTask = async (taskId: string, updates: any) => {
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...updates } : t));
+    await DatabaseService.updateItem('tasks', taskId, updates);
+    addNotification('success', 'Tarefa Atualizada', 'As alterações do Quadro Branco foram salvas.');
+  };
+
   // SCROLL LOCK: Prevent body scroll when sidebar is open on mobile
   useEffect(() => {
     if (window.innerWidth < 1024 && !sidebarCollapsed) {
@@ -1447,7 +1453,7 @@ export default function App() {
             showArchived={showArchived}
             onGenerateSlide={handleStartPresentationGen}
           />}
-          {activeTab === 'WHITEBOARD' && <WhiteboardView tasks={tasks} clients={clients} currentWorkspace={currentWorkspace} />}
+          {activeTab === 'WHITEBOARD' && <WhiteboardView tasks={tasks} clients={clients} currentWorkspace={currentWorkspace} onUpdateTask={handleUpdateTask} onAddItem={handleAddRow} />}
         </div>
 
         {

@@ -6,14 +6,14 @@ import { NoteShape } from '../shapes/NoteShape';
 
 export function WhiteboardInspector() {
     const editor = useEditor();
-    const { tasks } = useWhiteboardData();
+    const { tasks, onUpdateTask, onAddItem } = useWhiteboardData();
 
     // Get selected shapes
     const selectedShapes = useValue('selected shapes', () => editor.getSelectedShapes(), [editor]);
 
     if (!selectedShapes || selectedShapes.length === 0) return null;
 
-    const shape = selectedShapes[0] as TLShape;
+    const shape = selectedShapes[0] as any;
 
     // Handle Task Shape Selection
     if (shape.type === 'ekko-task') {
@@ -31,7 +31,7 @@ export function WhiteboardInspector() {
                         status: task.Status,
                         assignee: task.Responsavel || 'Unassigned'
                     }
-                });
+                } as any);
             }
         };
 
@@ -55,9 +55,32 @@ export function WhiteboardInspector() {
                     </div>
 
                     {taskShape.props.taskId && (
-                        <div className="p-3 bg-[#0F172A] rounded-lg border border-white/5">
+                        <div className="p-3 bg-[#0F172A] rounded-lg border border-white/5 space-y-2">
                             <p className="text-xs text-slate-400">ID: {taskShape.props.taskId}</p>
-                            <p className="text-xs text-slate-400 mt-1">Status: {taskShape.props.status}</p>
+
+                            <div>
+                                <label className="text-[10px] text-slate-500 uppercase font-bold mb-1 block">Status</label>
+                                <select
+                                    className="w-full bg-[#1E293B] border border-white/10 rounded p-1 text-xs text-white"
+                                    value={taskShape.props.status}
+                                    onChange={(e) => {
+                                        const newStatus = e.target.value;
+                                        // Update Whiteboard Shape
+                                        editor.updateShape({
+                                            id: shape.id,
+                                            type: 'ekko-task',
+                                            props: { status: newStatus }
+                                        } as any);
+                                        // Update Database
+                                        onUpdateTask(taskShape.props.taskId, { Status: newStatus });
+                                    }}
+                                >
+                                    <option value="todo">A Fazer</option>
+                                    <option value="doing">Fazendo</option>
+                                    <option value="done">Feito</option>
+                                    <option value="wait">Em Espera</option>
+                                </select>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -85,12 +108,25 @@ export function WhiteboardInspector() {
                                         id: shape.id,
                                         type: 'note',
                                         props: { color: c }
-                                    })}
+                                    } as any)}
                                     className={`w-6 h-6 rounded-full border-2 ${noteShape.props.color === c ? 'border-white' : 'border-transparent'}`}
                                     style={{ backgroundColor: c === 'blue' ? '#3B82F6' : c }}
                                 />
                             ))}
                         </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-white/10">
+                        <button
+                            onClick={() => {
+                                const text = (noteShape.props as any).text || 'Nova Tarefa';
+                                onAddItem('create_task', { Title: text, Status: 'todo' });
+                            }}
+                            className="w-full py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-xs font-bold uppercase transition-colors flex items-center justify-center gap-2"
+                        >
+                            <i className="fa-solid fa-check-to-slot"></i>
+                            Converter em Tarefa
+                        </button>
                     </div>
                 </div>
             </div>
