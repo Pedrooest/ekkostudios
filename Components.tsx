@@ -201,10 +201,11 @@ export const InputSelect: React.FC<{
   placeholder?: string;
   className?: string; // Additional classes for the trigger
   label?: string; // Label for BottomSheet
-}> = ({ value, onChange, options, placeholder = "Selecione...", className = "", label }) => {
+  editable?: boolean; // Allow custom text input
+}> = ({ value, onChange, options, placeholder = "Selecione...", className = "", label, editable = false }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(window.innerWidth < 1024);
-  const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const triggerRef = React.useRef<HTMLButtonElement | HTMLInputElement>(null);
 
   React.useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 1024);
@@ -240,15 +241,36 @@ export const InputSelect: React.FC<{
 
   return (
     <>
-      <button
-        type="button"
-        ref={triggerRef}
-        onClick={toggleOpen}
-        className={`flex items-center justify-between gap-2 px-3 py-2 bg-transparent border-none text-app-text-strong text-[11px] font-bold outline-none transition-all hover:text-blue-500 w-full text-left ${className}`}
-      >
-        <span className="truncate">{currentLabel}</span>
-        <i className={`fa-solid fa-chevron-down text-[9px] opacity-50 transition-transform ${isOpen ? 'rotate-180' : ''}`}></i>
-      </button>
+      {editable ? (
+        <div className="relative w-full">
+          <input
+            ref={triggerRef as React.RefObject<HTMLInputElement>}
+            type="text"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onFocus={() => setIsOpen(true)}
+            placeholder={placeholder}
+            className={`w-full px-3 py-2 bg-transparent border-none text-app-text-strong text-[11px] font-bold outline-none transition-all hover:text-blue-500 ${className}`}
+          />
+          <button
+            type="button"
+            onClick={toggleOpen}
+            className="absolute right-0 top-0 bottom-0 px-2 flex items-center justify-center text-app-text-muted hover:text-app-text-strong"
+          >
+            <i className={`fa-solid fa-chevron-down text-[9px] opacity-50 transition-transform ${isOpen ? 'rotate-180' : ''}`}></i>
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          ref={triggerRef as React.RefObject<HTMLButtonElement>}
+          onClick={toggleOpen}
+          className={`flex items-center justify-between gap-2 px-3 py-2 bg-transparent border-none text-app-text-strong text-[11px] font-bold outline-none transition-all hover:text-app-text-strong w-full text-left ${className}`}
+        >
+          <span className="truncate">{currentLabel}</span>
+          <i className={`fa-solid fa-chevron-down text-[9px] opacity-50 transition-transform ${isOpen ? 'rotate-180' : ''}`}></i>
+        </button>
+      )}
 
       {/* Mobile Bottom Sheet */}
       {isMobile && (

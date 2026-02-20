@@ -1,22 +1,45 @@
-import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+let genAIInstance: GoogleGenerativeAI | null = null;
+
+function getGenAI() {
+    if (!genAIInstance) {
+        const key = process.env.GEMINI_API_KEY || '';
+        if (!key) console.warn('[GeminiGateway] Missing API Key');
+        genAIInstance = new GoogleGenerativeAI(key);
+    }
+    return genAIInstance;
+}
+
+// Helper for 429 Retries
+async function withRetry<T>(fn: () => Promise<T>, retries = 3, delay = 2000): Promise<T> {
+    try {
+        return await fn();
+    } catch (error: any) {
+        if (retries > 0 && (error.message?.includes('429') || error.status === 429)) {
+            console.warn(`[GeminiGateway] Rate limit hit. Retrying in ${delay}ms...`);
+            await new Promise(res => setTimeout(res, delay));
+            return withRetry(fn, retries - 1, delay * 2);
+        }
+        throw error;
+    }
+}
 
 export async function callGemini(prompt: string, history: any[] = []): Promise<string> {
     try {
-        const chat = ai.chats.create({
-            model: 'gemini-2.0-flash-exp', // Updated model for better JSON adherence
-            config: {
-                temperature: 0.4, // Lower temperature for more deterministic output
-            },
+        const ai = getGenAI();
+        const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash-lite-001' });
+
+        const chat = model.startChat({
             history: history.map(msg => ({
-                role: msg.role,
+                role: msg.role === 'user' ? 'user' : 'model',
                 parts: [{ text: msg.text }]
             }))
         });
 
-        const result = await chat.sendMessage({ message: prompt });
-        return result.text || "Sem resposta do Gemini.";
+        const result = await withRetry(() => chat.sendMessage(prompt));
+        return result.response.text() || "Sem resposta do Gemini.";
     } catch (error) {
         console.error("Gemini Gateway Error:", error);
         return "Erro ao conectar com o assistente. Tente novamente.";
@@ -32,11 +55,6 @@ export function parseAssistantResponse(text: string): any {
         return JSON.parse(cleanText);
     } catch (e) {
         console.error("JSON Parse Error:", e);
-        return {
-            summary: "Erro ao processar resposta estruturada.",
-            issues: [{ title: "Formato Inválido", why: "O modelo não retornou JSON válido.", severity: "high" }],
-            recommendations: [],
-            actions: []
-        };
+        return null;
     }
 }

@@ -9,6 +9,9 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
 
+
+
+
 import { AssistantDrawer } from './AssistantDrawer';
 import { AssistantAction } from './ai/types';
 import {
@@ -24,7 +27,8 @@ import {
 import { WorkspaceSelector } from './WorkspaceSelector';
 import { WorkspaceSettingsModal } from './WorkspaceSettingsModal';
 import { DatabaseService } from './DatabaseService';
-import { DebugOverlay, logDebug } from './components/DebugOverlay';
+import { logDebug } from './components/DebugOverlay';
+
 import {
   CLIENTES_COLS, RDC_COLS,
   COBO_CANAL_OPTIONS, COBO_FREQUENCIA_OPTIONS, COBO_PUBLICO_OPTIONS, COBO_VOZ_OPTIONS, COBO_ZONA_OPTIONS, COBO_INTENCAO_OPTIONS, COBO_FORMATO_OPTIONS,
@@ -654,102 +658,113 @@ export default function App() {
       alert('Você tem permissão apenas de visualização.');
       return;
     }
-    let itemToSync: any = null;
 
-    const updateFn = (list: any[]) => list.map(i => {
-      if (i.id === id) {
-        let updated = { ...i, [field]: value, updated_at: new Date().toISOString() };
+    // Identificar a lista correta
+    let currentList: any[] = [];
+    if (tab === 'CLIENTES') currentList = clients;
+    else if (tab === 'RDC') currentList = rdc;
+    else if (tab === 'MATRIZ') currentList = matriz;
+    else if (tab === 'COBO') currentList = cobo;
+    else if (tab === 'PLANEJAMENTO') currentList = planejamento;
+    else if (tab === 'FINANCAS') currentList = financas;
+    else if (tab === 'TAREFAS') currentList = tasks;
+    else if (tab === 'IA_HISTORY') currentList = iaHistory;
 
-        // Notification Triggers
-        if (tab === 'TAREFAS') {
-          if (field === 'Prioridade' && value === 'URGENTE') {
-            addNotification('warning', 'Tarefa Urgente', `A tarefa "${i.Título || 'Sem Título'}" foi marcada como URGENCIAL.`);
-          }
-          if (field === 'Status' && value === 'concluido') {
-            addNotification('success', 'Tarefa concluída', `Tarefa marcada como concluída.`);
-          }
-        }
+    const originalItem = currentList.find(i => i.id === id);
+    if (!originalItem) return;
 
-        // Validation Error Trigger
-        if (['Nome', 'Título', 'Conteúdo', 'Descrição'].includes(field) && !value) {
-          addNotification('error', 'Campo inválido — revise', `O campo ${field} não pode ficar vazio.`);
-        }
+    let updated = { ...originalItem, [field]: value, updated_at: new Date().toISOString() };
 
-
-        // Financial conversions
-        if (tab === 'FINANCAS' && (field === 'Valor')) {
-          updated.Valor = parseNumericValue(value);
-        }
-
-        // RDC Automation
-        if (tab === 'RDC') {
-          // Clamp values 1-5
-          if (["Resolução (1–5)", "Demanda (1–5)", "Competição (1–5)"].includes(field)) {
-            let num = parseNumericValue(value);
-            if (num > 5) num = 5;
-            if (num < 1 && value !== "" && value !== 0) num = 1;
-            updated[field] = num;
-          }
-
-          const r = parseNumericValue(updated["Resolução (1–5)"]);
-          const d = parseNumericValue(updated["Demanda (1–5)"]);
-          const c = parseNumericValue(updated["Competição (1–5)"]);
-
-          const score = r * d * c;
-          updated["Score (R×D×C)"] = score;
-
-          if (r === 0 || d === 0 || c === 0) {
-            updated["Decisão"] = "Preencha R/D/C";
-          } else if (score >= 81) {
-            updated["Decisão"] = "Implementar já";
-          } else if (score >= 41) {
-            updated["Decisão"] = "Ajustar e testar";
-          } else {
-            updated["Decisão"] = "Descartar e redirecionar";
-          }
-        }
-
-        // Task Activity Logging
-        if (tab === 'TAREFAS' && field !== 'Activities' && field !== 'Comentarios' && !skipLog) {
-          const activity: TaskActivity = {
-            id: generateId(),
-            type: field === 'Status' ? 'status_change' : 'update',
-            user: currentUser?.email || 'Agência Ekko',
-            message: field === 'Status' ? `alterou o status para ${value}` : `alterou ${field.toLowerCase()} para ${value}`,
-            timestamp: new Date().toISOString()
-          };
-          updated.Activities = [activity, ...(updated.Activities || [])];
-        }
-
-        itemToSync = updated;
-        return updated;
+    // Notification Triggers
+    if (tab === 'TAREFAS') {
+      if (field === 'Prioridade' && value === 'URGENTE') {
+        addNotification('warning', 'Tarefa Urgente', `A tarefa "${originalItem.Título || 'Sem Título'}" foi marcada como URGENCIAL.`);
       }
-      return i;
-    });
+      if (field === 'Status' && value === 'concluido') {
+        addNotification('success', 'Tarefa concluída', `Tarefa marcada como concluída.`);
+      }
+    }
+
+    // Validation Error Trigger
+    if (['Nome', 'Título', 'Conteúdo', 'Descrição'].includes(field) && !value) {
+      addNotification('error', 'Campo inválido — revise', `O campo ${field} não pode ficar vazio.`);
+    }
+
+    // Financial conversions
+    if (tab === 'FINANCAS' && (field === 'Valor')) {
+      updated.Valor = parseNumericValue(value);
+    }
+
+    // RDC Automation
+    if (tab === 'RDC') {
+      // Clamp values 1-5
+      if (["Resolução (1–5)", "Demanda (1–5)", "Competição (1–5)"].includes(field)) {
+        let num = parseNumericValue(value);
+        if (num > 5) num = 5;
+        if (num < 1 && value !== "" && value !== 0) num = 1;
+        updated[field] = num;
+      }
+
+      const r = parseNumericValue(updated["Resolução (1–5)"]);
+      const d = parseNumericValue(updated["Demanda (1–5)"]);
+      const c = parseNumericValue(updated["Competição (1–5)"]);
+
+      const score = r * d * c;
+      updated["Score (R×D×C)"] = score;
+
+      if (r === 0 || d === 0 || c === 0) {
+        updated["Decisão"] = "Preencha R/D/C";
+      } else if (score >= 81) {
+        updated["Decisão"] = "Implementar já";
+      } else if (score >= 41) {
+        updated["Decisão"] = "Ajustar e testar";
+      } else {
+        updated["Decisão"] = "Descartar e redirecionar";
+      }
+    }
+
+    // Task Activity Logging
+    if (tab === 'TAREFAS' && field !== 'Activities' && field !== 'Comentarios' && !skipLog) {
+      const activity: TaskActivity = {
+        id: generateId(),
+        type: field === 'Status' ? 'status_change' : 'update',
+        user: currentUser?.email || 'Agência Ekko',
+        message: field === 'Status' ? `alterou o status para ${value}` : `alterou ${field.toLowerCase()} para ${value}`,
+        timestamp: new Date().toISOString()
+      };
+      updated.Activities = [activity, ...(updated.Activities || [])];
+    }
+
+    // Optimistic Update
+    const updateFn = (list: any[]) => list.map(i => i.id === id ? updated : i);
 
     if (tab === 'CLIENTES') setClients(updateFn);
-    if (tab === 'RDC') setRdc(updateFn);
-    if (tab === 'PLANEJAMENTO') setPlanejamento(updateFn);
-    if (tab === 'FINANCAS') setFinancas(updateFn);
-    if (tab === 'TAREFAS') setTasks(updateFn);
-    if (tab === 'COBO') setCobo(updateFn);
-    if (tab === 'MATRIZ') setMatriz(updateFn);
+    else if (tab === 'RDC') setRdc(updateFn);
+    else if (tab === 'PLANEJAMENTO') setPlanejamento(updateFn);
+    else if (tab === 'FINANCAS') setFinancas(updateFn);
+    else if (tab === 'TAREFAS') setTasks(updateFn);
+    else if (tab === 'COBO') setCobo(updateFn);
+    else if (tab === 'MATRIZ') setMatriz(updateFn);
+    else if (tab === 'IA_HISTORY') setIaHistory(updateFn);
 
-    if (currentWorkspace && itemToSync) {
+    // Sync to Backend
+    if (currentWorkspace) {
       const tableName = getTableName(tab);
       if (tableName) {
-        console.log(`[EKKO-SYNC] UPDATE_TRIGGERED | Table: ${tableName} | ID: ${itemToSync.id}`);
-        const error = await DatabaseService.syncItem(tableName, itemToSync, currentWorkspace.id);
+        console.log(`[EKKO-SYNC] UPDATE_TRIGGERED | Table: ${tableName} | ID: ${id}`);
+        const error = await DatabaseService.syncItem(tableName, updated, currentWorkspace.id);
 
         if (error) {
-          console.error(`[EKKO-SYNC] UPDATE_FAILURE | Table: ${tableName} | ID: ${itemToSync.id}`, error);
+          console.error(`[EKKO-SYNC] UPDATE_FAILURE | Table: ${tableName} | ID: ${id}`, error);
           addNotification('error', 'Falha ao salvar', `Erro: ${error.message || JSON.stringify(error) || 'Não foi possível sincronizar as alterações.'}`);
+          // Revert optimistic update? For now, we leave it as complex to revert.
         } else if (!skipLog) {
-          addNotification('success', 'Alterações salvas', `O campo ${field} foi atualizado.`);
+          // Success notification (optional, maybe too noisy)
+          // addNotification('success', 'Alterações salvas', `O campo ${field} foi atualizado.`);
         }
       }
     }
-  }, [currentWorkspace, currentUser, addNotification]);
+  }, [currentWorkspace, currentUser, addNotification, clients, rdc, matriz, cobo, planejamento, financas, tasks, iaHistory]);
 
   const handleAddRow = useCallback(async (tab: TableType, initial: Partial<any> = {}) => {
     // Permission Check
@@ -1498,7 +1513,7 @@ export default function App() {
           appState={{ clients, cobo, matriz, planejamento, rdc, tasks, financas, collaborators, vhConfig, systematicModeling }}
           onApplyAction={handleApplyAction}
         />
-        <DebugOverlay />
+
       </main >
 
       {
@@ -2351,6 +2366,7 @@ function TaskFlowView({ tasks, clients, collaborators, activeViewId, setActiveVi
                 );
               }}
             />
+            {/* Debug Overlay Removed */}
           </div>
         )}
       </div>
@@ -3249,7 +3265,7 @@ function TableView({ tab, data, onUpdate, onDelete, onArchive, onAdd, clients, l
   return (
     <Card
       title={isRDC ? undefined : TABLE_LABELS[tab as TableType]}
-      className={isRDC ? "h-full flex flex-col" : ""}
+      className=""
       extra={isRDC ? undefined : (
         <div className="flex gap-4 items-center">
           {tab !== 'CLIENTES' && onSelectClient && (
@@ -3269,8 +3285,8 @@ function TableView({ tab, data, onUpdate, onDelete, onArchive, onAdd, clients, l
       )}
     >
       {isRDC && rdcHeader}
-      <div className="hidden md:block overflow-x-auto custom-scrollbar bg-app-bg/50">
-        <table className={`w-full text-left text-[11px] border-separate border-spacing-0 ${tab === 'RDC' ? 'min-w-[1400px]' : ''}`}>
+      <div className={`hidden md:block custom-scrollbar bg-app-bg/50 w-full ${(tab === 'MATRIZ' || tab === 'RDC') ? 'overflow-auto max-h-[70vh]' : ''}`}>
+        <table className={`w-full text-left text-[11px] border-separate border-spacing-0 ${(tab === 'MATRIZ' || tab === 'RDC') ? 'whitespace-nowrap min-w-max' : ''}`}>
           <thead className="sticky top-0 z-20">
             <tr className="border-b border-app-border bg-app-surface-2 shadow-md">
               <th className={`px-4 py-5 text-center bg-app-surface-2 border-b border-app-border ${tab === 'RDC' ? 'w-[50px]' : 'w-10'}`}>
@@ -3483,21 +3499,21 @@ function renderCell(tab: TableType, row: any, col: string, update: Function, cli
   }
 
   if (tab === 'COBO') {
-    if (col === 'Canal') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_CANAL_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
-    if (col === 'Frequência') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_FREQUENCIA_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
-    if (col === 'Público') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_PUBLICO_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
-    if (col === 'Voz') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_VOZ_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
-    if (col === 'Zona') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_ZONA_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
-    if (col === 'Intenção') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_INTENCAO_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
-    if (col === 'Formato') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_FORMATO_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
+    if (col === 'Canal') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_CANAL_OPTIONS} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
+    if (col === 'Frequência') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_FREQUENCIA_OPTIONS} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
+    if (col === 'Público') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_PUBLICO_OPTIONS} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
+    if (col === 'Voz') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_VOZ_OPTIONS} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
+    if (col === 'Zona') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_ZONA_OPTIONS} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
+    if (col === 'Intenção') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_INTENCAO_OPTIONS} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
+    if (col === 'Formato') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={COBO_FORMATO_OPTIONS} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
   }
 
   if (tab === 'MATRIZ') {
-    if (col === 'Função') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={MATRIZ_FUNCAO_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
-    if (col === 'Quem fala') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={MATRIZ_QUEM_FALA_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
-    if (col === 'Papel estratégico') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={MATRIZ_PAPEL_ESTRATEGICO_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
-    if (col === 'Tipo de conteúdo') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={MATRIZ_TIPO_CONTEUDO_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
-    if (col === 'Resultado esperado') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={MATRIZ_RESULTADO_ESPERADO_OPTIONS} className={common} placeholder="-- Selecione --" label={col} />);
+    if (col === 'Função') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={MATRIZ_FUNCAO_OPTIONS} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
+    if (col === 'Quem fala') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={MATRIZ_QUEM_FALA_OPTIONS} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
+    if (col === 'Papel estratégico') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={MATRIZ_PAPEL_ESTRATEGICO_OPTIONS} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
+    if (col === 'Tipo de conteúdo') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={MATRIZ_TIPO_CONTEUDO_OPTIONS} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
+    if (col === 'Resultado esperado') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={MATRIZ_RESULTADO_ESPERADO_OPTIONS} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
   }
 
   if (col === 'Cliente_ID' && tab !== 'FINANCAS') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={[{ value: "GERAL", label: "AGÊNCIA" }, ...clients.map(c => ({ value: c.id, label: c.Nome }))]} className={common} placeholder="AGÊNCIA" label={col} />);
