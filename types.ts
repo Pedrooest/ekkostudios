@@ -222,7 +222,7 @@ export type ContentLibrary = Record<string, string[]>;
 
 export type TaskViewMode = 'sidebar' | 'modal' | 'fullscreen';
 
-export type TableType = 'DASHBOARD' | 'CLIENTES' | 'RDC' | 'MATRIZ' | 'COBO' | 'PLANEJAMENTO' | 'FINANCAS' | 'TAREFAS' | 'VH' | 'ORGANICKIA' | 'WHITEBOARD';
+export type TableType = 'DASHBOARD' | 'CLIENTES' | 'RDC' | 'MATRIZ' | 'COBO' | 'PLANEJAMENTO' | 'FINANCAS' | 'TAREFAS' | 'VH' | 'ORGANICKIA' | 'WHITEBOARD' | 'IA_HISTORY';
 
 export interface PresentationConfig {
   agencyName: string;

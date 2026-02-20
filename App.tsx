@@ -8,10 +8,10 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
-
-
-
-
+import {
+  ChevronLeft, ChevronRight, Calendar as CalendarIcon,
+  Clock, Share2, Video, Image as ImageIcon, FileText, CheckCircle2
+} from 'lucide-react';
 import { AssistantDrawer } from './AssistantDrawer';
 import { AssistantAction } from './ai/types';
 import {
@@ -1720,13 +1720,17 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
           <FullCalendar
             plugins={[dayGridPlugin, interactionPlugin, listPlugin]}
             initialView={window.innerWidth < 1024 ? "listWeek" : "dayGridMonth"}
-            events={filteredData.map((p: any) => ({
-              id: p.id,
-              title: p.Conteúdo,
-              start: p.Data + (p.Hora ? `T${p.Hora}` : ''),
-              backgroundColor: clients.find((c: any) => c.id === p.Cliente_ID)?.['Cor (HEX)'] || '#3B82F6',
-              borderColor: 'transparent'
-            }))}
+            events={filteredData.map((p: any) => {
+              const client = clients.find((c: any) => c.id === p.Cliente_ID);
+              return {
+                id: p.id,
+                title: p.Conteúdo,
+                start: p.Data + (p.Hora ? `T${p.Hora}` : ''),
+                backgroundColor: client?.['Cor (HEX)'] || '#3B82F6',
+                borderColor: 'transparent',
+                extendedProps: { ...p, clientName: client?.Nome || 'Geral' }
+              };
+            })}
             height="auto"
             contentHeight="auto"
             handleWindowResize={true}
@@ -1735,6 +1739,44 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
               left: isMobile ? 'prev,next' : 'prev,next today',
               center: 'title',
               right: isMobile ? 'today' : 'dayGridMonth,listWeek'
+            }}
+            eventContent={(eventInfo) => {
+              const p = eventInfo.event.extendedProps;
+              const bgColor = eventInfo.event.backgroundColor || '#3B82F6';
+              const isDone = p['Status do conteúdo'] === 'Concluído';
+              const network = p['Canal / Rede'];
+
+              const getIcon = (item: any) => {
+                const type = item['Formato'];
+                if (type?.toLowerCase().includes('video') || type?.toLowerCase().includes('reels')) return <Video size={10} />;
+                if (type?.toLowerCase().includes('imagem') || type?.toLowerCase().includes('foto')) return <ImageIcon size={10} />;
+                if (type?.toLowerCase().includes('texto') || type?.toLowerCase().includes('artigo')) return <FileText size={10} />;
+                return <Share2 size={10} />;
+              };
+
+              return (
+                <div className={`p-1.5 md:p-2 rounded-lg border border-app-border bg-app-surface/90 hover:border-accent cursor-pointer transition-all relative overflow-hidden group/event w-full h-full shadow-sm ${isDone ? 'opacity-50' : ''}`}>
+                  <div className="absolute left-0 top-1 bottom-1 w-0.5 rounded-r-full" style={{ backgroundColor: bgColor }} />
+
+                  <div className="flex justify-between items-center mb-1 pl-1.5">
+                    <span className="flex items-center gap-1 text-[8px] md:text-[9px] text-app-text-muted font-mono">
+                      <Clock size={8} className="text-app-text-muted" /> {p.Hora || '--:--'}
+                    </span>
+                    <div className="flex items-center justify-center w-3.5 h-3.5 md:w-4 md:h-4 rounded-[4px] bg-accent/10 text-accent">
+                      {getIcon(p)}
+                    </div>
+                  </div>
+
+                  <div className="pl-1.5">
+                    <p className={`text-[10px] md:text-xs font-bold leading-tight truncate ${isDone ? 'text-app-text-muted line-through' : 'text-app-text-strong'}`}>
+                      {eventInfo.event.title}
+                    </p>
+                    <p className="text-[8px] md:text-[9px] text-app-text-muted uppercase tracking-widest mt-1 truncate">
+                      {p.clientName}
+                    </p>
+                  </div>
+                </div>
+              );
             }}
             buttonText={{
               today: 'Hoje',
@@ -1749,25 +1791,6 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
             eventDrop={(info) => {
               onUpdate(info.event.id, 'PLANEJAMENTO', 'Data', info.event.startStr.split('T')[0]);
               if (info.event.startStr.includes('T')) onUpdate(info.event.id, 'PLANEJAMENTO', 'Hora', info.event.startStr.split('T')[1].slice(0, 5));
-            }}
-            eventContent={(eventInfo) => {
-              const client = clients.find((c: any) => c.id === data.find((p: any) => p.id === eventInfo.event.id)?.Cliente_ID);
-              const item = data.find((p: any) => p.id === eventInfo.event.id);
-              return (
-                <div className="p-1.5 overflow-hidden w-full h-full flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-1 truncate">
-                      <div className="w-2 h-2 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: eventInfo.backgroundColor }}></div>
-                      <span className="text-[8px] font-black uppercase text-app-text-muted tracking-tighter truncate">{client?.Nome || 'Geral'}</span>
-                    </div>
-                    <div className="text-[10px] font-bold text-app-text-strong uppercase truncate mb-1 leading-tight">{eventInfo.event.title}</div>
-                  </div>
-                  <div className="flex items-center justify-between opacity-50 mt-1">
-                    <span className="text-[8px] font-black uppercase tracking-tighter text-blue-400">{item?.Rede_Social}</span>
-                    <i className={`fa-solid ${item?.['Status do conteúdo'] === 'Concluído' ? 'fa-check-circle text-emerald-500' : 'fa-clock text-orange-500'} text-[8px]`}></i>
-                  </div>
-                </div>
-              );
             }}
           />
         </div>
@@ -2314,7 +2337,7 @@ function TaskFlowView({ tasks, clients, collaborators, activeViewId, setActiveVi
               })}
               height="100%"
               locale="pt-br"
-              headerToolbar={{ left: isMobile ? 'prev,next' : 'prev,next today', center: 'title', right: '' }}
+              headerToolbar={{ left: isMobile ? 'prev,next' : 'prev,next today', center: 'title', right: isMobile ? 'today' : 'dayGridMonth,listWeek' }}
               dayMaxEvents={3}
               eventClick={(info) => onSelectTask(info.event.id)}
               editable={true}
@@ -2326,16 +2349,29 @@ function TaskFlowView({ tasks, clients, collaborators, activeViewId, setActiveVi
               }}
               eventContent={(eventInfo) => {
                 const ep = eventInfo.event.extendedProps;
+                const bgColor = eventInfo.event.backgroundColor || '#3B82F6';
+                const isDone = ep.Status === 'done';
+
                 return (
-                  <div className="p-1.5 overflow-hidden w-full">
-                    <div className="flex items-center gap-1.5 mb-1 truncate">
-                      <div className="w-2 h-2 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: eventInfo.backgroundColor }}></div>
-                      <span className="text-[8px] font-black uppercase text-app-text-muted tracking-tighter truncate">{ep.clientName}</span>
+                  <div className={`p-1.5 md:p-2 rounded-lg border border-app-border bg-app-surface/90 hover:border-accent cursor-pointer transition-all relative overflow-hidden group/event w-full h-full shadow-sm ${isDone ? 'opacity-50' : ''}`}>
+                    <div className="absolute left-0 top-1 bottom-1 w-0.5 rounded-r-full" style={{ backgroundColor: bgColor }} />
+
+                    <div className="flex justify-between items-center mb-1 pl-1.5">
+                      <span className="flex items-center gap-1 text-[8px] md:text-[9px] text-app-text-muted font-mono">
+                        <Clock size={8} className="text-app-text-muted" /> {ep.Hora_Entrega || '--:--'}
+                      </span>
+                      <div className="flex items-center justify-center w-3.5 h-3.5 md:w-4 md:h-4 rounded-[4px] bg-accent/10 text-accent">
+                        <CheckCircle2 size={10} />
+                      </div>
                     </div>
-                    <div className="text-[10px] font-bold text-app-text-strong uppercase truncate mb-1 leading-tight">{eventInfo.event.title}</div>
-                    <div className="flex items-center justify-between opacity-50">
-                      <span className="text-[8px] font-black">{ep.Responsável?.split(' ')[0] || 'S/R'}</span>
-                      <span className="text-[8px] font-black uppercase tracking-tighter">{ep.Prioridade}</span>
+
+                    <div className="pl-1.5">
+                      <p className={`text-[10px] md:text-xs font-bold leading-tight truncate ${isDone ? 'text-app-text-muted line-through' : 'text-app-text-strong'}`}>
+                        {eventInfo.event.title}
+                      </p>
+                      <p className="text-[8px] md:text-[9px] text-app-text-muted uppercase tracking-widest mt-1 truncate">
+                        {ep.clientName}
+                      </p>
                     </div>
                   </div>
                 );

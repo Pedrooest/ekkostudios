@@ -127,13 +127,14 @@ video {
 .toast-progress-bar-paused {
   animation-play-state: paused;
 }
-/* FULLCALENDAR DARK MODE OVERRIDES */
+
+/* FULLCALENDAR THEME-AWARE OVERRIDES */
 .fc {
-  --fc-border-color: rgba(255, 255, 255, 0.1);
+  --fc-border-color: var(--border);
   --fc-page-bg-color: transparent;
-  --fc-neutral-bg-color: rgba(255, 255, 255, 0.05);
-  --fc-list-event-hover-bg-color: rgba(255, 255, 255, 0.1);
-  --fc-today-bg-color: rgba(59, 130, 246, 0.15) !important;
+  --fc-neutral-bg-color: var(--surface-2);
+  --fc-list-event-hover-bg-color: var(--surface-hover);
+  --fc-today-bg-color: rgba(59, 130, 246, 0.1) !important;
 }
 
 .fc-theme-standard td,
@@ -142,100 +143,111 @@ video {
 }
 
 .fc-col-header-cell-cushion {
-  color: #F8FAFC; /* White text for days */
+  color: var(--text-strong);
   text-transform: uppercase;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 800;
   letter-spacing: 0.1em;
-  padding-top: 10px;
-  padding-bottom: 10px;
+  padding-top: 12px;
+  padding-bottom: 12px;
 }
 
 .fc-daygrid-day-number {
-  color: #94A3B8; /* Slate-400 */
+  color: var(--text-muted);
   font-weight: 700;
-  font-size: 0.8rem;
-  margin: 4px;
+  font-size: 0.75rem;
+  margin: 6px;
+  transition: color 0.2s;
 }
 
 .fc-day-today .fc-daygrid-day-number {
-  color: #3B82F6; /* Blue-500 */
+  color: var(--accent);
+  background: rgba(59, 130, 246, 0.1);
+  padding: 2px 8px !important;
+  border-radius: 6px;
 }
 
 /* Event Cards */
 .fc-daygrid-event {
-  border-radius: 6px;
-  margin-top: 2px;
-  transition: all 0.2s;
+  border-radius: 8px;
+  margin-top: 3px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none !important;
+  background: transparent !important;
 }
 
 .fc-daygrid-event:hover {
-  transform: scale(1.02);
+  transform: translateY(-1px);
   z-index: 5;
 }
 
 /* List View */
 .fc-list {
   border: none !important;
+  background: transparent !important;
 }
 
 .fc-list-day-cushion {
-  background-color: transparent !important;
+  background-color: var(--surface-2) !important;
 }
 
 .fc-list-day-text,
 .fc-list-day-side-text {
-  color: #F8FAFC; /* White text */
+  color: var(--text-strong);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-size: 1rem;
+  font-size: 0.9rem;
+}
+
+.fc-list-event {
+  cursor: pointer;
 }
 
 .fc-list-event:hover td {
-  background-color: rgba(59, 130, 246, 0.1) !important;
+  background-color: var(--surface-hover) !important;
 }
 
 .fc-list-event-title {
-  color: #F8FAFC;
+  color: var(--text-strong);
   font-weight: 700;
 }
 
 .fc-list-event-time {
-  color: #94A3B8;
+  color: var(--text-muted);
   font-weight: 600;
 }
 
 /* Header Toolbar Buttons */
 .fc-button-primary {
-  background-color: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #F8FAFC !important;
-  font-weight: 700 !important;
+  background-color: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-strong) !important;
+  font-weight: 800 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.05em !important;
   border-radius: 0.75rem !important;
-  padding: 0.5rem 1rem !important;
+  padding: 0.5rem 1.25rem !important;
   box-shadow: none !important;
   transition: all 0.2s !important;
 }
 
 .fc-button-primary:hover {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  border-color: rgba(255, 255, 255, 0.2) !important;
-  transform: scale(1.05);
+  background-color: var(--surface-hover) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
 }
 
 .fc-button-active {
-  background-color: #3B82F6 !important;
-  border-color: #3B82F6 !important;
+  background-color: var(--accent) !important;
+  border-color: var(--accent) !important;
   color: white !important;
 }
 
 .fc-toolbar-title {
   font-size: 1.1rem !important;
   font-weight: 900 !important;
-  color: #F8FAFC !important;
+  color: var(--text-strong) !important;
   text-transform: uppercase !important;
-  letter-spacing: -0.02em !important;
+  letter-spacing: 0.05em !important;
 }
-
