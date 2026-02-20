@@ -11,6 +11,7 @@ export interface AssistantAction {
     | 'suggest_rdc'
     | 'create_client'
     | 'update_client'
+    | 'suggest_matriz'
     | 'add_notification';
     payload: any;
 }

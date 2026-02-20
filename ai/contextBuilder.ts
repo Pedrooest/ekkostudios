@@ -67,8 +67,15 @@ export function buildContext(tab: TableType, state: any): any {
             };
 
         case 'MATRIZ':
+            // Try to find the first selected client to provide niche/objective context
+            const activeMatrizClient = state.clients.find((c: any) => state.selectedClientIds?.includes(c.id));
             return {
                 description: 'Matriz Estratégica de Conteúdo.',
+                clientInfo: activeMatrizClient ? {
+                    name: activeMatrizClient.Nome,
+                    niche: activeMatrizClient.Nicho,
+                    objective: activeMatrizClient.Objetivo
+                } : null,
                 data: matriz.map((m: any) => ({ network: m.Rede_Social, function: m.Função, role: m['Papel estratégico'] }))
             };
 

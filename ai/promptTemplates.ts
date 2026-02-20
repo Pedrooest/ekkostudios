@@ -1,7 +1,7 @@
 import { TableType } from '../types';
 
 export function renderPrompt(tab: TableType, objective: string, mode: 'chat' | 'action', context: any, userNotes: string = ''): string {
-    const basePrompt = `Você é o Assistente Inteligente Organick.
+  const basePrompt = `Você é o Assistente Inteligente Organick.
   Atue como um estrategista sênior de agência de marketing.
   
   CONTEXTO ATUAL (${tab}):
@@ -14,8 +14,8 @@ export function renderPrompt(tab: TableType, objective: string, mode: 'chat' | '
   "${userNotes}"
   `;
 
-    if (mode === 'action') {
-        return `${basePrompt}
+  if (mode === 'action') {
+    return `${basePrompt}
 
     IMPORTANTE: MODO AÇÃO ATIVO.
     Você DEVE retornar APENAS um objeto JSON válido, sem markdown, sem texto antes ou depois.
@@ -31,7 +31,7 @@ export function renderPrompt(tab: TableType, objective: string, mode: 'chat' | '
       ],
       "actions": [
         {
-          "type": "create_task|update_task|suggest_rdc", 
+          "type": "create_task|update_task|suggest_rdc|suggest_matriz", 
           "payload": { ...dados necessários para a ação... }
         }
       ],
@@ -43,13 +43,16 @@ export function renderPrompt(tab: TableType, objective: string, mode: 'chat' | '
       }
     }
     
-    Se o objetivo for "Gerar ideias", preencha 'recommendations' e 'actions' (com suggest_rdc).
+    Se o objetivo for "Gerar ideias" na aba MATRIZ, use 'suggest_matriz'.
+    Campos para 'suggest_matriz': { "Rede_Social": "string", "Função": "string", "Papel estratégico": "string", "Tipo de conteúdo": "string", "Resultado esperado": "string" }
+    
+    Se o objetivo for "Gerar ideias" em outras abas, preencha 'recommendations' e 'actions' (com suggest_rdc).
     Se o objetivo for "Revisar", foque em 'issues'.
     Se o objetivo for "Otimizar", foque em 'actions' de ajuste.
     `;
-    }
+  }
 
-    return `${basePrompt}
+  return `${basePrompt}
   
   Responda de forma conversacional, direta e útil. Use formatação Markdown para listas e destaques.
   Seja breve.`;

@@ -1044,6 +1044,25 @@ export default function App() {
       addNotification('success', 'Ação Confirmada', `Cliente "${newClient.Nome}" cadastrado.`);
     }
 
+    if (type === 'suggest_matriz') {
+      const activeClient = clients.find((c: any) => c.id === selectedClientIds[0]);
+      const newItem: MatrizEstrategicaItem = {
+        id: generateId(),
+        workspace_id: currentWorkspace.id,
+        Cliente_ID: activeClient?.id || 'GLOBAL',
+        "Quem fala": 'Especialista',
+        Rede_Social: payload.Rede_Social || 'Instagram',
+        "Função": payload.Função || 'Autoridade',
+        "Papel estratégico": payload["Papel estratégico"] || 'Engajar base',
+        "Tipo de conteúdo": payload["Tipo de conteúdo"] || 'Reels',
+        "Resultado esperado": payload["Resultado esperado"] || 'Seguir perfil',
+        ...payload
+      };
+      setMatriz(prev => [newItem, ...prev]);
+      await DatabaseService.syncItem('matriz', newItem, currentWorkspace.id);
+      addNotification('success', 'Ação Confirmada', `Nova estratégia para ${newItem.Rede_Social} adicionada.`);
+    }
+
     // Add other action handlers as needed
   }, [currentUser, currentWorkspace, addNotification]);
 
@@ -1399,34 +1418,10 @@ export default function App() {
           {activeTab === 'DASHBOARD' && <DashboardView clients={clients} tasks={currentTasks} financas={currentFinancas} planejamento={currentPlanejamento} rdc={currentRdc} />}
           {activeTab === 'CLIENTES' && <TableView tab="CLIENTES" data={filterArchived(clients)} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('CLIENTES')} clients={clients} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} />}
           {activeTab === 'RDC' && <TableView tab="RDC" data={currentRdc} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('RDC')} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
-          {activeTab === 'MATRIZ' && (
-            <div className="space-y-6 md:space-y-8 animate-fade text-left">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                <div>
-                  <h2 className="text-xl md:text-2xl font-black text-app-text-strong uppercase tracking-tighter">Matriz Estratégica</h2>
-                  <p className="text-[10px] font-bold text-app-text-muted uppercase tracking-widest">Definição de Papéis e Canais</p>
-                </div>
-                <Button onClick={() => handleAddRow('MATRIZ')} className="shadow-lg shadow-blue-500/20 whitespace-nowrap hidden md:flex">
-                  <i className="fa-solid fa-plus mr-2"></i> Novo Registro
-                </Button>
-              </div>
-              <TableView tab="MATRIZ" data={matriz} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('MATRIZ')} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />
-            </div>
-          )}
-          {activeTab === 'COBO' && (
-            <div className="space-y-6 md:space-y-8 animate-fade text-left">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                <div>
-                  <h2 className="text-xl md:text-2xl font-black text-app-text-strong uppercase tracking-tighter">Gestão de Operação</h2>
-                  <p className="text-[10px] font-bold text-app-text-muted uppercase tracking-widest">Controle de Fluxo e Canais (COBO)</p>
-                </div>
-                <Button onClick={() => handleAddRow('COBO')} className="shadow-lg shadow-blue-500/20 whitespace-nowrap hidden md:flex">
-                  <i className="fa-solid fa-plus mr-2"></i> Novo Registro
-                </Button>
-              </div>
-              <TableView tab="COBO" data={currentCobo} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('COBO')} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />
-            </div>
-          )}
+          {activeTab === 'MATRIZ' && <TableView tab="MATRIZ" data={matriz} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('MATRIZ')} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
+
+          {activeTab === 'COBO' && <TableView tab="COBO" data={currentCobo} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('COBO')} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
+
           {activeTab === 'PLANEJAMENTO' && <PlanningView data={currentPlanejamento} clients={clients} onUpdate={handleUpdate} onAdd={handleAddRow} rdc={rdc} matriz={matriz} cobo={cobo} tasks={tasks} iaHistory={iaHistory} setActiveTab={setActiveTab} performArchive={performArchive} performDelete={performDelete} library={contentLibrary} />}
           {activeTab === 'FINANCAS' && <FinanceView data={currentFinancas} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('FINANCAS')} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} />}
           {activeTab === 'TAREFAS' && <TaskFlowView tasks={currentTasks} clients={clients} collaborators={collaborators} activeViewId={activeTaskViewId} setActiveViewId={setActiveTaskViewId} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('TAREFAS')} onSelectTask={setSelectedTaskId} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
