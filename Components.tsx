@@ -40,12 +40,12 @@ Button.displayName = 'Button';
 export const Card: React.FC<{ children: React.ReactNode; title?: string; extra?: React.ReactNode; className?: string }> = ({ children, title, extra, className = "" }) => (
   <div className={`bg-app-surface rounded-xl border border-app-border overflow-hidden mb-6 shadow-sm ${className}`}>
     {(title || extra) && (
-      <div className="px-8 py-5 border-b border-app-border flex items-center justify-between bg-app-surface-2">
-        <h3 className="font-bold text-app-text-strong text-xs uppercase tracking-widest">{title}</h3>
+      <div className="px-5 py-3 md:px-8 md:py-5 border-b border-app-border flex items-center justify-between bg-app-surface-2">
+        <h3 className="font-bold text-app-text-strong text-[10px] md:text-xs uppercase tracking-widest">{title}</h3>
         {extra}
       </div>
     )}
-    <div className="p-6 md:p-8">
+    <div className="p-4 md:p-8">
       {children}
     </div>
   </div>

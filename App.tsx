@@ -1136,7 +1136,7 @@ export default function App() {
 
 
       <main className="flex-1 flex flex-col min-w-0 relative overflow-hidden bg-app-bg transition-colors duration-300">
-        <header className="flex-none bg-app-bg border-b border-app-border px-4 lg:px-8 flex flex-col lg:flex-row items-stretch lg:items-center justify-between z-[50] transition-colors duration-300 py-3 lg:py-0 min-h-[auto] lg:h-16 gap-3 lg:gap-4 mobile-header">
+        <header className="flex-none bg-app-bg border-b border-app-border px-3 lg:px-8 flex flex-col lg:flex-row items-stretch lg:items-center justify-between z-[50] transition-colors duration-300 py-2 lg:py-0 min-h-[auto] lg:h-16 gap-2 lg:gap-4 mobile-header">
           {/* TOP ROW: Menu | Workspace | Mobile Controls (Right) */}
           <div className="flex items-center justify-between gap-4 w-full lg:w-auto">
             <div className="flex items-center gap-3 lg:gap-4 flex-1 min-w-0">
@@ -1414,7 +1414,7 @@ export default function App() {
 
 
 
-        <div className="flex-1 overflow-y-auto p-4 lg:p-10 pb-[calc(100px+env(safe-area-inset-bottom))] lg:pb-10 custom-scrollbar animate-fade bg-app-bg">
+        <div className="flex-1 overflow-y-auto p-3 md:p-6 lg:p-10 pb-[calc(100px+env(safe-area-inset-bottom))] lg:pb-10 custom-scrollbar animate-fade bg-app-bg">
           {activeTab === 'DASHBOARD' && <DashboardView clients={clients} tasks={currentTasks} financas={currentFinancas} planejamento={currentPlanejamento} rdc={currentRdc} />}
           {activeTab === 'CLIENTES' && <TableView tab="CLIENTES" data={filterArchived(clients)} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('CLIENTES')} clients={clients} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} />}
           {activeTab === 'RDC' && <TableView tab="RDC" data={currentRdc} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('RDC')} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
@@ -1681,7 +1681,7 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm animate-fade" onClick={() => setIsSidebarOpen(false)}></div>
       )}
       <div className="flex-1 transition-all duration-500 h-full flex flex-col min-w-0">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 bg-app-surface/40 p-5 md:p-8 rounded-[32px] border border-white/5 backdrop-blur-md">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 bg-app-surface/40 p-4 md:p-8 rounded-2xl md:rounded-[32px] border border-white/5 backdrop-blur-md">
           <div className="flex flex-col gap-5">
             <div className="flex items-center gap-3">
               <div className="w-2 h-8 bg-blue-600 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.4)]"></div>
@@ -1948,7 +1948,7 @@ function FinanceView({ data, onUpdate, onDelete, onArchive, onAdd, selection, on
 
   return (
     <div className="space-y-6 md:space-y-8 animate-fade text-left mobile-container pb-10">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-6">
         <StatCard label="Entradas" value={`R$ ${totals.entradas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} color="emerald" icon="fa-arrow-trend-up" active={activeCategory === 'Entrada'} onClick={() => toggleCategory('Entrada')} />
         <StatCard label="Saídas" value={`R$ ${totals.saidas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} color="rose" icon="fa-arrow-trend-down" active={activeCategory === 'Saída'} onClick={() => toggleCategory('Saída')} />
         <StatCard label="Despesas" value={`R$ ${totals.despesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} color="orange" icon="fa-receipt" active={activeCategory === 'Despesa'} onClick={() => toggleCategory('Despesa')} />
@@ -1957,7 +1957,7 @@ function FinanceView({ data, onUpdate, onDelete, onArchive, onAdd, selection, on
       </div>
 
       {activeCategory && (
-        <div className="bg-app-surface/60 p-5 md:p-8 rounded-[32px] border border-white/10 backdrop-blur-xl flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8 animate-fade shadow-2xl">
+        <div className="bg-app-surface/60 p-4 md:p-8 rounded-2xl md:rounded-[32px] border border-white/10 backdrop-blur-xl flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8 animate-fade shadow-2xl">
           <div className="flex flex-col gap-2">
             <h3 className="text-sm md:text-md font-black uppercase tracking-[0.2em] text-app-text-strong">Novo Registro: {activeCategory}</h3>
             <p className="text-[10px] md:text-xs text-app-text-muted uppercase">Selecione uma opção para otimizar o lançamento</p>
@@ -2033,7 +2033,7 @@ function StatCard({ label, value, icon, color = "blue", onClick, active }: any) 
   return (
     <div
       onClick={onClick}
-      className={`p-5 md:p-6 rounded-3xl border ${active ? borderColors[color] : 'bg-app-surface border-app-border'} flex flex-col gap-4 transition-all ${onClick ? 'cursor-pointer hover:border-[#3B82F6]/20' : ''} shadow-xl group w-full`}
+      className={`p-4 md:p-6 rounded-2xl md:rounded-3xl border ${active ? borderColors[color] : 'bg-app-surface border-app-border'} flex flex-col gap-3 md:gap-4 transition-all ${onClick ? 'cursor-pointer hover:border-[#3B82F6]/20' : ''} shadow-xl group w-full`}
     >
       <div className="flex justify-between items-start">
         <span className={`text-[9px] font-black tracking-[0.2em] transition-colors uppercase flex-1 ${active ? 'text-app-text-strong' : 'text-app-text-muted group-hover:text-app-text-strong'}`}>{label}</span>
@@ -2086,7 +2086,7 @@ function SystematicModelingView({ activeClient, clients, onSelectClient, rdc, pl
 
 
   return (
-    <div className="bg-app-surface/40 border border-white/5 rounded-[40px] p-5 md:p-10 backdrop-blur-xl animate-fade overflow-x-auto shadow-2xl relative">
+    <div className="bg-app-surface/40 border border-white/5 rounded-2xl md:rounded-[40px] p-4 md:p-10 backdrop-blur-xl animate-fade overflow-x-auto shadow-2xl relative">
       <div className="mb-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           <div>
@@ -3210,7 +3210,7 @@ function TableView({ tab, data, onUpdate, onDelete, onArchive, onAdd, clients, l
   // Custom RDC Header Logic
   const isRDC = tab === 'RDC';
   const rdcHeader = (
-    <div className="p-5 md:p-6 border-b border-app-border flex flex-col gap-4 md:grid md:grid-cols-3 items-center bg-app-surface-2">
+    <div className="p-4 md:p-6 border-b border-app-border flex flex-col gap-4 md:grid md:grid-cols-3 items-center bg-app-surface-2">
       <div className="text-center md:text-left w-full">
         <h3 className="font-bold text-app-text-strong text-xs uppercase tracking-widest">{TABLE_LABELS['RDC']} (R×D×C)</h3>
       </div>
