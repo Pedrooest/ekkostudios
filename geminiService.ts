@@ -21,15 +21,19 @@ function getModel(modelName: string = 'gemini-2.0-flash-lite-001') {
   return ai.getGenerativeModel({ model: modelName });
 }
 
-// Helper for 429 Retries
-async function withRetry<T>(fn: () => Promise<T>, retries = 3, delay = 2000): Promise<T> {
+// Helper for 429 Retries with exponential backoff
+async function withRetry<T>(fn: () => Promise<T>, retries = 5, delay = 5000): Promise<T> {
   try {
     return await fn();
   } catch (error: any) {
     if (retries > 0 && (error.message?.includes('429') || error.status === 429)) {
-      console.warn(`[Gemini] Rate limit hit. Retrying in ${delay}ms...`);
+      console.warn(`[Gemini] Rate limit hit. Retrying in ${delay / 1000}s...`);
       await new Promise(res => setTimeout(res, delay));
-      return withRetry(fn, retries - 1, delay * 2);
+      return withRetry(fn, retries - 1, delay * 2); // 5s, 10s, 20s, 40s, 80s
+    }
+    console.error("[Gemini] API Request Failed:", error);
+    if (error.message?.includes('429')) {
+      throw new Error("O limite gratuito da IA foi atingido. Tente novamente em 1 minuto.");
     }
     throw error;
   }

@@ -325,3 +325,28 @@ export const MobileFloatingAction: React.FC<{
     </button>
   );
 };
+
+export const SimpleMarkdown = ({ content }: { content: string }) => {
+  if (!content) return null;
+
+  const processText = (text: string) => {
+    let html = text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/~~(.*?)~~/g, '<del>$1</del>')
+      .replace(/^### (.*$)/gm, '<h3 class="text-lg font-bold text-white mt-4 mb-2">$1</h3>')
+      .replace(/^## (.*$)/gm, '<h2 class="text-xl font-bold text-blue-400 mt-6 mb-3 uppercase tracking-wide">$1</h2>')
+      .replace(/^# (.*$)/gm, '<h1 class="text-2xl font-black text-white mt-8 mb-4 uppercase border-b border-gray-700 pb-2">$1</h1>')
+      .replace(/^\- (.*$)/gm, '<li class="ml-4 list-disc text-gray-300 mb-1">$1</li>')
+      .replace(/\n/g, '<br />');
+
+    return html;
+  };
+
+  return (
+    <div
+      className="prose prose-invert max-w-none text-sm leading-relaxed text-gray-300 font-medium"
+      dangerouslySetInnerHTML={{ __html: processText(content) }}
+    />
+  );
+};

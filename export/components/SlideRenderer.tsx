@@ -1,5 +1,6 @@
 import React from 'react';
 import { ExportConfig } from '../types';
+import MasterExportSlide from './MasterExportSlide';
 
 interface SlideRendererProps {
     config: ExportConfig;
@@ -30,6 +31,75 @@ export const SlideRenderer: React.FC<SlideRendererProps> = ({ config, elementId 
         center: 'text-center',
         right: 'text-right'
     };
+
+    // MASTER EXPORT SLIDE (MATRIZ, RDC, COBO, PLANEJAMENTO, FLUXO)
+    const masterTabs = ['MATRIZ', 'RDC', 'COBO', 'PLANEJAMENTO', 'TAREFAS', 'FLUXO'];
+    const isMasterTab = masterTabs.includes(config.tab) || config.title?.toLowerCase().includes('matriz');
+
+    if (isMasterTab) {
+        let masterTab: 'MATRIZ' | 'RDC' | 'COBO' | 'PLANEJAMENTO' | 'FLUXO' = 'MATRIZ';
+        let mappedData: any[] = [];
+
+        if (config.tab === 'MATRIZ' || config.title?.toLowerCase().includes('matriz')) {
+            masterTab = 'MATRIZ';
+            mappedData = config.data.map((row: any) => ({
+                rede: row['Rede_Social'] || row['Rede Social'] || '-',
+                funcao: row['Função'] || row['Funcao'] || '-',
+                quemFala: row['Quem fala'] || row['Quem Fala'] || '-',
+                papel: row['Papel estratégico'] || row['Papel Estrategico'] || '-',
+                tipoConteudo: row['Tipo de conteúdo'] || row['Tipo de Conteudo'] || '-',
+                resultado: row['Resultado esperado'] || row['Resultado Esperado'] || '-'
+            }));
+        } else if (config.tab === 'RDC') {
+            masterTab = 'RDC';
+            mappedData = config.data.map((row: any) => ({
+                ideia: row['Ideia de Conteúdo'] || '-',
+                canal: row['Rede_Social'] || '-',
+                formato: row['Tipo de conteúdo'] || '-',
+                rdc: `${row['Resolução (1–5)'] || 0} / ${row['Demanda (1–5)'] || 0} / ${row['Competição (1–5)'] || 0}`,
+                score: row['Score (R×D×C)'] || 0,
+                decisao: row['Decisão'] || '-'
+            }));
+        } else if (config.tab === 'COBO') {
+            masterTab = 'COBO';
+            mappedData = config.data.map((row: any) => ({
+                persona: row['Público'] || '-',
+                contexto: row['Voz'] || '-',
+                objecao: row['Zona'] || '-',
+                beneficio: row['Intenção'] || '-',
+                oferta: row['Formato'] || '-'
+            }));
+        } else if (config.tab === 'PLANEJAMENTO') {
+            masterTab = 'PLANEJAMENTO';
+            mappedData = config.data.map((row: any) => ({
+                data: row['Data'] || '-',
+                canal: row['Rede_Social'] || row['Canal'] || '-',
+                tema: row['Conteúdo'] || '-',
+                formato: row['Tipo de conteúdo'] || row['Formato'] || '-',
+                status: row['Status do conteúdo'] || '-'
+            }));
+        } else if (config.tab === 'TAREFAS') {
+            masterTab = 'FLUXO';
+            mappedData = config.data.map((row: any) => ({
+                tarefa: row['Título'] || '-',
+                resp: row['Responsável'] || '-',
+                prazo: row['Data_Entrega'] || '-',
+                prioridade: row['Prioridade'] || '-',
+                status: row['Status'] || '-'
+            }));
+        }
+
+        return (
+            <div id={elementId}>
+                <MasterExportSlide
+                    tab={masterTab}
+                    clientName={config.client}
+                    date={new Date().toLocaleDateString('pt-BR')}
+                    data={mappedData}
+                />
+            </div>
+        );
+    }
 
     return (
         <div

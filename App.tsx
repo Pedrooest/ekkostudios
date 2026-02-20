@@ -41,7 +41,7 @@ import {
   PLANEJAMENTO_COLS, TAREFAS_COLS,
   MATRIZ_FUNCAO_OPTIONS, MATRIZ_QUEM_FALA_OPTIONS, MATRIZ_PAPEL_ESTRATEGICO_OPTIONS, MATRIZ_TIPO_CONTEUDO_OPTIONS, MATRIZ_RESULTADO_ESPERADO_OPTIONS
 } from './constants';
-import { Button, Card, Badge, Stepper, FloatingPopover, InputSelect, MobileFloatingAction } from './Components';
+import { Button, Card, Badge, Stepper, FloatingPopover, InputSelect, MobileFloatingAction, SimpleMarkdown } from './Components';
 import { BottomSheet } from './components/BottomSheet';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Whiteboard } from './components/Whiteboard';
@@ -366,43 +366,23 @@ export default function App() {
         metrics = [{ label: 'Colaboradores', value: data.length }];
         break;
       case 'MATRIZ':
-        columns = [
-          { key: 'Dia', label: 'Dia' },
-          ...SYSTEMATIC_MODELING_ROWS.map(r => ({ key: r.label, label: r.label }))
-        ];
+        columns = MATRIZ_ESTRATEGICA_COLS.map(c => ({ key: c, label: c }));
 
-        // Transform Systematic Modeling Object (Day x Attribute) to Array (Rows)
-        const days = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+        // Filter clients using the same logic as TableView
+        const targetMatriz = selectedClientIds.length > 0
+          ? matriz.filter(m => selectedClientIds.includes(m.Cliente_ID))
+          : matriz;
 
-        // Filter clients
-        const targetClients = selectedClientIds.length > 0
-          ? clients.filter(c => selectedClientIds.includes(c.id))
-          : clients;
+        data = targetMatriz.map(item => ({
+          ...item,
+          // Ensure we have values for all columns, defaulting to '-' if missing
+          ...MATRIZ_ESTRATEGICA_COLS.reduce((acc, col) => ({
+            ...acc,
+            [col]: item[col] || '-'
+          }), {})
+        }));
 
-        targetClients.forEach(client => {
-          const clientData = systematicModeling[client.id] || {};
-
-          days.forEach(day => {
-            const row: any = { Dia: day, Cliente_ID: client.id, Nome_Cliente: client.Nome };
-            let hasData = false;
-
-            SYSTEMATIC_MODELING_ROWS.forEach(sysRow => {
-              const val = clientData[`${day}-${sysRow.id}`];
-              if (val) {
-                row[sysRow.label] = val;
-                hasData = true;
-              } else {
-                row[sysRow.label] = '-';
-              }
-            });
-
-            if (hasData) {
-              data.push(row);
-            }
-          });
-        });
-
-        metrics = [{ label: 'Dias Planejados', value: data.length }];
+        metrics = [{ label: 'Registros', value: data.length }];
         break;
       default:
         data = [];
@@ -1741,7 +1721,7 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
             </Button>
           </div>
         </div>
-        <div className="flex-1 bg-app-surface/30 border border-app-border rounded-[32px] p-5 md:p-8 shadow-2xl md:overflow-hidden min-h-[100dvh] lg:min-h-0 relative pb-[calc(160px+env(safe-area-inset-bottom))] md:pb-8">
+        <div className="flex-1 bg-app-surface/30 border border-app-border rounded-[32px] p-5 md:p-8 shadow-2xl md:overflow-y-auto min-h-[100dvh] lg:min-h-0 relative pb-[calc(160px+env(safe-area-inset-bottom))] md:pb-8">
           <FullCalendar
             plugins={[dayGridPlugin, interactionPlugin, listPlugin]}
             initialView={window.innerWidth < 1024 ? "listWeek" : "dayGridMonth"}
@@ -1798,7 +1778,7 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
         </div>
       </div>
 
-      <div className={`transition-all duration-500 shrink-0 z-[100] lg:z-auto fixed inset-x-0 bottom-0 lg:inset-auto lg:static ${isSidebarOpen ? 'translate-y-0 lg:translate-x-0 h-[85dvh] lg:h-auto lg:w-[360px] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] lg:shadow-none' : 'translate-y-full lg:translate-x-0 lg:w-0 lg:opacity-0 lg:pointer-events-none'}`}>
+      <div className={`transition-all duration-500 shrink-0 z-[100] lg:z-auto fixed inset-x-0 bottom-0 lg:inset-auto lg:static ${isSidebarOpen ? 'translate-y-0 lg:translate-x-0 h-[85dvh] lg:h-[calc(100dvh-40px)] lg:w-[360px] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] lg:shadow-none' : 'translate-y-full lg:translate-x-0 lg:w-0 lg:opacity-0 lg:pointer-events-none'}`}>
         <div className="h-full bg-app-surface/95 backdrop-blur-xl border-t lg:border-t-0 lg:border-l border-white/10 shadow-2xl p-6 md:p-8 flex flex-col relative overflow-hidden rounded-t-[32px] lg:rounded-none">
           <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-[60px] rounded-full"></div>
 
@@ -1826,7 +1806,7 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
                   </div>
                   <button
                     onClick={() => handleImport(item)}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-600/10 text-blue-500 text-[9px] font-black uppercase tracking-widest transition-all hover:bg-blue-600 hover:text-white md:opacity-0 md:group-hover:opacity-100 opacity-100"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600/10 text-blue-500 text-[9px] font-black uppercase tracking-widest transition-all hover:bg-blue-600 hover:text-white opacity-100"
                   >
                     <i className="fa-solid fa-plus text-[8px]"></i>
                     Adicionar
@@ -3551,6 +3531,20 @@ function renderCell(tab: TableType, row: any, col: string, update: Function, cli
     );
   }
 
+  if (col === 'Conteúdo') {
+    return (
+      <textarea
+        value={row[col]}
+        onChange={e => update(row.id, tab, col, e.target.value)}
+        className={`${common} min-w-[300px] h-auto min-h-[40px] resize-y overflow-hidden leading-relaxed whitespace-pre-wrap`}
+        placeholder="Escreva o conteúdo..."
+        style={{ height: 'auto' }}
+        rows={1}
+        onInput={(e: any) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+      />
+    );
+  }
+
   const inputType = (col === 'Data') ? 'date' : col === 'Hora' ? 'time' : 'text';
   return (<input type={inputType} value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={common} placeholder="..." />);
 }
@@ -3981,7 +3975,9 @@ function OrganickIAView({ clients, cobo, matriz, rdc, planning, selectedClientId
                 <Button onClick={generateBriefing} className="w-full h-14 !bg-emerald-600 !text-app-text-strong shadow-xl shadow-emerald-600/20 text-[10px] font-black tracking-widest"><i className="fa-solid fa-wand-magic-sparkles mr-3"></i>Compilar Briefing Organick</Button>
                 {briefing && (
                   <div className="space-y-4 animate-fade">
-                    <textarea value={briefing} readOnly className="w-full h-96 !bg-app-bg p-6 text-[11px] font-bold text-gray-300 leading-relaxed rounded-2xl border border-app-border outline-none" />
+                    <div className="w-full h-96 !bg-app-bg p-6 rounded-2xl border border-app-border overflow-y-auto">
+                      <SimpleMarkdown content={briefing} />
+                    </div>
                     <div className="flex gap-3">
                       <Button onClick={copyBriefing} variant="secondary" className="flex-1 h-12"><i className="fa-solid fa-copy mr-2"></i>Copiar Briefing</Button>
                       <Button onClick={() => onGenerateSlide(briefing)} className="flex-1 h-12 !bg-blue-600 !text-app-text-strong"><i className="fa-solid fa-image mr-2"></i>Gerar Slide IA</Button>
