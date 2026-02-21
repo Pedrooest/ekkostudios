@@ -14,7 +14,7 @@ import {
   BrainCircuit, Mic, Trash2, History as HistoryIcon, Sparkles, Loader2, ChevronDown,
   Zap, Copy, FileImage, MessageSquare, ExternalLink, ShieldAlert,
   Plus, X, User, Target, Lightbulb, Radio, FolderOpen,
-  Box, Eye, EyeOff, Search, LayoutGrid, List, Filter, ArrowUpDown, Archive, Briefcase, TrendingUp, TrendingDown, Receipt, CreditCard, Wallet, Activity, DollarSign, ArrowRight
+  Box, Eye, EyeOff, Search, LayoutGrid, List, Filter, ArrowUpDown, Archive, Briefcase, TrendingUp, TrendingDown, Receipt, CreditCard, Wallet, Activity, DollarSign, ArrowRight, LayoutDashboard, AlertTriangle, Calculator, Info
 } from 'lucide-react';
 import { AssistantDrawer } from './AssistantDrawer';
 import { AssistantAction } from './ai/types';
@@ -3245,299 +3245,403 @@ function VhManagementView({ config, setConfig, collaborators, setCollaborators, 
     return { newCost, newResult, newMargin, diff: additionalCost };
   }, [simParams, vhResults]);
 
+  const formatBRL = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
+
   return (
-    <div className="space-y-6 md:space-y-10 animate-fade text-left pb-20 max-w-7xl mx-auto px-4 md:px-0">
-      {/* Tab Navigation */}
-      <div className="flex bg-app-surface p-1.5 rounded-2xl border border-app-border w-full md:w-fit mx-auto shadow-2xl overflow-x-auto no-scrollbar">
-        {[
-          { id: 'DASHBOARD', label: 'Dashboard', icon: 'fa-chart-pie' },
-          { id: 'CLIENTES', label: 'Gestão por Cliente', icon: 'fa-users-gear' },
-          { id: 'CONFIG', label: 'Equipe e Configurações', icon: 'fa-user-pen' }
-        ].map(t => (
-          <button
-            key={t.id}
-            onClick={() => setActiveSubTab(t.id as any)}
-            className={`px-4 md:px-8 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 md:gap-3 shrink-0 ${activeSubTab === t.id ? 'bg-[#3B82F6] text-app-text-strong shadow-lg' : 'text-[#4B5563] hover:text-app-text-muted'}`}
-          >
-            <i className={`fa-solid ${t.icon} text-[10px] md:text-xs`}></i>
-            {t.label}
-          </button>
-        ))}
+    <div className="space-y-6 md:space-y-8 animate-fade text-left pb-20 max-w-7xl mx-auto px-4 md:px-0">
+
+      {/* NAVEGAÇÃO DE SUB-ABAS (Pills) */}
+      <div className="flex justify-center mb-10 mt-4">
+        <div className="inline-flex bg-app-surface border border-app-border p-1.5 rounded-2xl shadow-2xl transition-colors">
+          {[
+            { id: 'DASHBOARD', label: 'Dashboard', icon: LayoutDashboard },
+            { id: 'CLIENTES', label: 'Gestão por Cliente', icon: Briefcase },
+            { id: 'CONFIG', label: 'Equipe & Custos', icon: Users }
+          ].map(t => (
+            <button
+              key={t.id}
+              onClick={() => setActiveSubTab(t.id as any)}
+              className={`flex items-center gap-3 px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${activeSubTab === t.id ? 'bg-[#3B82F6] text-white shadow-lg shadow-blue-500/20' : 'text-[#4B5563] hover:text-app-text-muted'}`}
+            >
+              <t.icon size={14} /> {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
+      {/* =========================================
+          VIEW: DASHBOARD
+          ========================================= */}
       {activeSubTab === 'DASHBOARD' && (
-        <div className="space-y-6 md:space-y-10 animate-fade">
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <StatCard label="VH Médio Agência" value={`R$ ${vhResults.avgVh.toFixed(2)}`} color="blue" icon="fa-bullseye" />
-            <StatCard label="Horas Operadas" value={`${vhResults.totalHours.toFixed(1)}h`} color="orange" icon="fa-clock-rotate-left" />
-            <StatCard label="Custo Operacional" value={`R$ ${vhResults.totalCost.toLocaleString('pt-BR')}`} color="rose" icon="fa-money-bill-transfer" />
-            <StatCard label="Foco de Risco" value={vhResults.deficitClients} color={vhResults.deficitClients > 0 ? 'rose' : 'emerald'} icon="fa-triangle-exclamation" />
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+
+          {/* KPIs */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-app-surface border border-app-border p-6 rounded-[2rem] shadow-xl flex flex-col justify-between transition-colors group relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl group-hover:bg-blue-500/10 transition-colors pointer-events-none"></div>
+              <div className="flex justify-between items-start mb-6 relative z-10">
+                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[#4B5563]">VH Médio Agência</span>
+                <div className="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center shadow-lg shadow-blue-500/5"><DollarSign size={18} /></div>
+              </div>
+              <span className="text-4xl font-black text-blue-500 relative z-10">{formatBRL(vhResults.avgVh)}</span>
+            </div>
+
+            <div className="bg-app-surface border border-app-border p-6 rounded-[2rem] shadow-xl flex flex-col justify-between transition-colors group relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 w-32 h-32 bg-purple-500/5 rounded-full blur-3xl group-hover:bg-purple-500/10 transition-colors pointer-events-none"></div>
+              <div className="flex justify-between items-start mb-6 relative z-10">
+                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[#4B5563]">Horas Operadas</span>
+                <div className="w-10 h-10 rounded-2xl bg-purple-500/10 text-purple-500 flex items-center justify-center shadow-lg shadow-purple-500/5"><Clock size={18} /></div>
+              </div>
+              <span className="text-4xl font-black text-app-text-strong relative z-10">{vhResults.totalHours.toFixed(1)}<span className="text-xl text-app-text-muted ml-1 uppercase font-bold tracking-tighter">h</span></span>
+            </div>
+
+            <div className="bg-app-surface border border-app-border p-6 rounded-[2rem] shadow-xl flex flex-col justify-between transition-colors group relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl group-hover:bg-amber-500/10 transition-colors pointer-events-none"></div>
+              <div className="flex justify-between items-start mb-6 relative z-10">
+                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[#4B5563]">Custo Operacional</span>
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center shadow-lg shadow-amber-500/5"><Activity size={18} /></div>
+              </div>
+              <span className="text-4xl font-black text-app-text-strong relative z-10">{formatBRL(vhResults.totalCost)}</span>
+            </div>
+
+            <div className={`border p-6 rounded-[2rem] shadow-xl flex flex-col justify-between transition-colors group relative overflow-hidden ${vhResults.deficitClients > 0 ? 'bg-rose-500/5 border-rose-500/20' : 'bg-emerald-500/5 border-emerald-500/20'}`}>
+              <div className={`absolute -right-4 -top-4 w-32 h-32 rounded-full blur-3xl pointer-events-none ${vhResults.deficitClients > 0 ? 'bg-rose-500/10' : 'bg-emerald-500/10'}`}></div>
+              <div className="flex justify-between items-start mb-6 relative z-10">
+                <span className={`text-[11px] font-black uppercase tracking-[0.2em] ${vhResults.deficitClients > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>Foco de Risco</span>
+                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg ${vhResults.deficitClients > 0 ? 'bg-rose-500/10 text-rose-500 animate-pulse shadow-rose-500/5' : 'bg-emerald-500/10 text-emerald-500 shadow-emerald-500/5'}`}>
+                  {vhResults.deficitClients > 0 ? <AlertTriangle size={18} /> : <CheckCircle2 size={18} />}
+                </div>
+              </div>
+              <div className="relative z-10">
+                <span className={`text-4xl font-black ${vhResults.deficitClients > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>{vhResults.deficitClients}</span>
+                <span className={`text-[10px] font-black uppercase tracking-widest ml-3 ${vhResults.deficitClients > 0 ? 'text-rose-500/70' : 'text-emerald-500/70'}`}>
+                  {vhResults.deficitClients === 1 ? 'Cliente no vermelho' : 'Clientes no vermelho'}
+                </span>
+              </div>
+            </div>
           </div>
 
+          {/* Gráficos em Lista */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <Card title="Custo Operacional por Colaborador">
-              <div className="h-[350px] p-6">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={vhResults.collabVHs}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" vertical={false} />
-                    <XAxis dataKey="Nome" stroke="#4B5563" fontSize={10} axisLine={false} tickLine={false} />
-                    <YAxis stroke="#4B5563" fontSize={10} axisLine={false} tickLine={false} tickFormatter={(v) => `R$ ${v}`} />
-                    <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ backgroundColor: '#0F172A', border: '1px solid #1F2937', borderRadius: '12px' }} />
-                    <Bar dataKey="calculatedVh" name="VH Calculado" fill="#3B82F6" radius={[6, 6, 0, 0]} barSize={40} />
-                  </BarChart>
-                </ResponsiveContainer>
+            <Card title="Custo e VH por Colaborador">
+              <div className="p-8 space-y-6 min-h-[400px]">
+                <div className="h-[250px] mb-8">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={vhResults.collabVHs}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" vertical={false} opacity={0.3} />
+                      <XAxis dataKey="Nome" stroke="#4B5563" fontSize={10} axisLine={false} tickLine={false} />
+                      <YAxis stroke="#4B5563" fontSize={10} axisLine={false} tickLine={false} tickFormatter={(v) => `R$${v}`} />
+                      <Tooltip cursor={{ fill: 'rgba(255,255,255,0.03)' }} contentStyle={{ backgroundColor: '#0F172A', border: '1px solid #1F2937', borderRadius: '16px', fontSize: '12px' }} />
+                      <Bar dataKey="calculatedVh" name="VH Calculado" fill="#3B82F6" radius={[8, 8, 0, 0]} barSize={40} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="space-y-4">
+                  {vhResults.collabVHs.slice(0, 3).map((item, idx) => (
+                    <div key={idx} className="group">
+                      <div className="flex justify-between items-end mb-2">
+                        <span className="text-[11px] font-black uppercase tracking-wider text-app-text-strong">{item.Nome}</span>
+                        <span className="text-xs font-black text-blue-500">VH: {formatBRL(item.calculatedVh)}/h</span>
+                      </div>
+                      <div className="w-full bg-app-surface border border-app-border rounded-full h-1.5 overflow-hidden">
+                        <div className="bg-blue-500 h-full rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(59,130,246,0.5)]" style={{ width: `${Math.min((item.calculatedVh / vhResults.avgVh) * 100, 100)}%` }}></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </Card>
-            <Card title="Margem por Cliente (R$)">
-              <div className="h-[350px] p-6">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={vhResults.profitability.sort((a, b) => b.result - a.result)}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" vertical={false} />
-                    <XAxis dataKey="name" stroke="#4B5563" fontSize={10} axisLine={false} tickLine={false} />
-                    <YAxis stroke="#4B5563" fontSize={10} axisLine={false} tickLine={false} tickFormatter={(v) => `R$ ${v}`} />
-                    <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ backgroundColor: '#0F172A', border: '1px solid #1F2937', borderRadius: '12px' }} />
-                    <Bar dataKey="result" name="Resultado Líquido">
-                      {vhResults.profitability.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.result >= 0 ? '#10b981' : '#ef4444'} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+
+            <Card title="Margem de Lucratividade por Cliente">
+              <div className="p-8 space-y-6">
+                <div className="space-y-6">
+                  {vhResults.profitability.sort((a, b) => b.result - a.result).map((c, idx) => {
+                    const lucro = c.result;
+                    const margem = c.billing > 0 ? (lucro / c.billing) * 100 : 0;
+                    const isNegativo = lucro < 0;
+
+                    return (
+                      <div key={idx} className="group p-5 bg-app-bg/20 border border-app-border rounded-2xl hover:bg-app-bg/40 transition-all">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <span className="text-xs font-black text-app-text-strong uppercase tracking-tight truncate pr-4">{c.name}</span>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-[9px] font-bold text-[#4B5563] uppercase tracking-widest">{c.hours.toFixed(1)}h consumidas</span>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className={`text-sm font-black font-mono ${isNegativo ? 'text-rose-500' : 'text-emerald-500'}`}>{formatBRL(lucro)}</span>
+                            <div className={`text-[8px] font-black uppercase tracking-widest mt-0.5 ${isNegativo ? 'text-rose-500/50' : 'text-emerald-500/50'}`}>Resultado</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="flex-1 bg-app-surface border border-app-border rounded-full h-2 overflow-hidden flex">
+                            {/* Barra de Custo vs Lucro (Visualização simplificada) */}
+                            <div className="bg-amber-400 h-2" style={{ width: `${Math.min((c.cost / (c.billing || 1)) * 100, 100)}%` }}></div>
+                            {!isNegativo && <div className="bg-emerald-500 h-2" style={{ width: `${margem}%` }}></div>}
+                            {isNegativo && <div className="bg-rose-500 h-2 w-full" style={{ width: '100%' }}></div>}
+                          </div>
+                          <span className={`text-[10px] font-black w-14 text-right tracking-tighter ${isNegativo ? 'text-rose-500' : 'text-emerald-500'}`}>
+                            {margem.toFixed(1)}%
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </Card>
           </div>
         </div>
       )}
 
-      {activeSubTab === 'CONFIG' && (
-        <div className="space-y-6 md:space-y-10 animate-fade">
-          <Card title="Configuração da Equipe" extra={<Button onClick={handleAddCollab} className="h-9 px-4 text-[9px] shadow-lg shadow-emerald-500/10"><i className="fa-solid fa-plus mr-2"></i>Adicionar</Button>}>
-            {/* Mobile Card View */}
-            <div className="md:hidden space-y-4">
-              {vhResults.collabVHs.map((c) => (
-                <div key={c.id} className="p-5 bg-app-surface border border-app-border rounded-[2rem] space-y-5 relative group shadow-lg">
-                  <div className="flex justify-between items-start border-b border-app-border pb-4">
-                    <div className="flex-1">
-                      <label className="text-[9px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Colaborador</label>
-                      <input
-                        value={c.Nome}
-                        onChange={e => handleUpdateCollab(c.id, 'Nome', e.target.value)}
-                        className="w-full !bg-transparent border-none p-0 focus:ring-0 font-black uppercase text-app-text-strong text-sm"
-                      />
-                    </div>
-                    <button onClick={() => setCollaborators((prev: Collaborator[]) => prev.filter(p => p.id !== c.id))} className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"><i className="fa-solid fa-trash-can text-xs"></i></button>
-                  </div>
+      {/* =========================================
+          VIEW: GESTÃO POR CLIENTE (Tabela + Simulador)
+          ========================================= */}
+      {activeSubTab === 'CLIENTES' && (
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+
+          {/* Tabela Esquerda */}
+          <div className="xl:col-span-2 space-y-6">
+            <Card title="Relatório de Lucratividade Operacional" extra={
+              <div className="flex bg-app-bg rounded-xl p-1 border border-app-border shadow-inner">
+                <button onClick={() => setViewMode('CLIENT')} className={`px-5 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'CLIENT' ? 'bg-[#3B82F6] text-white shadow-lg' : 'text-[#4B5563]'}`}>Cliente</button>
+                <button onClick={() => setViewMode('COLLABORATOR')} className={`px-5 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'COLLABORATOR' ? 'bg-[#3B82F6] text-white shadow-lg' : 'text-[#4B5563]'}`}>Time</button>
+              </div>
+            }>
+              <div className="overflow-x-auto min-h-[400px]">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-app-border bg-app-surface-2">
+                      <th className="px-8 py-5 text-[10px] font-black text-[#4B5563] uppercase tracking-[0.2em]">{viewMode === 'CLIENT' ? 'Cliente Alvo' : 'Profissional'}</th>
+                      <th className="px-6 py-5 text-[10px] font-black text-[#4B5563] uppercase tracking-[0.2em] text-center">Horas Reais</th>
+                      <th className="px-6 py-5 text-[10px] font-black text-[#4B5563] uppercase tracking-[0.2em] text-right">Custo Operacional</th>
+                      <th className="px-6 py-5 text-[10px] font-black text-[#4B5563] uppercase tracking-[0.2em] text-right">Faturamento Ativo</th>
+                      <th className="px-8 py-5 text-[10px] font-black text-[#4B5563] uppercase tracking-[0.2em] text-right">Resultado</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#1F2937]">
+                    {vhResults.profitability.map((c, idx) => (
+                      <tr key={idx} className="hover:bg-white/[0.02] transition-colors group">
+                        <td className="px-8 py-5">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-black text-xs uppercase shadow-sm border border-blue-500/10">{c.name.substring(0, 2)}</div>
+                            <span className="text-sm font-black text-app-text-strong uppercase tracking-tight">{c.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-5 text-center font-mono">
+                          <span className="bg-app-bg px-3 py-1.5 rounded-lg border border-app-border text-xs font-black text-blue-500">{c.hours.toFixed(1)}h</span>
+                        </td>
+                        <td className="px-6 py-5 text-sm font-mono font-bold text-app-text-muted text-right">{formatBRL(c.cost)}</td>
+                        <td className="px-6 py-5 text-sm font-mono font-bold text-app-text-muted text-right">{formatBRL(c.billing)}</td>
+                        <td className="px-8 py-5 text-right">
+                          <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl font-black font-mono text-sm shadow-sm ${c.result >= 0 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
+                            {c.result >= 0 ? '+' : ''}{formatBRL(c.result)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+
+            <div className="p-6 bg-blue-500/5 border border-blue-500/10 rounded-[2rem] flex items-start gap-4 shadow-xl">
+              <div className="w-10 h-10 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-500 shrink-0"><Info size={20} /></div>
+              <div className="space-y-1">
+                <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest">Sincronização Ativa</p>
+                <p className="text-xs text-app-text-muted leading-relaxed font-medium">
+                  As horas são importadas automaticamente do <span className="text-app-text-strong">Fluxo de Tarefas</span> (campo "Tempo Gasto H") e o faturamento das entradas vinculadas em <span className="text-app-text-strong">Finanças</span>.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Simulador de Impacto (Direita) */}
+          <div className="flex-1">
+            <Card title="Simulador de Impacto">
+              <div className="p-8 space-y-8 relative overflow-hidden flex flex-col min-h-[500px]">
+                <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/5 rounded-bl-full pointer-events-none"></div>
+
+                <div className="space-y-6 flex-1 relative z-10">
                   <div>
-                    <label className="text-[9px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Cargo</label>
-                    <input
-                      value={c.Cargo}
-                      onChange={e => handleUpdateCollab(c.id, 'Cargo', e.target.value)}
-                      className="w-full !bg-app-bg/50 border border-app-border rounded-xl px-3 py-2 focus:ring-0 font-bold text-app-text-muted uppercase text-xs"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-app-bg/30 p-3 rounded-xl border border-app-border">
-                      <label className="text-[8px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Custos</label>
-                      <div className="flex items-center gap-1">
-                        <span className="text-[10px] text-gray-500 font-black">R$</span>
-                        <input type="number" value={c.CustosIndividuais} onChange={e => handleUpdateCollab(c.id, 'CustosIndividuais', e.target.value)} className="w-full !bg-transparent border-none p-0 focus:ring-0 font-bold text-app-text-strong text-sm" />
-                      </div>
-                    </div>
-                    <div className="bg-app-bg/30 p-3 rounded-xl border border-app-border">
-                      <label className="text-[8px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Pró-labore</label>
-                      <div className="flex items-center gap-1">
-                        <span className="text-[10px] text-gray-500 font-black">R$</span>
-                        <input type="number" value={c.ProLabore} onChange={e => handleUpdateCollab(c.id, 'ProLabore', e.target.value)} className="w-full !bg-transparent border-none p-0 focus:ring-0 font-bold text-app-text-strong text-sm" />
-                      </div>
+                    <label className="text-[10px] font-black text-[#4B5563] uppercase tracking-[0.2em] mb-3 block">Selecionar Cliente</label>
+                    <div className="relative group">
+                      <select
+                        value={simParams.clientId}
+                        onChange={e => setSimParams({ ...simParams, clientId: e.target.value })}
+                        className="w-full bg-app-bg border border-app-border text-app-text-strong text-[11px] font-black uppercase rounded-2xl px-6 py-4 focus:outline-none focus:border-blue-500 transition-all appearance-none cursor-pointer shadow-xl"
+                      >
+                        <option value="">-- Escolher Cliente --</option>
+                        {clients.filter((c: any) => !c.__archived).map((c: any) => <option key={c.id} value={c.id}>{c.Nome}</option>)}
+                      </select>
+                      <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 text-[#4B5563] pointer-events-none group-hover:text-blue-500 transition-colors" size={16} />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 items-center pt-2">
-                    <div>
-                      <label className="text-[8px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Horas Prod.</label>
-                      <input type="number" value={c.HorasProdutivas} onChange={e => handleUpdateCollab(c.id, 'HorasProdutivas', e.target.value)} className="w-20 !bg-app-bg/50 border border-app-border rounded-lg px-2 py-1 text-center font-bold text-app-text-strong text-xs" />
+
+                  <div>
+                    <label className="text-[10px] font-black text-[#4B5563] uppercase tracking-[0.2em] mb-3 block">Alocar Colaborador</label>
+                    <div className="relative group">
+                      <select
+                        value={simParams.collaboratorId}
+                        onChange={e => setSimParams({ ...simParams, collaboratorId: e.target.value })}
+                        className="w-full bg-app-bg border border-app-border text-app-text-strong text-[11px] font-black uppercase rounded-2xl px-6 py-4 focus:outline-none focus:border-blue-500 transition-all appearance-none cursor-pointer shadow-xl"
+                      >
+                        <option value="">-- Escolher Profissional --</option>
+                        {vhResults.collabVHs.map((c: any) => <option key={c.id} value={c.id}>{c.Nome} (VH: {formatBRL(c.calculatedVh)})</option>)}
+                      </select>
+                      <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 text-[#4B5563] pointer-events-none group-hover:text-blue-500 transition-colors" size={16} />
                     </div>
-                    <div className="text-right">
-                      <label className="text-[8px] font-black uppercase text-[#3B82F6] block mb-1 tracking-widest">VH Calc.</label>
-                      <span className="font-black text-[#3B82F6] text-lg">R$ {c.calculatedVh.toFixed(2)}</span>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-black text-[#4B5563] uppercase tracking-[0.2em] mb-3 block">Horas Adicionais</label>
+                    <div className="flex items-center gap-4">
+                      <button onClick={() => setSimParams({ ...simParams, hours: Math.max(0, simParams.hours - 1) })} className="w-14 h-14 rounded-2xl border border-app-border bg-app-surface text-app-text-strong hover:bg-app-surface-2 flex items-center justify-center font-bold text-xl transition-all shadow-xl">-</button>
+                      <div className="flex-1 h-14 bg-app-bg border border-app-border rounded-2xl flex items-center justify-center font-mono font-black text-2xl text-blue-500 shadow-inner">{simParams.hours}</div>
+                      <button onClick={() => setSimParams({ ...simParams, hours: simParams.hours + 1 })} className="w-14 h-14 rounded-2xl border border-app-border bg-app-surface text-app-text-strong hover:bg-app-surface-2 flex items-center justify-center font-bold text-xl transition-all shadow-xl">+</button>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
 
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-left text-[11px]">
+                {/* Resultado Simulado */}
+                <div className="pt-8 border-t border-app-border relative z-10">
+                  {simResult ? (
+                    <div className="space-y-6 animate-fade">
+                      <div className="flex justify-between items-center bg-app-bg/30 p-4 rounded-xl border border-app-border">
+                        <span className="text-[10px] font-black text-[#4B5563] uppercase tracking-widest">Aumento de Custo</span>
+                        <span className="text-sm font-mono font-black text-rose-500 underline decoration-rose-500/30 decoration-2">+{formatBRL(simResult.diff)}</span>
+                      </div>
+
+                      <div className={`p-6 border rounded-[2rem] text-center flex flex-col items-center justify-center shadow-2xl ${simResult.newResult >= 0 ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-rose-500/5 border-rose-500/20'}`}>
+                        <span className={`text-[10px] font-black uppercase tracking-[0.3em] mb-2 ${simResult.newResult >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>Novo Resultado Projetado</span>
+                        <span className={`text-4xl font-black tracking-tighter ${simResult.newResult >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                          {formatBRL(simResult.newResult)}
+                        </span>
+                        <div className="flex items-center gap-2 mt-4">
+                          <span className={`text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full border ${simResult.newMargin > 20 ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' : 'bg-amber-500/20 border-amber-500/30 text-amber-400'}`}>
+                            {simResult.newMargin.toFixed(1)}% Margem
+                          </span>
+                        </div>
+                      </div>
+
+                      <button onClick={() => setSimParams({ clientId: '', collaboratorId: '', hours: 0 })} className="w-full text-center text-[10px] font-black uppercase text-[#4B5563] hover:text-app-text-strong transition-all underline tracking-[0.2em] decoration-zinc-800">
+                        Limpar Simulação
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="py-12 border-2 border-dashed border-app-border rounded-[2.5rem] flex flex-col items-center justify-center opacity-30 text-center px-10">
+                      <Calculator size={48} className="text-blue-500 mb-6" />
+                      <p className="text-[11px] font-black uppercase tracking-[0.3em] text-app-text-muted">Selecione dados acima para simular lucratividade</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================
+          VIEW: EQUIPE E CONFIGURAÇÕES
+          ========================================= */}
+      {activeSubTab === 'CONFIG' && (
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <Card title="Engenharia de Recursos" extra={
+            <Button onClick={handleAddCollab} className="h-10 px-6 text-[10px] !bg-blue-600 shadow-xl shadow-blue-500/20 font-black uppercase tracking-widest">
+              <Plus size={14} className="mr-2" /> Adicionar Membro
+            </Button>
+          }>
+            <div className="overflow-x-auto min-h-[400px]">
+              <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-app-border bg-app-surface-2">
-                    <th className="px-6 py-4 font-black uppercase text-[#4B5563] tracking-widest">Colaborador</th>
-                    <th className="px-6 py-4 font-black uppercase text-[#4B5563] tracking-widest">Cargo</th>
-                    <th className="px-6 py-4 font-black uppercase text-[#4B5563] tracking-widest">Custos Individuais</th>
-                    <th className="px-6 py-4 font-black uppercase text-[#4B5563] tracking-widest">Pró-labore</th>
-                    <th className="px-6 py-4 font-black uppercase text-[#4B5563] tracking-widest">Horas Produtivas</th>
-                    <th className="px-6 py-4 font-black uppercase text-[#3B82F6] tracking-widest">VH Calculado</th>
-                    <th className="px-6 py-4 text-right">Ação</th>
+                    <th className="px-8 py-5 text-[10px] font-black text-[#4B5563] uppercase tracking-[0.2em]">Colaborador</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-[#4B5563] uppercase tracking-[0.2em]">Custo Licenças</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-[#4B5563] uppercase tracking-[0.2em]">Remuneração Fixa</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-[#4B5563] uppercase tracking-[0.2em] text-center">Horas Produtivas</th>
+                    <th className="px-10 py-5 text-[10px] font-black text-blue-500 uppercase tracking-[0.3em] text-right">VH Final</th>
+                    <th className="px-8 py-5 text-[10px] font-black text-[#4B5563] uppercase tracking-[0.2em] text-center">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#1F2937]">
-                  {vhResults.collabVHs.map((c) => (
+                  {vhResults.collabVHs.map((c, idx) => (
                     <tr key={c.id} className="hover:bg-white/[0.02] transition-colors group">
-                      <td className="px-6 py-3"><input value={c.Nome} onChange={e => handleUpdateCollab(c.id, 'Nome', e.target.value)} className="w-full !bg-transparent border-none p-0 focus:ring-0 font-bold uppercase" /></td>
-                      <td className="px-6 py-3"><input value={c.Cargo} onChange={e => handleUpdateCollab(c.id, 'Cargo', e.target.value)} className="w-full !bg-transparent border-none p-0 focus:ring-0 font-medium text-app-text-muted uppercase" /></td>
-                      <td className="px-6 py-3"><div className="flex items-center gap-2"><span className="text-gray-600 font-black">R$</span><input type="number" value={c.CustosIndividuais} onChange={e => handleUpdateCollab(c.id, 'CustosIndividuais', e.target.value)} className="w-24 !bg-transparent border-none p-0 focus:ring-0 font-bold text-app-text-strong" /></div></td>
-                      <td className="px-6 py-3"><div className="flex items-center gap-2"><span className="text-gray-600 font-black">R$</span><input type="number" value={c.ProLabore} onChange={e => handleUpdateCollab(c.id, 'ProLabore', e.target.value)} className="w-24 !bg-transparent border-none p-0 focus:ring-0 font-bold text-app-text-strong" /></div></td>
-                      <td className="px-6 py-3"><input type="number" value={c.HorasProdutivas} onChange={e => handleUpdateCollab(c.id, 'HorasProdutivas', e.target.value)} className="w-16 !bg-transparent border-none p-0 focus:ring-0 font-bold text-app-text-strong" /></td>
-                      <td className="px-6 py-3"><span className="font-black text-[#3B82F6] text-xs">R$ {c.calculatedVh.toFixed(2)}</span></td>
-                      <td className="px-6 py-3 text-right">
-                        <button onClick={() => setCollaborators((prev: Collaborator[]) => prev.filter(p => p.id !== c.id))} className="text-rose-500/20 hover:text-rose-500 transition-all opacity-0 group-hover:opacity-100"><i className="fa-solid fa-trash-can"></i></button>
+                      <td className="px-8 py-5">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-2xl bg-zinc-800 text-zinc-400 flex items-center justify-center font-black text-xs uppercase shadow-inner border border-zinc-700/50"><User size={18} /></div>
+                          <div className="flex flex-col">
+                            <input
+                              type="text" value={c.Nome}
+                              onChange={(e) => handleUpdateCollab(c.id, 'Nome', e.target.value)}
+                              className="bg-transparent font-black text-sm text-app-text-strong focus:outline-none focus:bg-app-bg px-2 py-1 rounded-lg transition-all w-48 uppercase tracking-tight"
+                            />
+                            <input
+                              type="text" value={c.Cargo}
+                              onChange={(e) => handleUpdateCollab(c.id, 'Cargo', e.target.value)}
+                              className="bg-transparent text-[10px] font-bold text-[#4B5563] focus:outline-none focus:bg-app-bg px-2 py-0.5 rounded-md transition-all w-48 mt-0.5 uppercase tracking-widest"
+                            />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5">
+                        <div className="relative group/input flex items-center">
+                          <span className="text-[10px] font-mono text-[#4B5563] mr-2">R$</span>
+                          <input
+                            type="number" value={c.CustosIndividuais}
+                            onChange={(e) => handleUpdateCollab(c.id, 'CustosIndividuais', e.target.value)}
+                            className="w-24 bg-app-bg/50 border border-app-border font-mono text-sm font-black text-amber-500 focus:outline-none focus:border-amber-500/50 px-3 py-2 rounded-xl transition-all shadow-inner"
+                          />
+                        </div>
+                      </td>
+                      <td className="px-6 py-5">
+                        <div className="relative group/input flex items-center">
+                          <span className="text-[10px] font-mono text-[#4B5563] mr-2">R$</span>
+                          <input
+                            type="number" value={c.ProLabore}
+                            onChange={(e) => handleUpdateCollab(c.id, 'ProLabore', e.target.value)}
+                            className="w-28 bg-app-bg/50 border border-app-border font-mono text-sm font-black text-emerald-500 focus:outline-none focus:border-emerald-500/50 px-3 py-2 rounded-xl transition-all shadow-inner"
+                          />
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <input
+                            type="number" value={c.HorasProdutivas}
+                            onChange={(e) => handleUpdateCollab(c.id, 'HorasProdutivas', e.target.value)}
+                            className="w-16 bg-app-bg/50 border border-app-border text-center font-mono text-sm font-black text-app-text-strong focus:outline-none focus:border-blue-500/50 px-2 py-2 rounded-xl transition-all shadow-inner"
+                          />
+                          <span className="text-[10px] font-black text-[#4B5563]">H</span>
+                        </div>
+                      </td>
+                      <td className="px-10 py-5 text-right">
+                        <span className="inline-flex bg-blue-500/10 border border-blue-500/20 text-blue-500 font-mono font-black text-sm px-4 py-2 rounded-2xl shadow-lg shadow-blue-500/5">
+                          {formatBRL(c.calculatedVh)}/h
+                        </span>
+                      </td>
+                      <td className="px-8 py-5 text-center">
+                        <button
+                          onClick={() => setCollaborators((prev: Collaborator[]) => prev.filter(p => p.id !== c.id))}
+                          className="w-10 h-10 rounded-2xl bg-rose-500/5 text-rose-500 hover:bg-rose-500 hover:text-white transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center shadow-xl"
+                        >
+                          <Trash2 size={18} />
+                        </button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          </Card>
-        </div>
-      )}
 
-      {activeSubTab === 'CLIENTES' && (
-        <div className="space-y-10 animate-fade">
-          <div className="flex flex-col lg:flex-row gap-8">
-            {/* Main Profitability Table */}
-            <div className="flex-[2] space-y-6">
-              <Card title="Relatório de Lucratividade Operacional" extra={
-                <div className="flex bg-app-bg rounded-lg p-1 border border-app-border">
-                  <button onClick={() => setViewMode('CLIENT')} className={`px-4 py-1 rounded text-[8px] font-black uppercase transition-all ${viewMode === 'CLIENT' ? 'bg-[#3B82F6] text-app-text-strong shadow-md' : 'text-[#4B5563]'}`}>Cliente</button>
-                  <button onClick={() => setViewMode('COLLABORATOR')} className={`px-4 py-1 rounded text-[8px] font-black uppercase transition-all ${viewMode === 'COLLABORATOR' ? 'bg-[#3B82F6] text-app-text-strong shadow-md' : 'text-[#4B5563]'}`}>Time</button>
-                </div>
-              }>
-                {/* Mobile Card View */}
-                <div className="md:hidden space-y-4">
-                  {vhResults.profitability.map((p) => (
-                    <div key={p.id} className="p-5 bg-app-surface border border-app-border rounded-[2rem] relative shadow-lg">
-                      <div className="flex justify-between items-start mb-4 border-b border-app-border pb-4">
-                        <h4 className="font-black text-app-text-strong uppercase text-sm tracking-tight">{p.name}</h4>
-                        <div className="text-right">
-                          <span className={`font-black text-lg block ${p.result >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>R$ {p.result.toLocaleString('pt-BR')}</span>
-                          <span className="text-[8px] font-black uppercase text-[#4B5563] tracking-widest">Resultado</span>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-y-4 gap-x-2 text-xs pt-2">
-                        <div className="bg-app-bg/30 p-3 rounded-xl border border-app-border">
-                          <label className="text-[8px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Horas</label>
-                          <span className="font-black text-app-text-strong flex items-center gap-1.5"><i className="fa-solid fa-clock text-[9px] text-[#3B82F6]"></i> {p.hours.toFixed(1)}h</span>
-                        </div>
-                        <div className="bg-app-bg/30 p-3 rounded-xl border border-app-border">
-                          <label className="text-[8px] font-black uppercase text-[#4B5563] block mb-1 tracking-widest">Faturamento</label>
-                          <span className="font-black text-emerald-500">R$ {p.billing.toLocaleString('pt-BR')}</span>
-                        </div>
-                        <div className="col-span-2 bg-app-bg/30 p-3 rounded-xl border border-app-border">
-                          <div className="flex justify-between items-center">
-                            <label className="text-[8px] font-black uppercase text-[#4B5563] tracking-widest">Custo Operacional</label>
-                            <span className="font-black text-rose-500">R$ {p.cost.toLocaleString('pt-BR')}</span>
-                          </div>
-                          <div className="w-full h-1.5 bg-gray-800 rounded-full mt-2 overflow-hidden">
-                            <div className="h-full bg-rose-500 rounded-full" style={{ width: `${Math.min((p.cost / (p.billing || 1)) * 100, 100)}%` }}></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="hidden md:block overflow-x-auto">
-                  <table className="w-full text-left text-[10px]">
-                    <thead>
-                      <tr className="border-b border-app-border bg-app-surface-2">
-                        <th className="px-6 py-4 font-black uppercase text-[#4B5563] tracking-widest">{viewMode === 'CLIENT' ? 'Alvo' : 'Profissional'}</th>
-                        <th className="px-6 py-4 font-black uppercase text-[#4B5563] tracking-widest">Horas Reais</th>
-                        <th className="px-6 py-4 font-black uppercase text-[#4B5563] tracking-widest">Custo de Operação</th>
-                        <th className="px-6 py-4 font-black uppercase text-[#4B5563] tracking-widest">Faturamento Ativo</th>
-                        <th className="px-6 py-4 font-black uppercase text-[#4B5563] tracking-widest text-right">Resultado</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#1F2937]">
-                      {vhResults.profitability.map((p) => (
-                        <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
-                          <td className="px-6 py-4 font-bold text-app-text-strong uppercase">{p.name}</td>
-                          <td className="px-6 py-4 font-medium text-app-text-muted italic"><i className="fa-solid fa-cloud-arrow-down mr-2 text-[8px] opacity-40"></i>{p.hours.toFixed(1)}h</td>
-                          <td className="px-6 py-4 font-bold text-gray-300">R$ {p.cost.toLocaleString('pt-BR')}</td>
-                          <td className="px-6 py-4 font-bold text-gray-300">R$ {p.billing.toLocaleString('pt-BR')}</td>
-                          <td className={`px-6 py-4 font-black text-right ${p.result >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                            R$ {p.result.toLocaleString('pt-BR')}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </Card>
-              <div className="p-4 bg-blue-500/5 border border-blue-500/10 rounded-2xl flex items-center gap-4">
-                <i className="fa-solid fa-circle-info text-blue-500 text-lg"></i>
-                <p className="text-[9px] font-bold text-app-text-muted uppercase tracking-widest">
-                  As horas são importadas automaticamente do <span className="text-app-text-strong">Fluxo de Tarefas</span> (campo "Tempo Gasto H") e o faturamento das entradas vinculadas em <span className="text-app-text-strong">Finanças</span>.
+            <div className="p-8 bg-app-bg/50 border-t border-app-border text-center">
+              <div className="inline-flex items-center gap-3 bg-app-bg px-6 py-3 rounded-full border border-app-border shadow-xl">
+                <Zap size={14} className="text-amber-500" />
+                <p className="text-[10px] font-black text-[#4B5563] uppercase tracking-[0.3em]">
+                  Engenharia VH: <span className="text-app-text-strong">(Custos + Remuneração) ÷ Horas</span>
                 </p>
               </div>
             </div>
-
-            {/* Simulator Side Panel */}
-            <div className="flex-1">
-              <Card title="Simulador de Impacto">
-                <div className="p-8 space-y-6">
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-[9px] font-black uppercase text-[#4B5563] block mb-2 tracking-widest">Selecionar Cliente</label>
-                      <select
-                        value={simParams.clientId}
-                        onChange={e => setSimParams({ ...simParams, clientId: e.target.value })}
-                        className="w-full !h-10 text-[11px] font-bold uppercase"
-                      >
-                        <option value="">-- Escolher Cliente --</option>
-                        {clients.map(c => <option key={c.id} value={c.id}>{c.Nome}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-[9px] font-black uppercase text-[#4B5563] block mb-2 tracking-widest">Alocar Colaborador</label>
-                      <select
-                        value={simParams.collaboratorId}
-                        onChange={e => setSimParams({ ...simParams, collaboratorId: e.target.value })}
-                        className="w-full !h-10 text-[11px] font-bold uppercase"
-                      >
-                        <option value="">-- Escolher Profissional --</option>
-                        {vhResults.collabVHs.map(c => <option key={c.id} value={c.id}>{c.Nome}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-[9px] font-black uppercase text-[#4B5563] block mb-2 tracking-widest">Horas Adicionais</label>
-                      <Stepper value={simParams.hours} onChange={val => setSimParams({ ...simParams, hours: val })} min={0} max={100} className="!w-full" />
-                    </div>
-                  </div>
-
-                  {simResult ? (
-                    <div className="pt-6 border-t border-app-border space-y-4 animate-fade">
-                      <div className="flex justify-between items-center text-[10px] font-bold">
-                        <span className="text-app-text-muted uppercase tracking-widest">Aumento de Custo</span>
-                        <span className="text-rose-500">+ R$ {simResult.diff.toFixed(2)}</span>
-                      </div>
-                      <div className="p-6 bg-app-surface-2 border border-app-border rounded-2xl text-center space-y-2">
-                        <p className="text-[9px] font-black uppercase text-app-text-muted tracking-[0.2em]">Novo Resultado Projetado</p>
-                        <p className={`text-2xl font-black ${simResult.newResult >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                          R$ {simResult.newResult.toLocaleString('pt-BR')}
-                        </p>
-                        <Badge color={simResult.newMargin > 20 ? 'green' : 'orange'} className="!text-[8px]">{simResult.newMargin.toFixed(1)}% Margem</Badge>
-                      </div>
-                      <button onClick={() => setSimParams({ clientId: '', collaboratorId: '', hours: 0 })} className="w-full text-center text-[9px] font-black uppercase text-gray-600 hover:text-app-text-strong transition-all underline tracking-widest">Limpar Simulação</button>
-                    </div>
-                  ) : (
-                    <div className="py-10 text-center opacity-20 border-2 border-dashed border-app-border rounded-3xl">
-                      <i className="fa-solid fa-calculator text-3xl mb-3"></i>
-                      <p className="text-[9px] font-bold uppercase tracking-widest px-4">Selecione dados acima para simular lucratividade</p>
-                    </div>
-                  )}
-                </div>
-              </Card>
-            </div>
-          </div>
+          </Card>
         </div>
       )}
     </div>
