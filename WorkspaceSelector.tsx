@@ -30,26 +30,34 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
         <button
             ref={buttonRef}
             onClick={toggleOpen}
-            className="flex items-center gap-3 p-1.5 pr-3 rounded-xl border border-transparent hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all focus:outline-none group"
+            className="flex items-center gap-3 p-1.5 pr-4 rounded-xl border border-transparent hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all focus:outline-none group"
         >
-            <div className="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow-md text-xs tracking-wider shrink-0 transition-transform group-active:scale-95">
+            <div className="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center font-black text-white shadow-lg shadow-indigo-600/20 text-xs tracking-wider shrink-0 transition-transform group-active:scale-95">
                 {currentWorkspace?.name?.substring(0, 2).toUpperCase() || 'EK'}
             </div>
             <div className="text-left hidden sm:block">
-                <p className="text-[10px] text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-widest leading-none mb-0.5">Workspace</p>
-                <h2 className="text-sm font-black text-gray-900 dark:text-white leading-none truncate max-w-[120px]">
-                    {currentWorkspace?.name || 'Carregando...'}
-                </h2>
+                <p className="text-[9px] text-gray-500 dark:text-zinc-500 font-black uppercase tracking-[0.15em] leading-none mb-1">Workspace</p>
+                <div className="flex items-center gap-2">
+                    <h2 className="text-sm font-black text-gray-900 dark:text-white leading-none truncate max-w-[140px]">
+                        {currentWorkspace?.name || 'Carregando...'}
+                    </h2>
+                    <ChevronDown size={14} className={`text-gray-400 dark:text-zinc-600 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                </div>
             </div>
-            <ChevronDown size={16} className={`text-gray-400 dark:text-zinc-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+            <div className="sm:hidden">
+                <ChevronDown size={16} className={`text-gray-400 dark:text-zinc-600 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+            </div>
         </button>
     );
 
     const DropdownContent = () => (
         <div className="flex flex-col w-80 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden font-sans">
-            <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100 dark:border-zinc-800 bg-gray-50 dark:bg-[#0a0a0c]">
-                <span className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest">Opções do Workspace</span>
-                <button onClick={() => setIsOpen(false)} className="p-1 text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-md transition-colors">
+            <div className="flex justify-between items-center px-4 py-3.5 border-b border-gray-100 dark:border-zinc-800 bg-gray-50 dark:bg-[#0a0a0c]">
+                <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                    <span className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest">Workspaces</span>
+                </div>
+                <button onClick={() => setIsOpen(false)} className="p-1.5 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-md transition-colors">
                     <X size={16} />
                 </button>
             </div>

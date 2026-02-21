@@ -4,7 +4,7 @@ import { UserProfile, Task } from './types';
 import { Button } from './Components';
 import { BottomSheet } from './components/BottomSheet';
 import { PortalPopover } from './components/PortalPopover';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, X, ChevronDown, Activity, Calendar, Check } from 'lucide-react';
 
 interface ProfilePopoverProps {
     profile: UserProfile;
@@ -19,7 +19,7 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
     const [isEditingRole, setIsEditingRole] = useState(false);
     const [newName, setNewName] = useState(profile.full_name);
     const [newRole, setNewRole] = useState(profile.role || '');
-    const [activeTab, setActiveTab] = useState('Atividade');
+    const [activeTab, setActiveTab] = useState('ATIVIDADE');
     const [isContentExpanded, setIsContentExpanded] = useState(false);
     const [newPriority, setNewPriority] = useState('');
     const [isAddingPriority, setIsAddingPriority] = useState(false);
@@ -101,7 +101,17 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
     const isMobile = window.innerWidth < 1024;
 
     const content = (
-        <div className="bg-app-surface h-full flex flex-col overflow-hidden">
+        <div className="bg-app-surface h-full flex flex-col overflow-hidden relative">
+            {/* Botão de Fechar */}
+            <div className="absolute top-4 right-4 z-10">
+                <button
+                    onClick={() => setIsOpen(false)}
+                    className="p-1.5 text-gray-400 hover:text-rose-500 dark:text-zinc-500 dark:hover:text-rose-400 rounded-lg transition-colors"
+                >
+                    <X size={18} />
+                </button>
+            </div>
+
             {/* POPUP HEADER */}
             <div className="p-8 pb-4 shrink-0">
                 <div className="flex items-start justify-between mb-8">
@@ -123,38 +133,41 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
                 </div>
 
                 <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                        <h3 className="text-xl md:text-2xl font-black text-white leading-tight tracking-tight uppercase">
-                            {profile.full_name || 'Configurar Nome'}
-                        </h3>
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-                    </div>
-                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">{profile.role || 'ESPECIALISTA EKKO'}</p>
-                </div>
+                    <h2 className="text-xl md:text-2xl font-black text-white leading-tight tracking-tight uppercase mb-1">
+                        {profile.full_name || 'Configurar Nome'}
+                    </h2>
+                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-4">
+                        {profile.role || 'ESPECIALISTA EKKO'}
+                    </p>
 
-                <div className="mt-8">
+                    {/* Status & Email (Mesma linha) */}
+                    <div className="inline-flex items-center gap-2 mb-6">
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-full">
+                            <div className={`w-2 h-2 rounded-full ${statusColors[profile.status]}`}></div>
+                            <span className="text-[10px] font-bold text-gray-700 dark:text-zinc-300 uppercase tracking-wider">{profile.status}</span>
+                        </div>
+                        <span className="text-xs text-gray-500 dark:text-zinc-500 font-medium truncate max-w-[180px]">{profile.email}</span>
+                    </div>
+
+                    {/* Botão Mágico Standup */}
                     <button
                         onClick={() => alert('Gerando seu StandUp diário com IA...')}
-                        className="w-full h-12 bg-gradient-to-r from-purple-600 to-indigo-700 rounded-xl text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:brightness-110 active:scale-[0.98] transition-all shadow-[0_10px_20px_rgba(147,51,234,0.2)]"
+                        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-indigo-500/25 transition-all"
                     >
-                        <Sparkles size={16} />
-                        Obter StandUp Diário
+                        <Sparkles size={16} /> OBTER STANDUP DIÁRIO
                     </button>
                 </div>
             </div>
 
             {/* TABS SELECTOR */}
-            <div className="flex px-8 border-b border-white/5 bg-[#0a0a0c]/40 backdrop-blur-md sticky top-0 z-10">
-                {['ATIVIDADE', 'TAREFAS', 'CALENDÁRIO'].map(tab => (
+            <div className="flex px-6 mt-6 border-b border-gray-200 dark:border-zinc-800 shrink-0 bg-transparent">
+                {['ATIVIDADE', 'TAREFAS (0)', 'CALENDÁRIO'].map(tab => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
-                        className={`py-4 px-4 text-[10px] font-black uppercase tracking-widest transition-all relative ${activeTab === tab ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                        className={`flex-1 pb-3 text-[10px] font-bold uppercase tracking-wider transition-all border-b-2 ${activeTab === tab ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-300'}`}
                     >
                         {tab}
-                        {activeTab === tab && (
-                            <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
-                        )}
                     </button>
                 ))}
             </div>
@@ -162,7 +175,7 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
             {/* COLLAPSIBLE CONTENT AREA */}
             <div className={`transition-all duration-300 flex-1 overflow-hidden flex flex-col ${isContentExpanded ? 'opacity-100' : 'max-h-0 opacity-0'}`}>
                 <div className="p-6 md:p-10 space-y-8 bg-app-surface-2/30 overflow-y-auto custom-scrollbar flex-1">
-                    {activeTab === 'Atividade' && (
+                    {activeTab === 'ATIVIDADE' && (
                         <div className="space-y-6">
                             <div className="flex items-center justify-between">
                                 <span className="text-[10px] font-black uppercase text-app-text-strong tracking-widest">Feed de Ações</span>
@@ -181,7 +194,7 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
                         </div>
                     )}
 
-                    {activeTab === 'Tarefas' && (
+                    {activeTab === 'TAREFAS (0)' && (
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <span className="text-[10px] font-black uppercase text-app-text-strong tracking-widest">Minhas Urgências</span>
@@ -204,7 +217,7 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
                         </div>
                     )}
 
-                    {activeTab === 'Calendário' && (
+                    {activeTab === 'CALENDÁRIO' && (
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <span className="text-[10px] font-black uppercase text-app-text-strong tracking-widest">Meus Prazos</span>
@@ -283,13 +296,12 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
             </div>
 
             {!isContentExpanded && (
-                <div className="px-6 md:px-10 pb-10 pt-4 shrink-0">
+                <div className="p-4 bg-white dark:bg-[#111114] border-t border-gray-200 dark:border-zinc-800 shrink-0">
                     <button
                         onClick={() => setIsContentExpanded(true)}
-                        className="w-full py-4 border border-dashed border-app-border rounded-2xl text-[9px] font-black uppercase tracking-[0.3em] text-app-text-muted hover:text-app-text-strong hover:border-app-text-muted transition-all bg-app-surface/50 active:scale-95"
+                        className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-bold text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-lg transition-colors uppercase tracking-wider"
                     >
-                        <i className="fa-solid fa-angle-down mr-2 animate-bounce"></i>
-                        Expandir Painel Completo
+                        Expandir Painel Completo <ChevronDown size={14} />
                     </button>
                 </div>
             )}

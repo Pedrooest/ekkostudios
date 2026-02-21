@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Workspace, WorkspaceMember, Invite } from './types';
 import { DatabaseService } from './DatabaseService';
-import { Settings, X, Users, UserPlus, Link, Trash2, Shield, Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import { Settings, X, Users, UserPlus, Link, Trash2, Shield, Eye, EyeOff, AlertTriangle, ChevronDown } from 'lucide-react';
 
 interface WorkspaceSettingsModalProps {
     workspace: Workspace;
@@ -43,7 +43,6 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
         try {
             const invite = await DatabaseService.createInvite(workspace.id, inviteRole);
             setInvites(prev => [invite, ...prev]);
-            // Generate Link
             const link = `${window.location.origin}?invite=${invite.token}`;
             setGeneratedLink(link);
         } catch (e) {
@@ -72,182 +71,174 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
     };
 
     return (
-        // RESPONSIVE MODAL CONTAINER
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade p-4">
-            <div className="bg-[#0F172A] border border-white/10 w-full max-w-[600px] max-h-[90vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden">
-                <div className="p-8 border-b border-white/5 flex justify-between items-center bg-[#111827]">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-900/40">
-                            <Settings size={22} />
-                        </div>
-                        <div>
-                            <h2 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight leading-tight">Configurações</h2>
-                            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">Workspace: {workspace.name}</p>
-                        </div>
+            <div className="relative w-full max-w-2xl bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                {/* Header */}
+                <div className="px-6 py-5 border-b border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-[#0a0a0c] flex justify-between items-start shrink-0">
+                    <div>
+                        <h2 className="text-lg font-black text-gray-900 dark:text-white tracking-tight leading-tight">Gerenciar Membros</h2>
+                        <p className="text-[10px] text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-widest mt-1">Workspace: {workspace.name}</p>
                     </div>
-                    <button onClick={onClose} className="w-10 h-10 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-all active:scale-95">
+                    <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-200 dark:text-zinc-500 dark:hover:text-white dark:hover:bg-zinc-800 rounded-lg transition-colors">
                         <X size={20} />
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-5 md:p-6 space-y-6 md:space-y-8">
-
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-5 md:p-6 space-y-8 text-gray-900 dark:text-zinc-300">
                     {/* MEMBERS SECTION */}
                     <section>
-                        <h3 className="text-xs font-black text-blue-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <i className="fa-solid fa-users"></i> Membros Ativos
+                        <h3 className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-indigo-500"></div> Membros Ativos ({members.length})
                         </h3>
-                        <div className="bg-[#111827] border border-white/5 rounded-2xl overflow-hidden">
+                        <div className="space-y-3">
                             {loading ? (
-                                <div className="p-4 text-center text-gray-500 text-xs uppercase font-bold">Carregando...</div>
+                                <div className="p-8 text-center text-gray-500 text-xs uppercase font-bold bg-gray-50 dark:bg-zinc-900/50 rounded-2xl border border-dashed border-gray-200 dark:border-zinc-800">
+                                    Carregando membros...
+                                </div>
                             ) : (
-                                <div className="divide-y divide-white/5">
-                                    {members.map(member => (
-                                        <div key={member.user_id} className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-white/5 transition-all group">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-gray-700 to-gray-600 flex items-center justify-center text-sm font-bold text-white uppercase shrink-0">
-                                                    {member.profiles?.full_name?.substring(0, 2) || 'US'}
-                                                </div>
-                                                <div className="overflow-hidden">
-                                                    <p className="text-sm font-bold text-white flex items-center gap-2 truncate">
-                                                        {member.profiles?.full_name || 'Usuário'}
-                                                        {member.profiles?.email === currentUserEmail && <span className="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded uppercase tracking-wider shrink-0">Você</span>}
-                                                    </p>
-                                                    <p className="text-xs text-app-text-muted truncate">{member.profiles?.email}</p>
-                                                </div>
+                                members.map(member => (
+                                    <div key={member.user_id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl border border-gray-200 dark:border-zinc-800/80 bg-gray-50 dark:bg-[#151518] transition-colors gap-4 group">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400 flex items-center justify-center text-sm font-bold shrink-0 border border-black/5 dark:border-white/5">
+                                                {member.profiles?.full_name?.substring(0, 2).toUpperCase() || 'US'}
                                             </div>
-                                            <div className="flex items-center justify-between md:justify-end gap-4 w-full md:w-auto mt-2 md:mt-0">
-                                                <span className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider ${member.role === 'admin' ? 'bg-purple-500/10 text-purple-500' :
-                                                    member.role === 'editor' ? 'bg-blue-500/10 text-blue-500' :
-                                                        'bg-gray-500/10 text-gray-500'
-                                                    }`}>
-                                                    {member.role}
-                                                </span>
-
-                                                {isAdmin && member.profiles?.email !== currentUserEmail && (
-                                                    <button
-                                                        onClick={() => handleRemoveMember(member.user_id)}
-                                                        className="w-8 h-8 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white flex items-center justify-center transition-all md:opacity-0 group-hover:opacity-100 active:scale-95"
-                                                        title="Remover Membro"
-                                                    >
-                                                        <i className="fa-solid fa-trash-can text-xs"></i>
-                                                    </button>
-                                                )}
+                                            <div className="flex flex-col">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm font-bold text-gray-900 dark:text-zinc-200 leading-none">{member.profiles?.full_name || 'Usuário'}</span>
+                                                    {member.profiles?.email === currentUserEmail && <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-indigo-600 text-white leading-none">Você</span>}
+                                                </div>
+                                                <span className="text-xs text-gray-500 dark:text-zinc-500 mt-1 leading-none truncate max-w-[200px]">{member.profiles?.email}</span>
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
+
+                                        <div className="flex items-center gap-3">
+                                            <span className={`text-xs font-bold px-3 py-1.5 rounded-lg border ${member.role === 'admin' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-500/20' : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 border-gray-200 dark:border-zinc-700'}`}>
+                                                {member.role === 'admin' ? 'Administrador' : member.role === 'editor' ? 'Editor' : 'Visualizador'}
+                                            </span>
+                                            {isAdmin && member.profiles?.email !== currentUserEmail && (
+                                                <button
+                                                    onClick={() => handleRemoveMember(member.user_id)}
+                                                    className="p-1.5 text-gray-400 hover:text-rose-600 dark:text-zinc-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-md transition-colors md:opacity-0 group-hover:opacity-100"
+                                                    title="Remover Acesso"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))
                             )}
                         </div>
                     </section>
 
                     {/* INVITE SECTION */}
                     <section>
-                        <h3 className="text-xs font-black text-emerald-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <i className="fa-solid fa-user-plus"></i> Convidar Membro
+                        <h3 className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500"></div> Convidar Novo Membro
                         </h3>
-                        <div className="bg-[#111827] border border-white/5 rounded-2xl p-5 md:p-6 space-y-6">
 
-                            {/* Invite Form */}
-                            <div className="flex flex-col md:flex-row gap-4 items-end">
-                                <div className="w-full md:flex-1 space-y-2">
-                                    <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Função de Acesso</label>
+                        <div className="bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 rounded-2xl p-5">
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <div className="flex-1 relative">
+                                    <input
+                                        type="email"
+                                        readOnly
+                                        value={generatedLink ? "Convite Gerado" : ""}
+                                        placeholder="Email do colaborador..."
+                                        className="w-full bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white text-sm font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-500 transition-colors placeholder-gray-400 dark:placeholder-zinc-600 shadow-sm"
+                                    />
+                                </div>
+                                <div className="sm:w-40 relative shrink-0">
                                     <select
                                         value={inviteRole}
                                         onChange={(e) => setInviteRole(e.target.value)}
-                                        className="w-full bg-[#0B0F19] border border-white/10 text-white text-xs rounded-xl px-4 h-12 outline-none focus:border-blue-500 transition-colors appearance-none cursor-pointer"
+                                        className="w-full bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 text-sm font-medium rounded-xl pl-4 pr-10 py-3 focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-500 transition-colors appearance-none cursor-pointer shadow-sm"
                                     >
-                                        <option value="viewer">Visualizador (Somente Leitura)</option>
-                                        <option value="editor">Editor (Pode Editar)</option>
-                                        <option value="admin">Administrador (Controle Total)</option>
+                                        <option value="editor">Editor</option>
+                                        <option value="viewer">Visualizador</option>
+                                        <option value="admin">Admin</option>
                                     </select>
-                                    <p className="text-[9px] text-gray-500 px-1">Defina o nível de permissão do novo membro.</p>
+                                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                 </div>
-
                                 <button
                                     onClick={handleCreateInvite}
-                                    className="w-full md:w-auto px-8 h-12 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wide rounded-xl transition-all shadow-lg shadow-emerald-900/20 active:scale-95 flex items-center justify-center gap-2"
+                                    className="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-500/20 shrink-0"
                                 >
-                                    <i className="fa-solid fa-link"></i> Gerar Link
+                                    <Link size={16} /> Gerar Link
                                 </button>
                             </div>
 
-                            {/* Generated Link Result */}
                             {generatedLink && (
-                                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 flex flex-col gap-3 animate-fade">
+                                <div className="mt-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Link Gerado com Sucesso</span>
-                                        <button onClick={copyLink} className="text-emerald-400 hover:text-white transition-colors text-xs font-black uppercase flex items-center gap-2 bg-emerald-500/10 px-3 py-1.5 rounded-lg hover:bg-emerald-500/20">
-                                            <i className="fa-regular fa-copy"></i> Copiar
+                                        <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Link Gerado</span>
+                                        <button onClick={copyLink} className="text-emerald-400 hover:text-white transition-colors text-xs font-bold uppercase flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-emerald-500/20">
+                                            Copiar Link
                                         </button>
                                     </div>
-                                    <div className="bg-[#0B0F19] rounded-lg px-4 py-3 text-xs text-gray-300 font-mono break-all border border-white/5 select-all">
+                                    <div className="bg-white dark:bg-zinc-900 rounded-lg px-4 py-3 text-xs text-gray-600 dark:text-zinc-300 font-mono break-all border border-gray-200 dark:border-zinc-800 select-all">
                                         {generatedLink}
                                     </div>
-                                    <p className="text-[9px] text-emerald-500/60 font-medium">Envie este link para o convidado. Ele expira em 24h.</p>
                                 </div>
                             )}
 
-                            {/* Pending Invites List */}
-                            {invites.length > 0 && (
-                                <div className="mt-6 pt-6 border-t border-white/5">
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-orange-500"></div>
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Convites Pendentes ({invites.length})</p>
-                                    </div>
-                                    <div className="space-y-3 bg-black/20 rounded-xl p-2 max-h-[150px] overflow-y-auto custom-scrollbar">
-                                        {invites.map(inv => (
-                                            <div key={inv.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/5">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded bg-gray-700/50 flex items-center justify-center text-gray-400 text-xs">
-                                                        <i className="fa-solid fa-ticket"></i>
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-[10px] font-bold text-gray-300 uppercase">Função: <span className="text-white">{inv.role}</span></p>
-                                                        <p className="text-[9px] text-gray-500">Expira: {new Date(inv.expires_at).toLocaleDateString()}</p>
-                                                    </div>
-                                                </div>
-                                                <button className="text-[9px] font-bold text-rose-500/50 hover:text-rose-500 uppercase tracking-wider px-2 py-1 hover:bg-rose-500/10 rounded transition-all">
-                                                    Cancelar
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+                            <p className="text-[11px] text-gray-500 dark:text-zinc-500 font-medium mt-3">
+                                Ao gerar o link, envie-o para o colaborador. O acesso será concedido automaticamente ao entrar.
+                            </p>
                         </div>
                     </section>
 
+                    {/* PENDING INVITES */}
+                    {invites.length > 0 && (
+                        <section>
+                            <h3 className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-amber-500"></div> Convites Pendentes ({invites.length})
+                            </h3>
+                            <div className="space-y-2">
+                                {invites.map(inv => (
+                                    <div key={inv.id} className="flex items-center justify-between p-3.5 rounded-xl border border-gray-200 dark:border-zinc-800/50 bg-white dark:bg-[#111114] transition-colors">
+                                        <div className="flex element-center gap-3">
+                                            <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center border border-amber-500/20">
+                                                <UserPlus size={14} />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-bold text-gray-700 dark:text-zinc-300 leading-none mb-1">Convite {inv.role}</span>
+                                                <span className="text-[10px] text-gray-400 dark:text-zinc-500 leading-none">Válido até {new Date(inv.expires_at).toLocaleDateString()}</span>
+                                            </div>
+                                        </div>
+                                        <button className="px-3 py-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg text-xs font-bold transition-colors">
+                                            Cancelar
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
                     {/* DANGER ZONE */}
                     {isAdmin && (
-                        <section className="pt-4 border-t border-white/5">
-                            <h3 className="text-xs font-black text-rose-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                <i className="fa-solid fa-triangle-exclamation"></i> Zona de Perigo
+                        <section className="pt-6 border-t border-gray-200 dark:border-zinc-800">
+                            <h3 className="text-xs font-bold text-rose-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <AlertTriangle size={14} /> Zona de Perigo
                             </h3>
-                            <div className="bg-rose-500/5 border border-rose-500/10 rounded-2xl p-5">
-                                <p className="text-xs text-gray-400 mb-4">
-                                    A exclusão do workspace é permanente e removerá todos os dados associados (clientes, tarefas, etc.).
+                            <div className="bg-rose-50 dark:bg-rose-500/5 border border-rose-100 dark:border-rose-500/20 rounded-2xl p-5">
+                                <p className="text-xs text-gray-600 dark:text-zinc-400 mb-4">
+                                    A exclusão do workspace é irreversível. Todos os dados serão removidos.
                                 </p>
                                 <button
                                     onClick={async () => {
-                                        const confirmName = window.prompt(`Para confirmar, digite o nome do workspace: "${workspace.name}"`);
-                                        if (confirmName !== workspace.name) {
-                                            if (confirmName) alert('Nome incorreto.');
-                                            return;
-                                        }
-
+                                        const confirmName = window.prompt(`Digite "${workspace.name}" para confirmar:`);
+                                        if (confirmName !== workspace.name) return;
                                         try {
                                             await DatabaseService.deleteWorkspace(workspace.id);
-                                            alert('Workspace excluído com sucesso.');
                                             onWorkspaceDeleted?.();
                                         } catch (e: any) {
-                                            console.error(e);
-                                            alert('Erro ao excluir workspace: ' + (e.message || e));
+                                            alert('Erro: ' + (e.message || e));
                                         }
                                     }}
-                                    className="w-full bg-rose-500 hover:bg-rose-600 text-white text-xs font-black uppercase tracking-wide rounded-xl py-3 transition-all flex items-center justify-center gap-2"
+                                    className="w-full bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold uppercase tracking-widest py-3 rounded-xl transition-all shadow-lg shadow-rose-500/20"
                                 >
-                                    <i className="fa-solid fa-trash-can"></i> Excluir Workspace Permanentemente
+                                    Excluir Workspace Permanentemente
                                 </button>
                             </div>
                         </section>

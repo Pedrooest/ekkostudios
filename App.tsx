@@ -1248,9 +1248,16 @@ export default function App() {
             <div className="h-6 w-px bg-gray-200 dark:bg-white/10 hidden sm:block"></div>
 
             <div className="flex items-center gap-2">
-              <Button variant="secondary" onClick={() => setIsAssistantOpen(true)} className="hidden md:flex !border-blue-600/30 hover:!border-blue-600 !text-blue-500 !rounded-xl !h-10 !px-4 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2">
-                <Sparkles size={16} /> Assistente Gemini
-              </Button>
+              <button className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:border-zinc-700 rounded-lg text-xs font-bold transition-colors shadow-sm dark:shadow-none">
+                <Search size={14} /> BUSCAR
+              </button>
+
+              <button
+                onClick={() => setIsAssistantOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:hover:bg-indigo-500/20 border border-indigo-100 dark:border-indigo-500/20 rounded-lg text-xs font-bold transition-colors shadow-sm"
+              >
+                <Sparkles size={14} /> ASSISTENTE GEMINI
+              </button>
               {userProfile && (
                 <ProfilePopover
                   profile={userProfile}
