@@ -1802,6 +1802,24 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
         onClose={() => setIsSidebarOpen(false)}
         bankItems={bankItems}
         onImport={handleImport}
+        onUpdate={(id, source, field, value) => {
+          const tableMap: Record<string, string> = {
+            'RDC': 'RDC',
+            'MATRIZ': 'MATRIZ',
+            'TAREFAS': 'TAREFAS',
+            'ORGANICKIA': 'IA_HISTORY'
+          };
+          onUpdate(id, tableMap[source] as any, field, value);
+        }}
+        onDelete={(id, source) => {
+          const tableMap: Record<string, string> = {
+            'RDC': 'RDC',
+            'MATRIZ': 'MATRIZ',
+            'TAREFAS': 'TAREFAS',
+            'ORGANICKIA': 'IA_HISTORY'
+          };
+          performDelete(id, tableMap[source] as any);
+        }}
       />
 
       {selectedEvent && (

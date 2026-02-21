@@ -1,16 +1,23 @@
 import React, { useState, useMemo } from 'react';
-import { FolderOpen, X, Plus, CheckCircle2, Search } from 'lucide-react';
+import {
+    FolderOpen, X, Plus, CheckCircle2, Search,
+    Trash2, Pencil, Save, XCircle, Clock
+} from 'lucide-react';
 
 interface ContentBankSidebarProps {
     isOpen: boolean;
     onClose: () => void;
     bankItems: any[];
     onImport: (item: any) => void;
+    onUpdate: (id: string, source: string, field: string, value: any) => void;
+    onDelete: (id: string, source: string) => void;
 }
 
-export function ContentBankSidebar({ isOpen, onClose, bankItems, onImport }: ContentBankSidebarProps) {
+export function ContentBankSidebar({ isOpen, onClose, bankItems, onImport, onUpdate, onDelete }: ContentBankSidebarProps) {
     const [searchTerm, setSearchTerm] = useState('');
     const [addedIds, setAddedIds] = useState<string[]>([]);
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editValue, setEditValue] = useState('');
 
     const filteredItems = useMemo(() => {
         if (!searchTerm.trim()) return bankItems;
@@ -22,11 +29,26 @@ export function ContentBankSidebar({ isOpen, onClose, bankItems, onImport }: Con
     }, [bankItems, searchTerm]);
 
     const handleAdd = (item: any) => {
-        const itemId = `${item._source}-${item._label}`;
+        const itemId = `${item._source}-${item.id}`;
         if (!addedIds.includes(itemId)) {
             setAddedIds(prev => [...prev, itemId]);
             onImport(item);
         }
+    };
+
+    const handleEditStart = (item: any) => {
+        setEditingId(`${item._source}-${item.id}`);
+        setEditValue(item._label);
+    };
+
+    const handleEditSave = (item: any) => {
+        if (!editValue.trim()) return;
+        const field = item._source === 'RDC' ? 'Ideia de Conteúdo' :
+            item._source === 'MATRIZ' ? 'Papel estratégico' :
+                item._source === 'TAREFAS' ? 'Título' : 'clientName';
+
+        onUpdate(item.id, item._source, field, editValue.toUpperCase());
+        setEditingId(null);
     };
 
     if (!isOpen) return null;
@@ -75,46 +97,88 @@ export function ContentBankSidebar({ isOpen, onClose, bankItems, onImport }: Con
                 </div>
 
                 {/* LISTA COM SCROLL */}
-                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3 custom-scrollbar">
-                    {filteredItems.map((item, idx) => {
-                        const itemId = `${item._source}-${item._label}`;
-                        const isAdded = addedIds.includes(itemId);
+                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 custom-scrollbar">
+                    {filteredItems.map((item) => {
+                        const compositeId = `${item._source}-${item.id}`;
+                        const isAdded = addedIds.includes(compositeId);
+                        const isEditing = editingId === compositeId;
 
                         return (
                             <div
-                                key={itemId}
-                                className={`p-4 rounded-xl border transition-all duration-200 group flex flex-col gap-3
+                                key={compositeId}
+                                className={`p-4 rounded-xl border transition-all duration-200 flex flex-col gap-3
                   ${isAdded
                                         ? 'bg-emerald-50 border-emerald-200 opacity-70 dark:bg-emerald-500/5 dark:border-emerald-500/20'
-                                        : 'bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50 shadow-sm dark:shadow-none dark:bg-zinc-900/40 dark:border-zinc-800 dark:hover:border-zinc-600 dark:hover:bg-zinc-900/80'
+                                        : 'bg-white border-gray-200 hover:border-gray-300 shadow-sm dark:shadow-none dark:bg-zinc-900/40 dark:border-zinc-800 dark:hover:border-zinc-600'
                                     }`}
                             >
-                                {/* Título do Conteúdo */}
-                                <h3 className={`text-xs font-bold leading-relaxed transition-colors uppercase
-                  ${isAdded
-                                        ? 'text-gray-400 line-through dark:text-zinc-400'
-                                        : 'text-gray-900 dark:text-zinc-200'
-                                    }`}
-                                >
-                                    {item._label}
-                                </h3>
+                                <div className="flex justify-between items-start gap-3">
+                                    {isEditing ? (
+                                        <div className="flex-1 space-y-2">
+                                            <textarea
+                                                value={editValue}
+                                                onChange={(e) => setEditValue(e.target.value)}
+                                                className="w-full bg-gray-50 border border-blue-200 text-gray-900 dark:bg-zinc-950 dark:border-blue-500/30 dark:text-zinc-200 text-[10px] font-bold uppercase rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500/30 resize-none leading-relaxed"
+                                                rows={2}
+                                                autoFocus
+                                            />
+                                            <div className="flex items-center gap-2">
+                                                <button onClick={() => handleEditSave(item)} className="flex items-center gap-1 text-[9px] font-black uppercase bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-500/20 dark:text-blue-400 dark:hover:bg-blue-500/30 px-2 py-1 rounded-md transition-colors">
+                                                    <Save size={10} /> Salvar
+                                                </button>
+                                                <button onClick={() => setEditingId(null)} className="flex items-center gap-1 text-[9px] font-black uppercase text-gray-400 hover:text-gray-600 dark:text-zinc-500 dark:hover:text-zinc-300 px-2 py-1 transition-colors">
+                                                    <XCircle size={10} /> Cancelar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className={`text-[11px] font-bold leading-relaxed transition-colors uppercase ${isAdded ? 'text-gray-400 line-through dark:text-zinc-500' : 'text-gray-900 dark:text-zinc-200'}`}>
+                                                {item._label}
+                                            </h3>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-[8px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest flex items-center gap-1">
+                                                    <Clock size={8} /> {item.Data || 'S/ DATA'}
+                                                </span>
+                                                {item.canal && (
+                                                    <span className="text-[8px] font-black text-blue-500/60 dark:text-blue-400/60 uppercase tracking-widest">
+                                                        • {item.canal}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
 
-                                {/* Rodapé do Card */}
-                                <div className="flex justify-between items-center mt-1">
+                                    {!isEditing && !isAdded && (
+                                        <div className="flex items-center gap-1 shrink-0">
+                                            <button
+                                                onClick={() => handleEditStart(item)}
+                                                className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:text-zinc-500 dark:hover:text-blue-400 dark:hover:bg-blue-500/10 rounded-md transition-colors"
+                                            >
+                                                <Pencil size={12} />
+                                            </button>
+                                            <button
+                                                onClick={() => onDelete(item.id, item._source)}
+                                                className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 dark:text-zinc-500 dark:hover:text-rose-400 dark:hover:bg-rose-500/10 rounded-md transition-colors"
+                                            >
+                                                <Trash2 size={12} />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
 
-                                    {/* Tag Fonte */}
-                                    <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20 rounded-md transition-colors">
+                                <div className="flex justify-between items-center mt-1 border-t border-gray-100 dark:border-zinc-800/50 pt-3">
+                                    <span className="px-2 py-0.5 text-[8px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20 rounded-md transition-colors">
                                         {item._source}
                                     </span>
 
-                                    {/* Botão de Ação */}
                                     <button
                                         onClick={() => handleAdd(item)}
-                                        disabled={isAdded}
-                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all
+                                        disabled={isAdded || isEditing}
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all
                       ${isAdded
                                                 ? 'bg-transparent text-emerald-600 dark:text-emerald-500'
-                                                : 'bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700 shadow-sm'
+                                                : 'bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700 shadow-sm disabled:opacity-50'
                                             }`}
                                     >
                                         {isAdded ? (
@@ -123,7 +187,6 @@ export function ContentBankSidebar({ isOpen, onClose, bankItems, onImport }: Con
                                             <><Plus size={12} /> Adicionar</>
                                         )}
                                     </button>
-
                                 </div>
                             </div>
                         );
@@ -142,7 +205,7 @@ export function ContentBankSidebar({ isOpen, onClose, bankItems, onImport }: Con
                 {/* FOOTER DO PAINEL */}
                 <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 dark:border-zinc-800 dark:bg-zinc-900/50 shrink-0 transition-colors">
                     <p className="text-[10px] font-bold text-gray-500 dark:text-zinc-500 text-center uppercase tracking-widest">
-                        {filteredItems.length} ideias disponíveis no backlog
+                        {filteredItems.length} ideias no backlog
                     </p>
                 </div>
 
