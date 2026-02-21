@@ -106,6 +106,13 @@ const parseNumericValue = (val: string | number): number => {
   return isNaN(parsed) ? 0 : parsed;
 };
 
+// Formatação Monetária Segura (Prevents blank screens on NaN/Infinity)
+const formatBRL = (value: number | string) => {
+  const num = Number(value);
+  if (isNaN(num) || !isFinite(num)) return 'R$ 0,00';
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(num);
+};
+
 const getWeekInfo = (dateStr: string) => {
   const date = new Date(dateStr + 'T12:00:00');
   if (isNaN(date.getTime())) return { day: "", week: 0 };
@@ -3146,8 +3153,12 @@ function VhManagementView({ config, setConfig, collaborators, setCollaborators, 
     const collabVHs = collaborators.map((c: Collaborator) => {
       const costs = parseNumericValue(c.CustosIndividuais);
       const profit = parseNumericValue(c.ProLabore);
-      const hours = parseNumericValue(c.HorasProdutivas) || 1; // avoid div by zero
-      const calculatedVh = (costs + profit) / hours;
+      const hours = parseNumericValue(c.HorasProdutivas);
+
+      // Cálculo Dinâmico de VH Seguro (Evita divisão por zero/NaN/Infinity)
+      const h = Number(hours);
+      const calculatedVh = (isNaN(h) || h <= 0) ? 0 : (costs + profit) / h;
+
       return { ...c, calculatedVh };
     });
 
@@ -3246,8 +3257,6 @@ function VhManagementView({ config, setConfig, collaborators, setCollaborators, 
 
     return { newCost, newResult, newMargin, diff: additionalCost };
   }, [simParams, vhResults]);
-
-  const formatBRL = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
 
   return (
     <div className="space-y-6 md:space-y-8 animate-fade text-left pb-20 max-w-7xl mx-auto px-4 md:px-0">
