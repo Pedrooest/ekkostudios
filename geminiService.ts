@@ -146,7 +146,7 @@ export async function transcribeAndExtractInsights(files: { data: string, mimeTy
   const prompt = "Analise o conteúdo deste arquivo (áudio ou documento) e extraia um resumo executivo estratégico focado em briefing de marketing e conteúdo. Identifique tom de voz, dores do cliente, objetivos e restrições. Se for áudio, transcreva os pontos chave.";
 
   try {
-    const model = getModel('gemini-2.0-flash-lite-001');
+    const model = getModel('gemini-2.0-flash');
     const parts: Part[] = files.map(f => ({
       inlineData: {
         data: f.data.split(',')[1] || f.data,
@@ -294,11 +294,20 @@ export async function analyzeContextualData(tab: TableType, data: any): Promise<
  */
 export async function extractStructuredDataFromPDF(files: { data: string, mimeType: string }[]): Promise<any> {
   const prompt = `Você é o ASSISTENTE DE IMPORTAÇÃO do Organick.
-    Analise o PDF fornecido e extraia informações para preencher as tabelas do sistema.
-    RETORNE APENAS UM JSON VÁLIDO.`;
+    Analise o PDF fornecido e extraia informações para preencher as tabelas do sistema Method Organick.
+    Você DEVE retornar um JSON estritamente válido seguindo este formato:
+    {
+      "cliente": { "nome": "...", "nicho": "...", "objetivo": "..." },
+      "cobo": [ { "Canal": "...", "Frequência": "...", "Público": "...", "Voz": "...", "Zona": "...", "Intenção": "...", "Formato": "..." } ],
+      "estrategia": [ { "Função": "...", "Quem fala": "...", "Papel estratégico": "...", "Tipo de conteúdo": "...", "Resultado esperado": "..." } ],
+      "rdc": [ { "Ideia de Conteúdo": "...", "Rede Social": "...", "Tipo de conteúdo": "...", "Resolução (1–5)": 0, "Demanda (1–5)": 0, "Competição (1–5)": 0 } ],
+      "planejamento": [ { "Data": "YYYY-MM-DD", "Hora": "HH:MM", "Conteúdo": "...", "Formato": "...", "Zona": "...", "Intenção": "...", "Status": "Pendente" } ],
+      "pendencias": ["lista de strings com o que não ficou claro ou faltou"]
+    }
+    Se algum campo não for encontrado, deixe-o vazio ou null conforme o tipo. Não invente dados que não existem no arquivo.`;
 
   try {
-    const model = getModel('gemini-2.0-flash-lite-001');
+    const model = getModel('gemini-2.0-flash');
     const parts: Part[] = files.map(f => ({
       inlineData: {
         data: f.data.split(',')[1] || f.data,

@@ -1446,6 +1446,7 @@ export default function App() {
             onDelete={performDelete}
             showArchived={showArchived}
             onGenerateSlide={handleStartPresentationGen}
+            addNotification={addNotification}
           />}
           {activeTab === 'WHITEBOARD' && (
             <ErrorBoundary>
@@ -3649,7 +3650,7 @@ function ColorPickerModal({ target, onClose, onConfirm }: any) {
   );
 }
 
-function OrganickIAView({ clients, cobo, matriz, rdc, planning, selectedClientId, setSelectedClientId, audioInsight, setAudioInsight, pdfInsight, setPdfInsight, history, setHistory, onArchive, onDelete, showArchived, onGenerateSlide, onAddItem }: any) {
+function OrganickIAView({ clients, cobo, matriz, rdc, planning, selectedClientId, setSelectedClientId, audioInsight, setAudioInsight, pdfInsight, setPdfInsight, history, setHistory, onArchive, onDelete, showArchived, onGenerateSlide, onAddItem, addNotification }: any) {
   const [briefing, setBriefing] = useState('');
   const [importPreview, setImportPreview] = useState<any>(null);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -3668,29 +3669,42 @@ function OrganickIAView({ clients, cobo, matriz, rdc, planning, selectedClientId
     setLoading(true);
     try {
       const fileData = await Promise.all(Array.from(files).map(async (file: File) => {
-        return new Promise<{ data: string, mimeType: string }>((resolve) => {
+        return new Promise<{ data: string, mimeType: string }>((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = (ev) => { resolve({ data: ev.target?.result as string, mimeType: file.type }); };
+          reader.onerror = () => { reject(new Error(`Falha ao ler arquivo: ${file.name}`)); };
           reader.readAsDataURL(file);
         });
       }));
+
       const result = await transcribeAndExtractInsights(fileData);
+
       if (type === 'audio') {
         setAudioInsight(result);
+        addNotification('success', 'Áudio Processado', 'Insights extraídos com sucesso.');
       } else {
         setPdfInsight(result);
+        addNotification('success', 'PDF Analisado', 'Resumo executivo gerado com sucesso.');
         try {
           const structured = await extractStructuredDataFromPDF(fileData);
           if (structured && !structured.error) {
             setImportPreview(structured);
             setImportSelection({ cobo: true, estrategia: true, rdc: true, planejamento: true });
             setIsImportModalOpen(true);
+          } else if (structured?.error) {
+            console.warn("Structured extraction logic issue:", structured.error);
           }
         } catch (e) {
           console.error("Structured extraction failed", e);
         }
       }
-    } catch (err) { console.error(err); } finally { setLoading(false); }
+    } catch (err: any) {
+      console.error(err);
+      addNotification('error', 'Erro no Processamento', err.message || 'Ocorreu uma falha ao analisar os arquivos.');
+    } finally {
+      setLoading(false);
+      if (e.target) e.target.value = ''; // Reset input to allow re-upload of same file
+    }
   };
 
   const handleConfirmImport = async (targetClientId: string) => {
