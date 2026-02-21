@@ -61,6 +61,7 @@ import { ExportModal } from './export/components/ExportModal';
 import { SlideRenderer } from './export/components/SlideRenderer';
 import { useExport } from './export/hooks/useExport';
 import { ExportConfig } from './export/types';
+import WorkspaceManager from './components/WorkspaceManager';
 
 
 const generateId = () => {
@@ -1154,7 +1155,7 @@ export default function App() {
                 workspaces={workspaces}
                 currentWorkspace={currentWorkspace}
                 onSelect={setCurrentWorkspace}
-                onManageMembers={() => setIsSettingsModalOpen(true)}
+                onManageMembers={() => setActiveTab('WORKSPACE')}
                 onCreate={async (name) => {
                   try {
                     const newWs = await DatabaseService.createWorkspace(name);
@@ -1454,6 +1455,7 @@ export default function App() {
             onGenerateSlide={handleStartPresentationGen}
             addNotification={addNotification}
           />}
+          {activeTab === 'WORKSPACE' && <WorkspaceManager />}
           {activeTab === 'WHITEBOARD' && (
             <ErrorBoundary>
               <Whiteboard />
