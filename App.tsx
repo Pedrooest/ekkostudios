@@ -14,7 +14,7 @@ import {
   BrainCircuit, Mic, Trash2, History as HistoryIcon, Sparkles, Loader2, ChevronDown,
   Zap, Copy, FileImage, MessageSquare, ExternalLink, ShieldAlert,
   Plus, X, User, Target, Lightbulb, Radio, FolderOpen,
-  Box, Eye, EyeOff
+  Box, Eye, EyeOff, Search, LayoutGrid, List, Filter, ArrowUpDown, Archive, Briefcase
 } from 'lucide-react';
 import { AssistantDrawer } from './AssistantDrawer';
 import { AssistantAction } from './ai/types';
@@ -2279,8 +2279,8 @@ function DashboardView({ clients, tasks, financas, planejamento, rdc }: any) {
 
 function TaskFlowView({ tasks, clients, collaborators, activeViewId, setActiveViewId, onUpdate, onDelete, onArchive, onAdd, onSelectTask, selection, onSelect, onClearSelection }: any) {
   const [globalSearch, setGlobalSearch] = useState('');
-  const [expandedGroups, setExpandedGroups] = useState<string[]>(DEFAULT_TASK_STATUSES.map(s => s.id));
   const filteredTasks = useMemo(() => tasks.filter((t: any) => (!globalSearch || t.Título.toLowerCase().includes(globalSearch.toLowerCase())) && t.Status !== 'arquivado'), [tasks, globalSearch]);
+
   const viewType = useMemo(() => DEFAULT_TASK_VIEWS.find(v => v.id === activeViewId)?.type || 'List', [activeViewId]);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
@@ -2290,18 +2290,205 @@ function TaskFlowView({ tasks, clients, collaborators, activeViewId, setActiveVi
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const getPriorityInfo = (priority: string) => {
+    switch (priority?.toLowerCase()) {
+      case 'baixa': return { color: 'text-emerald-500 bg-emerald-500/10', icon: 'fa-flag' };
+      case 'média':
+      case 'media': return { color: 'text-amber-500 bg-amber-500/10', icon: 'fa-flag' };
+      case 'alta': return { color: 'text-rose-500 bg-rose-500/10', icon: 'fa-flag' };
+      case 'urgente': return { color: 'text-purple-500 bg-purple-500/10', icon: 'fa-bolt' };
+      default: return { color: 'text-zinc-500 bg-zinc-500/10', icon: 'fa-flag' };
+    }
+  };
+
   return (
-    <div className="h-full flex flex-col space-y-6 pointer-events-auto text-left">
-      <div className="bg-app-surface p-4 rounded-xl border border-app-border flex flex-wrap items-center gap-4 shrink-0 shadow-2xl">
-        <div className="flex bg-app-bg p-1 rounded-lg border border-app-border">{DEFAULT_TASK_VIEWS.map((v: any) => (<button key={v.id} onClick={() => setActiveViewId(v.id)} className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${activeViewId === v.id ? 'bg-[#3B82F6] text-app-text-strong shadow-lg' : 'text-[#4B5563] hover:text-app-text-strong'}`}>{v.name}</button>))}</div>
-        <div className="flex-1 relative max-w-md"><i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] text-xs"></i><input value={globalSearch} onChange={e => setGlobalSearch(e.target.value)} placeholder="Buscar tarefas..." className="w-full !pl-10 h-10 !bg-app-bg outline-none" /></div>
-        <div className="flex gap-2"><DeletionBar count={selection.length} onDelete={() => onDelete(selection, 'TAREFAS')} onArchive={() => onArchive(selection, 'TAREFAS', true)} onClear={onClearSelection} /><Button onClick={() => onAdd('TAREFAS')} className="hidden md:flex !bg-[#3B82F6] h-10 shadow-lg shadow-blue-500/20"><i className="fa-solid fa-plus mr-2"></i>Nova Tarefa</Button></div>
+    <div className="flex flex-col h-full pointer-events-auto text-left">
+      {/* TOP BAR */}
+      <div className="px-6 py-4 border-b border-app-border flex flex-col sm:flex-row justify-between items-center gap-4 bg-app-surface-2/50 backdrop-blur-md rounded-t-[32px] shrink-0">
+
+        {/* View Toggles */}
+        <div className="flex bg-app-bg border border-app-border rounded-lg p-1">
+          {DEFAULT_TASK_VIEWS.map((v: any) => (
+            <button
+              key={v.id}
+              onClick={() => setActiveViewId(v.id)}
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${activeViewId === v.id ? 'bg-app-surface text-app-text-strong shadow-lg border border-app-border' : 'text-app-text-muted hover:text-app-text-strong'}`}
+            >
+              {v.type === 'List' ? <List size={14} /> : v.type === 'Board' ? <LayoutGrid size={14} /> : <LucideCalendar size={14} />}
+              {v.name}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-4 w-full sm:w-auto">
+          {/* Search */}
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-app-text-muted" size={16} />
+            <input
+              type="text"
+              value={globalSearch}
+              onChange={e => setGlobalSearch(e.target.value)}
+              placeholder="Filtro global..."
+              className="w-full h-10 !bg-app-bg !border-app-border !text-app-text-strong !placeholder-app-text-muted !rounded-xl !pl-10 text-[11px] font-bold uppercase tracking-widest"
+            />
+          </div>
+
+          <div className="flex gap-2">
+            <button className="flex items-center gap-2 px-4 py-2 bg-app-surface border border-app-border rounded-xl text-[10px] font-black uppercase text-app-text-muted hover:text-app-text-strong transition-all">
+              <Filter size={14} /> Filtros
+            </button>
+            <button className="flex items-center gap-2 px-4 py-2 bg-app-surface border border-app-border rounded-xl text-[10px] font-black uppercase text-app-text-muted hover:text-app-text-strong transition-all">
+              <ArrowUpDown size={14} /> Ordenar
+            </button>
+          </div>
+
+          {/* Deletion Bar integration */}
+          <DeletionBar count={selection.length} onDelete={() => onDelete(selection, 'TAREFAS')} onArchive={() => onArchive(selection, 'TAREFAS', true)} onClear={onClearSelection} />
+          {/* New Task Button */}
+          <button
+            onClick={() => onAdd('TAREFAS')}
+            className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 transition-all whitespace-nowrap"
+          >
+            <Plus size={16} /> Nova Tarefa
+          </button>
+        </div>
       </div>
-      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-2">
-        {viewType === 'List' && (<div className="space-y-4 pb-32">{DEFAULT_TASK_STATUSES.map(status => { const statusTasks = filteredTasks.filter((t: any) => t.Status === status.id); const isExpanded = expandedGroups.includes(status.id); return (<div key={status.id} className="space-y-1"><div className="flex items-center gap-3 p-2 bg-app-surface/30 rounded-lg cursor-pointer hover:bg-app-surface transition-all group" onClick={() => setExpandedGroups(prev => isExpanded ? prev.filter(g => g !== status.id) : [...prev, status.id])}><i className={`fa-solid ${isExpanded ? 'fa-chevron-down' : 'fa-chevron-right'} text-[10px] text-[#334155]`}></i><div className="w-2 h-2 rounded-full" style={{ backgroundColor: status.color }}></div><span className="text-[11px] font-black uppercase text-app-text-strong tracking-widest">{status.label}</span><button onClick={(e) => { e.stopPropagation(); onAdd('TAREFAS', { Status: status.id }); }} className="ml-auto opacity-0 group-hover:opacity-100 text-[10px] font-bold text-[#3B82F6]">+ Nova</button></div>{isExpanded && (<div className="space-y-1 ml-4 animate-fade">{statusTasks.map((t: any) => (<div key={t.id} onClick={() => onSelectTask(t.id)} className={`flex items-center gap-4 p-3 bg-app-surface border border-app-border rounded-xl hover:border-[#3B82F6]/50 cursor-pointer group ${selection.includes(t.id) ? 'bg-[#3B82F6]/5 border-[#3B82F6]' : ''}`}><div className="flex items-center gap-3 shrink-0" onClick={e => { e.stopPropagation(); onSelect(t.id); }}><input type="checkbox" checked={selection.includes(t.id)} readOnly /></div><div className="flex-1 min-w-0"><span className="text-[9px] font-black text-[#334155] uppercase block mb-1 leading-none">{clients.find((c: any) => c.id === t.Cliente_ID)?.Nome}</span><h5 className="text-xs font-bold text-app-text-strong uppercase truncate">{t.Título}</h5></div><div className="flex items-center gap-4 shrink-0"><select value={t.Prioridade} onClick={e => e.stopPropagation()} onChange={e => onUpdate(t.id, 'TAREFAS', 'Prioridade', e.target.value)} className="!p-0 !h-6 !bg-transparent border-none text-[10px] font-black uppercase w-20 text-app-text-muted">{PRIORIDADE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select><div className="w-8 h-8 rounded-lg bg-[#3B82F6]/10 text-[#3B82F6] flex items-center justify-center text-[10px] font-black border border-[#3B82F6]/20">{t.Responsável?.slice(0, 1).toUpperCase() || '?'}</div></div></div>))}</div>)}</div>); })}</div>)}
-        {viewType === 'Board' && (<div className="flex gap-6 h-full overflow-x-auto pb-6 custom-scrollbar pr-4">{DEFAULT_TASK_STATUSES.map(status => (<div key={status.id} className="min-w-[300px] w-[300px] flex flex-col gap-4 bg-app-surface/30 p-4 rounded-2xl border border-app-border"><div className="flex items-center justify-between border-b border-app-border pb-3"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full" style={{ backgroundColor: status.color }}></div><span className="text-[11px] font-black uppercase text-app-text-strong tracking-widest">{status.label}</span></div></div><div className="flex-1 space-y-4 overflow-y-auto no-scrollbar">{filteredTasks.filter((t: any) => t.Status === status.id).map((t: any) => (<div key={t.id} onClick={() => onSelectTask(t.id)} className={`p-5 bg-app-surface border border-app-border rounded-2xl shadow-xl hover:border-[#3B82F6]/50 transition-all cursor-pointer relative overflow-hidden group`}><div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: status.color }}></div><h5 className="text-sm font-bold text-app-text-strong mb-6 uppercase leading-tight">{t.Título}</h5><div className="flex items-center justify-between"><Badge color={t.Prioridade === 'Urgente' ? 'red' : 'blue'}>{t.Prioridade}</Badge><div className="w-6 h-6 rounded-lg bg-[#3B82F6]/10 text-[#3B82F6] flex items-center justify-center text-[8px] font-black border border-[#3B82F6]/20">{t.Responsável?.slice(0, 1).toUpperCase() || '?'}</div></div></div>))}</div></div>))}</div>)}
+
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 overflow-hidden p-6 bg-app-bg/50 rounded-b-[32px]">
+
+        {viewType === 'Board' && (
+          <div className="flex gap-6 h-full overflow-x-auto pb-4 custom-scrollbar-horizontal">
+            {DEFAULT_TASK_STATUSES.map(status => (
+              <div key={status.id} className="w-[320px] flex flex-col max-h-full shrink-0">
+                {/* Column Header */}
+                <div className="flex items-center justify-between mb-4 px-1">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: status.color }} />
+                    <h3 className="text-[11px] font-black text-app-text-strong uppercase tracking-[0.2em]">{status.label}</h3>
+                    <span className="text-[10px] font-black text-app-text-muted bg-app-surface-2 px-2 py-0.5 rounded-full">
+                      {filteredTasks.filter(t => t.Status === status.id).length}
+                    </span>
+                  </div>
+                  <button onClick={() => onAdd('TAREFAS', { Status: status.id })} className="text-app-text-muted hover:text-blue-500 transition-colors"><Plus size={16} /></button>
+                </div>
+
+                {/* Column Tasks Area */}
+                <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar pr-2 pb-2">
+                  {filteredTasks.filter(t => t.Status === status.id).map(task => {
+                    const client = clients.find((c: any) => c.id === task.Cliente_ID);
+                    const prio = getPriorityInfo(task.Prioridade);
+
+                    return (
+                      <div
+                        key={task.id} onClick={() => onSelectTask(task.id)}
+                        className={`bg-app-surface border border-app-border p-4 rounded-2xl shadow-sm hover:shadow-xl hover:border-blue-500/30 cursor-pointer transition-all group flex flex-col gap-3 relative overflow-hidden ${selection.includes(task.id) ? 'ring-2 ring-blue-500/50 bg-blue-500/5' : ''}`}
+                      >
+                        <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: status.color }} />
+
+                        {/* Top row: Client Tag & Priority */}
+                        <div className="flex justify-between items-start">
+                          <span className="text-[9px] font-black uppercase tracking-widest text-app-text-muted truncate max-w-[180px]">
+                            {client?.Nome || 'Agência'}
+                          </span>
+                          <div className={`p-1 rounded flex items-center justify-center ${prio.color}`}>
+                            <i className={`fa-solid ${prio.icon} text-[10px]`}></i>
+                          </div>
+                        </div>
+
+                        {/* Title */}
+                        <h4 className="text-sm font-bold text-app-text-strong leading-snug group-hover:text-blue-500 transition-colors uppercase tracking-tight">
+                          {task.Título}
+                        </h4>
+
+                        {/* Bottom Row: Date, Comments, Assignee */}
+                        <div className="flex items-center justify-between mt-1 pt-3 border-t border-app-border/50">
+                          <div className="flex items-center gap-3 text-[10px] font-bold text-app-text-muted uppercase tracking-tight">
+                            <span className="flex items-center gap-1.5"><Clock size={12} /> {task.Data_Entrega || '--/--'}</span>
+                            {task.Comentarios?.length > 0 && <span className="flex items-center gap-1.5"><MessageSquare size={12} /> {task.Comentarios.length}</span>}
+                          </div>
+                          <div className="w-6 h-6 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center text-[10px] font-black border border-blue-500/20 group-hover:ring-4 group-hover:ring-blue-500/10 transition-all">
+                            {task.Responsável?.slice(0, 1).toUpperCase() || '?'}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  <button
+                    onClick={() => onAdd('TAREFAS', { Status: status.id })}
+                    className="w-full py-2.5 flex items-center justify-center gap-2 text-[10px] font-black text-app-text-muted hover:text-app-text-strong hover:bg-app-surface-2 rounded-xl border border-dashed border-app-border hover:border-app-border-strong transition-all uppercase tracking-widest"
+                  >
+                    <Plus size={14} /> Adicionar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {viewType === 'List' && (
+          <div className="h-full overflow-y-auto custom-scrollbar pb-32 space-y-6">
+            {DEFAULT_TASK_STATUSES.map(status => {
+              const statusTasks = filteredTasks.filter(t => t.Status === status.id);
+              if (statusTasks.length === 0) return null;
+
+              return (
+                <div key={status.id} className="space-y-3">
+                  <div className="flex items-center gap-3 px-2">
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: status.color }} />
+                    <h3 className="text-[11px] font-black text-app-text-strong uppercase tracking-[0.2em]">{status.label}</h3>
+                    <span className="text-[10px] font-black text-app-text-muted bg-app-surface-2 px-2 py-0.5 rounded-full">{statusTasks.length}</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-2">
+                    {statusTasks.map(task => {
+                      const client = clients.find((c: any) => c.id === task.Cliente_ID);
+                      const prio = getPriorityInfo(task.Prioridade);
+                      return (
+                        <div
+                          key={task.id}
+                          onClick={() => onSelectTask(task.id)}
+                          className={`flex items-center gap-6 p-4 bg-app-surface border border-app-border rounded-2xl hover:border-blue-500/50 cursor-pointer transition-all group ${selection.includes(task.id) ? 'ring-2 ring-blue-500/50 bg-blue-500/5' : ''}`}
+                        >
+                          <div className="flex items-center justify-center w-5 h-5 rounded border border-app-border group-hover:border-blue-500/50 bg-app-bg transition-all" onClick={e => { e.stopPropagation(); onSelect(task.id); }}>
+                            <input type="checkbox" checked={selection.includes(task.id)} readOnly className="w-3 h-3 text-blue-500 rounded focus:ring-0 bg-transparent border-none" />
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <span className="text-[9px] font-black text-app-text-muted uppercase tracking-widest block mb-1 leading-none">{client?.Nome || 'Agência'}</span>
+                            <h5 className="text-sm font-bold text-app-text-strong uppercase truncate group-hover:text-blue-500 transition-colors">{task.Título}</h5>
+                          </div>
+
+                          <div className="flex items-center gap-10 shrink-0">
+                            <div className="flex items-center gap-2 w-28">
+                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${prio.color}`}>
+                                <i className={`fa-solid ${prio.icon} text-[10px]`}></i>
+                              </div>
+                              <span className="text-[10px] font-black uppercase text-app-text-muted tracking-tight">{task.Prioridade}</span>
+                            </div>
+
+                            <div className="flex items-center gap-3 w-32 border-l border-app-border/50 pl-6">
+                              <Clock size={12} className="text-app-text-muted" />
+                              <span className="text-[10px] font-black uppercase text-app-text-muted tracking-tight">{task.Data_Entrega || '--/--'}</span>
+                            </div>
+
+                            <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center text-[10px] font-black border border-blue-500/20">
+                              {task.Responsável?.slice(0, 1).toUpperCase() || '?'}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         {viewType === 'Calendar' && (
-          <div className="h-[calc(100dvh-250px)] min-h-[600px] bg-app-surface/30 border border-app-border rounded-[32px] p-5 md:p-8 shadow-2xl overflow-hidden relative">
+          <div className="h-full bg-app-surface/30 border border-app-border rounded-[32px] p-8 shadow-2xl overflow-hidden relative">
             <FullCalendar
               plugins={[dayGridPlugin, interactionPlugin, listPlugin]}
               initialView={isMobile ? "listWeek" : "dayGridMonth"}
@@ -2318,7 +2505,7 @@ function TaskFlowView({ tasks, clients, collaborators, activeViewId, setActiveVi
               })}
               height="100%"
               locale="pt-br"
-              headerToolbar={{ left: isMobile ? 'prev,next' : 'prev,next today', center: 'title', right: isMobile ? 'today' : 'dayGridMonth,listWeek' }}
+              headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,listWeek' }}
               dayMaxEvents={3}
               eventClick={(info) => onSelectTask(info.event.id)}
               editable={true}
@@ -2334,23 +2521,20 @@ function TaskFlowView({ tasks, clients, collaborators, activeViewId, setActiveVi
                 const isDone = ep.Status === 'done';
 
                 return (
-                  <div className={`p-1.5 md:p-2 rounded-lg border border-app-border bg-app-surface/90 hover:border-accent cursor-pointer transition-all relative overflow-hidden group/event w-full h-full shadow-sm ${isDone ? 'opacity-50' : ''}`}>
-                    <div className="absolute left-0 top-1 bottom-1 w-0.5 rounded-r-full" style={{ backgroundColor: bgColor }} />
+                  <div className={`p-2 rounded-xl border border-app-border bg-app-surface/90 hover:border-blue-500 cursor-pointer transition-all relative overflow-hidden group/event w-full h-full shadow-sm ${isDone ? 'opacity-50' : ''}`}>
+                    <div className="absolute left-0 top-1 bottom-1 w-0.5 rounded-r-xl" style={{ backgroundColor: bgColor }} />
 
                     <div className="flex justify-between items-center mb-1 pl-1.5">
-                      <span className="flex items-center gap-1 text-[8px] md:text-[9px] text-app-text-muted font-mono">
-                        <Clock size={8} className="text-app-text-muted" /> {ep.Hora_Entrega || '--:--'}
+                      <span className="flex items-center gap-1 text-[9px] text-app-text-muted font-bold uppercase tracking-tight">
+                        <Clock size={10} /> {ep.Hora_Entrega || '--:--'}
                       </span>
-                      <div className="flex items-center justify-center w-3.5 h-3.5 md:w-4 md:h-4 rounded-[4px] bg-accent/10 text-accent">
-                        <CheckCircle2 size={10} />
-                      </div>
                     </div>
 
                     <div className="pl-1.5">
-                      <p className={`text-[10px] md:text-xs font-bold leading-tight truncate ${isDone ? 'text-app-text-muted line-through' : 'text-app-text-strong'}`}>
+                      <p className={`text-[11px] font-bold leading-tight truncate uppercase ${isDone ? 'text-app-text-muted line-through' : 'text-app-text-strong'}`}>
                         {eventInfo.event.title}
                       </p>
-                      <p className="text-[8px] md:text-[9px] text-app-text-muted uppercase tracking-widest mt-1 truncate">
+                      <p className="text-[9px] font-black text-app-text-muted uppercase tracking-widest mt-1 truncate">
                         {ep.clientName}
                       </p>
                     </div>
@@ -2358,10 +2542,17 @@ function TaskFlowView({ tasks, clients, collaborators, activeViewId, setActiveVi
                 );
               }}
             />
-            {/* Debug Overlay Removed */}
           </div>
         )}
       </div>
+
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        .custom-scrollbar-horizontal::-webkit-scrollbar { height: 8px; }
+        .custom-scrollbar-horizontal::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar-horizontal::-webkit-scrollbar-thumb { background-color: rgba(255,255,255,0.05); border-radius: 20px; }
+        .custom-scrollbar-horizontal:hover::-webkit-scrollbar-thumb { background-color: rgba(255,255,255,0.1); }
+      `}} />
     </div>
   );
 }
@@ -2373,6 +2564,7 @@ function TaskDetailPanel({ taskId, tasks, clients, collaborators, onClose, onUpd
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [activityTab, setActivityTab] = useState<'atividade' | 'links' | 'mais'>('atividade');
+  const [comment, setComment] = useState('');
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -2425,284 +2617,294 @@ function TaskDetailPanel({ taskId, tasks, clients, collaborators, onClose, onUpd
     if (e.target.files) processFiles(e.target.files);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    if (e.dataTransfer.files) processFiles(e.dataTransfer.files);
+  const handleAddComment = () => {
+    if (!comment.trim()) return;
+    const newComment = {
+      id: generateId(),
+      Task_ID: t.id,
+      Autor: 'Você', // In a real app, this would be the logged-in user
+      Texto: comment,
+      Data: new Date().toISOString()
+    };
+    onUpdate(t.id, 'TAREFAS', 'Comentarios', [...(t.Comentarios || []), newComment]);
+
+    // Also log as activity
+    const newActivity = {
+      id: generateId(),
+      type: 'comment',
+      user: 'Você',
+      message: `Comentou: "${comment.substring(0, 50)}${comment.length > 50 ? '...' : ''}"`,
+      timestamp: new Date().toISOString()
+    };
+    onUpdate(t.id, 'TAREFAS', 'Activities', [...(t.Activities || []), newActivity]);
+
+    setComment('');
   };
 
-  const handleDuplicate = () => {
-    onAdd('TAREFAS', { ...t, id: generateId(), Título: `${t.Título} (Cópia)`, Task_ID: `TASK-${generateId().toUpperCase().slice(0, 4)}` });
-    onClose();
-  };
+  const client = clients.find((c: any) => c.id === t.Cliente_ID);
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col h-full w-full bg-app-surface-2 pointer-events-auto text-left shadow-2xl transition-all overflow-hidden md:rounded-3xl md:relative md:inset-auto md:z-auto md:h-full md:w-full">
-      {/* HEADER */}
-      <div className="h-16 flex items-center justify-between px-4 md:px-8 border-b border-app-border bg-app-surface shrink-0">
+    <div className="flex flex-col h-full bg-app-surface text-left overflow-hidden">
+      {/* PANEL HEADER */}
+      <div className="h-20 px-8 border-b border-app-border flex items-center justify-between bg-app-surface-2/30">
         <div className="flex items-center gap-4">
-          <Badge color="slate">{t.Task_ID}</Badge>
-          <div className="flex flex-col">
-            <span className="text-[10px] font-black uppercase text-[#3B82F6] leading-none truncate max-w-[100px] md:max-w-none">
-              {clients.find((c: any) => c.id === t.Cliente_ID)?.Nome || 'Agência'}
-            </span>
+          <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+            <Box size={20} />
           </div>
-          <div className="flex items-center bg-app-bg p-1 rounded-lg border border-app-border ml-4 hidden md:flex">
-            <button onClick={() => setViewMode('sidebar')} className={`p-2 transition-all hover:text-app-text-strong ${viewMode === 'sidebar' ? 'bg-[#3B82F6] text-app-text-strong rounded-md' : 'text-[#4B5563]'}`} title="Lateral"><i className="fa-solid fa-columns"></i></button>
-            <button onClick={() => setViewMode('modal')} className={`p-2 transition-all hover:text-app-text-strong ${viewMode === 'modal' ? 'bg-[#3B82F6] text-app-text-strong rounded-md' : 'text-[#4B5563]'}`} title="Modal"><i className="fa-solid fa-window-maximize"></i></button>
-            <button onClick={() => setViewMode('fullscreen')} className={`p-2 transition-all hover:text-app-text-strong ${viewMode === 'fullscreen' ? 'bg-[#3B82F6] text-app-text-strong rounded-md' : 'text-[#4B5563]'}`} title="Cheia"><i className="fa-solid fa-expand"></i></button>
+          <div>
+            <div className="text-[10px] font-black text-app-text-muted uppercase tracking-[0.2em] mb-0.5 leading-none">
+              {client?.Nome || 'Agência'} • {t.Task_ID}
+            </div>
+            <h3 className="text-sm font-black text-app-text-strong uppercase tracking-tight">Detalhes da Tarefa</h3>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={handleDuplicate} title="Duplicar Tarefa" className="p-2 text-app-text-muted hover:text-app-text-strong transition-all"><i className="fa-solid fa-copy"></i></button>
-          <button onClick={onClose} className="text-app-text-muted hover:text-app-text-strong transition-all ml-2 p-2">
-            <i className="fa-solid fa-xmark text-xl"></i>
+
+        <div className="flex items-center gap-3">
+          {/* View Modes */}
+          <div className="flex bg-app-bg p-1 rounded-lg border border-app-border mr-2 hidden md:flex">
+            <button onClick={() => setViewMode('sidebar')} className={`p-1.5 rounded transition-all ${viewMode === 'sidebar' ? 'bg-app-surface text-blue-500 shadow-sm' : 'text-app-text-muted hover:text-app-text-strong'}`}><LayoutGrid size={14} /></button>
+            <button onClick={() => setViewMode('modal')} className={`p-1.5 rounded transition-all ${viewMode === 'modal' ? 'bg-app-surface text-blue-500 shadow-sm' : 'text-app-text-muted hover:text-app-text-strong'}`}><ExternalLink size={14} /></button>
+          </div>
+          <button onClick={onClose} className="w-10 h-10 rounded-xl bg-app-bg border border-app-border flex items-center justify-center text-app-text-muted hover:text-app-text-strong hover:border-app-border-strong transition-all">
+            <X size={20} />
           </button>
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-        {/* LEFT COLUMN: DETAILS */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-10 custom-scrollbar border-b md:border-b-0 md:border-r border-app-border">
-          <section>
-            <label className="text-[9px] font-black uppercase text-[#334155] block mb-2 tracking-widest pl-1">Título da Tarefa</label>
-            <input className="text-xl md:text-2xl font-black text-app-text-strong bg-transparent border-none p-0 w-full focus:ring-0 uppercase tracking-tighter truncate"
-              value={t.Título}
-              onChange={e => onUpdate(t.id, 'TAREFAS', 'Título', e.target.value, true)}
-              onBlur={e => onUpdate(t.id, 'TAREFAS', 'Título', e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && onUpdate(t.id, 'TAREFAS', 'Título', (e.target as any).value)} />
-          </section>
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-10">
+        {/* TASK TITLE */}
+        <section>
+          <label className="text-[10px] font-black text-app-text-muted uppercase tracking-[0.2em] block mb-3 ml-1">Título</label>
+          <input
+            className="w-full text-2xl font-black text-app-text-strong bg-transparent border-none p-0 focus:ring-0 uppercase tracking-tight placeholder-app-text-muted/30"
+            value={t.Título}
+            onChange={e => onUpdate(t.id, 'TAREFAS', 'Título', e.target.value, true)}
+            onBlur={e => onUpdate(t.id, 'TAREFAS', 'Título', e.target.value)}
+            placeholder="NOME DA TAREFA"
+          />
+        </section>
 
-          <section className="flex flex-col gap-3 bg-[#1B2535]/30 p-4 md:p-6 rounded-[24px] border border-app-border/50 backdrop-blur-sm shadow-xl">
-            {[
-              { label: 'Status', field: 'Status', icon: 'fa-circle-half-stroke', color: 'text-[#3B82F6]', options: DEFAULT_TASK_STATUSES.map(s => ({ id: s.id, label: s.label })) },
-              { label: 'Prioridade', field: 'Prioridade', icon: 'fa-flag', color: 'text-rose-500', options: PRIORIDADE_OPTIONS.map(opt => ({ id: opt, label: opt })) },
-              { label: 'Responsável', field: 'Responsável', icon: 'fa-user-tie', color: 'text-amber-500', options: [{ id: '', label: 'Sem Resp.' }, ...collaborators.map((c: any) => ({ id: c.Nome, label: c.Nome }))] },
-              { label: 'Cliente', field: 'Cliente_ID', icon: 'fa-building-user', color: 'text-emerald-500', options: [{ id: 'GERAL', label: 'Agência' }, ...clients.map((c: any) => ({ id: c.id, label: c.Nome }))] }
-            ].map((item) => (
-              <div key={item.field} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-1 group">
-                <label className="text-[10px] font-black text-[#475569] uppercase flex items-center gap-2 tracking-widest leading-none shrink-0 min-w-[120px]">
-                  <i className={`fa-solid ${item.icon} text-[10px] ${item.color} w-4 text-center`}></i> {item.label}
-                </label>
-                <div className="w-full sm:w-[60%] relative">
-                  <InputSelect
-                    value={t[item.field as keyof Task] as string}
-                    onChange={(val) => onUpdate(t.id, 'TAREFAS', item.field, val)}
-                    options={item.options.map(opt => ({ value: opt.id, label: opt.label }))}
-                    className="w-full h-11 text-[11px] font-bold uppercase bg-app-bg hover:bg-app-bg/80 border border-app-border hover:border-[#3B82F6]/50 rounded-xl px-4 text-app-text-strong transition-all appearance-none cursor-pointer outline-none focus:ring-2 focus:ring-[#3B82F6]/20"
-                    placeholder="Selecione..."
-                    label={item.label}
-                  />
-                </div>
-              </div>
-            ))}
-
-            <div className="w-full h-px bg-app-border/50 my-1"></div>
-
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-1 group">
-              <label className="text-[10px] font-black text-[#475569] uppercase flex items-center gap-2 tracking-widest leading-none shrink-0 min-w-[120px]">
-                <i className="fa-solid fa-calendar-days text-[10px] text-indigo-500 w-4 text-center"></i> Entrega
-              </label>
-              <input type="date" className="w-full sm:w-[60%] h-11 text-[11px] font-bold uppercase bg-app-bg hover:bg-app-bg/80 border border-app-border hover:border-[#3B82F6]/50 rounded-xl px-4 text-app-text-strong transition-all cursor-pointer outline-none focus:ring-2 focus:ring-[#3B82F6]/20" value={t.Data_Entrega || ''} onChange={e => onUpdate(t.id, 'TAREFAS', 'Data_Entrega', e.target.value)} />
-            </div>
-
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-1 group">
-              <label className="text-[10px] font-black text-[#475569] uppercase flex items-center gap-2 tracking-widest leading-none shrink-0 min-w-[120px]">
-                <i className="fa-solid fa-clock text-[10px] text-cyan-500 w-4 text-center"></i> Horário
-              </label>
-              <input type="time" className="w-full sm:w-[60%] h-11 text-[11px] font-bold uppercase bg-app-bg hover:bg-app-bg/80 border border-app-border hover:border-[#3B82F6]/50 rounded-xl px-4 text-app-text-strong transition-all cursor-pointer outline-none focus:ring-2 focus:ring-[#3B82F6]/20" value={t.Hora_Entrega || '09:00'} onChange={e => onUpdate(t.id, 'TAREFAS', 'Hora_Entrega', e.target.value)} />
-            </div>
-          </section>
-
-          <section>
-            <div className="flex justify-between items-center mb-4 border-b border-app-border pb-2">
-              <h4 className="text-[10px] font-black uppercase text-[#3B82F6] tracking-widest">Tags</h4>
-            </div>
-            <div className="flex flex-wrap gap-2 mb-3">
-              {(t.Tags || []).map(tag => (
-                <Badge key={tag} color="slate" className="flex items-center gap-2">
-                  {tag}
-                  <button onClick={() => updateTags((t.Tags || []).filter(tg => tg !== tag))}><i className="fa-solid fa-xmark"></i></button>
-                </Badge>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <input value={newTag} onChange={e => setNewTag(e.target.value)} onKeyDown={e => e.key === 'Enter' && (() => { if (!newTag.trim()) return; updateTags([...(t.Tags || []), newTag.trim()]); setNewTag(''); })()} placeholder="Nova tag..." className="flex-1 text-[11px] font-bold uppercase h-10 !bg-app-bg text-app-text-strong border-app-border rounded-xl px-4" />
-              <Button onClick={() => { if (!newTag.trim()) return; updateTags([...(t.Tags || []), newTag.trim()]); setNewTag(''); }} className="!h-10 !w-10 !px-0 !bg-gray-800 rounded-xl"><i className="fa-solid fa-plus"></i></Button>
-            </div>
-          </section>
-
-          <section>
-            <div className="flex justify-between items-center mb-4 border-b border-app-border pb-2">
-              <h4 className="text-[10px] font-black uppercase text-[#3B82F6] tracking-widest">Checklist de Execução</h4>
-              <span className="text-[9px] font-bold text-[#334155]">{t.Checklist?.filter((i: any) => i.completed).length || 0}/{t.Checklist?.length || 0}</span>
-            </div>
-            <div className="space-y-3 px-2">
-              {t.Checklist?.map((item: any) => (
-                <div key={item.id} className="flex items-center gap-3 group">
-                  <input type="checkbox" checked={item.completed} onChange={() => updateChecklist(t.Checklist.map((i: any) => i.id === item.id ? { ...i, completed: !i.completed } : i))} className="w-5 h-5 rounded-lg border-gray-700 bg-app-bg text-[#3B82F6] focus:ring-offset-0 focus:ring-0 transition-all cursor-pointer" />
-                  <span className={`text-xs font-bold uppercase transition-all ${item.completed ? 'line-through opacity-40' : 'text-gray-300'}`}>{item.text}</span>
-                  <button onClick={() => updateChecklist(t.Checklist.filter((i: any) => i.id !== item.id))} className="ml-auto opacity-0 group-hover:opacity-100 text-rose-500/50 hover:text-rose-500 transition-all"><i className="fa-solid fa-trash-can"></i></button>
-                </div>
-              ))}
-              <div className="flex gap-2 pt-4">
-                <input value={newCheckItem} onChange={e => setNewCheckItem(e.target.value)} onKeyDown={e => e.key === 'Enter' && (() => { if (!newCheckItem.trim()) return; updateChecklist([...(t.Checklist || []), { id: generateId(), text: newCheckItem, completed: false }]); setNewCheckItem(''); })()} placeholder="Nova etapa..." className="flex-1 text-[11px] font-bold uppercase h-10 !bg-app-bg text-app-text-strong border-app-border rounded-xl px-4 px-3" />
-                <Button onClick={() => { if (!newCheckItem.trim()) return; updateChecklist([...(t.Checklist || []), { id: generateId(), text: newCheckItem, completed: false }]); setNewCheckItem(''); }} className="!h-10 !w-10 !px-0 !bg-[#3B82F6] rounded-xl shadow-lg shadow-[#3B82F6]/20"><i className="fa-solid fa-plus text-[10px]"></i></Button>
-              </div>
-            </div>
-          </section>
-
-          <section>
-            <div className="flex justify-between items-center mb-4 border-b border-app-border pb-2">
-              <h4 className="text-[10px] font-black uppercase text-[#3B82F6] tracking-widest">Descrição da Operação</h4>
-            </div>
-            <textarea className="w-full h-40 bg-app-surface border border-app-border rounded-[32px] p-5 md:p-6 text-[11px] text-gray-300 font-bold uppercase leading-relaxed outline-none focus:border-[#3B82F6]/50 transition-all custom-scrollbar shadow-inner"
-              value={t.Descrição || ''}
-              onChange={e => onUpdate(t.id, 'TAREFAS', 'Descrição', e.target.value, true)}
-              onBlur={e => onUpdate(t.id, 'TAREFAS', 'Descrição', e.target.value)}
-              placeholder="Pautas, links e detalhes táticos..." />
-          </section>
-
-          <section>
-            <div className="flex justify-between items-center mb-4 border-b border-app-border pb-2">
-              <h4 className="text-[10px] font-black uppercase text-[#3B82F6] tracking-widest">Anexos de Imagem</h4>
-              <Button variant="ghost" onClick={() => fileInputRef.current?.click()} className="!p-0 !h-6 !text-[10px] hover:!text-blue-400">
-                {uploading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <><i className="fa-solid fa-upload mr-1.5"></i>Upload</>}
-              </Button>
-              <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" multiple accept="image/*" />
-            </div>
-            <div
-              onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDragActive(true); }}
-              onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setDragActive(false); }}
-              onDrop={handleDrop}
-              className={`grid grid-cols-1 sm:grid-cols-2 gap-4 p-5 md:p-8 border-2 border-dashed rounded-[40px] transition-all min-h-[200px] ${dragActive ? 'border-[#3B82F6] bg-[#3B82F6]/5 scale-[0.98]' : 'border-app-border bg-app-surface/30'}`}
+        {/* METRICS GRID */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-app-bg/50 border border-app-border rounded-2xl p-4 flex flex-col gap-1 hover:border-blue-500/30 transition-colors">
+            <label className="text-[9px] font-black text-app-text-muted uppercase tracking-[0.1em] flex items-center gap-1.5">
+              <HistoryIcon size={10} className="text-blue-500" /> Status
+            </label>
+            <select
+              value={t.Status}
+              onChange={e => onUpdate(t.id, 'TAREFAS', 'Status', e.target.value)}
+              className="bg-transparent border-none text-[11px] font-bold text-app-text-strong uppercase focus:ring-0 p-0 cursor-pointer"
             >
-              {(t.Anexos || []).map((file) => (
-                <div key={file.id} className="bg-app-surface border border-app-border rounded-2xl p-4 space-y-4 group overflow-hidden relative shadow-lg">
-                  <div onClick={() => setLightboxImage(file.data)} className="aspect-video bg-app-bg rounded-xl overflow-hidden flex items-center justify-center relative shadow-inner cursor-zoom-in">
-                    <img src={file.data} alt={file.filename} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                    <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 transition-all duration-300 backdrop-blur-[2px]">
-                      <a href={file.data} download={file.filename} onClick={e => e.stopPropagation()} className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-app-text-strong hover:scale-110 shadow-2xl transition-all" title="Baixar Original"><i className="fa-solid fa-download"></i></a>
-                      <button onClick={(e) => { e.stopPropagation(); updateAttachments((t.Anexos || []).filter(a => a.id !== file.id)); }} className="w-12 h-12 rounded-full bg-rose-500 flex items-center justify-center text-app-text-strong hover:scale-110 shadow-2xl transition-all" title="Remover"><i className="fa-solid fa-trash-can"></i></button>
-                    </div>
-                  </div>
-                  <div className="px-1 overflow-hidden">
-                    <p className="text-[10px] font-black text-app-text-strong truncate uppercase mb-1 tracking-tight">{file.filename}</p>
-                    <p className="text-[9px] font-black text-[#4B5563] uppercase tracking-tighter">{(file.size / 1024).toFixed(1)} KB • {new Date(file.createdAt).toLocaleDateString()}</p>
-                  </div>
-                </div>
-              ))}
-              {(!t.Anexos || t.Anexos.length === 0) && (
-                <div className="col-span-2 py-16 text-center opacity-20">
-                  <div className="w-16 h-16 rounded-full bg-[#1B2535] flex items-center justify-center mx-auto mb-6 border border-app-border">
-                    <i className="fa-solid fa-paperclip text-3xl"></i>
-                  </div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] leading-none mb-2">Arraste arquivos aqui</p>
-                  <p className="text-[8px] font-bold uppercase opacity-60">Imagens até 20MB</p>
-                </div>
-              )}
-            </div>
-          </section>
-
-          <footer className="flex gap-4 pt-8 border-t border-app-border">
-            <Button variant="secondary" className="flex-1 !h-14 !text-[11px] font-black uppercase tracking-widest rounded-2xl" onClick={() => { onArchive([t.id], 'TAREFAS', !t.__archived); onClose(); }}>
-              <i className={`fa-solid ${t.__archived ? 'fa-box-open' : 'fa-box-archive'} mr-2`}></i>
-              {t.__archived ? 'Restaurar' : 'Arquivar'}
-            </Button>
-            <Button variant="danger" className="flex-1 !h-14 !text-[11px] font-black uppercase tracking-widest rounded-2xl" onClick={() => { if (window.confirm("Deseja EXCLUIR DEFINITIVAMENTE esta tarefa?")) { onDelete([t.id], 'TAREFAS'); onClose(); } }}>
-              <i className="fa-solid fa-trash-can mr-2"></i>Excluir
-            </Button>
-            <Button onClick={onClose} className="flex-2 !h-14 !bg-[#3B82F6] !text-app-text-strong !text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-2xl shadow-[#3B82F6]/20">
-              <i className="fa-solid fa-check mr-2"></i>Salvar & Sair
-            </Button>
-          </footer>
+              {DEFAULT_TASK_STATUSES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+            </select>
+          </div>
+          <div className="bg-app-bg/50 border border-app-border rounded-2xl p-4 flex flex-col gap-1 hover:border-rose-500/30 transition-colors">
+            <label className="text-[9px] font-black text-app-text-muted uppercase tracking-[0.1em] flex items-center gap-1.5">
+              <ShieldAlert size={10} className="text-rose-500" /> Prioridade
+            </label>
+            <select
+              value={t.Prioridade}
+              onChange={e => onUpdate(t.id, 'TAREFAS', 'Prioridade', e.target.value)}
+              className="bg-transparent border-none text-[11px] font-bold text-app-text-strong uppercase focus:ring-0 p-0 cursor-pointer"
+            >
+              {PRIORIDADE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          </div>
+          <div className="bg-app-bg/50 border border-app-border rounded-2xl p-4 flex flex-col gap-1 hover:border-emerald-500/30 transition-colors">
+            <label className="text-[9px] font-black text-app-text-muted uppercase tracking-[0.1em] flex items-center gap-1.5">
+              <User size={10} className="text-emerald-500" /> Responsável
+            </label>
+            <select
+              value={t.Responsável}
+              onChange={e => onUpdate(t.id, 'TAREFAS', 'Responsável', e.target.value)}
+              className="bg-transparent border-none text-[11px] font-bold text-app-text-strong uppercase focus:ring-0 p-0 cursor-pointer"
+            >
+              <option value="">Sem Resp.</option>
+              {collaborators.map((c: any) => <option key={c.id} value={c.Nome}>{c.Nome}</option>)}
+            </select>
+          </div>
+          <div className="bg-app-bg/50 border border-app-border rounded-2xl p-4 flex flex-col gap-1 hover:border-indigo-500/30 transition-colors">
+            <label className="text-[9px] font-black text-app-text-muted uppercase tracking-[0.1em] flex items-center gap-1.5">
+              <Clock size={10} className="text-indigo-500" /> Entrega
+            </label>
+            <input
+              type="date"
+              value={t.Data_Entrega || ''}
+              onChange={e => onUpdate(t.id, 'TAREFAS', 'Data_Entrega', e.target.value)}
+              className="bg-transparent border-none text-[11px] font-bold text-app-text-strong uppercase focus:ring-0 p-0 cursor-pointer"
+            />
+          </div>
         </div>
 
-        {/* RIGHT COLUMN: ACTIVITY SIDEBAR */}
-        <div className="w-full md:w-[350px] flex flex-col bg-app-bg/80 backdrop-blur-md border-l-0 md:border-l border-app-border min-h-[400px] md:min-h-0 shrink-0">
-          <div className="h-16 flex items-center justify-between px-8 border-b border-app-border">
-            <h3 className="text-[12px] font-black uppercase text-app-text-strong tracking-[0.1em]">Atividade</h3>
-            <div className="flex gap-5 text-[#4B5563]">
-              <button onClick={() => setActivityTab('atividade')} className={`p-2 transition-all hover:text-app-text-strong ${activityTab === 'atividade' ? 'text-[#3B82F6]' : ''}`}><i className="fa-solid fa-comment-dots text-lg"></i></button>
-              <button onClick={() => setActivityTab('links')} className={`p-2 transition-all hover:text-app-text-strong ${activityTab === 'links' ? 'text-[#3B82F6]' : ''}`}><i className="fa-solid fa-link text-lg"></i></button>
-              <button onClick={() => setActivityTab('mais')} className={`p-2 transition-all hover:text-app-text-strong ${activityTab === 'mais' ? 'text-[#3B82F6]' : ''}`}><i className="fa-solid fa-plus text-lg"></i></button>
+        {/* DESCRIPTION */}
+        <section>
+          <div className="flex items-center justify-between mb-4 border-b border-app-border pb-2">
+            <h4 className="text-[10px] font-black uppercase text-app-text-strong tracking-[0.2em] flex items-center gap-2">
+              <FileText size={14} className="text-blue-500" /> Descrição Estratégica
+            </h4>
+          </div>
+          <textarea
+            className="w-full h-32 bg-app-bg border border-app-border rounded-2xl p-5 text-[11px] font-bold text-app-text-strong uppercase leading-relaxed outline-none focus:border-blue-500/50 transition-all custom-scrollbar placeholder-app-text-muted/20"
+            value={t.Descrição || ''}
+            onChange={e => onUpdate(t.id, 'TAREFAS', 'Descrição', e.target.value, true)}
+            onBlur={e => onUpdate(t.id, 'TAREFAS', 'Descrição', e.target.value)}
+            placeholder="DESCREVA OS DETALHES TÁTICOS, LINKS E PAUTAS..."
+          />
+        </section>
+
+        {/* CHECKLIST */}
+        <section>
+          <div className="flex items-center justify-between mb-6 border-b border-app-border pb-2">
+            <h4 className="text-[10px] font-black uppercase text-app-text-strong tracking-[0.2em] flex items-center gap-2">
+              <CheckCircle2 size={14} className="text-emerald-500" /> Etapas de Execução
+            </h4>
+            <span className="text-[10px] font-black text-app-text-muted bg-app-surface-2 px-3 py-1 rounded-full uppercase tracking-widest">
+              {t.Checklist?.filter(i => i.completed).length || 0} / {t.Checklist?.length || 0}
+            </span>
+          </div>
+          <div className="space-y-4 px-2">
+            {t.Checklist?.map(item => (
+              <div key={item.id} className="flex items-center gap-4 group">
+                <button
+                  onClick={() => updateChecklist(t.Checklist.map(i => i.id === item.id ? { ...i, completed: !i.completed } : i))}
+                  className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${item.completed ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-app-border bg-app-bg text-transparent'}`}
+                >
+                  <Plus size={14} className={item.completed ? 'rotate-45' : ''} />
+                </button>
+                <span className={`text-[11px] font-black uppercase tracking-tight transition-all flex-1 ${item.completed ? 'opacity-30 line-through' : 'text-app-text-strong'}`}>
+                  {item.text}
+                </span>
+                <button onClick={() => updateChecklist(t.Checklist.filter(i => i.id !== item.id))} className="opacity-0 group-hover:opacity-100 text-app-text-muted hover:text-rose-500 transition-all">
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))}
+            <div className="flex gap-3 pt-2">
+              <input
+                value={newCheckItem}
+                onChange={e => setNewCheckItem(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && (() => { if (!newCheckItem.trim()) return; updateChecklist([...(t.Checklist || []), { id: generateId(), text: newCheckItem.toUpperCase(), completed: false }]); setNewCheckItem(''); })()}
+                placeholder="NOVA ETAPA..."
+                className="flex-1 h-11 bg-app-bg border border-app-border rounded-xl px-4 text-[11px] font-black uppercase tracking-widest outline-none focus:border-blue-500/50 transition-all"
+              />
+              <button
+                onClick={() => { if (!newCheckItem.trim()) return; updateChecklist([...(t.Checklist || []), { id: generateId(), text: newCheckItem.toUpperCase(), completed: false }]); setNewCheckItem(''); }}
+                className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/10"
+              >
+                <Plus size={20} />
+              </button>
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-8 min-h-0">
-            {(t.Activities || []).map((act: TaskActivity) => (
-              <div key={act.id} className="flex gap-5 group animate-fade-in">
-                <div className="w-10 h-10 rounded-2xl bg-[#1B2535] flex items-center justify-center flex-shrink-0 border border-app-border shadow-sm group-hover:border-[#3B82F6]/50 transition-all">
-                  <i className={`fa-solid ${act.type === 'create' ? 'fa-plus' : act.type === 'upload' ? 'fa-cloud-arrow-up' : act.type === 'status_change' ? 'fa-arrows-rotate' : 'fa-pen-to-square'} text-xs text-[#3B82F6]`}></i>
-                </div>
-                <div className="flex-1 space-y-1.5 pt-0.5">
-                  <div className="flex justify-between items-baseline">
-                    <span className="text-[11px] font-black text-app-text-strong/90 uppercase tracking-tight">{act.user}</span>
-                    <span className="text-[9px] font-bold text-[#4B5563] uppercase tracking-tighter whitespace-nowrap ml-4">
-                      {new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                  <p className="text-[11px] font-medium text-app-text-muted leading-relaxed uppercase tracking-tight">{act.message}</p>
-                  <p className="text-[8px] font-bold text-[#334155] uppercase tracking-[0.1em]">
-                    {new Date(act.timestamp).toLocaleDateString([], { day: '2-digit', month: 'short' })}
-                  </p>
+        </section>
+
+        {/* ATTACHMENTS */}
+        <section>
+          <div className="flex items-center justify-between mb-6 border-b border-app-border pb-2">
+            <h4 className="text-[10px] font-black uppercase text-app-text-strong tracking-[0.2em] flex items-center gap-2">
+              <ImageIcon size={14} className="text-orange-500" /> Ativos e Mídia
+            </h4>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="text-[10px] font-black uppercase text-blue-500 hover:text-blue-400 transition-colors flex items-center gap-2"
+            >
+              {uploading ? <Loader2 size={14} className="animate-spin" /> : <><Plus size={14} /> Upload</>}
+            </button>
+            <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" multiple accept="image/*" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            {(t.Anexos || []).map(file => (
+              <div key={file.id} className="group relative aspect-video rounded-2xl overflow-hidden bg-app-bg border border-app-border hover:border-blue-500/30 transition-all">
+                <img src={file.data} alt={file.filename} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 backdrop-blur-[2px]">
+                  <button onClick={() => setLightboxImage(file.data)} className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-all"><Eye size={18} /></button>
+                  <button onClick={() => updateAttachments((t.Anexos || []).filter(a => a.id !== file.id))} className="w-10 h-10 rounded-full bg-rose-500/20 hover:bg-rose-500 text-rose-500 hover:text-white flex items-center justify-center backdrop-blur-md transition-all"><Trash2 size={18} /></button>
                 </div>
               </div>
             ))}
-            {(!t.Activities || t.Activities.length === 0) && (
-              <div className="h-full flex flex-col items-center justify-center opacity-10 py-32 grayscale">
-                <i className="fa-solid fa-clock-rotate-left text-6xl mb-6"></i>
-                <p className="text-[11px] font-black uppercase tracking-[0.2em]">Sem histórico</p>
+            {(!t.Anexos || t.Anexos.length === 0) && (
+              <div className="col-span-2 border-2 border-dashed border-app-border rounded-3xl py-12 flex flex-col items-center justify-center gap-4 text-app-text-muted group hover:border-blue-500/30 transition-all cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                <div className="w-14 h-14 rounded-full bg-app-bg flex items-center justify-center border border-app-border group-hover:scale-110 transition-transform"><ImageIcon size={24} /></div>
+                <div className="text-center">
+                  <p className="text-[10px] font-black uppercase tracking-widest">Arraste Ativos Aqui</p>
+                  <p className="text-[8px] font-bold uppercase opacity-50 mt-1">Imagens até 20MB</p>
+                </div>
               </div>
             )}
           </div>
-          <div className="p-6 border-t border-app-border bg-app-surface/80">
-            <div className="relative group">
-              <input
-                placeholder="Escreva um comentário..."
-                className="w-full bg-app-bg border border-app-border group-focus-within:border-[#3B82F6]/50 rounded-2xl px-5 py-4 text-[11px] font-bold uppercase text-app-text-strong outline-none transition-all pr-14"
-              />
-              <button className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-[#1B2535] text-app-text-muted hover:text-app-text-strong hover:bg-[#3B82F6] transition-all flex items-center justify-center shadow-lg"><i className="fa-solid fa-paper-plane text-xs"></i></button>
+        </section>
+
+        {/* ACTIVITY & COMMENTS */}
+        <section className="space-y-6 pt-4 border-t border-app-border">
+          <div className="flex items-center justify-between">
+            <h4 className="text-[10px] font-black uppercase text-app-text-strong tracking-[0.2em] flex items-center gap-2">
+              <MessageSquare size={14} className="text-purple-500" /> Atividade e Timeline
+            </h4>
+          </div>
+
+          <div className="space-y-6">
+            {(t.Activities || []).map(act => (
+              <div key={act.id} className="flex gap-4 group">
+                <div className="w-8 h-8 rounded-xl bg-app-bg border border-app-border flex items-center justify-center shrink-0">
+                  {act.type === 'comment' ? <MessageSquare size={12} className="text-purple-500" /> : <Zap size={12} className="text-blue-500" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-baseline mb-1">
+                    <span className="text-[10px] font-black text-app-text-strong uppercase tracking-tight">{act.user}</span>
+                    <span className="text-[8px] font-bold text-app-text-muted uppercase">{new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                  <p className="text-[11px] font-bold text-app-text-muted leading-relaxed uppercase tracking-tight">{act.message}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-col gap-3 mt-6">
+            <textarea
+              value={comment}
+              onChange={e => setComment(e.target.value)}
+              placeholder="ESCREVA UM COMENTÁRIO..."
+              className="w-full bg-app-bg border border-app-border rounded-2xl p-4 text-[11px] font-black uppercase tracking-widest placeholder-app-text-muted/30 outline-none focus:border-purple-500/50 transition-all min-h-[80px]"
+            />
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={handleAddComment}
+                className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-purple-500/10"
+              >
+                Publicar Comentário
+              </button>
             </div>
           </div>
-        </div>
+        </section>
       </div>
 
-      {/* LIGHTBOX OVERLAY */}
+      {/* FOOTER ACTIONS */}
+      <div className="px-8 py-6 border-t border-app-border bg-app-surface-2/30 flex gap-3">
+        <button
+          onClick={() => { onArchive([t.id], 'TAREFAS', !t.__archived); onClose(); }}
+          className="flex-1 h-12 rounded-xl border border-app-border bg-app-bg text-app-text-muted hover:text-app-text-strong hover:bg-app-surface transition-all text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2"
+        >
+          <Box size={16} /> {t.__archived ? 'RESTAURAR' : 'ARQUIVAR'}
+        </button>
+        <button
+          onClick={() => { if (window.confirm("EXCLUIR DEFINITIVAMENTE?")) { onDelete([t.id], 'TAREFAS'); onClose(); } }}
+          className="flex-1 h-12 rounded-xl border border-app-border bg-app-bg text-rose-500/70 hover:text-rose-500 hover:bg-rose-500/5 transition-all text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2"
+        >
+          <Trash2 size={16} /> EXCLUIR
+        </button>
+        <button
+          onClick={onClose}
+          className="flex-[1.5] h-12 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-all text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl shadow-blue-500/10"
+        >
+          <CheckCircle2 size={16} /> FINALIZAR
+        </button>
+      </div>
+
+      {/* LIGHTBOX */}
       {lightboxImage && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/95 backdrop-blur-3xl animate-fade">
-          <div className="absolute top-0 inset-x-0 h-24 flex items-center justify-between px-12 border-b border-white/5 bg-black/40 backdrop-blur-md">
-            <span className="text-sm font-black uppercase text-app-text-strong tracking-[0.2em]">{t.Anexos?.find(a => a.data === lightboxImage)?.filename || 'Mídia'}</span>
-            <div className="flex items-center gap-10">
-              <div className="flex items-center bg-white/5 rounded-2xl border border-white/10 p-1.5">
-                <button className="w-10 h-10 rounded-xl hover:bg-white/10 text-app-text-strong/50 hover:text-app-text-strong transition-all"><i className="fa-solid fa-minus"></i></button>
-                <span className="px-6 text-[11px] font-black text-app-text-strong/90">100%</span>
-                <button className="w-10 h-10 rounded-xl hover:bg-white/10 text-app-text-strong/50 hover:text-app-text-strong transition-all"><i className="fa-solid fa-plus"></i></button>
-              </div>
-              <div className="flex items-center gap-6">
-                <a href={lightboxImage} download className="h-12 px-8 bg-[#3B82F6] hover:bg-[#2563EB] rounded-2xl text-app-text-strong font-black uppercase text-[11px] tracking-widest transition-all flex items-center gap-3 shadow-xl">
-                  <i className="fa-solid fa-download"></i> Baixar
-                </a>
-                <button onClick={() => setLightboxImage(null)} className="h-12 w-12 bg-white/5 hover:bg-rose-500 rounded-2xl text-app-text-strong transition-all flex items-center justify-center border border-white/10">
-                  <i className="fa-solid fa-xmark text-xl"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <button className="absolute left-10 top-1/2 -translate-y-1/2 w-16 h-16 rounded-3xl bg-white/5 hover:bg-white/10 border border-white/10 text-app-text-strong transition-all flex items-center justify-center"><i className="fa-solid fa-chevron-left text-2xl"></i></button>
-
-          <div className="flex-1 flex items-center justify-center p-20 cursor-move">
-            <img src={lightboxImage} className="max-w-full max-h-full object-contain rounded-lg shadow-[0_0_100px_rgba(0,0,0,0.5)] animate-scale-up" />
-          </div>
-
-          <button className="absolute right-10 top-1/2 -translate-y-1/2 w-16 h-16 rounded-3xl bg-white/5 hover:bg-white/10 border border-white/10 text-app-text-strong transition-all flex items-center justify-center"><i className="fa-solid fa-chevron-right text-2xl"></i></button>
-
-          <div className="absolute bottom-10 inset-x-0 h-24 flex items-center justify-center gap-4">
-            <Button className="!bg-[#7C3AED] !text-app-text-strong !h-14 !px-10 !rounded-2xl !font-black !uppercase !text-[11px] !tracking-widest shadow-2xl">
-              <i className="fa-solid fa-plus-circle mr-3"></i> Adicionar Comentário
-            </Button>
-          </div>
+        <div className="fixed inset-0 z-[3000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-10 animate-fade" onClick={() => setLightboxImage(null)}>
+          <button className="absolute top-10 right-10 text-white opacity-50 hover:opacity-100 transition-opacity"><X size={32} /></button>
+          <img src={lightboxImage} className="max-w-full max-h-full object-contain rounded-lg shadow-2xl animate-scale-up" onClick={e => e.stopPropagation()} />
         </div>
       )}
     </div>
