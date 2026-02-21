@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Workspace } from './types';
 import { BottomSheet } from './components/BottomSheet';
 import { PortalPopover } from './components/PortalPopover';
+import { ChevronDown, Users, Settings, Plus, X } from 'lucide-react';
 
 interface WorkspaceSelectorProps {
     workspaces: Workspace[];
@@ -14,8 +15,6 @@ interface WorkspaceSelectorProps {
 
 export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCreate, onManageMembers, loading }: WorkspaceSelectorProps) {
     const [isOpen, setIsOpen] = useState(false);
-    const [isCreating, setIsCreating] = useState(false);
-    const [newName, setNewName] = useState('');
     const buttonRef = useRef<HTMLButtonElement>(null);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
 
@@ -25,131 +24,134 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const toggleOpen = () => {
-        setIsOpen(!isOpen);
-    };
+    const toggleOpen = () => setIsOpen(!isOpen);
 
-    const handleCreate = () => {
-        if (!newName.trim()) return;
-        onCreate(newName);
-        setNewName('');
-        setIsCreating(false);
-        setIsOpen(false);
-    };
+    const Trigger = (
+        <button
+            ref={buttonRef}
+            onClick={toggleOpen}
+            className="flex items-center gap-3 p-1.5 pr-3 rounded-xl border border-transparent hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all focus:outline-none group"
+        >
+            <div className="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow-md text-xs tracking-wider shrink-0 transition-transform group-active:scale-95">
+                {currentWorkspace?.name?.substring(0, 2).toUpperCase() || 'EK'}
+            </div>
+            <div className="text-left hidden sm:block">
+                <p className="text-[10px] text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-widest leading-none mb-0.5">Workspace</p>
+                <h2 className="text-sm font-black text-gray-900 dark:text-white leading-none truncate max-w-[120px]">
+                    {currentWorkspace?.name || 'Carregando...'}
+                </h2>
+            </div>
+            <ChevronDown size={16} className={`text-gray-400 dark:text-zinc-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+        </button>
+    );
 
-    const WorkspaceListContent = () => (
-        <div className="flex flex-col h-full lg:h-auto">
-            <div className="p-2 space-y-1 lg:max-h-64 lg:overflow-y-auto custom-scrollbar">
-                {currentWorkspace && (
-                    <button
-                        onClick={() => {
-                            onManageMembers();
-                            setIsOpen(false);
-                        }}
-                        className="w-full flex items-center gap-3 px-3 py-3 lg:py-2 rounded-xl transition-all hover:bg-white/5 text-gray-300 mb-2 border-b border-white/5"
-                    >
-                        <i className="fa-solid fa-users-cog text-xs text-blue-500"></i>
-                        <span className="text-[10px] font-black uppercase tracking-wide">Gerenciar Membros</span>
-                    </button>
-                )}
-                <div className="px-3 py-2 text-[10px] font-black uppercase text-gray-500 tracking-widest">Meus Workspaces</div>
-                {workspaces.map(ws => (
-                    <button
-                        key={ws.id}
-                        onClick={() => {
-                            onSelect(ws);
-                            setIsOpen(false);
-                        }}
-                        className={`w-full flex items-center gap-3 px-3 py-3 lg:py-2 rounded-xl transition-all ${currentWorkspace?.id === ws.id ? 'bg-blue-600/10 text-blue-500' : 'hover:bg-white/5 text-gray-300'}`}
-                    >
-                        <div className={`w-2 h-2 rounded-full ${currentWorkspace?.id === ws.id ? 'bg-blue-500' : 'bg-gray-600'}`}></div>
-                        <span className="text-xs font-bold truncate">{ws.name}</span>
-                        {currentWorkspace?.id === ws.id && <i className="fa-solid fa-check ml-auto text-xs"></i>}
-                    </button>
-                ))}
+    const DropdownContent = () => (
+        <div className="flex flex-col w-80 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden font-sans">
+            <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100 dark:border-zinc-800 bg-gray-50 dark:bg-[#0a0a0c]">
+                <span className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest">Opções do Workspace</span>
+                <button onClick={() => setIsOpen(false)} className="p-1 text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-md transition-colors">
+                    <X size={16} />
+                </button>
             </div>
 
-            <div className="p-2 border-t border-white/5 bg-black/20 mt-auto lg:mt-0">
-                {isCreating ? (
-                    <div className="space-y-2 px-1 animate-fade">
-                        <input
-                            autoFocus
-                            value={newName}
-                            onChange={e => setNewName(e.target.value)}
-                            placeholder="Nome do Workspace..."
-                            className="w-full bg-[#0B0F19] border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-blue-500"
-                            onKeyDown={e => e.key === 'Enter' && handleCreate()}
-                        />
-                        <div className="flex gap-2">
-                            <button
-                                onClick={handleCreate}
-                                disabled={loading}
-                                className={`flex-1 bg-blue-600 text-white py-2 lg:py-1.5 rounded-lg text-[10px] font-black uppercase hover:bg-blue-500 transition-all ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            >
-                                {loading ? 'Criando...' : 'Criar'}
-                            </button>
-                            <button
-                                onClick={() => setIsCreating(false)}
-                                className="px-3 bg-white/5 text-gray-400 py-2 lg:py-1.5 rounded-lg text-[10px] font-black hover:bg-white/10"
-                            >
-                                Cancelar
-                            </button>
-                        </div>
+            <div className="p-2 max-h-[60vh] overflow-y-auto custom-scrollbar overscroll-contain">
+                {/* Active Workspace */}
+                <div className="px-3 py-3 flex items-center gap-3 mb-2 bg-gray-50 dark:bg-zinc-900/50 rounded-xl border border-gray-100 dark:border-zinc-800/50">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white text-[10px]">
+                        {currentWorkspace?.name?.substring(0, 2).toUpperCase() || 'EK'}
                     </div>
-                ) : (
+                    <div className="min-w-0">
+                        <h3 className="text-sm font-bold text-gray-900 dark:text-white leading-tight truncate">
+                            {currentWorkspace?.name}
+                        </h3>
+                        <p className="text-[10px] text-gray-500 dark:text-zinc-400 uppercase tracking-widest">Ativo Agora</p>
+                    </div>
+                </div>
+
+                {/* Actions */}
+                <div className="space-y-1">
                     <button
-                        onClick={() => setIsCreating(true)}
-                        className="w-full flex items-center justify-center gap-2 px-3 py-3 lg:py-2 bg-blue-600/10 text-blue-500 rounded-xl hover:bg-blue-600/20 transition-all"
+                        onClick={() => { onManageMembers(); setIsOpen(false); }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 transition-colors text-sm font-bold group"
                     >
-                        <i className="fa-solid fa-plus text-xs"></i>
-                        <span className="text-[10px] font-black uppercase tracking-widest">Novo Workspace</span>
+                        <div className="p-1.5 rounded-lg bg-gray-200 dark:bg-zinc-800 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/20 transition-colors">
+                            <Users size={16} />
+                        </div>
+                        Gerenciar Membros
                     </button>
-                )}
+                    <button
+                        onClick={() => setIsOpen(false)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 transition-colors text-sm font-bold group"
+                    >
+                        <div className="p-1.5 rounded-lg bg-gray-200 dark:bg-zinc-800 transition-colors">
+                            <Settings size={16} />
+                        </div>
+                        Configurações
+                    </button>
+                </div>
+
+                <div className="h-px bg-gray-100 dark:bg-zinc-800 w-full my-2"></div>
+
+                {/* Switcher */}
+                <p className="px-3 py-2 text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">Outros Workspaces</p>
+                <div className="space-y-1">
+                    {workspaces.filter(ws => ws.id !== currentWorkspace?.id).map(ws => (
+                        <button
+                            key={ws.id}
+                            onClick={() => { onSelect(ws); setIsOpen(false); }}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 transition-colors text-sm font-bold text-left min-w-0"
+                        >
+                            <div className="w-8 h-8 rounded-lg bg-gray-200 dark:bg-zinc-800 flex items-center justify-center font-bold text-gray-500 dark:text-zinc-400 text-[10px] shrink-0">
+                                {ws.name.substring(0, 2).toUpperCase()}
+                            </div>
+                            <span className="truncate">{ws.name}</span>
+                        </button>
+                    ))}
+                </div>
+
+                <div className="p-2 border-t border-gray-100 dark:border-zinc-800/50 mt-2">
+                    <button
+                        onClick={() => {
+                            const name = prompt('Nome do novo workspace:');
+                            if (name) onCreate(name);
+                            setIsOpen(false);
+                        }}
+                        className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors text-sm font-bold border border-dashed border-indigo-200 dark:border-indigo-500/30"
+                    >
+                        <Plus size={16} /> {loading ? 'Criando...' : 'Novo Workspace'}
+                    </button>
+                </div>
             </div>
         </div>
     );
 
     return (
         <div className="relative w-full lg:w-auto min-w-0">
-            <button
-                ref={buttonRef}
-                onClick={toggleOpen}
-                className="flex items-center gap-2 px-3 py-2 lg:px-4 lg:py-2 bg-[#111827] border border-white/10 rounded-xl hover:bg-white/5 transition-all w-full justify-between group min-w-0"
-            >
-                <div className="flex items-center gap-2 lg:gap-3 overflow-hidden min-w-0">
-                    <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-[10px] lg:text-xs shrink-0 shadow-lg shadow-blue-900/20 group-hover:scale-105 transition-transform">
-                        {currentWorkspace?.name.substring(0, 2).toUpperCase() || 'WS'}
-                    </div>
-                    <div className="flex flex-col items-start truncate leading-tight min-w-0">
-                        <span className="text-[8px] lg:text-[10px] text-gray-400 font-bold uppercase tracking-wider">Workspace</span>
-                        <span className="text-[11px] lg:text-xs text-white font-black truncate max-w-[100px] lg:max-w-[120px]">{currentWorkspace?.name || 'Selecione...'}</span>
-                    </div>
-                </div>
-                <i className={`fa-solid fa-chevron-down text-gray-500 text-[10px] lg:text-xs transition-transform ${isOpen ? 'rotate-180' : ''} ml-2 shrink-0`}></i>
-            </button>
+            {Trigger}
 
             {/* Mobile BottomSheet */}
             <BottomSheet
                 isOpen={isOpen && isMobile}
                 onClose={() => setIsOpen(false)}
-                title="Trocar Workspace"
+                title="Opções do Workspace"
             >
-                <WorkspaceListContent />
+                <div className="bg-white dark:bg-[#111114] rounded-t-2xl overflow-hidden pb-safe">
+                    <DropdownContent />
+                </div>
             </BottomSheet>
 
-            {/* Desktop Popover using Portal */}
+            {/* Desktop Popover */}
             <PortalPopover
                 isOpen={isOpen && !isMobile}
                 onClose={() => setIsOpen(false)}
                 triggerRef={buttonRef}
-                className="w-64"
+                className="w-80"
                 align="start"
             >
-                <div className="bg-[#111827] border border-white/10 rounded-2xl shadow-xl overflow-hidden pointer-events-auto">
-                    <WorkspaceListContent />
+                <div className="pointer-events-auto">
+                    <DropdownContent />
                 </div>
             </PortalPopover>
         </div>
     );
 }
-

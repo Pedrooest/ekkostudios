@@ -14,7 +14,9 @@ import {
   BrainCircuit, Mic, Trash2, History as HistoryIcon, Sparkles, Loader2, ChevronDown,
   Zap, Copy, FileImage, MessageSquare, ExternalLink, ShieldAlert,
   Plus, X, User, Target, Lightbulb, Radio, FolderOpen,
-  Box, Eye, EyeOff, Search, LayoutGrid, List, Filter, ArrowUpDown, Archive, Briefcase, TrendingUp, TrendingDown, Receipt, CreditCard, Wallet, Activity, DollarSign, ArrowRight, LayoutDashboard, AlertTriangle, Calculator, Info
+  Box, Eye, EyeOff, Search, LayoutGrid, List, Filter, ArrowUpDown, Archive, Briefcase, TrendingUp, TrendingDown, Receipt, CreditCard, Wallet, Activity, DollarSign, ArrowRight, LayoutDashboard, AlertTriangle, Calculator, Info, Users, CheckSquare, MoreVertical, Database,
+  Menu, Sun, Moon, Download, Bell, BellOff, Layers, FileSpreadsheet, FileVideo, Palette, Info as InfoIcon, X as XIcon, Check as CheckIcon,
+  Bot, Castle, Antenna, CalendarDays, Coins, ListTodo, Presentation, Hourglass, ArrowLeft
 } from 'lucide-react';
 import { AssistantDrawer } from './AssistantDrawer';
 import { AssistantAction } from './ai/types';
@@ -1151,78 +1153,59 @@ export default function App() {
 
 
       <main className="flex-1 flex flex-col min-w-0 relative overflow-hidden bg-app-bg transition-colors duration-300">
-        <header className="flex-none bg-app-bg border-b border-app-border px-3 lg:px-8 flex flex-col lg:flex-row items-stretch lg:items-center justify-between z-[50] transition-colors duration-300 py-2 lg:py-0 min-h-[auto] lg:h-16 gap-2 lg:gap-4 mobile-header">
-          {/* TOP ROW: Menu | Workspace | Mobile Controls (Right) */}
-          <div className="flex items-center justify-between gap-4 w-full lg:w-auto">
-            <div className="flex items-center gap-3 lg:gap-4 flex-1 min-w-0">
-              <button className="lg:hidden text-app-text-muted hover:text-app-text-strong transition-colors p-2 -ml-2 relative z-[2200]" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
-                <i className="fa-solid fa-bars text-xl"></i>
-              </button>
-              <WorkspaceSelector
-                workspaces={workspaces}
-                currentWorkspace={currentWorkspace}
-                onSelect={setCurrentWorkspace}
-                onManageMembers={() => setActiveTab('WORKSPACE')}
-                onCreate={async (name) => {
-                  try {
-                    const newWs = await DatabaseService.createWorkspace(name);
-                    setWorkspaces(prev => [newWs, ...prev]);
-                    setCurrentWorkspace(newWs);
-                    alert('Workspace criado com sucesso!');
-                  } catch (e: any) {
-                    console.error(e);
-                    alert('Erro ao criar workspace: ' + (e.message || e));
-                  }
-                }}
-                loading={workspaceLoading}
-              />
-              {isSettingsModalOpen && currentWorkspace && (
-                <WorkspaceSettingsModal
-                  workspace={currentWorkspace}
-                  onClose={() => setIsSettingsModalOpen(false)}
-                  currentUserEmail={currentUser?.email}
-                  onWorkspaceDeleted={() => {
-                    setIsSettingsModalOpen(false);
-                    setCurrentWorkspace(null);
-                    refreshWorkspaces();
-                  }}
-                />
-              )}
-            </div>
+        <header className={`sticky top-0 z-[50] px-4 sm:px-8 py-3 lg:h-[72px] border-b transition-colors flex justify-between items-center w-full backdrop-blur-md ${theme === 'dark' ? 'dark bg-[#0a0a0c]/80 border-white/5 text-zinc-300' : 'bg-white/80 border-gray-200 text-gray-800'}`}>
+          {/* LEFT: Menu | Workspace */}
+          <div className="flex items-center gap-4">
+            <button className="lg:hidden text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all p-2.5 -ml-2 relative z-[2200] bg-zinc-100 dark:bg-white/5 rounded-xl active:scale-90" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
+              <Menu size={22} />
+            </button>
+            <WorkspaceSelector
+              workspaces={workspaces}
+              currentWorkspace={currentWorkspace}
+              onSelect={setCurrentWorkspace}
+              onManageMembers={() => setActiveTab('WORKSPACE')}
+              onCreate={async (name) => {
+                try {
+                  const newWs = await DatabaseService.createWorkspace(name);
+                  setWorkspaces(prev => [newWs, ...prev]);
+                  setCurrentWorkspace(newWs);
+                  alert('Workspace criado com sucesso!');
+                } catch (e: any) {
+                  console.error(e);
+                  alert('Erro ao criar workspace: ' + (e.message || e));
+                }
+              }}
+              loading={workspaceLoading}
+            />
+          </div>
 
-            {/* Mobile Controls (Profile + Updates) - Hidden on Tablet (md) and up */}
-            <div className="flex md:hidden items-center gap-3">
-              <button onClick={toggleTheme} className="w-8 h-8 rounded-full flex items-center justify-center text-app-text-muted hover:text-app-text transition-colors">
-                <i className={`fa-solid ${theme === 'dark' ? 'fa-sun' : 'fa-moon'} text-lg`}></i>
-              </button>
-              <button onClick={() => setIsExportModalOpen(true)} className="w-8 h-8 rounded-full flex items-center justify-center text-app-text-muted hover:text-app-text transition-colors">
-                <i className="fa-solid fa-download text-lg"></i>
-              </button>
-              <Button ref={notificationButtonRef} variant="ghost" onClick={() => setIsNotificationOpen(!isNotificationOpen)} className="relative !p-2 text-app-text-strong hover:text-blue-500 transition-colors">
-                <i className="fa-regular fa-bell text-lg"></i>
-                {notifications.some(n => !n.read) && (
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-[#0B0B0E]"></span>
-                )}
-              </Button>
-              {userProfile && (
-                <ProfilePopover
-                  profile={userProfile}
-                  tasks={tasks}
-                  onUpdate={(updates) => {
-                    const newProfile = { ...userProfile, ...updates };
-                    setUserProfile(newProfile);
-                    localStorage.setItem(`profile_${userProfile.id}`, JSON.stringify(newProfile));
-                  }}
-                  onLogout={() => supabase.auth.signOut()}
-                />
-              )}
-              {/* Mobile Notification Sheet */}
-              <BottomSheet
-                isOpen={isMobile && isNotificationOpen}
-                onClose={() => setIsNotificationOpen(false)}
+          {/* RIGHT: Global Actions & Profile */}
+          <div className="flex items-center gap-2 sm:gap-4">
+            <button onClick={toggleTheme} className="p-2.5 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 dark:border-white/5 dark:bg-white/5 dark:text-zinc-400 dark:hover:text-white transition-colors active:scale-90">
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+
+            <div className="relative">
+              <button
+                ref={notificationButtonRef}
+                onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                className="p-2.5 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 dark:border-white/5 dark:bg-white/5 dark:text-zinc-400 dark:hover:text-white transition-colors active:scale-90 relative"
               >
-                <div className="bg-app-surface border-t border-app-border rounded-t-2xl shadow-[0_-20px_50px_rgba(0,0,0,0.5)] overflow-hidden max-h-[80vh] flex flex-col">
-                  <div className="p-5 border-b border-app-border flex justify-between items-center bg-app-surface-2/50 backdrop-blur-md shrink-0">
+                <Bell size={18} />
+                {notifications.some(n => !n.read) && (
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-app-bg"></span>
+                )}
+              </button>
+
+              <PortalPopover
+                isOpen={isNotificationOpen}
+                onClose={() => setIsNotificationOpen(false)}
+                triggerRef={notificationButtonRef}
+                className="w-80"
+                align="end"
+              >
+                <div className="bg-app-surface border border-app-border rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden pointer-events-auto">
+                  <div className="p-5 border-b border-app-border flex justify-between items-center bg-app-surface-2/50 backdrop-blur-md">
                     <span className="text-[11px] font-black uppercase text-app-text-strong tracking-[0.2em]">Notificações</span>
                     <button
                       onClick={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))}
@@ -1231,20 +1214,20 @@ export default function App() {
                       Limpar Tudo
                     </button>
                   </div>
-                  <div className="overflow-y-auto custom-scrollbar bg-app-surface">
+                  <div className="max-h-[450px] overflow-y-auto custom-scrollbar bg-app-surface">
                     {notifications.length === 0 ? (
                       <div className="p-12 text-center opacity-20">
-                        <i className="fa-solid fa-bell-slash text-4xl mb-4"></i>
+                        <BellOff size={40} className="mx-auto mb-4" />
                         <p className="text-[10px] font-black uppercase tracking-widest">Silêncio absoluto</p>
                       </div>
                     ) : (
                       notifications.map(n => (
                         <div key={n.id} className={`p-5 border-b border-app-border/50 hover:bg-app-bg transition-all cursor-pointer group ${!n.read ? 'bg-blue-500/5' : ''}`}>
                           <div className="flex gap-4">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${n.type === 'success' ? 'text-emerald-500' :
-                              n.type === 'warning' ? 'text-rose-500' : 'text-blue-500'
+                            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 border ${n.type === 'success' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                              n.type === 'warning' ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
                               }`}>
-                              <i className={`fa-solid ${n.type === 'success' ? 'fa-circle-check' : n.type === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-info'} text-xs`}></i>
+                              {n.type === 'success' ? <CheckCircle size={16} /> : n.type === 'warning' ? <AlertTriangle size={16} /> : <Info size={16} />}
                             </div>
                             <div className="flex-1 space-y-1">
                               <div className="flex justify-between items-baseline">
@@ -1259,77 +1242,15 @@ export default function App() {
                     )}
                   </div>
                 </div>
-              </BottomSheet>
+              </PortalPopover>
             </div>
-          </div>
 
-          {/* SECOND ROW (Mobile): Filters | Actions (Scrollable) */}
-          <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar lg:overflow-visible pb-1 lg:pb-0 w-full lg:w-auto no-scrollbar mask-linear-fade">
+            <div className="h-6 w-px bg-gray-200 dark:bg-white/10 hidden sm:block"></div>
 
-            <div className="w-px h-6 bg-white/5 mx-1 hidden lg:block"></div>
-
-            <div className="relative shrink-0">
-              <button
-                ref={clientFilterButtonRef}
-                onClick={() => setIsClientFilterOpen(!isClientFilterOpen)}
-                className={`flex items-center gap-2 text-xs font-bold uppercase transition-all border px-3 md:px-4 py-2.5 rounded-md whitespace-nowrap ${selectedClientIds.length > 0 ? 'bg-blue-600/10 border-blue-600 text-blue-600' : 'text-app-text-muted border-app-border hover:border-app-border-strong hover:text-app-text'}`}
-              >
-                <i className="fa-solid fa-filter"></i>
-                {selectedClientIds.length > 0 ? `${selectedClientIds.length} Clientes` : <><span className="md:hidden">Todos</span><span className="hidden md:inline">Todos Clientes</span></>}
-              </button>
-
-              {isMobile ? (
-                <BottomSheet
-                  isOpen={isClientFilterOpen}
-                  onClose={() => setIsClientFilterOpen(false)}
-                >
-                  <div className="bg-app-surface border-t border-app-border rounded-t-2xl shadow-2xl p-4 max-h-[80vh] flex flex-col">
-                    <div className="mb-3 flex justify-between items-center border-b border-app-border pb-2 shrink-0">
-                      <span className="text-[10px] font-bold uppercase text-app-text-muted">Filtrar Clientes</span>
-                      <button onClick={() => setSelectedClientIds([])} className="text-[8px] font-black uppercase text-blue-500">Limpar</button>
-                    </div>
-                    <div className="overflow-y-auto custom-scrollbar space-y-1">
-                      {clients.map(c => (
-                        <div key={`filter-c-${c.id}`} onClick={() => toggleClientSelection(c.id)} className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${selectedClientIds.includes(c.id) ? 'bg-blue-500/10 text-blue-500' : 'text-app-text-muted hover:bg-app-bg'}`}>
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: c["Cor (HEX)"] }}></div>
-                          <span className="text-sm font-semibold">{c.Nome}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </BottomSheet>
-              ) : (
-                <PortalPopover
-                  isOpen={isClientFilterOpen}
-                  onClose={() => setIsClientFilterOpen(false)}
-                  triggerRef={clientFilterButtonRef}
-                  className="w-64"
-                  align="start"
-                >
-                  <div className="bg-app-surface border border-app-border rounded-xl shadow-2xl p-4 max-h-[400px] flex flex-col pointer-events-auto">
-                    <div className="mb-3 flex justify-between items-center border-b border-app-border pb-2">
-                      <span className="text-[10px] font-bold uppercase text-app-text-muted">Filtrar</span>
-                      <button onClick={() => setSelectedClientIds([])} className="text-[8px] font-black uppercase text-blue-500">Limpar</button>
-                    </div>
-                    <div className="max-h-60 overflow-y-auto custom-scrollbar space-y-1">
-                      {clients.map(c => (
-                        <div key={`filter-c-${c.id}`} onClick={() => toggleClientSelection(c.id)} className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-all ${selectedClientIds.includes(c.id) ? 'bg-blue-500/10 text-blue-500' : 'text-app-text-muted hover:bg-app-bg'}`}>
-                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: c["Cor (HEX)"] }}></div>
-                          <span className="text-xs font-semibold">{c.Nome}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </PortalPopover>
-              )}
-            </div>
-            <button onClick={() => setShowArchived(!showArchived)} className={`shrink-0 text-xs font-bold uppercase px-4 py-2.5 rounded border transition-all whitespace-nowrap ${showArchived ? 'bg-amber-500/10 border-amber-500 text-amber-500' : 'text-app-text-muted border-app-border hover:border-app-border-strong hover:text-app-text-strong'}`}>
-              <i className={`fa-solid ${showArchived ? 'fa-eye' : 'fa-eye-slash'} mr-2`}></i>
-              {showArchived ? 'Ocultar' : 'Arquivados'}
-            </button>
-
-            {/* DESKTOP Controls (Theme, Notifs, Profile) - Hidden on mobile, shown on md+ */}
-            <div className="hidden md:flex items-center gap-3 ml-auto">
+            <div className="flex items-center gap-2">
+              <Button variant="secondary" onClick={() => setIsAssistantOpen(true)} className="hidden md:flex !border-blue-600/30 hover:!border-blue-600 !text-blue-500 !rounded-xl !h-10 !px-4 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2">
+                <Sparkles size={16} /> Assistente Gemini
+              </Button>
               {userProfile && (
                 <ProfilePopover
                   profile={userProfile}
@@ -1342,90 +1263,35 @@ export default function App() {
                   onLogout={() => supabase.auth.signOut()}
                 />
               )}
-              <div className="w-px h-6 bg-app-border mx-1"></div>
-              <div className="relative flex items-center gap-2 md:gap-4">
-                <button onClick={toggleTheme} className="w-8 h-8 rounded-full flex items-center justify-center text-app-text-muted hover:text-app-text transition-colors">
-                  <i className={`fa-solid ${theme === 'dark' ? 'fa-sun' : 'fa-moon'} text-lg`}></i>
-                </button>
-                <Button ref={notificationButtonRef} variant="ghost" onClick={() => setIsNotificationOpen(!isNotificationOpen)} className="relative !p-2 text-app-text-strong hover:text-blue-500 transition-colors">
-                  <i className="fa-regular fa-bell text-lg"></i>
-                  {notifications.some(n => !n.read) && (
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-[#0B0B0E]"></span>
-                  )}
-                </Button>
-
-                <div className="h-6 w-px bg-app-border"></div>
-
-                <div className="relative">
-                  <Button ref={exportButtonRef} variant="secondary" onClick={() => setIsExportModalOpen(!isExportModalOpen)}>
-                    <i className="fa-solid fa-download"></i> Exportar
-                  </Button>
-                </div>
-
-                <PortalPopover
-                  isOpen={isNotificationOpen}
-                  onClose={() => setIsNotificationOpen(false)}
-                  triggerRef={notificationButtonRef}
-                  className="w-80"
-                  align="end"
-                >
-                  <div className="bg-app-surface border border-app-border rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden pointer-events-auto">
-                    <div className="p-5 border-b border-app-border flex justify-between items-center bg-app-surface-2/50 backdrop-blur-md">
-                      <span className="text-[11px] font-black uppercase text-app-text-strong tracking-[0.2em]">Notificações</span>
-                      <button
-                        onClick={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))}
-                        className="text-[9px] font-black uppercase text-blue-500 hover:text-app-text-strong transition-all"
-                      >
-                        Limpar Tudo
-                      </button>
-                    </div>
-                    <div className="max-h-[450px] overflow-y-auto custom-scrollbar bg-app-surface">
-                      {notifications.length === 0 ? (
-                        <div className="p-12 text-center opacity-20">
-                          <i className="fa-solid fa-bell-slash text-4xl mb-4"></i>
-                          <p className="text-[10px] font-black uppercase tracking-widest">Silêncio absoluto</p>
-                        </div>
-                      ) : (
-                        notifications.map(n => (
-                          <div key={n.id} className={`p-5 border-b border-app-border/50 hover:bg-app-bg transition-all cursor-pointer group ${!n.read ? 'bg-blue-500/5' : ''}`}>
-                            <div className="flex gap-4">
-                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${n.type === 'success' ? 'text-emerald-500' :
-                                n.type === 'warning' ? 'text-rose-500' : 'text-blue-500'
-                                }`}>
-                                <i className={`fa-solid ${n.type === 'success' ? 'fa-circle-check' : n.type === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-info'} text-xs`}></i>
-                              </div>
-                              <div className="flex-1 space-y-1">
-                                <div className="flex justify-between items-baseline">
-                                  <p className="text-[11px] font-black text-app-text-strong uppercase tracking-tight">{n.title}</p>
-                                  <span className="text-[8px] font-bold text-[#334155] uppercase">{new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                </div>
-                                <p className="text-[10px] font-medium text-app-text-muted leading-relaxed uppercase tracking-tight">{n.message}</p>
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                </PortalPopover>
-              </div>
-              <Button variant="secondary" onClick={() => setIsAssistantOpen(true)} className="!border-blue-600/30 hover:!border-blue-600 !text-blue-500">
-                <i className="fa-solid fa-wand-magic-sparkles mr-2"></i>Assistente Gemini
-              </Button>
-
-            </div>
-
-            {/* Mobile Export / Assistant (Row 2 end) */}
-            <div className="flex lg:hidden items-center gap-2">
-              <Button ref={mobileExportButtonRef} variant="secondary" onClick={() => setIsExportModalOpen(!isExportModalOpen)} className="shrink-0">
-                <i className="fa-solid fa-download"></i>
-              </Button>
-              <Button variant="secondary" onClick={() => setIsAssistantOpen(true)} className="!border-blue-600/30 hover:!border-blue-600 !text-blue-500 shrink-0">
-                <i className="fa-solid fa-wand-magic-sparkles"></i>
-              </Button>
             </div>
           </div>
         </header>
+
+        {/* Action Controls (Mobile-friendly row) */}
+        <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar px-4 sm:px-8 py-2 border-b border-app-border/40 lg:border-none no-scrollbar">
+          <button
+            ref={clientFilterButtonRef}
+            onClick={() => setIsClientFilterOpen(!isClientFilterOpen)}
+            className={`flex items-center gap-2 text-[10px] font-black uppercase transition-all border px-4 py-2.5 rounded-xl whitespace-nowrap ${selectedClientIds.length > 0 ? 'bg-blue-600/10 border-blue-600 text-blue-600' : 'text-zinc-500 border-white/10 hover:border-white/20 hover:text-zinc-300'}`}
+          >
+            <Filter size={14} />
+            {selectedClientIds.length > 0 ? `${selectedClientIds.length} Clientes` : <><span className="md:hidden">Todos</span><span className="hidden md:inline">Todos Clientes</span></>}
+          </button>
+
+          <button onClick={() => setShowArchived(!showArchived)} className={`shrink-0 text-[10px] font-black uppercase px-4 py-2.5 rounded-xl border transition-all whitespace-nowrap flex items-center gap-2 ${showArchived ? 'bg-amber-500/10 border-amber-500 text-amber-500' : 'text-zinc-500 border-white/10 hover:border-white/20 hover:text-zinc-300'}`}>
+            {showArchived ? <Eye size={14} /> : <EyeOff size={14} />}
+            {showArchived ? 'Ocultar' : 'Arquivados'}
+          </button>
+
+          <Button ref={exportButtonRef} variant="secondary" onClick={() => setIsExportModalOpen(true)} className="!rounded-xl !h-[38px] !px-4 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2">
+            <Download size={14} /> Exportar
+          </Button>
+
+          {/* Desktop Assistant (Hidden here as it's in the top bar for MD+) */}
+          <Button variant="secondary" onClick={() => setIsAssistantOpen(true)} className="md:hidden !border-blue-600/30 hover:!border-blue-600 !text-blue-500 !rounded-xl !h-[38px] !px-4 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2">
+            <Sparkles size={14} /> Gemini
+          </Button>
+        </div>
 
 
 
@@ -1651,9 +1517,11 @@ export default function App() {
       </PortalPopover>
 
       {/* Hidden Renderer for PNG Export */}
-      {isExporting && (
-        <SlideRenderer config={getExportConfig()} elementId="export-slide-renderer" />
-      )}
+      {
+        isExporting && (
+          <SlideRenderer config={getExportConfig()} elementId="export-slide-renderer" />
+        )
+      }
 
       {/* Toast Notifications */}
       <div className="fixed top-4 right-4 z-[200] flex flex-col items-end gap-2 pointer-events-none">
@@ -1667,17 +1535,19 @@ export default function App() {
       </div>
 
       {/* Mobile Floating Action Button */}
-      {!['DASHBOARD', 'ORGANICKIA', 'VH'].includes(activeTab) && (
-        <MobileFloatingAction
-          onClick={() => {
-            if (activeTab === 'TAREFAS' && activeTaskViewId === 'board') return; // Board handles its own add? Check logic.
-            handleAddRow(activeTab);
-          }}
-          label="Novo"
-          // Ensure it respects safe area and doesn't overlap excessively 
-          className="bottom-[calc(24px+env(safe-area-inset-bottom))]"
-        />
-      )}
+      {
+        !['DASHBOARD', 'ORGANICKIA', 'VH'].includes(activeTab) && (
+          <MobileFloatingAction
+            onClick={() => {
+              if (activeTab === 'TAREFAS' && activeTaskViewId === 'board') return; // Board handles its own add? Check logic.
+              handleAddRow(activeTab);
+            }}
+            label="Novo"
+            // Ensure it respects safe area and doesn't overlap excessively 
+            className="bottom-[calc(24px+env(safe-area-inset-bottom))]"
+          />
+        )
+      }
     </div >
   );
 }
@@ -3145,6 +3015,27 @@ function VhManagementView({ config, setConfig, collaborators, setCollaborators, 
   const [viewMode, setViewMode] = useState<'CLIENT' | 'COLLABORATOR'>('CLIENT');
   const [simParams, setSimParams] = useState({ clientId: '', collaboratorId: '', hours: 0 });
 
+  // ==========================================
+  // FUNÇÕES DE SEGURANÇA (Previnem a Tela Branca)
+  // ==========================================
+
+  // Impede divisão por zero no cálculo do valor hora
+  const calcVH = (custo: number, proLabore: number, horas: number) => {
+    const h = Number(horas);
+    if (isNaN(h) || h <= 0) return 0;
+    const totalCost = (Number(custo) || 0) + (Number(proLabore) || 0);
+    return totalCost / h;
+  };
+
+  // Garante que a largura (width) do CSS nunca será "NaN%" ou "Infinity%"
+  const getSafeWidth = (value: number, total: number) => {
+    const numValue = Number(value) || 0;
+    const numTotal = Number(total) || 1; // Impede divisão por zero
+    let percent = (numValue / numTotal) * 100;
+    if (!isFinite(percent) || isNaN(percent)) percent = 0;
+    return Math.max(0, Math.min(100, percent)); // Prende o valor entre 0 e 100
+  };
+
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // CORE CALCULATIONS (MEMOIZED)
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -3161,9 +3052,8 @@ function VhManagementView({ config, setConfig, collaborators, setCollaborators, 
       const profit = parseNumericValue(c.ProLabore);
       const hours = parseNumericValue(c.HorasProdutivas);
 
-      // Cálculo Dinâmico de VH Seguro (Evita divisão por zero/NaN/Infinity)
-      const h = Number(hours);
-      const calculatedVh = (isNaN(h) || h <= 0) ? 0 : (costs + profit) / h;
+      // Cálculo Dinâmico de VH Seguro
+      const calculatedVh = calcVH(costs, profit, hours);
 
       return { ...c, calculatedVh };
     });
@@ -3354,17 +3244,20 @@ function VhManagementView({ config, setConfig, collaborators, setCollaborators, 
                   </ResponsiveContainer>
                 </div>
                 <div className="space-y-4">
-                  {vhResults.collabVHs.slice(0, 3).map((item, idx) => (
-                    <div key={idx} className="group">
-                      <div className="flex justify-between items-end mb-2">
-                        <span className="text-[11px] font-black uppercase tracking-wider text-app-text-strong">{item.Nome}</span>
-                        <span className="text-xs font-black text-blue-500">VH: {formatBRL(item.calculatedVh)}/h</span>
+                  {vhResults.collabVHs.slice(0, 3).map((item, idx) => {
+                    const widthCSS = getSafeWidth(item.calculatedVh, vhResults.avgVh || 1);
+                    return (
+                      <div key={idx} className="group">
+                        <div className="flex justify-between items-end mb-2">
+                          <span className="text-[11px] font-black uppercase tracking-wider text-app-text-strong">{item.Nome}</span>
+                          <span className="text-xs font-black text-blue-500">VH: {formatBRL(item.calculatedVh)}/h</span>
+                        </div>
+                        <div className="w-full bg-app-surface border border-app-border rounded-full h-1.5 overflow-hidden">
+                          <div className="bg-blue-500 h-full rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(59,130,246,0.5)]" style={{ width: `${widthCSS}%` }}></div>
+                        </div>
                       </div>
-                      <div className="w-full bg-app-surface border border-app-border rounded-full h-1.5 overflow-hidden">
-                        <div className="bg-blue-500 h-full rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(59,130,246,0.5)]" style={{ width: `${Math.min((item.calculatedVh / vhResults.avgVh) * 100, 100)}%` }}></div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </Card>
@@ -3393,13 +3286,13 @@ function VhManagementView({ config, setConfig, collaborators, setCollaborators, 
                         </div>
                         <div className="flex items-center gap-4">
                           <div className="flex-1 bg-app-surface border border-app-border rounded-full h-2 overflow-hidden flex">
-                            {/* Barra de Custo vs Lucro (Visualização simplificada) */}
-                            <div className="bg-amber-400 h-2" style={{ width: `${Math.min((c.cost / (c.billing || 1)) * 100, 100)}%` }}></div>
-                            {!isNegativo && <div className="bg-emerald-500 h-2" style={{ width: `${margem}%` }}></div>}
+                            {/* Barra de Custo vs Lucro (Visualização protegida) */}
+                            <div className="bg-amber-400 h-2" style={{ width: `${getSafeWidth(c.cost, c.billing)}%` }}></div>
+                            {!isNegativo && <div className="bg-emerald-500 h-2" style={{ width: `${getSafeWidth(lucro, c.billing)}%` }}></div>}
                             {isNegativo && <div className="bg-rose-500 h-2 w-full" style={{ width: '100%' }}></div>}
                           </div>
                           <span className={`text-[10px] font-black w-14 text-right tracking-tighter ${isNegativo ? 'text-rose-500' : 'text-emerald-500'}`}>
-                            {margem.toFixed(1)}%
+                            {getSafeWidth(lucro, c.billing).toFixed(1)}%
                           </span>
                         </div>
                       </div>

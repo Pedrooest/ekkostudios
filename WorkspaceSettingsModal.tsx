@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Workspace, WorkspaceMember, Invite } from './types';
 import { DatabaseService } from './DatabaseService';
+import { Settings, X, Users, UserPlus, Link, Trash2, Shield, Eye, EyeOff, AlertTriangle } from 'lucide-react';
 
 interface WorkspaceSettingsModalProps {
     workspace: Workspace;
@@ -74,13 +75,18 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
         // RESPONSIVE MODAL CONTAINER
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade p-4">
             <div className="bg-[#0F172A] border border-white/10 w-full max-w-[600px] max-h-[90vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden">
-                <div className="p-6 md:p-8 border-b border-white/5 flex justify-between items-center bg-[#111827]">
-                    <div>
-                        <h2 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight">Gerenciar Workspace</h2>
-                        <p className="text-[11px] md:text-xs text-gray-400 font-bold uppercase tracking-widest mt-1.5">{workspace.name}</p>
+                <div className="p-8 border-b border-white/5 flex justify-between items-center bg-[#111827]">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-900/40">
+                            <Settings size={22} />
+                        </div>
+                        <div>
+                            <h2 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight leading-tight">Configurações</h2>
+                            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">Workspace: {workspace.name}</p>
+                        </div>
                     </div>
                     <button onClick={onClose} className="w-10 h-10 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-all active:scale-95">
-                        <i className="fa-solid fa-xmark text-lg"></i>
+                        <X size={20} />
                     </button>
                 </div>
 

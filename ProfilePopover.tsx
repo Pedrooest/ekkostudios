@@ -4,6 +4,7 @@ import { UserProfile, Task } from './types';
 import { Button } from './Components';
 import { BottomSheet } from './components/BottomSheet';
 import { PortalPopover } from './components/PortalPopover';
+import { Sparkles } from 'lucide-react';
 
 interface ProfilePopoverProps {
     profile: UserProfile;
@@ -102,122 +103,58 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
     const content = (
         <div className="bg-app-surface h-full flex flex-col overflow-hidden">
             {/* POPUP HEADER */}
-            <div className="p-6 md:p-10 pb-4 shrink-0">
+            <div className="p-8 pb-4 shrink-0">
                 <div className="flex items-start justify-between mb-8">
                     <div className="relative group/avatar cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                        <div className="w-16 h-16 md:w-20 md:h-20 rounded-3xl bg-gradient-to-br from-[#4B3A2F] to-[#2D221B] flex items-center justify-center text-white text-2xl md:text-3xl font-black shadow-xl border border-white/5 overflow-hidden">
+                        <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-zinc-900 border border-white/5 flex items-center justify-center text-white text-2xl md:text-3xl font-black shadow-xl overflow-hidden ring-1 ring-white/10 group-hover/avatar:ring-blue-500/50 transition-all">
                             {profile.avatar_url ? (
                                 <img src={profile.avatar_url} alt={profile.full_name} className="w-full h-full object-cover" />
                             ) : (
-                                initials
+                                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-600 to-blue-700">
+                                    {initials}
+                                </div>
                             )}
                         </div>
-                        <div className="absolute inset-0 bg-black/40 rounded-3xl flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity">
+                        <div className="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity">
                             <i className="fa-solid fa-camera text-white text-xl"></i>
                         </div>
-                        <div className={`absolute -bottom-1 -right-1 w-5 h-5 md:w-6 md:h-6 rounded-full border-4 border border-app-surface ${statusColors[profile.status]} shadow-lg`}></div>
-                    </div>
-                    <div className="flex gap-3">
-                        <button
-                            onClick={onLogout}
-                            title="Sair"
-                            className="w-11 h-11 flex items-center justify-center rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 transition-all border border-rose-500/20 active:scale-95"
-                        >
-                            <i className="fa-solid fa-right-from-bracket"></i>
-                        </button>
-                        <button
-                            onClick={() => setIsOpen(false)}
-                            className="w-11 h-11 flex items-center justify-center rounded-2xl bg-white/5 hover:bg-white/10 text-app-text-muted transition-all border border-white/10 active:scale-95"
-                        >
-                            <i className="fa-solid fa-xmark text-lg"></i>
-                        </button>
+                        <div className={`absolute -bottom-1 -right-1 w-5 h-5 md:w-6 md:h-6 rounded-full border-4 border-[#0a0a0c] ${statusColors[profile.status]} shadow-lg`}></div>
                     </div>
                 </div>
 
                 <div className="space-y-1">
-                    {isEditingName ? (
-                        <input
-                            autoFocus
-                            value={newName}
-                            onChange={(e) => setNewName(e.target.value)}
-                            onBlur={handleNameSubmit}
-                            onKeyDown={(e) => e.key === 'Enter' && handleNameSubmit()}
-                            className="bg-app-surface-2 border border-blue-500/30 rounded-xl px-4 py-2 text-xl font-bold text-app-text-strong outline-none w-full shadow-inner shadow-blue-500/5 mb-2"
-                        />
-                    ) : (
-                        <div
-                            className="group flex items-center gap-3 cursor-pointer py-1"
-                            onClick={() => setIsEditingName(true)}
-                        >
-                            <h3 className="text-xl md:text-2xl font-black text-app-text-strong leading-tight tracking-tighter">
-                                {profile.full_name || 'Configurar Nome'}
-                            </h3>
-                            <i className="fa-solid fa-pen text-app-text-muted text-xs md:opacity-0 group-hover:opacity-100 transition-all"></i>
-                        </div>
-                    )}
-
-                    {isEditingRole ? (
-                        <input
-                            autoFocus
-                            onBlur={handleRoleSubmit}
-                            onKeyDown={(e) => e.key === 'Enter' && handleRoleSubmit()}
-                            value={newRole}
-                            onChange={(e) => setNewRole(e.target.value)}
-                            placeholder="Seu Cargo..."
-                            className="bg-app-surface-2/50 border border-app-border rounded-lg px-3 py-1.5 text-[11px] font-black text-app-text-strong uppercase tracking-widest outline-none w-full"
-                        />
-                    ) : (
-                        <button
-                            onClick={() => setIsEditingRole(true)}
-                            className="text-[11px] md:text-[12px] font-black text-app-text-muted hover:text-app-text-strong transition-colors flex items-center gap-3 uppercase tracking-widest group py-1"
-                        >
-                            {profile.role || 'ESPECIALISTA EKKO'}
-                            <i className="fa-solid fa-pencil text-[9px] md:opacity-0 group-hover:opacity-100 transition-all"></i>
-                        </button>
-                    )}
-
-                    <div className="flex items-center gap-3 mt-4">
-                        <div className="flex items-center gap-2 bg-app-surface-2 rounded-xl px-4 py-2.5 border border-app-border-light shadow-inner">
-                            <div className={`w-2.5 h-2.5 rounded-full ${statusColors[profile.status]} shadow-[0_0_8px_rgba(16,185,129,0.3)] animate-pulse`}></div>
-                            <select
-                                value={profile.status}
-                                onChange={(e) => onUpdate({ status: e.target.value as any })}
-                                className="bg-transparent text-[10px] font-black uppercase text-emerald-500 tracking-widest outline-none cursor-pointer border-none p-0 hover:text-emerald-400 transition-colors appearance-none"
-                            >
-                                <option value="online" className="bg-app-surface">On-line</option>
-                                <option value="ocupado" className="bg-app-surface">Ocupado</option>
-                                <option value="ausente" className="bg-app-surface">Ausente</option>
-                                <option value="offline" className="bg-app-surface">Off-line</option>
-                            </select>
-                            <i className="fa-solid fa-angle-down text-[8px] text-app-text-muted"></i>
-                        </div>
-                        <span className="text-[10px] font-bold text-app-text-muted truncate opacity-60 max-w-[150px]">{profile.email}</span>
+                    <div className="flex items-center gap-2">
+                        <h3 className="text-xl md:text-2xl font-black text-white leading-tight tracking-tight uppercase">
+                            {profile.full_name || 'Configurar Nome'}
+                        </h3>
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
                     </div>
+                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">{profile.role || 'ESPECIALISTA EKKO'}</p>
                 </div>
 
                 <div className="mt-8">
                     <button
-                        onClick={() => alert('Gerando seu StandUp diário com IA... Aguarde um instante.')}
-                        className="w-full justify-center px-4 py-4 bg-gradient-to-r from-purple-600/10 to-blue-600/10 border border-purple-500/20 rounded-2xl text-purple-400 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-lg"
+                        onClick={() => alert('Gerando seu StandUp diário com IA...')}
+                        className="w-full h-12 bg-gradient-to-r from-purple-600 to-indigo-700 rounded-xl text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:brightness-110 active:scale-[0.98] transition-all shadow-[0_10px_20px_rgba(147,51,234,0.2)]"
                     >
-                        <i className="fa-solid fa-wand-magic-sparkles"></i>
+                        <Sparkles size={16} />
                         Obter StandUp Diário
                     </button>
                 </div>
             </div>
 
             {/* TABS SELECTOR */}
-            <div className="flex px-6 md:px-10 border-b border-app-border gap-6 md:gap-10 mt-4 overflow-x-auto no-scrollbar shrink-0">
-                {['Atividade', `Tarefas (${myTasks.length})`, 'Calendário'].map(tab => (
+            <div className="flex px-8 border-b border-white/5 bg-[#0a0a0c]/40 backdrop-blur-md sticky top-0 z-10">
+                {['ATIVIDADE', 'TAREFAS', 'CALENDÁRIO'].map(tab => (
                     <button
                         key={tab}
-                        onClick={() => {
-                            setActiveTab(tab.split(' ')[0]);
-                            setIsContentExpanded(true);
-                        }}
-                        className={`py-4 text-[10px] font-black uppercase tracking-widest transition-all relative whitespace-nowrap ${activeTab === tab.split(' ')[0] ? 'text-app-text-strong border-b-2 border-blue-500' : 'text-app-text-muted hover:text-app-text-strong'}`}
+                        onClick={() => setActiveTab(tab)}
+                        className={`py-4 px-4 text-[10px] font-black uppercase tracking-widest transition-all relative ${activeTab === tab ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
                     >
                         {tab}
+                        {activeTab === tab && (
+                            <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
+                        )}
                     </button>
                 ))}
             </div>
@@ -368,39 +305,32 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
 
     return (
         <div className="relative">
-            {/* TRIGGER AVATAR */}
+            {/* TRIGGER BOX */}
             <button
                 ref={buttonRef}
                 onClick={togglePopover}
                 className="relative group focus:outline-none"
                 aria-label="Abrir Perfil"
             >
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center border-2 border-app-border text-white font-black text-sm shadow-lg transition-all group-hover:scale-110 group-active:scale-95 overflow-hidden">
+                <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/5 flex items-center justify-center text-white font-black text-sm shadow-lg transition-all group-hover:bg-zinc-800 active:scale-95 overflow-hidden ring-1 ring-white/10 group-hover:ring-blue-500/30">
                     {profile.avatar_url ? (
                         <img src={profile.avatar_url} alt={profile.full_name} className="w-full h-full object-cover" />
                     ) : (
                         initials
                     )}
                 </div>
-                <div className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-app-surface ${statusColors[profile.status]} shadow-sm`}></div>
+                <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-[#0a0a0c] ${statusColors[profile.status]} shadow-sm`}></div>
             </button>
-
-            {/* Mobile View */}
-            {isOpen && isMobile && (
-                <BottomSheet isOpen={isOpen} onClose={() => setIsOpen(false)}>
-                    {content}
-                </BottomSheet>
-            )}
 
             {/* Desktop View using Portal */}
             <PortalPopover
                 isOpen={isOpen && !isMobile}
                 onClose={() => setIsOpen(false)}
                 triggerRef={buttonRef}
-                className="w-[420px] max-w-[calc(100vw-32px)]"
+                className="w-[380px]"
                 align="end"
             >
-                <div className="bg-app-surface border border-app-border rounded-[40px] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col pointer-events-auto max-h-[85vh]">
+                <div className="bg-[#0a0a0c] border border-white/5 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col pointer-events-auto max-h-[85vh]">
                     {content}
                 </div>
             </PortalPopover>
