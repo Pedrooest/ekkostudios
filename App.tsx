@@ -56,6 +56,7 @@ import { PresentationSlide } from './PresentationRenderer';
 import { ContentBankSidebar } from './ContentBankSidebar';
 import { GeminiSidebar } from './GeminiSidebar';
 import { NotificationToast } from './NotificationToast';
+import { MasterExportSlide } from './MasterExportSlide';
 import { ExportModal } from './export/components/ExportModal';
 import { SlideRenderer } from './export/components/SlideRenderer';
 import { useExport } from './export/hooks/useExport';
@@ -925,6 +926,7 @@ export default function App() {
   }, []);
 
   const [isPresentationOpen, setIsPresentationOpen] = useState(false);
+  const [useMasterSlide, setUseMasterSlide] = useState(false);
   const [presentationStep, setPresentationStep] = useState<'input' | 'preview'>('input');
   const [presentationInput, setPresentationInput] = useState('');
   const [presentationLoading, setPresentationLoading] = useState(false);
@@ -1522,10 +1524,39 @@ export default function App() {
                     <div className="flex justify-between items-center bg-blue-500/5 p-6 border border-blue-500/10 rounded-2xl">
                       <Button variant="secondary" onClick={() => setPresentationStep('input')}>Voltar e Ajustar</Button>
 
+                      <div className="flex items-center gap-3 bg-app-bg p-2 rounded-xl border border-app-border">
+                        <span className="text-[10px] font-black uppercase text-app-text-muted px-2">Tipo de Slide:</span>
+                        <button
+                          onClick={() => setUseMasterSlide(false)}
+                          className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${!useMasterSlide ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-app-text-muted hover:text-app-text-strong'}`}
+                        >
+                          Standard
+                        </button>
+                        <button
+                          onClick={() => setUseMasterSlide(true)}
+                          className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${useMasterSlide ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-app-text-muted hover:text-app-text-strong'}`}
+                        >
+                          Master (High-Fi)
+                        </button>
+                      </div>
                     </div>
                     <div className="aspect-video w-full bg-white shadow-2xl rounded-xl overflow-hidden flex items-center justify-center overflow-x-auto">
-                      <div className="scale-[0.3] md:scale-[0.5] origin-center w-[1920px] h-[1080px] pointer-events-none" ref={presentationRef}>
-                        <PresentationSlide tab={activeTab} config={{ agencyName: 'EKKO STUDIOS', title: presentationBrief.title, subtitle: presentationBrief.subtitle, theme: 'dark', aspectRatio: '16:9', detailLevel: 'Completo' }} data={{ clients, rdc, planning: currentPlanejamento, finances: currentFinancas, tasks: currentTasks, cobo: currentCobo, matriz: currentMatriz }} selectedClient={currentClient} clientColor={currentClient?.['Cor (HEX)']} />
+                      <div className="scale-[0.3] md:scale-[0.45] origin-center w-[1920px] h-[1080px] pointer-events-none" ref={presentationRef}>
+                        {useMasterSlide ? (
+                          <MasterExportSlide
+                            tab={activeTab}
+                            clientName={currentClient?.Nome || "Geral"}
+                            data={
+                              activeTab === 'MATRIZ' ? currentMatriz :
+                                activeTab === 'RDC' ? rdc.filter((r: any) => r.Cliente_ID === currentClient?.id && !r.__archived) :
+                                  activeTab === 'COBO' ? currentCobo :
+                                    activeTab === 'PLANEJAMENTO' ? currentPlanejamento :
+                                      activeTab === 'TAREFAS' ? currentTasks : []
+                            }
+                          />
+                        ) : (
+                          <PresentationSlide tab={activeTab} config={{ agencyName: 'EKKO STUDIOS', title: presentationBrief.title, subtitle: presentationBrief.subtitle, theme: 'dark', aspectRatio: '16:9', detailLevel: 'Completo' }} data={{ clients, rdc, planning: currentPlanejamento, finances: currentFinancas, tasks: currentTasks, cobo: currentCobo, matriz: currentMatriz }} selectedClient={currentClient} clientColor={currentClient?.['Cor (HEX)']} />
+                        )}
                       </div>
                     </div>
                   </div>
