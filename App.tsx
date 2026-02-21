@@ -49,6 +49,7 @@ import { Whiteboard } from './components/Whiteboard';
 import { transcribeAndExtractInsights, generatePresentationBriefing, extractStructuredDataFromPDF, analyzeContextualData } from './geminiService';
 import { CopilotChat } from './CopilotChat';
 import { PresentationSlide } from './PresentationRenderer';
+import { ContentBankSidebar } from './ContentBankSidebar';
 import { GeminiSidebar } from './GeminiSidebar';
 import { NotificationToast } from './NotificationToast';
 import { ExportModal } from './export/components/ExportModal';
@@ -1796,55 +1797,12 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
         </div>
       </div>
 
-      <div className={`transition-all duration-500 shrink-0 z-[100] lg:z-auto fixed inset-x-0 bottom-0 lg:inset-auto lg:static ${isSidebarOpen ? 'translate-y-0 lg:translate-x-0 h-[85dvh] lg:h-[calc(100dvh-40px)] lg:w-[360px] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] lg:shadow-none' : 'translate-y-full lg:translate-x-0 lg:w-0 lg:opacity-0 lg:pointer-events-none'}`}>
-        <div className="h-full bg-app-surface/95 backdrop-blur-xl border-t lg:border-t-0 lg:border-l border-white/10 shadow-2xl p-6 md:p-8 flex flex-col relative overflow-hidden rounded-t-[32px] lg:rounded-none">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-[60px] rounded-full"></div>
-
-          <div className="flex items-center justify-between mb-8 shrink-0 sticky top-0 bg-transparent z-20">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-blue-600/10 flex items-center justify-center text-blue-500 border border-blue-500/20">
-                <i className="fa-solid fa-folder-open text-xs"></i>
-              </div>
-              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-app-text-strong">Banco de Conteúdos</h3>
-            </div>
-            <button
-              onClick={() => setIsSidebarOpen(false)}
-              className="w-8 h-8 flex items-center justify-center rounded-full bg-app-surface border border-white/10 text-app-text-muted hover:text-white"
-            >
-              <i className="fa-solid fa-xmark"></i>
-            </button>
-          </div>
-
-          <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-2 pb-20 custom-scrollbar relative z-10">
-            {bankItems.map((item, idx) => (
-              <div key={`${item._source}-${idx}`} className="p-5 bg-app-bg/60 border border-white/5 rounded-2xl hover:border-blue-500/30 transition-all group hover:bg-app-bg hover:shadow-xl hover:shadow-blue-900/10">
-                <div className="flex justify-between items-center mb-3">
-                  <div className="px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-[7px] font-black uppercase tracking-widest text-blue-400">
-                    {item._source}
-                  </div>
-                  <button
-                    onClick={() => handleImport(item)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600/10 text-blue-500 text-[9px] font-black uppercase tracking-widest transition-all hover:bg-blue-600 hover:text-white opacity-100"
-                  >
-                    <i className="fa-solid fa-plus text-[8px]"></i>
-                    Adicionar
-                  </button>
-                </div>
-                <p className="text-[11px] font-bold text-app-text-muted group-hover:text-app-text-strong uppercase leading-relaxed line-clamp-3 transition-colors">{item._label}</p>
-              </div>
-            ))}
-            {bankItems.length === 0 && (
-              <div className="py-20 text-center opacity-30">
-                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-6">
-                  <i className="fa-solid fa-cloud-moon text-3xl"></i>
-                </div>
-                <p className="text-[10px] font-black uppercase tracking-widest leading-relaxed">Nenhum ativo disponível</p>
-                <p className="text-[8px] font-bold text-gray-600 uppercase mt-2">Importe dados para começar</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      <ContentBankSidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        bankItems={bankItems}
+        onImport={handleImport}
+      />
 
       {selectedEvent && (
         <div className="fixed inset-y-0 right-0 w-full md:w-[500px] bg-app-surface-2 border-l border-app-border shadow-2xl z-[100] animate-fade flex flex-col pointer-events-auto">
