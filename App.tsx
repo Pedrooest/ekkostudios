@@ -3149,8 +3149,14 @@ function VhManagementView({ config, setConfig, collaborators, setCollaborators, 
   // CORE CALCULATIONS (MEMOIZED)
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const vhResults = useMemo(() => {
+    // 0. Safety guards
+    const safeCollaborators = Array.isArray(collaborators) ? collaborators : [];
+    const safeTasks = Array.isArray(tasks) ? tasks : [];
+    const safeClients = Array.isArray(clients) ? clients : [];
+    const safeFinances = Array.isArray(finances) ? finances : [];
+
     // 1. Calculate VH for each collaborator
-    const collabVHs = collaborators.map((c: Collaborator) => {
+    const collabVHs = safeCollaborators.map((c: Collaborator) => {
       const costs = parseNumericValue(c.CustosIndividuais);
       const profit = parseNumericValue(c.ProLabore);
       const hours = parseNumericValue(c.HorasProdutivas);
@@ -3164,8 +3170,8 @@ function VhManagementView({ config, setConfig, collaborators, setCollaborators, 
 
     // 2. Sum hours from Fluxo de Tarefas
     const taskHoursMap: Record<string, { total: number; manual: boolean }> = {};
-    tasks.forEach((t: Task) => {
-      if (t.Status === 'arquivado') return;
+    safeTasks.forEach((t: Task) => {
+      if (!t || t.Status === 'arquivado') return;
       const key = `${t.Cliente_ID}-${t.Responsável}`;
       const hours = parseNumericValue(t.Tempo_Gasto_H);
       if (!taskHoursMap[key]) taskHoursMap[key] = { total: 0, manual: false };
@@ -3173,8 +3179,8 @@ function VhManagementView({ config, setConfig, collaborators, setCollaborators, 
     });
 
     // 3. Profitability Data
-    const profitability = clients.map((client: Client) => {
-      const clientTasks = tasks.filter(t => t.Cliente_ID === client.id && t.Status !== 'arquivado');
+    const profitability = safeClients.map((client: Client) => {
+      const clientTasks = safeTasks.filter(t => t && t.Cliente_ID === client.id && t.Status !== 'arquivado');
       const clientHours = clientTasks.reduce((acc, t) => acc + parseNumericValue(t.Tempo_Gasto_H), 0);
 
       // Calculate real cost based on who did what
@@ -3198,8 +3204,8 @@ function VhManagementView({ config, setConfig, collaborators, setCollaborators, 
       });
 
       // Get billing from Finances (Entradas for this client)
-      const billing = finances
-        .filter((f: FinancasLancamento) => f.Cliente_ID === client.id && f.Tipo === 'Entrada')
+      const billing = safeFinances
+        .filter((f: FinancasLancamento) => f && f.Cliente_ID === client.id && f.Tipo === 'Entrada')
         .reduce((acc: number, f: FinancasLancamento) => acc + parseNumericValue(f.Valor), 0);
 
       return {
@@ -3436,7 +3442,9 @@ function VhManagementView({ config, setConfig, collaborators, setCollaborators, 
                       <tr key={idx} className="hover:bg-white/[0.02] transition-colors group">
                         <td className="px-8 py-5">
                           <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-black text-xs uppercase shadow-sm border border-blue-500/10">{c.name.substring(0, 2)}</div>
+                            <div className="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-black text-xs uppercase shadow-sm border border-blue-500/10">
+                              {(c.name || '??').substring(0, 2)}
+                            </div>
                             <span className="text-sm font-black text-app-text-strong uppercase tracking-tight">{c.name}</span>
                           </div>
                         </td>
