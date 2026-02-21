@@ -30,22 +30,22 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
         <button
             ref={buttonRef}
             onClick={toggleOpen}
-            className="flex items-center gap-3 p-1.5 pr-4 rounded-xl border border-transparent hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all focus:outline-none group"
+            className="flex items-center gap-3 p-1.5 pr-3 rounded-xl border border-transparent hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all focus:outline-none group"
         >
-            <div className="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center font-black text-white shadow-lg shadow-indigo-600/20 text-xs tracking-wider shrink-0 transition-transform group-active:scale-95">
+            <div className="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow-md text-xs tracking-wider shrink-0 transition-transform group-active:scale-95">
                 {currentWorkspace?.name?.substring(0, 2).toUpperCase() || 'EK'}
             </div>
             <div className="text-left hidden sm:block">
-                <p className="text-[9px] text-gray-500 dark:text-zinc-500 font-black uppercase tracking-[0.15em] leading-none mb-1">Workspace</p>
-                <div className="flex items-center gap-2">
+                <p className="text-[10px] text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-widest leading-none mb-0.5">Workspace</p>
+                <div className="flex items-center gap-1.5">
                     <h2 className="text-sm font-black text-gray-900 dark:text-white leading-none truncate max-w-[140px]">
                         {currentWorkspace?.name || 'Carregando...'}
                     </h2>
-                    <ChevronDown size={14} className={`text-gray-400 dark:text-zinc-600 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown size={14} className={`text-gray-400 dark:text-zinc-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
                 </div>
             </div>
             <div className="sm:hidden">
-                <ChevronDown size={16} className={`text-gray-400 dark:text-zinc-600 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={16} className={`text-gray-400 dark:text-zinc-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
             </div>
         </button>
     );

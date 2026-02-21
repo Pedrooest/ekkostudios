@@ -76,8 +76,8 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
                 {/* Header */}
                 <div className="px-6 py-5 border-b border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-[#0a0a0c] flex justify-between items-start shrink-0">
                     <div>
-                        <h2 className="text-lg font-black text-gray-900 dark:text-white tracking-tight leading-tight">Gerenciar Membros</h2>
-                        <p className="text-[10px] text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-widest mt-1">Workspace: {workspace.name}</p>
+                        <h2 className="text-lg font-black text-gray-900 dark:text-white tracking-tight leading-tight">Gerir Membros</h2>
+                        <p className="text-[10px] text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-widest mt-1">WORKSPACE: {workspace.name}</p>
                     </div>
                     <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-200 dark:text-zinc-500 dark:hover:text-white dark:hover:bg-zinc-800 rounded-lg transition-colors">
                         <X size={20} />
@@ -142,8 +142,6 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
                                 <div className="flex-1 relative">
                                     <input
                                         type="email"
-                                        readOnly
-                                        value={generatedLink ? "Convite Gerado" : ""}
                                         placeholder="Email do colaborador..."
                                         className="w-full bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white text-sm font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-500 transition-colors placeholder-gray-400 dark:placeholder-zinc-600 shadow-sm"
                                     />

@@ -101,7 +101,7 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
     const isMobile = window.innerWidth < 1024;
 
     const content = (
-        <div className="bg-app-surface h-full flex flex-col overflow-hidden relative">
+        <div className="bg-white dark:bg-[#111114] h-full flex flex-col overflow-hidden relative">
             {/* Botão de Fechar */}
             <div className="absolute top-4 right-4 z-10">
                 <button
@@ -112,31 +112,25 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
                 </button>
             </div>
 
-            {/* POPUP HEADER */}
-            <div className="p-8 pb-4 shrink-0">
-                <div className="flex items-start justify-between mb-8">
-                    <div className="relative group/avatar cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                        <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-zinc-900 border border-white/5 flex items-center justify-center text-white text-2xl md:text-3xl font-black shadow-xl overflow-hidden ring-1 ring-white/10 group-hover/avatar:ring-blue-500/50 transition-all">
-                            {profile.avatar_url ? (
-                                <img src={profile.avatar_url} alt={profile.full_name} className="w-full h-full object-cover" />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-600 to-blue-700">
-                                    {initials}
-                                </div>
-                            )}
+            <div className="p-6 pb-0 shrink-0 relative">
+                <div className="flex flex-col">
+                    <div
+                        className="w-16 h-16 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-black text-2xl shadow-md mb-4 cursor-pointer overflow-hidden group"
+                        onClick={() => fileInputRef.current?.click()}
+                    >
+                        {profile.avatar_url ? (
+                            <img src={profile.avatar_url} alt={profile.full_name} className="w-full h-full object-cover" />
+                        ) : (
+                            initials
+                        )}
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity">
+                            <i className="fa-solid fa-camera text-white text-base"></i>
                         </div>
-                        <div className="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity">
-                            <i className="fa-solid fa-camera text-white text-xl"></i>
-                        </div>
-                        <div className={`absolute -bottom-1 -right-1 w-5 h-5 md:w-6 md:h-6 rounded-full border-4 border-[#0a0a0c] ${statusColors[profile.status]} shadow-lg`}></div>
                     </div>
-                </div>
-
-                <div className="space-y-1">
-                    <h2 className="text-xl md:text-2xl font-black text-white leading-tight tracking-tight uppercase mb-1">
+                    <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight leading-none mb-1">
                         {profile.full_name || 'Configurar Nome'}
                     </h2>
-                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-4">
+                    <p className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-4">
                         {profile.role || 'ESPECIALISTA EKKO'}
                     </p>
 
@@ -172,139 +166,53 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
                 ))}
             </div>
 
-            {/* COLLAPSIBLE CONTENT AREA */}
-            <div className={`transition-all duration-300 flex-1 overflow-hidden flex flex-col ${isContentExpanded ? 'opacity-100' : 'max-h-0 opacity-0'}`}>
-                <div className="p-6 md:p-10 space-y-8 bg-app-surface-2/30 overflow-y-auto custom-scrollbar flex-1">
-                    {activeTab === 'ATIVIDADE' && (
-                        <div className="space-y-6">
-                            <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-black uppercase text-app-text-strong tracking-widest">Feed de Ações</span>
-                                <button onClick={() => setIsContentExpanded(false)} className="text-[10px] font-bold text-app-text-muted hover:text-app-text-strong">Recolher</button>
-                            </div>
-                            <div className="space-y-4">
-                                {tasks.flatMap(t => t.Activities || []).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 5).map(act => (
-                                    <div key={act.id} className="flex gap-4 border-l-2 border-app-border-light pl-6 py-2">
-                                        <div className="flex-1">
-                                            <p className="text-[11px] text-app-text-muted font-bold uppercase"><span className="text-app-text-strong">{act.user.split('@')[0]}</span> {act.message}</p>
-                                            <span className="text-[9px] text-app-text-muted font-bold opacity-60">{new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'TAREFAS (0)' && (
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-black uppercase text-app-text-strong tracking-widest">Minhas Urgências</span>
-                                <button onClick={() => setIsContentExpanded(false)} className="text-[10px] font-bold text-app-text-muted hover:text-app-text-strong">Recolher</button>
-                            </div>
-                            <div className="space-y-3">
-                                {myTasks.length > 0 ? myTasks.map(t => (
-                                    <div key={t.id} className="p-5 bg-app-surface border border-app-border rounded-2xl flex items-center gap-4 hover:border-blue-500/30 transition-all cursor-pointer shadow-sm">
-                                        <div className={`w-2 h-2 rounded-full ${t.Prioridade === 'Urgente' ? 'bg-rose-500' : 'bg-blue-500'}`}></div>
-                                        <div className="flex-1 overflow-hidden">
-                                            <p className="text-[11px] font-black text-app-text-strong uppercase truncate">{t.Título}</p>
-                                            <p className="text-[9px] font-bold text-app-text-muted uppercase italic opacity-60">Prazo: {t.Data_Entrega || 'S/D'}</p>
-                                        </div>
-                                        <i className="fa-solid fa-chevron-right text-[10px] text-app-text-muted"></i>
-                                    </div>
-                                )) : (
-                                    <p className="text-[10px] text-app-text-muted font-bold uppercase text-center py-6 italic opacity-60">Sem tarefas pendentes</p>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'CALENDÁRIO' && (
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-black uppercase text-app-text-strong tracking-widest">Meus Prazos</span>
-                                <button onClick={() => setIsContentExpanded(false)} className="text-[10px] font-bold text-app-text-muted hover:text-app-text-strong">Recolher</button>
-                            </div>
-                            <div className="bg-app-surface p-6 rounded-2xl border border-app-border shadow-sm">
-                                <div className="flex flex-col gap-4">
-                                    {myTasks.filter(t => t.Data_Entrega).sort((a, b) => a.Data_Entrega!.localeCompare(b.Data_Entrega!)).map(t => (
-                                        <div key={t.id} className="flex items-center gap-4 pb-4 border-b border-app-border last:border-0 last:pb-0">
-                                            <div className="flex flex-col items-center justify-center bg-blue-500/10 rounded-xl px-2 py-2 min-w-[50px]">
-                                                <span className="text-[11px] font-black text-blue-500 leading-none">{t.Data_Entrega?.split('-')[2]}</span>
-                                                <span className="text-[8px] font-black text-blue-400 uppercase">{new Date(t.Data_Entrega! + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}</span>
-                                            </div>
-                                            <div className="flex-1 overflow-hidden">
-                                                <p className="text-[11px] font-black text-app-text-strong uppercase truncate">{t.Título}</p>
-                                                <span className="text-[9px] font-bold text-app-text-muted uppercase opacity-60">{t.Hora_Entrega || '09:00'}</span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {myTasks.filter(t => t.Data_Entrega).length === 0 && (
-                                        <p className="text-[10px] text-app-text-muted font-bold text-center italic opacity-60">Nenhum prazo definido</p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* PRIORITIES SECTION */}
-                    <div className="pt-8 border-t border-app-border">
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-black uppercase text-app-text-strong tracking-widest">Prioridades Focadas</span>
-                                <i className="fa-solid fa-bullseye text-blue-500 text-[10px]"></i>
-                            </div>
+            {/* Área de Scroll das Tabs */}
+            <div className="p-6 bg-gray-50/50 dark:bg-[#0a0a0c]/50 max-h-[35vh] overflow-y-auto overscroll-contain custom-scrollbar flex-1 lg:max-h-none">
+                {activeTab === 'ATIVIDADE' && (
+                    <div className="space-y-3">
+                        <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-xl overflow-hidden transition-colors">
                             <button
-                                onClick={() => setIsAddingPriority(true)}
-                                className="text-[10px] font-black uppercase text-[#3B82F6] hover:text-blue-400 flex items-center gap-2 transition-all"
+                                onClick={() => setIsContentExpanded(!isContentExpanded)}
+                                className="w-full flex items-center justify-between p-3.5 text-xs font-bold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900/50 transition-colors"
                             >
-                                <i className="fa-solid fa-plus text-[8px]"></i> Adicionar
+                                <span className="flex items-center gap-2"><Activity size={14} className="text-rose-500" /> Minhas Urgências</span>
+                                <span className="text-[10px] text-gray-400 uppercase">{isContentExpanded ? 'Recolher' : 'Expandir'}</span>
                             </button>
-                        </div>
-
-                        {isAddingPriority && (
-                            <div className="mb-6 flex gap-3">
-                                <input
-                                    autoFocus
-                                    value={newPriority}
-                                    onChange={e => setNewPriority(e.target.value)}
-                                    onKeyDown={e => e.key === 'Enter' && handleAddPriority()}
-                                    placeholder="Foco de hoje..."
-                                    className="flex-1 bg-app-surface-2 border border-blue-500/30 rounded-xl px-4 py-3 text-[10px] font-bold text-app-text-strong uppercase outline-none shadow-inner"
-                                />
-                                <button onClick={handleAddPriority} className="bg-blue-600 text-white px-4 rounded-xl text-xs active:scale-90 transition-transform"><i className="fa-solid fa-check"></i></button>
-                                <button onClick={() => setIsAddingPriority(false)} className="text-app-text-muted px-2 active:scale-90 transition-transform"><i className="fa-solid fa-xmark"></i></button>
-                            </div>
-                        )}
-
-                        <div className="space-y-3">
-                            {(profile.priorities || []).map((p, i) => (
-                                <div key={i} className="group flex items-center gap-4 p-4 bg-app-surface border border-app-border rounded-xl shadow-sm hover:border-blue-500/20 transition-all">
-                                    <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.3)]"></div>
-                                    <span className="text-[10px] font-black text-app-text-muted uppercase flex-1 truncate">{p}</span>
-                                    <button onClick={() => removePriority(i)} className="md:opacity-0 group-hover:opacity-100 text-rose-500/50 hover:text-rose-500 transition-all active:scale-90">
-                                        <i className="fa-solid fa-trash-can text-[10px]"></i>
-                                    </button>
-                                </div>
-                            ))}
-                            {(!profile.priorities || profile.priorities.length === 0) && !isAddingPriority && (
-                                <div className="p-10 border border-dashed border-app-border rounded-2xl flex items-center justify-center bg-app-surface/50">
-                                    <p className="text-[10px] uppercase font-black tracking-widest text-app-text-muted text-center italic opacity-60">Liste seus focos principais.</p>
+                            {isContentExpanded && (
+                                <div className="p-4 border-t border-gray-100 dark:border-zinc-800 bg-gray-50/30 dark:bg-[#0a0a0c] text-center">
+                                    {myTasks.length > 0 ? (
+                                        <div className="space-y-2">
+                                            {myTasks.map(t => (
+                                                <div key={t.id} className="text-left p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded">
+                                                    <p className="text-[10px] font-bold dark:text-white uppercase">{t.Título}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-gray-400 dark:text-zinc-500 font-medium italic">Sem tarefas urgentes.</p>
+                                    )}
                                 </div>
                             )}
                         </div>
                     </div>
-                </div>
+                )}
+                {activeTab !== 'ATIVIDADE' && (
+                    <div className="flex flex-col items-center justify-center py-6 opacity-50">
+                        {activeTab === 'TAREFAS (0)' ? <Check size={24} className="mb-2 dark:text-white" /> : <Calendar size={24} className="mb-2 dark:text-white" />}
+                        <p className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest">Nenhum item encontrado.</p>
+                    </div>
+                )}
             </div>
 
-            {!isContentExpanded && (
-                <div className="p-4 bg-white dark:bg-[#111114] border-t border-gray-200 dark:border-zinc-800 shrink-0">
-                    <button
-                        onClick={() => setIsContentExpanded(true)}
-                        className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-bold text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-lg transition-colors uppercase tracking-wider"
-                    >
-                        Expandir Painel Completo <ChevronDown size={14} />
-                    </button>
-                </div>
-            )}
+            {/* Footer do Perfil */}
+            <div className="p-4 bg-white dark:bg-[#111114] border-t border-gray-200 dark:border-zinc-800 shrink-0">
+                <button
+                    onClick={onLogout}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-bold text-gray-600 dark:text-zinc-400 hover:text-white dark:hover:text-white hover:bg-rose-500 dark:hover:bg-rose-600 rounded-lg transition-all uppercase tracking-wider"
+                >
+                    Logout <LogOut size={14} />
+                </button>
+            </div>
             <input
                 type="file"
                 ref={fileInputRef}
@@ -321,31 +229,31 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
             <button
                 ref={buttonRef}
                 onClick={togglePopover}
-                className="relative group focus:outline-none"
+                className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm border-2 transition-all ${isOpen ? 'border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.4)]' : 'border-transparent hover:border-gray-300 dark:hover:border-zinc-600'} bg-gray-100 text-gray-800 dark:bg-zinc-800 dark:text-zinc-200 overflow-hidden`}
                 aria-label="Abrir Perfil"
             >
-                <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/5 flex items-center justify-center text-white font-black text-sm shadow-lg transition-all group-hover:bg-zinc-800 active:scale-95 overflow-hidden ring-1 ring-white/10 group-hover:ring-blue-500/30">
-                    {profile.avatar_url ? (
-                        <img src={profile.avatar_url} alt={profile.full_name} className="w-full h-full object-cover" />
-                    ) : (
-                        initials
-                    )}
-                </div>
-                <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-[#0a0a0c] ${statusColors[profile.status]} shadow-sm`}></div>
+                {profile.avatar_url ? (
+                    <img src={profile.avatar_url} alt={profile.full_name} className="w-full h-full object-cover" />
+                ) : (
+                    initials
+                )}
             </button>
+            <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-[#0a0a0c] ${statusColors[profile.status]} shadow-sm`}></div>
 
             {/* Desktop View using Portal */}
             <PortalPopover
                 isOpen={isOpen && !isMobile}
                 onClose={() => setIsOpen(false)}
                 triggerRef={buttonRef}
-                className="w-[380px]"
+                className="w-[360px]"
                 align="end"
             >
-                <div className="bg-[#0a0a0c] border border-white/5 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col pointer-events-auto max-h-[85vh]">
+                <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in slide-in-from-top-4 duration-200 pointer-events-auto">
                     {content}
                 </div>
             </PortalPopover>
         </div>
     );
 }
+
+import { LogOut } from 'lucide-react';
