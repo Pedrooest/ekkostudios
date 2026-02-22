@@ -1159,6 +1159,24 @@ export default function App() {
             <button className="lg:hidden text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all p-2.5 -ml-2 relative z-[2200] bg-zinc-100 dark:bg-white/5 rounded-xl active:scale-90" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
               <Menu size={22} />
             </button>
+            <WorkspaceSelector
+              workspaces={workspaces}
+              currentWorkspace={currentWorkspace}
+              onSelect={setCurrentWorkspace}
+              onManageMembers={() => setActiveTab('WORKSPACE')}
+              onCreate={async (name) => {
+                try {
+                  const newWs = await DatabaseService.createWorkspace(name);
+                  setWorkspaces(prev => [newWs, ...prev]);
+                  setCurrentWorkspace(newWs);
+                  alert('Workspace criado com sucesso!');
+                } catch (e: any) {
+                  console.error(e);
+                  alert('Erro ao criar workspace: ' + (e.message || e));
+                }
+              }}
+              loading={workspaceLoading}
+            />
           </div>
 
           {/* RIGHT: Global Actions & Profile */}
