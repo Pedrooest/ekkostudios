@@ -71,6 +71,18 @@ export const DatabaseService = {
         return true;
     },
 
+    async updateWorkspace(id: string, updates: any) {
+        const { data, error } = await supabase
+            .from('workspaces')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
+    },
+
     async getWorkspaceMembers(elementId: string) {
         const { data, error } = await supabase
             .from('workspace_members')

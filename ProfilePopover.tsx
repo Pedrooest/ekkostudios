@@ -5,6 +5,7 @@ import { Button } from './Components';
 import { BottomSheet } from './components/BottomSheet';
 import { PortalPopover } from './components/PortalPopover';
 import { Sparkles, X, ChevronDown, Activity, Calendar, Check, LogOut } from 'lucide-react';
+import { playUISound } from './utils/uiSounds';
 
 interface ProfilePopoverProps {
     profile: UserProfile;
@@ -105,8 +106,8 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
             {/* Botão de Fechar */}
             <div className="absolute top-4 right-4 z-10">
                 <button
-                    onClick={() => setIsOpen(false)}
-                    className="p-1.5 text-gray-400 hover:text-rose-500 dark:text-zinc-500 dark:hover:text-rose-400 rounded-lg transition-colors"
+                    onClick={() => { playUISound('tap'); setIsOpen(false); }}
+                    className="ios-btn p-1.5 text-gray-400 hover:text-rose-500 dark:text-zinc-500 dark:hover:text-rose-400 rounded-lg transition-colors"
                 >
                     <X size={18} />
                 </button>
@@ -115,8 +116,8 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
             <div className="p-6 pb-0 shrink-0 relative">
                 <div className="flex flex-col">
                     <div
-                        className="w-16 h-16 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-black text-2xl shadow-md mb-4 cursor-pointer overflow-hidden group"
-                        onClick={() => fileInputRef.current?.click()}
+                        className="ios-btn w-16 h-16 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-black text-2xl shadow-md mb-4 cursor-pointer overflow-hidden group"
+                        onClick={() => { playUISound('tap'); fileInputRef.current?.click(); }}
                     >
                         {profile.avatar_url ? (
                             <img src={profile.avatar_url} alt={profile.full_name} className="w-full h-full object-cover" />
@@ -145,8 +146,8 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
 
                     {/* Botão Mágico Standup */}
                     <button
-                        onClick={() => alert('Gerando seu StandUp diário com IA...')}
-                        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-indigo-500/25 transition-all"
+                        onClick={() => { playUISound('tap'); alert('Gerando seu StandUp diário com IA...'); }}
+                        className="ios-btn w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-indigo-500/25 transition-all"
                     >
                         <Sparkles size={16} /> OBTER STANDUP DIÁRIO
                     </button>
@@ -158,8 +159,8 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
                 {['ATIVIDADE', 'TAREFAS (0)', 'CALENDÁRIO'].map(tab => (
                     <button
                         key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`flex-1 pb-3 text-[10px] font-bold uppercase tracking-wider transition-all border-b-2 ${activeTab === tab ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-300'}`}
+                        onClick={() => { playUISound('tap'); setActiveTab(tab); }}
+                        className={`ios-btn flex-1 pb-3 text-[10px] font-bold uppercase tracking-wider transition-all border-b-2 ${activeTab === tab ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-300'}`}
                     >
                         {tab}
                     </button>
@@ -172,8 +173,8 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
                     <div className="space-y-3">
                         <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-xl overflow-hidden transition-colors hover:border-gray-300 dark:hover:border-zinc-700">
                             <button
-                                onClick={() => setIsContentExpanded(!isContentExpanded)}
-                                className="w-full flex items-center justify-between p-3.5 text-xs font-bold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900/50 transition-colors"
+                                onClick={() => { playUISound('tap'); setIsContentExpanded(!isContentExpanded); }}
+                                className="ios-btn w-full flex items-center justify-between p-3.5 text-xs font-bold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900/50 transition-colors"
                             >
                                 <span className="flex items-center gap-2"><Activity size={14} className="text-rose-500" /> Minhas Urgências</span>
                                 <span className="text-[10px] text-gray-400 uppercase">{isContentExpanded ? 'Recolher' : 'Expandir'}</span>
@@ -207,14 +208,14 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
             {/* Footer do Perfil */}
             <div className="p-4 bg-white dark:bg-[#111114] border-t border-gray-200 dark:border-zinc-800 shrink-0 space-y-2">
                 <button
-                    onClick={() => alert('Expandindo painel completo...')}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-bold text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-lg transition-colors uppercase tracking-wider"
+                    onClick={() => { playUISound('tap'); alert('Expandindo painel completo...'); }}
+                    className="ios-btn w-full flex items-center justify-center gap-2 py-2.5 text-xs font-bold text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-lg transition-colors uppercase tracking-wider"
                 >
                     Expandir Painel Completo <ChevronDown size={14} />
                 </button>
                 <button
-                    onClick={onLogout}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-bold text-gray-600 dark:text-zinc-400 hover:text-white dark:hover:text-white hover:bg-rose-500 dark:hover:bg-rose-600 rounded-lg transition-all uppercase tracking-wider"
+                    onClick={() => { playUISound('tap'); onLogout(); }}
+                    className="ios-btn w-full flex items-center justify-center gap-2 py-2.5 text-xs font-bold text-gray-600 dark:text-zinc-400 hover:text-white dark:hover:text-white hover:bg-rose-500 dark:hover:bg-rose-600 rounded-lg transition-all uppercase tracking-wider"
                 >
                     Logout <LogOut size={14} />
                 </button>
@@ -234,8 +235,8 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
             {/* TRIGGER BOX */}
             <button
                 ref={buttonRef}
-                onClick={togglePopover}
-                className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm border-2 transition-all ${isOpen ? 'border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.4)]' : 'border-transparent hover:border-gray-300 dark:hover:border-zinc-600'} bg-gray-100 text-gray-800 dark:bg-zinc-800 dark:text-zinc-200 overflow-hidden`}
+                onClick={() => { if (!isOpen) playUISound('open'); togglePopover(); }}
+                className={`ios-btn w-10 h-10 rounded-full flex items-center justify-center font-black text-sm border-2 transition-all ${isOpen ? 'border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.4)]' : 'border-transparent hover:border-gray-300 dark:hover:border-zinc-600'} bg-gray-100 text-gray-800 dark:bg-zinc-800 dark:text-zinc-200 overflow-hidden`}
                 aria-label="Abrir Perfil"
             >
                 {profile.avatar_url ? (

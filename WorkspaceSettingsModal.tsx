@@ -1,251 +1,136 @@
 import React, { useState, useEffect } from 'react';
-import { Workspace, WorkspaceMember, Invite } from './types';
+import { Workspace } from './types';
 import { DatabaseService } from './DatabaseService';
-import { Settings, X, Users, UserPlus, Link as LinkIcon, Trash2, Shield, Eye, EyeOff, AlertTriangle, ChevronDown, Mail, Clock } from 'lucide-react';
+import { X, Building2, Palette, AlertTriangle, LogOut } from 'lucide-react';
+import { playUISound } from './utils/uiSounds';
+
 
 interface WorkspaceSettingsModalProps {
     workspace: Workspace;
     onClose: () => void;
-    currentUserEmail?: string;
     onWorkspaceDeleted?: () => void;
+    onUpdateWorkspace: (updatedWorkspace: Workspace) => void;
 }
 
-export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, onWorkspaceDeleted }: WorkspaceSettingsModalProps) {
-    const [members, setMembers] = useState<WorkspaceMember[]>([]);
-    const [invites, setInvites] = useState<Invite[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [inviteRole, setInviteRole] = useState('editor');
-    const [generatedLink, setGeneratedLink] = useState('');
-    const [error, setError] = useState('');
+export function WorkspaceSettingsModal({ workspace, onClose, onWorkspaceDeleted, onUpdateWorkspace }: WorkspaceSettingsModalProps) {
+    const [editWsName, setEditWsName] = useState(workspace.name);
+    const [editWsColor, setEditWsColor] = useState(workspace.color || 'bg-indigo-600');
+    const [loading, setLoading] = useState(false);
+
+    const availableColors = ['bg-indigo-600', 'bg-blue-600', 'bg-emerald-600', 'bg-orange-500', 'bg-rose-600', 'bg-purple-600', 'bg-zinc-800'];
 
     useEffect(() => {
-        loadData();
-    }, [workspace.id]);
+        setEditWsName(workspace.name);
+        setEditWsColor(workspace.color || 'bg-indigo-600');
+    }, [workspace]);
 
-    const loadData = async () => {
+    const saveSettings = async () => {
         setLoading(true);
         try {
-            const [m, i] = await Promise.all([
-                DatabaseService.getWorkspaceMembers(workspace.id),
-                DatabaseService.getWorkspaceInvites(workspace.id)
-            ]);
-            setMembers(m as any);
-            setInvites(i as any);
+            const updated = await DatabaseService.updateWorkspace(workspace.id, {
+                name: editWsName,
+                color: editWsColor
+            });
+            playUISound('success');
+            onUpdateWorkspace(updated);
+            onClose();
         } catch (e) {
             console.error(e);
-            setError('Erro ao carregar dados.');
+            alert('Erro ao salvar alterações.');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleCreateInvite = async () => {
+
+    const handleDelete = async () => {
+        if (!confirm('TEM CERTEZA? Esta ação é irreversível e excluirá todos os dados deste workspace.')) return;
+        playUISound('tap');
         try {
-            const invite = await DatabaseService.createInvite(workspace.id, inviteRole);
-            setInvites(prev => [invite, ...prev]);
-            const link = `${window.location.origin}?invite=${invite.token}`;
-            setGeneratedLink(link);
+            await DatabaseService.deleteWorkspace(workspace.id);
+            if (onWorkspaceDeleted) onWorkspaceDeleted();
         } catch (e) {
             console.error(e);
-            setError('Erro ao criar convite.');
+            alert('Erro ao excluir workspace.');
         }
     };
 
-    const copyLink = () => {
-        navigator.clipboard.writeText(generatedLink);
-        alert('Link copiado!');
-    };
-
-    const currentUserMember = members.find(m => m.profiles?.email === currentUserEmail);
-    const isAdmin = currentUserMember?.role === 'admin';
-
-    const handleRemoveMember = async (userId: string) => {
-        if (!confirm('Tem certeza que deseja remover este membro?')) return;
-        try {
-            await DatabaseService.removeMember(workspace.id, userId);
-            setMembers(prev => prev.filter(m => m.user_id !== userId));
-        } catch (e) {
-            console.error(e);
-            alert('Erro ao remover membro.');
-        }
-    };
 
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
-            <div className="absolute inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
+            <div className="absolute inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-md transition-opacity animate-in fade-in" onClick={() => { playUISound('close'); onClose(); }}></div>
 
-            <div className="relative w-full max-w-2xl bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                {/* Header */}
-                <div className="px-6 py-5 border-b border-gray-200 dark:border-zinc-800 flex justify-between items-start shrink-0 bg-gray-50/50 dark:bg-transparent">
+            <div className="relative w-full max-w-lg bg-white/95 dark:bg-[#111114]/95 backdrop-blur-2xl border border-gray-200 dark:border-zinc-800 rounded-[2rem] shadow-2xl flex flex-col overflow-hidden animate-ios-spring">
+
+                <div className="px-6 py-5 border-b border-gray-200 dark:border-zinc-800 flex justify-between items-start shrink-0">
                     <div>
-                        <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight leading-tight uppercase">Gerir Membros</h2>
-                        <p className="text-xs text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-widest mt-1">MEU WORKSPACE</p>
+                        <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight leading-tight uppercase">Configurações</h2>
+                        <p className="text-xs text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-widest mt-1">PERSONALIZAR WORKSPACE</p>
                     </div>
-                    <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 dark:text-zinc-500 dark:hover:text-white dark:hover:bg-zinc-800 rounded-lg transition-colors">
+                    <button onClick={() => { playUISound('close'); onClose(); }} className="ios-btn p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 dark:text-zinc-500 dark:hover:text-white dark:hover:bg-zinc-800 rounded-full bg-gray-50 dark:bg-zinc-900">
                         <X size={20} />
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-5 md:p-6 space-y-8 text-gray-900 dark:text-zinc-300">
-                    {/* MEMBERS SECTION */}
-                    <section>
-                        <h3 className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <Users size={14} className="text-indigo-500" /> Membros Ativos ({members.length})
-                        </h3>
-                        <div className="space-y-3">
-                            {loading ? (
-                                <div className="p-8 text-center text-gray-500 text-xs uppercase font-bold bg-gray-50 dark:bg-zinc-900/50 rounded-2xl border border-dashed border-gray-200 dark:border-zinc-800">
-                                    Carregando membros...
-                                </div>
-                            ) : (
-                                members.map(member => (
-                                    <div key={member.user_id} className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-900/50 transition-colors group">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400 flex items-center justify-center text-sm font-bold shrink-0 border border-black/5 dark:border-white/5">
-                                                {member.profiles?.full_name?.substring(0, 2).toUpperCase() || 'US'}
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-sm font-bold text-gray-900 dark:text-zinc-200 leading-none">{member.profiles?.full_name || 'Usuário'}</span>
-                                                    {member.profiles?.email === currentUserEmail && <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-indigo-600 text-white leading-none">Você</span>}
-                                                </div>
-                                                <span className="text-xs text-gray-500 dark:text-zinc-500 mt-1 leading-none">{member.profiles?.email}</span>
-                                            </div>
-                                        </div>
 
-                                        <div className="flex items-center gap-4">
-                                            <span className={`text-sm font-medium ${member.profiles?.email === currentUserEmail ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-600 dark:text-zinc-400'}`}>
-                                                {member.role === 'admin' ? 'Administrador' : member.role === 'editor' ? 'Editor' : 'Visualizador'}
-                                            </span>
-                                            {isAdmin && member.profiles?.email !== currentUserEmail && (
-                                                <button
-                                                    onClick={() => handleRemoveMember(member.user_id)}
-                                                    className="p-1.5 text-gray-400 hover:text-rose-600 dark:text-zinc-500 dark:hover:text-rose-400 transition-colors opacity-0 group-hover:opacity-100"
-                                                    title="Remover Acesso"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </section>
+                <div className="p-6 space-y-6">
+                    <div>
+                        <label className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                            <Building2 size={14} className="text-indigo-500" /> Nome do Workspace
+                        </label>
+                        <input
+                            type="text"
+                            value={editWsName}
+                            onChange={(e) => setEditWsName(e.target.value)}
+                            className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                        />
+                    </div>
 
-                    {/* INVITE SECTION */}
-                    <section>
-                        <h3 className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <LinkIcon size={14} className="text-emerald-500" /> Convidar Novo Membro
-                        </h3>
-
-                        <div className="bg-gray-50 dark:bg-zinc-900/50 border border-gray-200 dark:border-zinc-800 rounded-2xl p-5">
-                            <div className="flex flex-col sm:flex-row gap-3">
-                                <div className="flex-1 relative">
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500" size={16} />
-                                    <input
-                                        type="email"
-                                        placeholder="Email do colaborador..."
-                                        className="w-full bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white text-sm font-medium rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors placeholder-gray-400 dark:placeholder-zinc-500"
-                                    />
-                                </div>
-                                <div className="sm:w-40 relative shrink-0">
-                                    <select
-                                        value={inviteRole}
-                                        onChange={(e) => setInviteRole(e.target.value)}
-                                        className="w-full bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 text-sm font-medium rounded-xl pl-4 pr-10 py-3 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors appearance-none cursor-pointer"
-                                    >
-                                        <option value="editor">Editor</option>
-                                        <option value="viewer">Visualizador</option>
-                                        <option value="admin">Admin</option>
-                                    </select>
-                                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-400 pointer-events-none" />
-                                </div>
+                    <div>
+                        <label className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                            <Palette size={14} className="text-emerald-500" /> Cor de Identificação
+                        </label>
+                        <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+                            {availableColors.map(color => (
                                 <button
-                                    onClick={handleCreateInvite}
-                                    className="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-500/20 shrink-0"
-                                >
-                                    <LinkIcon size={16} /> Gerar Link
-                                </button>
-                            </div>
-
-                            {generatedLink && (
-                                <div className="mt-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Link Gerado</span>
-                                        <button onClick={copyLink} className="text-emerald-400 hover:text-white transition-colors text-xs font-bold uppercase flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-emerald-500/20">
-                                            Copiar Link
-                                        </button>
-                                    </div>
-                                    <div className="bg-white dark:bg-zinc-900 rounded-lg px-4 py-3 text-xs text-gray-600 dark:text-zinc-300 font-mono break-all border border-gray-200 dark:border-zinc-800 select-all">
-                                        {generatedLink}
-                                    </div>
-                                </div>
-                            )}
-
-                            <p className="text-[11px] text-gray-500 dark:text-zinc-500 font-medium mt-3">
-                                Ao gerar o link, envie-o para o colaborador. O acesso será concedido automaticamente ao entrar.
-                            </p>
+                                    key={color}
+                                    onClick={() => { playUISound('tap'); setEditWsColor(color); }}
+                                    className={`ios-btn w-10 h-10 rounded-full shrink-0 transition-all ${color} ${editWsColor === color ? 'ring-4 ring-offset-2 ring-indigo-500 dark:ring-offset-[#111114] scale-110' : 'opacity-70 hover:opacity-100'}`}
+                                />
+                            ))}
                         </div>
-                    </section>
 
-                    {/* PENDING INVITES */}
-                    {invites.length > 0 && (
-                        <section>
-                            <h3 className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                <Clock size={14} className="text-amber-500" /> Convites Pendentes ({invites.length})
-                            </h3>
-                            <div className="space-y-2">
-                                {invites.map(inv => (
-                                    <div key={inv.id} className="flex items-center justify-between p-3.5 rounded-xl border border-gray-200 dark:border-zinc-800/50 bg-white dark:bg-[#111114] transition-colors">
-                                        <div className="flex element-center gap-3">
-                                            <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center border border-amber-500/20">
-                                                <UserPlus size={14} />
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-sm font-bold text-gray-700 dark:text-zinc-300 leading-none mb-1">Convite {inv.role}</span>
-                                                <span className="text-[10px] text-gray-400 dark:text-zinc-500 leading-none">Válido até {new Date(inv.expires_at).toLocaleDateString()}</span>
-                                            </div>
-                                        </div>
-                                        <button className="px-3 py-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg text-xs font-bold transition-colors">
-                                            Cancelar
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-                    )}
+                    </div>
 
-                    {/* DANGER ZONE */}
-                    {isAdmin && (
-                        <section className="pt-6 border-t border-gray-200 dark:border-zinc-800">
-                            <h3 className="text-xs font-bold text-rose-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                <AlertTriangle size={14} /> Zona de Perigo
-                            </h3>
-                            <div className="bg-rose-50 dark:bg-rose-500/5 border border-rose-100 dark:border-rose-500/20 rounded-2xl p-5">
-                                <p className="text-xs text-gray-600 dark:text-zinc-400 mb-4">
-                                    A exclusão do workspace é irreversível. Todos os dados serão removidos.
-                                </p>
-                                <button
-                                    onClick={async () => {
-                                        const confirmName = window.prompt(`Digite "${workspace.name}" para confirmar:`);
-                                        if (confirmName !== workspace.name) return;
-                                        try {
-                                            await DatabaseService.deleteWorkspace(workspace.id);
-                                            onWorkspaceDeleted?.();
-                                        } catch (e: any) {
-                                            alert('Erro: ' + (e.message || e));
-                                        }
-                                    }}
-                                    className="w-full bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold uppercase tracking-widest py-3 rounded-xl transition-all shadow-lg shadow-rose-500/20"
-                                >
-                                    Excluir Workspace Permanentemente
-                                </button>
-                            </div>
-                        </section>
-                    )}
+                    <div className="pt-6 border-t border-gray-200 dark:border-zinc-800">
+                        <label className="text-xs font-bold text-rose-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                            <AlertTriangle size={14} /> Zona de Perigo
+                        </label>
+                        <button
+                            onClick={handleDelete}
+                            className="ios-btn w-full px-4 py-3 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20 rounded-xl text-sm font-bold hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-colors flex justify-between items-center"
+                        >
+                            Excluir Workspace Permanentemente
+                            <LogOut size={16} />
+                        </button>
+
+                    </div>
                 </div>
+
+                <div className="px-6 py-4 bg-gray-50/50 dark:bg-zinc-900/30 border-t border-gray-200 dark:border-zinc-800 flex justify-end gap-3">
+                    <button onClick={() => { playUISound('close'); onClose(); }} className="ios-btn px-5 py-2.5 text-sm font-bold text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white rounded-xl">
+                        Cancelar
+                    </button>
+                    <button
+                        onClick={saveSettings}
+                        disabled={loading || !editWsName.trim()}
+                        className="ios-btn px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-500/20"
+                    >
+                        {loading ? 'Salvando...' : 'Salvar Alterações'}
+                    </button>
+                </div>
+
             </div>
-        </div >
+        </div>
     );
 }

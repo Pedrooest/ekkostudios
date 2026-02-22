@@ -289,7 +289,7 @@ export interface Workspace {
   name: string;
   owner_id: string;
   created_at: string;
-  role?: 'admin' | 'editor' | 'viewer'; // Processed field
+  color?: string;
   workspace_members?: WorkspaceMember[];
 }
 

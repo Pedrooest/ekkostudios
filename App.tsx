@@ -32,8 +32,12 @@ import {
 } from './types';
 import { WorkspaceSelector } from './WorkspaceSelector';
 import { WorkspaceSettingsModal } from './WorkspaceSettingsModal';
+import { WorkspaceMembersModal } from './WorkspaceMembersModal';
+import { NewWorkspaceModal } from './NewWorkspaceModal';
 import { DatabaseService } from './DatabaseService';
 import { logDebug } from './components/DebugOverlay';
+import { initAudio, playUISound } from './utils/uiSounds';
+
 
 import {
   CLIENTES_COLS, RDC_COLS,
@@ -64,6 +68,7 @@ import { SlideRenderer } from './export/components/SlideRenderer';
 import { useExport } from './export/hooks/useExport';
 import { ExportConfig } from './export/types';
 import WorkspaceManager from './components/WorkspaceManager';
+
 
 
 const generateId = () => {
@@ -249,6 +254,8 @@ export default function App() {
 
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isWorkspaceSettingsOpen, setIsWorkspaceSettingsOpen] = useState(false);
+  const [isWorkspaceMembersOpen, setIsWorkspaceMembersOpen] = useState(false);
+  const [isNewWorkspaceModalOpen, setIsNewWorkspaceModalOpen] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
 
@@ -1111,7 +1118,11 @@ export default function App() {
   if (!currentUser) return <AuthView onSuccess={setCurrentUser} />;
 
   return (
-    <div className="flex h-[100dvh] bg-app-bg text-app-text font-sans overflow-hidden transition-colors duration-300">
+    <div
+      onMouseDown={() => initAudio()}
+      className="flex h-[100dvh] bg-app-bg text-app-text font-sans overflow-hidden transition-colors duration-300"
+    >
+
       {!sidebarCollapsed && (
         <div className="fixed inset-0 bg-black/50 z-[2000] lg:hidden backdrop-blur-sm animate-fade" onClick={() => setSidebarCollapsed(true)}></div>
       )}
@@ -1122,20 +1133,20 @@ export default function App() {
         </div>
         <nav className="flex-1 py-6 px-0 space-y-2 overflow-y-auto custom-scrollbar flex flex-col items-center">
           {tabOrder.map(tab => (
-            <button key={`nav-tab-${tab}`} onClick={() => { setActiveTab(tab); if (window.innerWidth < 1024) setSidebarCollapsed(true); }} className={`w-[90%] flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-4'} py-3 rounded-xl transition-all group ${activeTab === tab ? 'bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'text-app-text-muted hover:bg-app-surface hover:text-app-text-strong'}`}>
+            <button key={`nav-tab-${tab}`} onClick={() => { playUISound('tap'); setActiveTab(tab); if (window.innerWidth < 1024) setSidebarCollapsed(true); }} className={`ios-btn w-[90%] flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-4'} py-3 rounded-xl transition-all group ${activeTab === tab ? 'bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'text-app-text-muted hover:bg-app-surface hover:text-app-text-strong'}`}>
               <i className={`fa-solid ${getIcon(tab)} text-xl transition-transform group-hover:scale-110`}></i>
               {!sidebarCollapsed && <span className="text-[11px] font-bold uppercase tracking-widest truncate">{TABLE_LABELS[tab]}</span>}
             </button>
           ))}
         </nav>
         <div className="p-4 border-t border-app-border space-y-2 bg-app-surface-2/80 backdrop-blur-md flex flex-col items-center">
-          <button onClick={() => setIsLibraryEditorOpen(true)} className={`w-[90%] flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-4'} py-3 rounded-xl text-app-text-muted hover:text-app-text-strong hover:bg-app-surface transition-all group`}>
+          <button onClick={() => { playUISound('tap'); setIsLibraryEditorOpen(true); }} className={`ios-btn w-[90%] flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-4'} py-3 rounded-xl text-app-text-muted hover:text-app-text-strong hover:bg-app-surface transition-all group`}>
             <i className="fa-solid fa-layer-group text-xl transition-transform group-hover:scale-110"></i>{!sidebarCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest">Tipos</span>}
           </button>
-          <button onClick={() => setIsReorderOpen(true)} className={`w-[90%] flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-4'} py-3 rounded-xl text-app-text-muted hover:text-app-text-strong hover:bg-app-surface transition-all group`}>
+          <button onClick={() => { playUISound('tap'); setIsReorderOpen(true); }} className={`ios-btn w-[90%] flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-4'} py-3 rounded-xl text-app-text-muted hover:text-app-text-strong hover:bg-app-surface transition-all group`}>
             <i className="fa-solid fa-arrows-up-down-left-right text-xl transition-transform group-hover:scale-110"></i>{!sidebarCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest">Ordem</span>}
           </button>
-          <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className={`w-[90%] flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-4'} py-3 rounded-xl text-app-text-muted hover:text-app-text-strong hover:bg-app-surface transition-all group flex`}>
+          <button onClick={() => { playUISound('tap'); setSidebarCollapsed(!sidebarCollapsed); }} className={`ios-btn w-[90%] flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-4'} py-3 rounded-xl text-app-text-muted hover:text-app-text-strong hover:bg-app-surface transition-all group flex`}>
             <i className={`fa-solid ${sidebarCollapsed ? 'fa-expand' : 'fa-arrow-left'} text-xl transition-transform group-hover:scale-110`}></i>{!sidebarCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest">Recolher</span>}
           </button>
         </div>
@@ -1157,40 +1168,34 @@ export default function App() {
         <header className={`sticky top-0 z-[50] px-4 sm:px-8 py-3 lg:h-[72px] border-b transition-colors flex justify-between items-center w-full backdrop-blur-md ${theme === 'dark' ? 'dark bg-[#0a0a0c]/80 border-zinc-800/80 text-zinc-300' : 'bg-white/80 border-gray-200 text-gray-800'}`}>
           {/* LEFT: Menu | Workspace */}
           <div className="flex items-center gap-4">
-            <button className="lg:hidden text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all p-2.5 -ml-2 relative z-[2200] bg-zinc-100 dark:bg-white/5 rounded-xl active:scale-90" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
+            <button className="ios-btn lg:hidden text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all p-2.5 -ml-2 relative z-[2200] bg-zinc-100 dark:bg-white/5 rounded-xl active:scale-90" onClick={() => { playUISound('tap'); setSidebarCollapsed(!sidebarCollapsed); }}>
               <Menu size={22} />
             </button>
             <WorkspaceSelector
               workspaces={workspaces}
               currentWorkspace={currentWorkspace}
               onSelect={setCurrentWorkspace}
-              onManageMembers={() => setIsWorkspaceSettingsOpen(true)}
-              onCreate={async (name) => {
-                try {
-                  const newWs = await DatabaseService.createWorkspace(name);
-                  setWorkspaces(prev => [newWs, ...prev]);
-                  setCurrentWorkspace(newWs);
-                  alert('Workspace criado com sucesso!');
-                } catch (e: any) {
-                  console.error(e);
-                  alert('Erro ao criar workspace: ' + (e.message || e));
-                }
-              }}
+              onManageMembers={() => setIsWorkspaceMembersOpen(true)}
+              onSettings={() => setIsWorkspaceSettingsOpen(true)}
+              onCreate={() => setIsNewWorkspaceModalOpen(true)}
               loading={workspaceLoading}
             />
           </div>
 
           {/* RIGHT: Global Actions & Profile */}
           <div className="flex items-center gap-2 sm:gap-4">
-            <button onClick={toggleTheme} className="p-2.5 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 dark:border-white/5 dark:bg-white/5 dark:text-zinc-400 dark:hover:text-white transition-colors active:scale-90">
+            <button onClick={() => { playUISound('tap'); toggleTheme(); }} className="ios-btn p-2.5 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 dark:border-white/5 dark:bg-white/5 dark:text-zinc-400 dark:hover:text-white transition-colors active:scale-90">
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             </button>
 
             <div className="relative">
               <button
                 ref={notificationButtonRef}
-                onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                className="p-2.5 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 dark:border-white/5 dark:bg-white/5 dark:text-zinc-400 dark:hover:text-white transition-colors active:scale-90 relative"
+                onClick={() => {
+                  if (!isNotificationOpen) playUISound('open');
+                  setIsNotificationOpen(!isNotificationOpen);
+                }}
+                className="ios-btn p-2.5 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 dark:border-white/5 dark:bg-white/5 dark:text-zinc-400 dark:hover:text-white transition-colors active:scale-90 relative"
               >
                 <Bell size={18} />
                 {notifications.some(n => !n.read) && (
@@ -1209,8 +1214,11 @@ export default function App() {
                   <div className="p-5 border-b border-app-border flex justify-between items-center bg-app-surface-2/50 backdrop-blur-md">
                     <span className="text-[11px] font-black uppercase text-app-text-strong tracking-[0.2em]">Notificações</span>
                     <button
-                      onClick={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))}
-                      className="text-[9px] font-black uppercase text-blue-500 hover:text-app-text-strong transition-all"
+                      onClick={() => {
+                        playUISound('tap');
+                        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+                      }}
+                      className="ios-btn text-[9px] font-black uppercase text-blue-500 hover:text-app-text-strong transition-all"
                     >
                       Limpar Tudo
                     </button>
@@ -1228,7 +1236,7 @@ export default function App() {
                             <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 border ${n.type === 'success' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
                               n.type === 'warning' ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
                               }`}>
-                              {n.type === 'success' ? <CheckCircle size={16} /> : n.type === 'warning' ? <AlertTriangle size={16} /> : <Info size={16} />}
+                              {n.type === 'success' ? <CheckCircle2 size={16} /> : n.type === 'warning' ? <AlertTriangle size={16} /> : <Info size={16} />}
                             </div>
                             <div className="flex-1 space-y-1">
                               <div className="flex justify-between items-baseline">
@@ -1249,13 +1257,16 @@ export default function App() {
             <div className="h-6 w-px bg-gray-200 dark:bg-white/10 hidden sm:block"></div>
 
             <div className="flex items-center gap-2">
-              <button className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:border-zinc-700 rounded-lg text-xs font-bold transition-colors shadow-sm dark:shadow-none uppercase tracking-widest">
+              <button className="ios-btn hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:border-zinc-700 rounded-lg text-xs font-bold transition-colors shadow-sm dark:shadow-none uppercase tracking-widest" onClick={() => playUISound('tap')}>
                 <Search size={14} /> BUSCAR
               </button>
 
               <button
-                onClick={() => setIsAssistantOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:hover:bg-indigo-500/20 border border-indigo-100 dark:border-indigo-500/20 rounded-lg text-xs font-bold transition-colors shadow-sm uppercase tracking-widest"
+                onClick={() => {
+                  playUISound('tap');
+                  setIsAssistantOpen(true);
+                }}
+                className="ios-btn flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:hover:bg-indigo-500/20 border border-indigo-100 dark:border-indigo-500/20 rounded-lg text-xs font-bold transition-colors shadow-sm uppercase tracking-widest"
               >
                 <Sparkles size={14} /> ASSISTENTE GEMINI
               </button>
@@ -1308,6 +1319,7 @@ export default function App() {
           {activeTab === 'CLIENTES' && <TableView tab="CLIENTES" data={filterArchived(clients)} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('CLIENTES')} clients={clients} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} />}
           {activeTab === 'RDC' && <TableView tab="RDC" data={currentRdc} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('RDC')} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
           {activeTab === 'MATRIZ' && <TableView tab="MATRIZ" data={matriz} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('MATRIZ')} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
+
 
           {activeTab === 'COBO' && <TableView tab="COBO" data={currentCobo} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('COBO')} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
 
@@ -1386,10 +1398,38 @@ export default function App() {
         <WorkspaceSettingsModal
           workspace={currentWorkspace}
           onClose={() => setIsWorkspaceSettingsOpen(false)}
-          currentUserEmail={currentUser?.email}
+          onUpdateWorkspace={(updated) => {
+            setWorkspaces(prev => prev.map(ws => ws.id === updated.id ? updated : ws));
+            setCurrentWorkspace(updated);
+          }}
           onWorkspaceDeleted={() => {
             setIsWorkspaceSettingsOpen(false);
             window.location.reload();
+          }}
+        />
+      )}
+
+      {isWorkspaceMembersOpen && currentWorkspace && (
+        <WorkspaceMembersModal
+          workspace={currentWorkspace}
+          onClose={() => setIsWorkspaceMembersOpen(false)}
+          currentUserEmail={currentUser?.email}
+        />
+      )}
+
+      {isNewWorkspaceModalOpen && (
+        <NewWorkspaceModal
+          onClose={() => setIsNewWorkspaceModalOpen(false)}
+          onCreate={async (name) => {
+            try {
+              const newWs = await DatabaseService.createWorkspace(name);
+              // Default color or randomized as per snippet logic can be handled here or in service
+              setWorkspaces(prev => [newWs, ...prev]);
+              setCurrentWorkspace(newWs);
+            } catch (e: any) {
+              console.error(e);
+              alert('Erro ao criar workspace.');
+            }
           }}
         />
       )}
@@ -1627,8 +1667,8 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
               {['All', ...PLANNING_STATUS_OPTIONS].map(s => (
                 <button
                   key={s}
-                  onClick={() => setFilterStatus(s)}
-                  className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all hover:scale-105 active:scale-95 ${filterStatus === s ? 'bg-blue-600 border-blue-500 text-app-text-strong shadow-lg shadow-blue-900/40' : 'bg-app-bg/60 border-white/5 text-app-text-muted hover:text-gray-300 hover:border-white/10'}`}
+                  onClick={() => { playUISound('tap'); setFilterStatus(s); }}
+                  className={`ios-btn px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all hover:scale-105 active:scale-95 ${filterStatus === s ? 'bg-blue-600 border-blue-500 text-app-text-strong shadow-lg shadow-blue-900/40' : 'bg-app-bg/60 border-white/5 text-app-text-muted hover:text-gray-300 hover:border-white/10'}`}
                 >
                   {s}
                 </button>
@@ -1637,8 +1677,8 @@ function PlanningView({ data, clients, onUpdate, onAdd, rdc, matriz, cobo, tasks
           </div>
           <div className="flex items-center gap-3 self-end lg:self-center">
             <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all hover:scale-105 active:scale-95 relative z-[60] ${isSidebarOpen ? 'bg-blue-600/10 border-blue-500 text-blue-500' : 'bg-gray-800/40 border-white/5 text-app-text-muted hover:text-app-text-strong hover:border-white/10'}`}
+              onClick={() => { playUISound('tap'); setIsSidebarOpen(!isSidebarOpen); }}
+              className={`ios-btn flex items-center gap-2 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all hover:scale-105 active:scale-95 relative z-[60] ${isSidebarOpen ? 'bg-blue-600/10 border-blue-500 text-blue-500' : 'bg-gray-800/40 border-white/5 text-app-text-muted hover:text-app-text-strong hover:border-white/10'}`}
             >
               <i className={`fa-solid ${isSidebarOpen ? 'fa-eye-slash' : 'fa-database'}`}></i>
               {isSidebarOpen ? 'Esconder Banco' : 'Banco de Conteúdo'}
@@ -1896,8 +1936,8 @@ function FinanceView({ data, onUpdate, onDelete, onArchive, onAdd, selection, on
 
         {/* Card Entradas */}
         <button
-          onClick={() => setActiveRegMode(activeRegMode === 'entrada' ? null : 'entrada')}
-          className={`flex flex-col p-5 rounded-2xl border text-left transition-all duration-300 relative overflow-hidden group
+          onClick={() => { playUISound('tap'); setActiveRegMode(activeRegMode === 'entrada' ? null : 'entrada'); }}
+          className={`ios-btn flex flex-col p-5 rounded-2xl border text-left transition-all duration-300 relative overflow-hidden group
             ${activeRegMode === 'entrada'
               ? 'bg-emerald-50 border-emerald-300 shadow-md dark:bg-emerald-500/10 dark:border-emerald-500/50 dark:shadow-[0_0_30px_rgba(16,185,129,0.1)]'
               : 'bg-app-surface border-app-border hover:border-emerald-300 dark:hover:border-emerald-500/30 shadow-sm dark:shadow-none'}`}
@@ -1915,8 +1955,8 @@ function FinanceView({ data, onUpdate, onDelete, onArchive, onAdd, selection, on
 
         {/* Card Saídas */}
         <button
-          onClick={() => setActiveRegMode(activeRegMode === 'saida' ? null : 'saida')}
-          className={`flex flex-col p-5 rounded-2xl border text-left transition-all duration-300 relative overflow-hidden group
+          onClick={() => { playUISound('tap'); setActiveRegMode(activeRegMode === 'saida' ? null : 'saida'); }}
+          className={`ios-btn flex flex-col p-5 rounded-2xl border text-left transition-all duration-300 relative overflow-hidden group
             ${activeRegMode === 'saida'
               ? 'bg-rose-50 border-rose-300 shadow-md dark:bg-rose-500/10 dark:border-rose-500/50 dark:shadow-[0_0_30px_rgba(244,63,94,0.1)]'
               : 'bg-app-surface border-app-border hover:border-rose-300 dark:hover:border-rose-500/30 shadow-sm dark:shadow-none'}`}
@@ -1934,8 +1974,8 @@ function FinanceView({ data, onUpdate, onDelete, onArchive, onAdd, selection, on
 
         {/* Card Despesas */}
         <button
-          onClick={() => setActiveRegMode(activeRegMode === 'despesa' ? null : 'despesa')}
-          className={`flex flex-col p-5 rounded-2xl border text-left transition-all duration-300 relative overflow-hidden group
+          onClick={() => { playUISound('tap'); setActiveRegMode(activeRegMode === 'despesa' ? null : 'despesa'); }}
+          className={`ios-btn flex flex-col p-5 rounded-2xl border text-left transition-all duration-300 relative overflow-hidden group
             ${activeRegMode === 'despesa'
               ? 'bg-amber-50 border-amber-300 shadow-md dark:bg-amber-500/10 dark:border-amber-500/50 dark:shadow-[0_0_30px_rgba(245,158,11,0.1)]'
               : 'bg-app-surface border-app-border hover:border-amber-300 dark:hover:border-amber-500/30 shadow-sm dark:shadow-none'}`}
@@ -1953,8 +1993,8 @@ function FinanceView({ data, onUpdate, onDelete, onArchive, onAdd, selection, on
 
         {/* Card Assinaturas */}
         <button
-          onClick={() => setActiveRegMode(activeRegMode === 'assinatura' ? null : 'assinatura')}
-          className={`flex flex-col p-5 rounded-2xl border text-left transition-all duration-300 relative overflow-hidden group
+          onClick={() => { playUISound('tap'); setActiveRegMode(activeRegMode === 'assinatura' ? null : 'assinatura'); }}
+          className={`ios-btn flex flex-col p-5 rounded-2xl border text-left transition-all duration-300 relative overflow-hidden group
             ${activeRegMode === 'assinatura'
               ? 'bg-purple-50 border-purple-300 shadow-md dark:bg-purple-500/10 dark:border-purple-500/50 dark:shadow-[0_0_30px_rgba(168,85,247,0.1)]'
               : 'bg-app-surface border-app-border hover:border-purple-300 dark:hover:border-purple-500/30 shadow-sm dark:shadow-none'}`}
@@ -2155,8 +2195,13 @@ function StatCard({ label, value, icon, color = "blue", onClick, active }: any) 
 
   return (
     <div
-      onClick={onClick}
-      className={`p-4 md:p-6 rounded-2xl md:rounded-3xl border ${active ? borderColors[color] : 'bg-app-surface border-app-border'} flex flex-col gap-3 md:gap-4 transition-all ${onClick ? 'cursor-pointer hover:border-[#3B82F6]/20' : ''} shadow-xl group w-full`}
+      onClick={(e) => {
+        if (onClick) {
+          playUISound('tap');
+          onClick(e);
+        }
+      }}
+      className={`ios-btn p-4 md:p-6 rounded-2xl md:rounded-3xl border ${active ? borderColors[color] : 'bg-app-surface border-app-border'} flex flex-col gap-3 md:gap-4 transition-all ${onClick ? 'cursor-pointer hover:border-[#3B82F6]/20' : ''} shadow-xl group w-full`}
     >
       <div className="flex justify-between items-start">
         <span className={`text-[9px] font-black tracking-[0.2em] transition-colors uppercase flex-1 ${active ? 'text-app-text-strong' : 'text-app-text-muted group-hover:text-app-text-strong'}`}>{label}</span>
@@ -3612,20 +3657,23 @@ function TableRow({ row, tab, cols, onUpdate, clients, library, onOpenColorPicke
       <td className={`px-4 py-4 text-right align-middle ${isRDC ? 'w-[80px]' : ''}`}>
         <div className="relative inline-block text-left">
           <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="w-8 h-8 rounded-lg bg-app-surface text-app-text-muted hover:text-app-text-strong transition-all flex items-center justify-center border border-app-border shadow-sm hover:shadow-md"
+            onClick={() => {
+              if (!isMenuOpen) playUISound('open');
+              setIsMenuOpen(!isMenuOpen);
+            }}
+            className="ios-btn w-8 h-8 rounded-lg bg-app-surface text-app-text-muted hover:text-app-text-strong transition-all flex items-center justify-center border border-app-border shadow-sm hover:shadow-md"
           >
             <i className="fa-solid fa-ellipsis-vertical"></i>
           </button>
           {isMenuOpen && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setIsMenuOpen(false)}></div>
-              <div className="absolute right-0 bottom-full mb-2 w-40 bg-app-surface rounded-xl shadow-2xl border border-app-border z-20 overflow-hidden text-left animate-fade">
-                <button onClick={() => { onArchive([row.id], tab, !row.__archived); setIsMenuOpen(false); }} className="w-full text-left px-4 py-3 hover:bg-[#3B82F6] transition-all flex items-center gap-3 font-bold uppercase text-[9px] tracking-widest text-app-text-strong">
+              <div className="absolute right-0 bottom-full mb-2 w-40 bg-app-surface rounded-xl shadow-2xl border border-app-border z-20 overflow-hidden text-left animate-ios-spring">
+                <button onClick={() => { playUISound('tap'); onArchive([row.id], tab, !row.__archived); setIsMenuOpen(false); }} className="w-full text-left px-4 py-3 hover:bg-[#3B82F6] transition-all flex items-center gap-3 font-bold uppercase text-[9px] tracking-widest text-app-text-strong">
                   <i className={`fa-solid ${row.__archived ? 'fa-box-open' : 'fa-box-archive'}`}></i>
                   {row.__archived ? 'Restaurar' : 'Arquivar'}
                 </button>
-                <button onClick={() => { onDelete([row.id], tab); setIsMenuOpen(false); }} className="w-full text-left px-4 py-3 hover:bg-rose-600 transition-all flex items-center gap-3 font-bold uppercase text-[9px] tracking-widest text-rose-400 hover:text-app-text-strong">
+                <button onClick={() => { playUISound('tap'); onDelete([row.id], tab); setIsMenuOpen(false); }} className="w-full text-left px-4 py-3 hover:bg-rose-600 transition-all flex items-center gap-3 font-bold uppercase text-[9px] tracking-widest text-rose-400 hover:text-app-text-strong">
                   <i className="fa-solid fa-trash-can"></i>
                   Excluir
                 </button>
@@ -3645,7 +3693,7 @@ function TableView({ tab, data, onUpdate, onDelete, onArchive, onAdd, clients, l
     let c = tab === 'CLIENTES' ? CLIENTES_COLS : tab === 'MATRIZ' ? MATRIZ_ESTRATEGICA_COLS : tab === 'COBO' ? COBO_COLS : tab === 'RDC' ? RDC_COLS : tab === 'FINANCAS' ? (
       activeCategory === 'Assinatura' ? FINANCAS_COLS : FINANCAS_COLS.filter(c => !['Recorrência', 'Dia_Pagamento', 'Data_Início', 'Data_Fim'].includes(c))
     ) : [];
-    if (activeClient && (tab === 'RDC' || tab === 'COBO')) {
+    if (tab === 'MATRIZ' || (activeClient && (tab === 'RDC' || tab === 'COBO'))) {
       c = c.filter(col => col !== 'Cliente_ID');
     }
     return c;
@@ -3751,6 +3799,14 @@ function TableView({ tab, data, onUpdate, onDelete, onArchive, onAdd, clients, l
                   else if (["Resolução (1–5)", "Demanda (1–5)", "Competição (1–5)"].includes(c)) widthStyle = { width: '160px' };
                   else if (c === 'Score (R×D×C)') widthStyle = { width: '100px' };
                   else if (c === 'Decisão') widthStyle = { width: '180px' };
+                }
+                if (tab === 'MATRIZ') {
+                  if (c === 'Rede_Social') widthStyle = { width: '160px' };
+                  else if (c === 'Função') widthStyle = { width: '160px' };
+                  else if (c === 'Quem fala') widthStyle = { width: '160px' };
+                  else if (c === 'Papel estratégico') widthStyle = { minWidth: '240px' };
+                  else if (c === 'Tipo de conteúdo') widthStyle = { minWidth: '200px' };
+                  else if (c === 'Resultado esperado') widthStyle = { minWidth: '200px' };
                 }
                 return (
                   <th key={c} style={widthStyle} className="px-4 py-5 font-black text-[#64748B] uppercase tracking-[0.15em] bg-app-surface-2 border-b border-app-border min-w-[120px] whitespace-nowrap">
@@ -4028,7 +4084,7 @@ function LibraryEditorModal({ library, onClose }: any) {
   return (
     <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-md md:p-10 pointer-events-auto text-left">
       <div className="w-full h-full md:h-[80vh] md:max-w-4xl bg-app-surface-2 border border-app-border md:rounded-[30px] shadow-2xl flex flex-col">
-        <div className="h-20 flex items-center justify-between px-10 border-b border-app-border"><h3 className="text-xl font-bold uppercase text-app-text-strong">Biblioteca de Formatos</h3><button onClick={onClose} className="text-app-text-muted hover:text-app-text-strong"><i className="fa-solid fa-xmark text-2xl"></i></button></div>
+        <div className="h-20 flex items-center justify-between px-10 border-b border-app-border"><h3 className="text-xl font-bold uppercase text-app-text-strong">Biblioteca de Formatos</h3><button onClick={() => { playUISound('tap'); onClose(); }} className="ios-btn text-app-text-muted hover:text-app-text-strong"><i className="fa-solid fa-xmark text-2xl"></i></button></div>
         <div className="flex-1 overflow-y-auto p-10 custom-scrollbar space-y-10">
           <div className="grid grid-cols-2 gap-8">
             {Object.keys(library).map(net => (
@@ -4075,15 +4131,15 @@ function ColorPickerModal({ target, onClose, onConfirm }: any) {
       <div className="bg-app-surface-2 border border-app-border rounded-3xl p-8 shadow-2xl space-y-6 w-full max-w-sm transform transition-all scale-100" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-black uppercase text-app-text-strong tracking-widest">Escolher Cor</h3>
-          <button onClick={onClose} className="text-app-text-muted hover:text-app-text-strong transition-colors"><i className="fa-solid fa-xmark text-xl"></i></button>
+          <button onClick={() => { playUISound('tap'); onClose(); }} className="ios-btn text-app-text-muted hover:text-app-text-strong transition-colors"><i className="fa-solid fa-xmark text-xl"></i></button>
         </div>
 
         <div className="grid grid-cols-4 gap-4">
           {PRESETS.map(color => (
             <button
               key={color}
-              onClick={() => onConfirm(color)}
-              className="group aspect-square rounded-2xl border border-white/10 hover:border-white transition-all shadow-lg hover:shadow-xl hover:shadow-white/10 relative overflow-hidden"
+              onClick={() => { playUISound('tap'); onConfirm(color); }}
+              className="ios-btn group aspect-square rounded-2xl border border-white/10 hover:border-white transition-all shadow-lg hover:shadow-xl hover:shadow-white/10 relative overflow-hidden"
               style={{ backgroundColor: color }}
             >
               {target.value === color && <div className="absolute inset-0 flex items-center justify-center bg-black/20"><i className="fa-solid fa-check text-app-text-strong drop-shadow-md"></i></div>}
@@ -4290,8 +4346,8 @@ function OrganickIAView({ clients, cobo, matriz, rdc, planning, selectedClientId
           <div className="relative group">
             <select
               value={selectedClientId}
-              onChange={(e) => setSelectedClientId(e.target.value)}
-              className="w-full h-14 !bg-app-bg border-app-border text-sm font-bold uppercase text-app-text-strong rounded-[16px] px-5 outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none transition-all cursor-pointer"
+              onChange={(e) => { playUISound('tap'); setSelectedClientId(e.target.value); }}
+              className="ios-btn w-full h-14 !bg-app-bg border-app-border text-sm font-bold uppercase text-app-text-strong rounded-[16px] px-5 outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none transition-all cursor-pointer"
             >
               <option value="">-- Escolha um cliente --</option>
               {clients.map((c: any) => <option key={c.id} value={c.id} className="bg-app-bg">{c.Nome}</option>)}
@@ -4312,8 +4368,8 @@ function OrganickIAView({ clients, cobo, matriz, rdc, planning, selectedClientId
                 <div className="group relative">
                   <input type="file" accept="audio/*" multiple ref={audioInputRef} className="hidden" onChange={(e) => handleFileUpload(e, 'audio')} />
                   <div
-                    className="flex flex-col items-center justify-center border-2 border-dashed border-app-border rounded-[24px] py-10 px-6 text-center transition-all hover:border-blue-500 cursor-pointer bg-app-surface/50 hover:bg-blue-500/5 active:scale-[0.98] group"
-                    onClick={() => audioInputRef.current?.click()}
+                    className="ios-btn flex flex-col items-center justify-center border-2 border-dashed border-app-border rounded-[24px] py-10 px-6 text-center transition-all hover:border-blue-500 cursor-pointer bg-app-surface/50 hover:bg-blue-500/5 active:scale-[0.98] group"
+                    onClick={() => { playUISound('tap'); audioInputRef.current?.click(); }}
                   >
                     <div className="w-14 h-14 bg-app-surface shadow-xl rounded-2xl flex items-center justify-center mb-4 text-blue-500 group-hover:scale-110 transition-transform border border-app-border">
                       <Mic size={24} />
@@ -4334,8 +4390,8 @@ function OrganickIAView({ clients, cobo, matriz, rdc, planning, selectedClientId
                 <div className="group relative">
                   <input type="file" accept="application/pdf" multiple ref={pdfInputRef} className="hidden" onChange={(e) => handleFileUpload(e, 'pdf')} />
                   <div
-                    className="flex flex-col items-center justify-center border-2 border-dashed border-app-border rounded-[24px] py-10 px-6 text-center transition-all hover:border-rose-500 cursor-pointer bg-app-surface/50 hover:bg-rose-500/5 active:scale-[0.98] group"
-                    onClick={() => pdfInputRef.current?.click()}
+                    className="ios-btn flex flex-col items-center justify-center border-2 border-dashed border-app-border rounded-[24px] py-10 px-6 text-center transition-all hover:border-rose-500 cursor-pointer bg-app-surface/50 hover:bg-rose-500/5 active:scale-[0.98] group"
+                    onClick={() => { playUISound('tap'); pdfInputRef.current?.click(); }}
                   >
                     <div className="w-14 h-14 bg-app-surface shadow-xl rounded-2xl flex items-center justify-center mb-4 text-rose-500 group-hover:scale-110 transition-transform border border-app-border">
                       <FileText size={24} />
@@ -4553,7 +4609,7 @@ function OrganickIAView({ clients, cobo, matriz, rdc, planning, selectedClientId
                   <Button variant="secondary" className="flex-1 !h-10 !text-[9px] !font-black !rounded-xl border-app-border" onClick={() => { if (item.type === 'SLIDE') { /* logic */ } else { setBriefing(item.content); window.scrollTo({ top: 0, behavior: 'smooth' }); } }}>
                     <Eye size={14} className="mr-2" /> Visualizar
                   </Button>
-                  <Button variant="secondary" className="!h-10 !w-10 !p-0 !rounded-xl border-app-border" onClick={() => onArchive([item.id], 'IA_HISTORY', !item.__archived)}>
+                  <Button variant="secondary" className="!h-10 !w-10 !p-0 !rounded-xl border-app-border" onClick={() => { playUISound('tap'); onArchive([item.id], 'IA_HISTORY', !item.__archived); }}>
                     {item.__archived ? <FolderOpen size={16} /> : <Box size={16} />}
                   </Button>
                 </div>
@@ -4580,7 +4636,7 @@ function OrganickIAView({ clients, cobo, matriz, rdc, planning, selectedClientId
                   <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-[0.2em]">Revise os dados extraídos pelo OrganickIA.</p>
                 </div>
               </div>
-              <button onClick={() => setIsImportModalOpen(false)} className="w-10 h-10 flex items-center justify-center text-zinc-500 hover:text-white hover:bg-white/5 rounded-full transition-all"><X size={24} /></button>
+              <button onClick={() => { playUISound('tap'); setIsImportModalOpen(false); }} className="ios-btn w-10 h-10 flex items-center justify-center text-zinc-500 hover:text-white hover:bg-white/5 rounded-full transition-all"><X size={24} /></button>
             </div>
 
             <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
@@ -4620,8 +4676,8 @@ function OrganickIAView({ clients, cobo, matriz, rdc, planning, selectedClientId
                   ].map((tab) => (
                     <div
                       key={tab.id}
-                      onClick={() => setImportSelection((prev: any) => ({ ...prev, [tab.id]: !prev[tab.id] }))}
-                      className={`p-6 rounded-[24px] border-2 cursor-pointer transition-all duration-300 flex flex-col items-center text-center
+                      onClick={() => { playUISound('tap'); setImportSelection((prev: any) => ({ ...prev, [tab.id]: !prev[tab.id] })); }}
+                      className={`ios-btn p-6 rounded-[24px] border-2 cursor-pointer transition-all duration-300 flex flex-col items-center text-center
                         ${(importSelection as any)[tab.id]
                           ? `bg-${tab.color}-500/10 border-${tab.color}-500 ring-4 ring-${tab.color}-500/10`
                           : 'bg-white/5 border-white/5 opacity-40 hover:opacity-100 hover:bg-white/[0.08]'}`}

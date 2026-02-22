@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { BottomSheet } from './components/BottomSheet';
+import { playUISound } from './utils/uiSounds';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'success';
@@ -26,8 +27,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({ onClic
       title={title}
       disabled={disabled}
       type={type}
-      onClick={onClick}
-      className={`px-6 py-2.5 rounded-lg font-bold tracking-tight transition-all flex items-center justify-center gap-2 text-xs uppercase letter-spacing-widest active:scale-[0.98] ${variants[variant]} ${disabled ? 'opacity-30 cursor-not-allowed' : ''} ${className}`}
+      onClick={(e) => {
+        playUISound('tap');
+        onClick?.(e);
+      }}
+      className={`ios-btn px-6 py-2.5 rounded-lg font-bold tracking-tight transition-all flex items-center justify-center gap-2 text-xs uppercase letter-spacing-widest active:scale-[0.98] ${variants[variant]} ${disabled ? 'opacity-30 cursor-not-allowed' : ''} ${className}`}
       {...props}
     >
       {children}
@@ -78,9 +82,9 @@ export const Stepper: React.FC<{
     <div className={`flex items-center gap-3 bg-app-surface-2 p-1.5 rounded-xl border border-app-border w-fit min-w-[140px] justify-between ${className}`}>
       <button
         type="button"
-        onClick={() => onChange(Math.max(min, value - 1))}
+        onClick={() => { playUISound('tap'); onChange(Math.max(min, value - 1)); }}
         disabled={value <= min}
-        className="w-9 h-9 flex items-center justify-center rounded-lg bg-app-surface border border-app-border text-app-text-muted hover:text-app-accent hover:border-app-accent/40 disabled:opacity-20 transition-all active:scale-95 shadow-sm"
+        className="ios-btn w-9 h-9 flex items-center justify-center rounded-lg bg-app-surface border border-app-border text-app-text-muted hover:text-app-accent hover:border-app-accent/40 disabled:opacity-20 transition-all active:scale-95 shadow-sm"
       >
         <i className="fa-solid fa-minus text-[10px]"></i>
       </button>
@@ -89,9 +93,9 @@ export const Stepper: React.FC<{
       </span>
       <button
         type="button"
-        onClick={() => onChange(Math.min(max, value + 1))}
+        onClick={() => { playUISound('tap'); onChange(Math.min(max, value + 1)); }}
         disabled={value >= max}
-        className="w-9 h-9 flex items-center justify-center rounded-lg bg-app-surface border border-app-border text-app-text-muted hover:text-app-accent hover:border-app-accent/40 disabled:opacity-20 transition-all active:scale-95 shadow-sm"
+        className="ios-btn w-9 h-9 flex items-center justify-center rounded-lg bg-app-surface border border-app-border text-app-text-muted hover:text-app-accent hover:border-app-accent/40 disabled:opacity-20 transition-all active:scale-95 shadow-sm"
       >
         <i className="fa-solid fa-plus text-[10px]"></i>
       </button>
@@ -218,21 +222,25 @@ export const InputSelect: React.FC<{
   const currentLabel = normalizedOptions.find(o => String(o.value) === String(value))?.label || value || placeholder;
 
   // Handle desktop popover toggle
-  const toggleOpen = () => setIsOpen(!isOpen);
+  const toggleOpen = () => {
+    if (!isOpen) playUISound('open');
+    setIsOpen(!isOpen);
+  };
 
   // Content for both Mobile (Sheet) and Desktop (Popover)
   const OptionList = () => (
-    <div className="flex flex-col max-h-[60vh] overflow-y-auto custom-scrollbar bg-app-surface">
+    <div className="flex flex-col max-h-[300px] overflow-y-auto overflow-x-hidden custom-scrollbar bg-app-surface scroll-smooth">
       {normalizedOptions.map((opt) => (
         <button
           key={opt.value}
           onClick={() => {
+            playUISound('tap');
             onChange(String(opt.value));
             setIsOpen(false);
           }}
-          className={`px-4 py-3 text-left text-xs font-bold border-b border-app-border last:border-0 hover:bg-app-surface-2 transition-colors flex items-center justify-between group ${String(value) === String(opt.value) ? 'bg-blue-600/5 text-blue-500' : 'text-app-text-muted hover:text-app-text-strong'}`}
+          className={`ios-btn px-4 py-3 text-left text-xs font-bold border-b border-app-border last:border-0 hover:bg-app-surface-2 transition-colors flex items-center justify-between gap-4 group ${String(value) === String(opt.value) ? 'bg-blue-600/5 text-blue-500' : 'text-app-text-muted hover:text-app-text-strong'}`}
         >
-          <span>{opt.label}</span>
+          <span className="whitespace-nowrap">{opt.label}</span>
           {String(value) === String(opt.value) && <i className="fa-solid fa-check text-blue-500"></i>}
         </button>
       ))}
@@ -255,7 +263,7 @@ export const InputSelect: React.FC<{
           <button
             type="button"
             onClick={toggleOpen}
-            className="absolute right-0 top-0 bottom-0 px-2 flex items-center justify-center text-app-text-muted hover:text-app-text-strong"
+            className="ios-btn absolute right-0 top-0 bottom-0 px-2 flex items-center justify-center text-app-text-muted hover:text-app-text-strong"
           >
             <i className={`fa-solid fa-chevron-down text-[9px] opacity-50 transition-transform ${isOpen ? 'rotate-180' : ''}`}></i>
           </button>
@@ -265,7 +273,7 @@ export const InputSelect: React.FC<{
           type="button"
           ref={triggerRef as React.RefObject<HTMLButtonElement>}
           onClick={toggleOpen}
-          className={`flex items-center justify-between gap-2 px-3 py-2 bg-transparent border-none text-app-text-strong text-[11px] font-bold outline-none transition-all hover:text-app-text-strong w-full text-left ${className}`}
+          className={`ios-btn flex items-center justify-between gap-2 px-3 py-2 bg-transparent border-none text-app-text-strong text-[11px] font-bold outline-none transition-all hover:text-app-text-strong w-full text-left ${className}`}
         >
           <span className="truncate">{currentLabel}</span>
           <i className={`fa-solid fa-chevron-down text-[9px] opacity-50 transition-transform ${isOpen ? 'rotate-180' : ''}`}></i>
@@ -292,7 +300,7 @@ export const InputSelect: React.FC<{
           onClose={() => setIsOpen(false)}
           triggerRef={triggerRef}
           align="start"
-          className="w-48 bg-app-surface border border-app-border rounded-xl shadow-xl overflow-hidden mt-2"
+          className="w-48 bg-app-surface border border-app-border rounded-xl shadow-xl overflow-hidden mt-2 animate-ios-spring"
         >
           <OptionList />
         </FloatingPopover>
@@ -309,7 +317,10 @@ export const MobileFloatingAction: React.FC<{
 }> = ({ onClick, icon = "fa-plus", label = "Novo", className = "" }) => {
   return (
     <button
-      onClick={onClick}
+      onClick={() => {
+        playUISound('tap');
+        onClick();
+      }}
       className={`
         md:hidden fixed z-[9999] right-4 bottom-[calc(24px+env(safe-area-inset-bottom))]
         flex items-center gap-3 px-5 py-4
@@ -317,6 +328,7 @@ export const MobileFloatingAction: React.FC<{
         active:scale-95 transition-all
         font-black uppercase tracking-widest text-[10px]
         border border-white/10 backdrop-blur-md
+        ios-btn
         ${className}
       `}
     >
