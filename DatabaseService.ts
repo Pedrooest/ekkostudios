@@ -51,9 +51,12 @@ export const DatabaseService = {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('Not authenticated');
 
+        const availableColors = ['bg-indigo-600', 'bg-blue-600', 'bg-emerald-600', 'bg-orange-500', 'bg-rose-600', 'bg-purple-600', 'bg-zinc-800'];
+        const randomColor = availableColors[Math.floor(Math.random() * availableColors.length)];
+
         const { data, error } = await supabase
             .from('workspaces')
-            .insert({ name, owner_id: user.id })
+            .insert({ name, owner_id: user.id, color: randomColor })
             .select()
             .single();
 
