@@ -54,7 +54,7 @@ import {
 import { Button, Card, Badge, Stepper, FloatingPopover, InputSelect, MobileFloatingAction, SimpleMarkdown } from './Components';
 import { BottomSheet } from './components/BottomSheet';
 import { ErrorBoundary } from './components/ErrorBoundary';
-// import { Whiteboard } from './components/Whiteboard';
+import { Whiteboard } from './components/Whiteboard';
 
 import { transcribeAndExtractInsights, generatePresentationBriefing, extractStructuredDataFromPDF, analyzeContextualData } from './geminiService';
 import { CopilotChat } from './CopilotChat';
@@ -1350,15 +1350,9 @@ export default function App() {
           />}
           {activeTab === 'WORKSPACE' && <WorkspaceManager />}
           {activeTab === 'WHITEBOARD' && (
-            <div className="flex-1 flex flex-col items-center justify-center min-h-[500px] p-8 text-center bg-app-surface/50 rounded-[2.5rem] border border-dashed border-app-border mx-4 my-4 animate-ios-spring">
-              <div className="w-20 h-20 bg-indigo-500/10 rounded-3xl flex items-center justify-center mb-6 text-indigo-500 shadow-xl shadow-indigo-500/5">
-                <Palette size={40} className="animate-float" />
-              </div>
-              <h2 className="text-2xl font-black text-app-text-strong tracking-tight uppercase mb-2">Quadro Branco</h2>
-              <p className="text-sm text-app-text-muted font-medium max-w-sm leading-relaxed">
-                Este espaço está sendo preparado para novas experiências criativas. Em breve, ferramentas avançadas de visualização estarão disponíveis aqui.
-              </p>
-            </div>
+            <ErrorBoundary>
+              <Whiteboard />
+            </ErrorBoundary>
           )}
         </div>
 
