@@ -208,7 +208,7 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
             <div className="p-4 bg-white dark:bg-[#111114] border-t border-gray-200 dark:border-zinc-800 shrink-0 space-y-2">
                 <button
                     onClick={() => alert('Expandindo painel completo...')}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-bold text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white bg-gray-50 dark:bg-zinc-900 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors uppercase tracking-wider"
+                    className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-bold text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-lg transition-colors uppercase tracking-wider"
                 >
                     Expandir Painel Completo <ChevronDown size={14} />
                 </button>

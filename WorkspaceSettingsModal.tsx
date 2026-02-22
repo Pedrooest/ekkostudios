@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Workspace, WorkspaceMember, Invite } from './types';
 import { DatabaseService } from './DatabaseService';
-import { Settings, X, Users, UserPlus, Link, Trash2, Shield, Eye, EyeOff, AlertTriangle, ChevronDown, Mail } from 'lucide-react';
+import { Settings, X, Users, UserPlus, Link as LinkIcon, Trash2, Shield, Eye, EyeOff, AlertTriangle, ChevronDown, Mail, Clock } from 'lucide-react';
 
 interface WorkspaceSettingsModalProps {
     workspace: Workspace;
@@ -88,7 +88,7 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
                     {/* MEMBERS SECTION */}
                     <section>
                         <h3 className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full border-2 border-indigo-500"></div> Membros Ativos ({members.length})
+                            <Users size={14} className="text-indigo-500" /> Membros Ativos ({members.length})
                         </h3>
                         <div className="space-y-3">
                             {loading ? (
@@ -111,8 +111,8 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-3">
-                                            <span className={`text-xs font-bold px-3 py-1.5 rounded-lg border ${member.role === 'admin' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-500/20' : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 border-gray-200 dark:border-zinc-700'}`}>
+                                        <div className="flex items-center gap-4">
+                                            <span className={`text-sm font-medium ${member.profiles?.email === currentUserEmail ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-600 dark:text-zinc-400'}`}>
                                                 {member.role === 'admin' ? 'Administrador' : member.role === 'editor' ? 'Editor' : 'Visualizador'}
                                             </span>
                                             {isAdmin && member.profiles?.email !== currentUserEmail && (
@@ -134,7 +134,7 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
                     {/* INVITE SECTION */}
                     <section>
                         <h3 className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500"></div> Convidar Novo Membro
+                            <LinkIcon size={14} className="text-emerald-500" /> Convidar Novo Membro
                         </h3>
 
                         <div className="bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 rounded-2xl p-5">
@@ -163,7 +163,7 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
                                     onClick={handleCreateInvite}
                                     className="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-500/20 shrink-0"
                                 >
-                                    <Link size={16} /> Gerar Link
+                                    <LinkIcon size={16} /> Gerar Link
                                 </button>
                             </div>
 
@@ -191,7 +191,7 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
                     {invites.length > 0 && (
                         <section>
                             <h3 className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-amber-500"></div> Convites Pendentes ({invites.length})
+                                <Clock size={14} className="text-amber-500" /> Convites Pendentes ({invites.length})
                             </h3>
                             <div className="space-y-2">
                                 {invites.map(inv => (

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Workspace } from './types';
 import { BottomSheet } from './components/BottomSheet';
 import { PortalPopover } from './components/PortalPopover';
-import { ChevronDown, Users, Settings, Plus, X } from 'lucide-react';
+import { ChevronDown, Users, Settings, Plus, X, Check, Search } from 'lucide-react';
 
 interface WorkspaceSelectorProps {
     workspaces: Workspace[];
@@ -59,55 +59,55 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
 
             <div className="p-2 max-h-[60vh] overflow-y-auto custom-scrollbar overscroll-contain">
                 {/* Active Workspace */}
-                <div className="px-3 py-3 flex items-center gap-3 mb-2 bg-gray-50 dark:bg-zinc-900/50 rounded-xl border border-gray-100 dark:border-zinc-800/50">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white text-[10px]">
-                        {currentWorkspace?.name?.substring(0, 2).toUpperCase() || 'EK'}
+                <div className="px-3 py-3 flex items-center justify-between mb-2 bg-gray-50 dark:bg-zinc-800/80 rounded-xl border border-gray-200 dark:border-zinc-700/50">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white text-[10px] shrink-0">
+                            {currentWorkspace?.name?.substring(0, 2).toUpperCase() || 'EK'}
+                        </div>
+                        <div className="min-w-0">
+                            <h3 className="text-sm font-bold text-gray-900 dark:text-white leading-tight truncate">
+                                {currentWorkspace?.name}
+                            </h3>
+                            <p className="text-[10px] text-gray-500 dark:text-zinc-400 uppercase tracking-widest">Ativo Agora</p>
+                        </div>
                     </div>
-                    <div className="min-w-0">
-                        <h3 className="text-sm font-bold text-gray-900 dark:text-white leading-tight truncate">
-                            {currentWorkspace?.name}
-                        </h3>
-                        <p className="text-[10px] text-gray-500 dark:text-zinc-400 uppercase tracking-widest">Ativo Agora</p>
-                    </div>
+                    <Check size={14} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
                 </div>
 
                 {/* Actions */}
                 <div className="space-y-1">
                     <button
                         onClick={() => { onManageMembers(); setIsOpen(false); }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 transition-colors text-sm font-bold group"
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 transition-colors text-sm font-medium group"
                     >
-                        <div className="p-1.5 rounded-lg bg-gray-200 dark:bg-zinc-800 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/20 transition-colors">
-                            <Users size={16} />
-                        </div>
+                        <Users size={16} className="text-gray-400 dark:text-zinc-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
                         Gerenciar Membros
                     </button>
                     <button
                         onClick={() => setIsOpen(false)}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 transition-colors text-sm font-bold group"
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 transition-colors text-sm font-medium group"
                     >
-                        <div className="p-1.5 rounded-lg bg-gray-200 dark:bg-zinc-800 transition-colors">
-                            <Settings size={16} />
-                        </div>
-                        Configurações
+                        <Settings size={16} className="text-gray-400 dark:text-zinc-500" />
+                        Configurações do Workspace
                     </button>
                 </div>
 
                 <div className="h-px bg-gray-100 dark:bg-zinc-800 w-full my-2"></div>
 
                 {/* Switcher */}
-                <p className="px-3 py-2 text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">Outros Workspaces</p>
+                <p className="px-3 py-2 text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">Meus Workspaces</p>
                 <div className="space-y-1">
                     {workspaces.filter(ws => ws.id !== currentWorkspace?.id).map(ws => (
                         <button
                             key={ws.id}
                             onClick={() => { onSelect(ws); setIsOpen(false); }}
-                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 transition-colors text-sm font-bold text-left min-w-0"
+                            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 transition-colors text-sm font-medium text-left min-w-0"
                         >
                             <div className="w-8 h-8 rounded-lg bg-gray-200 dark:bg-zinc-800 flex items-center justify-center font-bold text-gray-500 dark:text-zinc-400 text-[10px] shrink-0">
                                 {ws.name.substring(0, 2).toUpperCase()}
                             </div>
-                            <span className="truncate">{ws.name}</span>
+                            <span className="truncate flex-1">{ws.name}</span>
+                            {ws.name.toLowerCase().includes('cliente') && <Search size={14} className="text-gray-400 dark:text-zinc-500 shrink-0" />}
                         </button>
                     ))}
                 </div>
@@ -119,9 +119,9 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
                             if (name) onCreate(name);
                             setIsOpen(false);
                         }}
-                        className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors text-sm font-bold border border-dashed border-indigo-200 dark:border-indigo-500/30"
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors text-sm font-medium"
                     >
-                        <Plus size={16} /> {loading ? 'Criando...' : 'Novo Workspace'}
+                        <Plus size={16} className="text-gray-400 dark:text-zinc-500" /> {loading ? 'Criando...' : 'Novo Workspace'}
                     </button>
                 </div>
             </div>
