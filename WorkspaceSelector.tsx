@@ -37,16 +37,11 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
             </div>
             <div className="text-left hidden sm:block">
                 <p className="text-[10px] text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-widest leading-none mb-0.5">Workspace</p>
-                <div className="flex items-center gap-1.5">
-                    <h2 className="text-sm font-black text-gray-900 dark:text-white leading-none truncate max-w-[140px]">
-                        {currentWorkspace?.name || 'Carregando...'}
-                    </h2>
-                    <ChevronDown size={14} className={`text-gray-400 dark:text-zinc-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
-                </div>
+                <h2 className="text-sm font-black text-gray-900 dark:text-white leading-none truncate max-w-[140px]">
+                    {currentWorkspace?.name || 'Carregando...'}
+                </h2>
             </div>
-            <div className="sm:hidden">
-                <ChevronDown size={16} className={`text-gray-400 dark:text-zinc-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
-            </div>
+            <ChevronDown size={16} className={`text-gray-400 dark:text-zinc-500 transition-transform duration-300 ml-auto sm:ml-0 ${isOpen ? 'rotate-180' : ''}`} />
         </button>
     );
 

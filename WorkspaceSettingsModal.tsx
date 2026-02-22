@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Workspace, WorkspaceMember, Invite } from './types';
 import { DatabaseService } from './DatabaseService';
-import { Settings, X, Users, UserPlus, Link, Trash2, Shield, Eye, EyeOff, AlertTriangle, ChevronDown } from 'lucide-react';
+import { Settings, X, Users, UserPlus, Link, Trash2, Shield, Eye, EyeOff, AlertTriangle, ChevronDown, Mail } from 'lucide-react';
 
 interface WorkspaceSettingsModalProps {
     workspace: Workspace;
@@ -76,8 +76,8 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
                 {/* Header */}
                 <div className="px-6 py-5 border-b border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-[#0a0a0c] flex justify-between items-start shrink-0">
                     <div>
-                        <h2 className="text-lg font-black text-gray-900 dark:text-white tracking-tight leading-tight">Gerir Membros</h2>
-                        <p className="text-[10px] text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-widest mt-1">WORKSPACE: {workspace.name}</p>
+                        <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight leading-tight uppercase">Gerir Membros</h2>
+                        <p className="text-[10px] text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-widest mt-1">WORKSPACE: {workspace.name.toUpperCase()}</p>
                     </div>
                     <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-200 dark:text-zinc-500 dark:hover:text-white dark:hover:bg-zinc-800 rounded-lg transition-colors">
                         <X size={20} />
@@ -88,7 +88,7 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
                     {/* MEMBERS SECTION */}
                     <section>
                         <h3 className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-indigo-500"></div> Membros Ativos ({members.length})
+                            <div className="w-2 h-2 rounded-full border-2 border-indigo-500"></div> Membros Ativos ({members.length})
                         </h3>
                         <div className="space-y-3">
                             {loading ? (
@@ -97,7 +97,7 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
                                 </div>
                             ) : (
                                 members.map(member => (
-                                    <div key={member.user_id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl border border-gray-200 dark:border-zinc-800/80 bg-gray-50 dark:bg-[#151518] transition-colors gap-4 group">
+                                    <div key={member.user_id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl border border-gray-200 dark:border-zinc-800/80 bg-gray-50 dark:bg-[#151518] hover:border-gray-300 dark:hover:border-zinc-700 transition-colors gap-4 group">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400 flex items-center justify-center text-sm font-bold shrink-0 border border-black/5 dark:border-white/5">
                                                 {member.profiles?.full_name?.substring(0, 2).toUpperCase() || 'US'}
@@ -140,10 +140,11 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
                         <div className="bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 rounded-2xl p-5">
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <div className="flex-1 relative">
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500" size={16} />
                                     <input
                                         type="email"
                                         placeholder="Email do colaborador..."
-                                        className="w-full bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white text-sm font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-500 transition-colors placeholder-gray-400 dark:placeholder-zinc-600 shadow-sm"
+                                        className="w-full bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white text-sm font-medium rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-500 transition-colors placeholder-gray-400 dark:placeholder-zinc-600 shadow-sm"
                                     />
                                 </div>
                                 <div className="sm:w-40 relative shrink-0">

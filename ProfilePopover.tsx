@@ -167,10 +167,10 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
             </div>
 
             {/* Área de Scroll das Tabs */}
-            <div className="p-6 bg-gray-50/50 dark:bg-[#0a0a0c]/50 max-h-[35vh] overflow-y-auto overscroll-contain custom-scrollbar flex-1 lg:max-h-none">
+            <div className="p-6 bg-gray-50/50 dark:bg-[#0a0a0c]/50 max-h-[30vh] overflow-y-auto overscroll-contain custom-scrollbar flex-1 lg:max-h-none">
                 {activeTab === 'ATIVIDADE' && (
                     <div className="space-y-3">
-                        <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-xl overflow-hidden transition-colors">
+                        <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-xl overflow-hidden transition-colors hover:border-gray-300 dark:hover:border-zinc-700">
                             <button
                                 onClick={() => setIsContentExpanded(!isContentExpanded)}
                                 className="w-full flex items-center justify-between p-3.5 text-xs font-bold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900/50 transition-colors"
@@ -205,7 +205,13 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
             </div>
 
             {/* Footer do Perfil */}
-            <div className="p-4 bg-white dark:bg-[#111114] border-t border-gray-200 dark:border-zinc-800 shrink-0">
+            <div className="p-4 bg-white dark:bg-[#111114] border-t border-gray-200 dark:border-zinc-800 shrink-0 space-y-2">
+                <button
+                    onClick={() => alert('Expandindo painel completo...')}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-bold text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white bg-gray-50 dark:bg-zinc-900 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors uppercase tracking-wider"
+                >
+                    Expandir Painel Completo <ChevronDown size={14} />
+                </button>
                 <button
                     onClick={onLogout}
                     className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-bold text-gray-600 dark:text-zinc-400 hover:text-white dark:hover:text-white hover:bg-rose-500 dark:hover:bg-rose-600 rounded-lg transition-all uppercase tracking-wider"
