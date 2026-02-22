@@ -148,11 +148,67 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
                 isOpen={isOpen && !isMobile}
                 onClose={() => setIsOpen(false)}
                 triggerRef={buttonRef}
-                className="w-80"
+                className="w-[280px]"
                 align="start"
             >
-                <div className="pointer-events-auto">
-                    <DropdownContent />
+                <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl flex flex-col py-2 animate-in fade-in slide-in-from-top-2 duration-200 pointer-events-auto">
+                    <div className="px-2">
+                        <button
+                            onClick={() => { onManageMembers(); setIsOpen(false); }}
+                            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors text-sm font-medium group"
+                        >
+                            <Users size={16} className="text-gray-400 dark:text-zinc-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
+                            Gerir Membros
+                        </button>
+                        <button className="w-full flex items-center gap-3 px-3 py-2 mt-1 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 transition-colors text-sm font-medium group text-left">
+                            <Settings size={16} className="text-gray-400 dark:text-zinc-500" />
+                            Configurações do Workspace
+                        </button>
+                    </div>
+
+                    <div className="h-px bg-gray-100 dark:bg-zinc-800 w-full my-2"></div>
+
+                    <div className="px-2">
+                        <p className="px-3 pb-2 pt-1 text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">Meus Workspaces</p>
+                        <button className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-indigo-50/50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 transition-colors text-sm font-medium text-left">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className="w-6 h-6 rounded bg-indigo-600 flex items-center justify-center font-bold text-white text-[10px] shrink-0">
+                                    {currentWorkspace?.name?.substring(0, 2).toUpperCase() || 'EK'}
+                                </div>
+                                <span className="truncate">{currentWorkspace?.name}</span>
+                            </div>
+                            <Check size={16} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
+                        </button>
+
+                        {workspaces.filter(ws => ws.id !== currentWorkspace?.id).map(ws => (
+                            <button
+                                key={ws.id}
+                                onClick={() => { onSelect(ws); setIsOpen(false); }}
+                                className="w-full flex items-center gap-3 px-3 py-2 mt-1 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 transition-colors text-sm font-medium text-left"
+                            >
+                                <div className="w-6 h-6 rounded bg-gray-200 dark:bg-zinc-800 flex items-center justify-center font-bold text-gray-500 dark:text-zinc-400 text-[10px] shrink-0">
+                                    {ws.name.substring(0, 2).toUpperCase()}
+                                </div>
+                                <span className="truncate flex-1">{ws.name}</span>
+                                {ws.name.toLowerCase().includes('cliente') && <Search size={14} className="text-gray-400 dark:text-zinc-500 shrink-0" />}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="h-px bg-gray-100 dark:bg-zinc-800 w-full my-2"></div>
+
+                    <div className="px-2">
+                        <button
+                            onClick={() => {
+                                const name = prompt('Nome do novo workspace:');
+                                if (name) onCreate(name);
+                                setIsOpen(false);
+                            }}
+                            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 transition-colors text-sm font-medium text-left"
+                        >
+                            <Plus size={16} className="text-gray-400 dark:text-zinc-500" /> {loading ? 'Criando...' : 'Novo Workspace'}
+                        </button>
+                    </div>
                 </div>
             </PortalPopover>
         </div>

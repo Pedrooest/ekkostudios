@@ -97,7 +97,7 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
                                 </div>
                             ) : (
                                 members.map(member => (
-                                    <div key={member.user_id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl border border-gray-200 dark:border-zinc-800/80 bg-gray-50 dark:bg-[#151518] hover:border-gray-300 dark:hover:border-zinc-700 transition-colors gap-4 group">
+                                    <div key={member.user_id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl border border-transparent hover:bg-gray-50 dark:hover:bg-zinc-900/50 transition-colors gap-4 group">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400 flex items-center justify-center text-sm font-bold shrink-0 border border-black/5 dark:border-white/5">
                                                 {member.profiles?.full_name?.substring(0, 2).toUpperCase() || 'US'}
@@ -105,9 +105,9 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
                                             <div className="flex flex-col">
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-sm font-bold text-gray-900 dark:text-zinc-200 leading-none">{member.profiles?.full_name || 'Usuário'}</span>
-                                                    {member.profiles?.email === currentUserEmail && <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-indigo-600 text-white leading-none">Você</span>}
+                                                    {member.profiles?.email === currentUserEmail && <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-indigo-600 text-white leading-none">Você</span>}
                                                 </div>
-                                                <span className="text-xs text-gray-500 dark:text-zinc-500 mt-1 leading-none truncate max-w-[200px]">{member.profiles?.email}</span>
+                                                <span className="text-xs text-gray-500 dark:text-zinc-500 mt-1 leading-none">{member.profiles?.email}</span>
                                             </div>
                                         </div>
 
@@ -118,7 +118,7 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
                                             {isAdmin && member.profiles?.email !== currentUserEmail && (
                                                 <button
                                                     onClick={() => handleRemoveMember(member.user_id)}
-                                                    className="p-1.5 text-gray-400 hover:text-rose-600 dark:text-zinc-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-md transition-colors md:opacity-0 group-hover:opacity-100"
+                                                    className="p-1.5 text-gray-400 hover:text-rose-600 dark:text-zinc-500 dark:hover:text-rose-400 transition-colors opacity-0 group-hover:opacity-100"
                                                     title="Remover Acesso"
                                                 >
                                                     <Trash2 size={16} />
