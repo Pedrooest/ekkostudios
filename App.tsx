@@ -248,6 +248,7 @@ export default function App() {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isWorkspaceSettingsOpen, setIsWorkspaceSettingsOpen] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
 
@@ -1163,7 +1164,7 @@ export default function App() {
               workspaces={workspaces}
               currentWorkspace={currentWorkspace}
               onSelect={setCurrentWorkspace}
-              onManageMembers={() => setActiveTab('WORKSPACE')}
+              onManageMembers={() => setIsWorkspaceSettingsOpen(true)}
               onCreate={async (name) => {
                 try {
                   const newWs = await DatabaseService.createWorkspace(name);
@@ -1380,6 +1381,18 @@ export default function App() {
         />
 
       </main >
+
+      {isWorkspaceSettingsOpen && currentWorkspace && (
+        <WorkspaceSettingsModal
+          workspace={currentWorkspace}
+          onClose={() => setIsWorkspaceSettingsOpen(false)}
+          currentUserEmail={currentUser?.email}
+          onWorkspaceDeleted={() => {
+            setIsWorkspaceSettingsOpen(false);
+            window.location.reload();
+          }}
+        />
+      )}
 
       {
         isPresentationOpen && presentationBrief && (

@@ -4,7 +4,7 @@ import { UserProfile, Task } from './types';
 import { Button } from './Components';
 import { BottomSheet } from './components/BottomSheet';
 import { PortalPopover } from './components/PortalPopover';
-import { Sparkles, X, ChevronDown, Activity, Calendar, Check } from 'lucide-react';
+import { Sparkles, X, ChevronDown, Activity, Calendar, Check, LogOut } from 'lucide-react';
 
 interface ProfilePopoverProps {
     profile: UserProfile;
@@ -262,4 +262,3 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
     );
 }
 
-import { LogOut } from 'lucide-react';

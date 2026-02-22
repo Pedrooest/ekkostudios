@@ -71,15 +71,17 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade p-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
+            <div className="absolute inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
+
             <div className="relative w-full max-w-2xl bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="px-6 py-5 border-b border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-[#0a0a0c] flex justify-between items-start shrink-0">
+                <div className="px-6 py-5 border-b border-gray-200 dark:border-zinc-800 flex justify-between items-start shrink-0 bg-gray-50/50 dark:bg-transparent">
                     <div>
                         <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight leading-tight uppercase">Gerir Membros</h2>
-                        <p className="text-[10px] text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-widest mt-1">WORKSPACE: {workspace.name.toUpperCase()}</p>
+                        <p className="text-xs text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-widest mt-1">MEU WORKSPACE</p>
                     </div>
-                    <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-200 dark:text-zinc-500 dark:hover:text-white dark:hover:bg-zinc-800 rounded-lg transition-colors">
+                    <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 dark:text-zinc-500 dark:hover:text-white dark:hover:bg-zinc-800 rounded-lg transition-colors">
                         <X size={20} />
                     </button>
                 </div>
@@ -97,7 +99,7 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
                                 </div>
                             ) : (
                                 members.map(member => (
-                                    <div key={member.user_id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl border border-transparent hover:bg-gray-50 dark:hover:bg-zinc-900/50 transition-colors gap-4 group">
+                                    <div key={member.user_id} className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-900/50 transition-colors group">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400 flex items-center justify-center text-sm font-bold shrink-0 border border-black/5 dark:border-white/5">
                                                 {member.profiles?.full_name?.substring(0, 2).toUpperCase() || 'US'}
@@ -137,27 +139,27 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
                             <LinkIcon size={14} className="text-emerald-500" /> Convidar Novo Membro
                         </h3>
 
-                        <div className="bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 rounded-2xl p-5">
+                        <div className="bg-gray-50 dark:bg-zinc-900/50 border border-gray-200 dark:border-zinc-800 rounded-2xl p-5">
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <div className="flex-1 relative">
                                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500" size={16} />
                                     <input
                                         type="email"
                                         placeholder="Email do colaborador..."
-                                        className="w-full bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white text-sm font-medium rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-500 transition-colors placeholder-gray-400 dark:placeholder-zinc-600 shadow-sm"
+                                        className="w-full bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white text-sm font-medium rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors placeholder-gray-400 dark:placeholder-zinc-500"
                                     />
                                 </div>
                                 <div className="sm:w-40 relative shrink-0">
                                     <select
                                         value={inviteRole}
                                         onChange={(e) => setInviteRole(e.target.value)}
-                                        className="w-full bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 text-sm font-medium rounded-xl pl-4 pr-10 py-3 focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-500 transition-colors appearance-none cursor-pointer shadow-sm"
+                                        className="w-full bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 text-sm font-medium rounded-xl pl-4 pr-10 py-3 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors appearance-none cursor-pointer"
                                     >
                                         <option value="editor">Editor</option>
                                         <option value="viewer">Visualizador</option>
                                         <option value="admin">Admin</option>
                                     </select>
-                                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-400 pointer-events-none" />
                                 </div>
                                 <button
                                     onClick={handleCreateInvite}
@@ -244,6 +246,6 @@ export function WorkspaceSettingsModal({ workspace, onClose, currentUserEmail, o
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
