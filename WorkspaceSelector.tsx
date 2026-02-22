@@ -3,7 +3,7 @@ import { Workspace } from './types';
 import { BottomSheet } from './components/BottomSheet';
 import { PortalPopover } from './components/PortalPopover';
 import { ChevronDown, Users, Settings, Plus, X, Check, Search } from 'lucide-react';
-import { playUISound } from './utils/uiSounds';
+import { playUISound, initAudio } from './utils/uiSounds';
 
 
 interface WorkspaceSelectorProps {
@@ -130,7 +130,7 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
     );
 
     return (
-        <div className="relative w-full lg:w-auto min-w-0">
+        <div className="relative w-full lg:w-auto min-w-0" onMouseDown={initAudio}>
             {Trigger}
 
             {/* Mobile BottomSheet */}

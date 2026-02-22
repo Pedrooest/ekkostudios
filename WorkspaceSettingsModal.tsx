@@ -82,7 +82,7 @@ export function WorkspaceSettingsModal({ workspace, onClose, onWorkspaceDeleted,
                             type="text"
                             value={editWsName}
                             onChange={(e) => setEditWsName(e.target.value)}
-                            className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                            className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-xl px-4 py-3.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
                         />
                     </div>
 
@@ -90,12 +90,12 @@ export function WorkspaceSettingsModal({ workspace, onClose, onWorkspaceDeleted,
                         <label className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                             <Palette size={14} className="text-emerald-500" /> Cor de Identificação
                         </label>
-                        <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+                        <div className="flex flex-wrap gap-4 p-2 -ml-2">
                             {availableColors.map(color => (
                                 <button
                                     key={color}
                                     onClick={() => { playUISound('tap'); setEditWsColor(color); }}
-                                    className={`ios-btn w-10 h-10 rounded-full shrink-0 transition-all ${color} ${editWsColor === color ? 'ring-4 ring-offset-2 ring-indigo-500 dark:ring-offset-[#111114] scale-110' : 'opacity-70 hover:opacity-100'}`}
+                                    className={`ios-btn w-10 h-10 rounded-full transition-all ${color} ${editWsColor === color ? 'ring-4 ring-offset-2 ring-indigo-500 dark:ring-offset-[#111114] scale-110' : 'opacity-70 hover:opacity-100'}`}
                                 />
                             ))}
                         </div>

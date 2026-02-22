@@ -142,20 +142,20 @@ export function WorkspaceMembersModal({ workspace, onClose, currentUserEmail }: 
                         <div className="bg-gray-50 dark:bg-zinc-900/50 border border-gray-200 dark:border-zinc-800 rounded-[1.5rem] p-5">
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <div className="flex-1 relative">
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500" size={16} />
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500" size={18} />
                                     <input
                                         type="email"
                                         value={inviteEmail}
                                         onChange={(e) => setInviteEmail(e.target.value)}
                                         placeholder="Email do colaborador..."
-                                        className="w-full bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white text-sm font-medium rounded-xl pl-11 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-shadow placeholder-gray-400 dark:placeholder-zinc-500"
+                                        className="w-full h-12 bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white text-sm font-medium rounded-xl pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-shadow placeholder-gray-400 dark:placeholder-zinc-500"
                                     />
                                 </div>
                                 <div className="sm:w-40 relative shrink-0">
                                     <select
                                         value={inviteRole}
                                         onChange={(e) => { playUISound('tap'); setInviteRole(e.target.value); }}
-                                        className="ios-btn w-full bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 text-sm font-medium rounded-xl pl-4 pr-10 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-shadow appearance-none cursor-pointer"
+                                        className="ios-btn w-full h-12 bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 text-sm font-medium rounded-xl pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-shadow appearance-none cursor-pointer"
                                     >
                                         <option value="editor">Editor</option>
                                         <option value="viewer">Visualizador</option>
@@ -165,7 +165,7 @@ export function WorkspaceMembersModal({ workspace, onClose, currentUserEmail }: 
                                 </div>
                                 <button
                                     onClick={handleCreateInvite}
-                                    className="ios-btn flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-500/20 shrink-0"
+                                    className="ios-btn h-12 flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-500/20 shrink-0"
                                 >
                                     <LinkIcon size={16} /> Gerar Link
                                 </button>
