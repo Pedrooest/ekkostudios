@@ -35,7 +35,6 @@ import { WorkspaceSettingsModal } from './WorkspaceSettingsModal';
 import { WorkspaceMembersModal } from './WorkspaceMembersModal';
 import { NewWorkspaceModal } from './NewWorkspaceModal';
 import { DatabaseService } from './DatabaseService';
-import { logDebug } from './components/DebugOverlay';
 import { initAudio, playUISound } from './utils/uiSounds';
 
 
@@ -82,7 +81,6 @@ const generateId = () => {
 
 const mergeItems = <T extends { id: string, updated_at?: string }>(local: T[], remote: T[]): T[] => {
   const merged = [...local];
-  console.log(`[EKKO-SYNC] MERGE_START | LOCAL: ${local.length} | REMOTE: ${remote.length}`);
 
   remote.forEach(remoteItem => {
     const localIndex = merged.findIndex(i => i.id === remoteItem.id);

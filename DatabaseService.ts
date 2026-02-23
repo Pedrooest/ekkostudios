@@ -181,7 +181,6 @@ export const DatabaseService = {
 
     // DATA SYNC GENERIC
     async fetchData(table: string, workspaceId: string) {
-        console.log(`[EKKO-SYNC] FETCHING ${table} FOR WS: ${workspaceId}`);
         const { data, error } = await supabase
             .from(table)
             .select('*')
@@ -189,10 +188,8 @@ export const DatabaseService = {
             .or('__archived.is.null,__archived.eq.false'); // Handle potential nulls
 
         if (error) {
-            console.error(`[EKKO-SYNC] FETCH ERROR ${table}:`, error);
             return [];
         }
-        console.log(`[EKKO-SYNC] FETCHED ${data?.length || 0} ITEMS FROM ${table}`);
         return data;
     },
 
@@ -214,34 +211,27 @@ export const DatabaseService = {
             payload.created_by = user.id;
         }
 
-        console.log(`[EKKO-SYNC] SYNCING ${table} | ID: ${item.id}`, payload);
-
         const { error } = await supabase
             .from(table)
             .upsert(payload);
 
         if (error) {
-            console.error(`[EKKO-SYNC] SYNC ERROR ${table}:`, error);
             return error;
         }
 
-        console.log(`[EKKO-SYNC] SYNC SUCCESS ${table} | ID: ${item.id}`);
         return null;
     },
 
     async updateItem(table: string, id: string, updates: any) {
-        console.log(`[EKKO-SYNC] UPDATING ${table} | ID: ${id}`, updates);
         const { error } = await supabase
             .from(table)
             .update({ ...updates, updated_at: new Date().toISOString() })
             .eq('id', id);
 
         if (error) {
-            console.error(`[EKKO-SYNC] UPDATE ERROR ${table}:`, error);
             return error;
         }
 
-        console.log(`[EKKO-SYNC] UPDATE SUCCESS ${table} | ID: ${id}`);
         return null;
     },
 
