@@ -1287,34 +1287,36 @@ export default function App() {
         </header>
 
         {/* Action Controls (Mobile-friendly row) */}
-        <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar px-4 sm:px-8 py-2 border-b border-app-border/40 lg:border-none no-scrollbar">
-          <button
-            ref={clientFilterButtonRef}
-            onClick={() => setIsClientFilterOpen(!isClientFilterOpen)}
-            className={`flex items-center gap-2 text-[10px] font-black uppercase transition-all border px-4 py-2.5 rounded-xl whitespace-nowrap ${selectedClientIds.length > 0 ? 'bg-blue-600/10 border-blue-600 text-blue-600' : 'text-zinc-500 border-white/10 hover:border-white/20 hover:text-zinc-300'}`}
-          >
-            <Filter size={14} />
-            {selectedClientIds.length > 0 ? `${selectedClientIds.length} Clientes` : <><span className="md:hidden">Todos</span><span className="hidden md:inline">Todos Clientes</span></>}
-          </button>
+        {activeTab !== 'WHITEBOARD' && (
+          <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar px-4 sm:px-8 py-2 border-b border-app-border/40 lg:border-none no-scrollbar">
+            <button
+              ref={clientFilterButtonRef}
+              onClick={() => setIsClientFilterOpen(!isClientFilterOpen)}
+              className={`flex items-center gap-2 text-[10px] font-black uppercase transition-all border px-4 py-2.5 rounded-xl whitespace-nowrap ${selectedClientIds.length > 0 ? 'bg-blue-600/10 border-blue-600 text-blue-600' : 'text-zinc-500 border-white/10 hover:border-white/20 hover:text-zinc-300'}`}
+            >
+              <Filter size={14} />
+              {selectedClientIds.length > 0 ? `${selectedClientIds.length} Clientes` : <><span className="md:hidden">Todos</span><span className="hidden md:inline">Todos Clientes</span></>}
+            </button>
 
-          <button onClick={() => setShowArchived(!showArchived)} className={`shrink-0 text-[10px] font-black uppercase px-4 py-2.5 rounded-xl border transition-all whitespace-nowrap flex items-center gap-2 ${showArchived ? 'bg-amber-500/10 border-amber-500 text-amber-500' : 'text-zinc-500 border-white/10 hover:border-white/20 hover:text-zinc-300'}`}>
-            {showArchived ? <Eye size={14} /> : <EyeOff size={14} />}
-            {showArchived ? 'Ocultar' : 'Arquivados'}
-          </button>
+            <button onClick={() => setShowArchived(!showArchived)} className={`shrink-0 text-[10px] font-black uppercase px-4 py-2.5 rounded-xl border transition-all whitespace-nowrap flex items-center gap-2 ${showArchived ? 'bg-amber-500/10 border-amber-500 text-amber-500' : 'text-zinc-500 border-white/10 hover:border-white/20 hover:text-zinc-300'}`}>
+              {showArchived ? <Eye size={14} /> : <EyeOff size={14} />}
+              {showArchived ? 'Ocultar' : 'Arquivados'}
+            </button>
 
-          <Button ref={exportButtonRef} variant="secondary" onClick={() => setIsExportModalOpen(true)} className="!rounded-xl !h-[38px] !px-4 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2">
-            <Download size={14} /> Exportar
-          </Button>
+            <Button ref={exportButtonRef} variant="secondary" onClick={() => setIsExportModalOpen(true)} className="!rounded-xl !h-[38px] !px-4 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2">
+              <Download size={14} /> Exportar
+            </Button>
 
-          {/* Desktop Assistant (Hidden here as it's in the top bar for MD+) */}
-          <Button variant="secondary" onClick={() => setIsAssistantOpen(true)} className="md:hidden !border-blue-600/30 hover:!border-blue-600 !text-blue-500 !rounded-xl !h-[38px] !px-4 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2">
-            <Sparkles size={14} /> Gemini
-          </Button>
-        </div>
+            {/* Desktop Assistant (Hidden here as it's in the top bar for MD+) */}
+            <Button variant="secondary" onClick={() => setIsAssistantOpen(true)} className="md:hidden !border-blue-600/30 hover:!border-blue-600 !text-blue-500 !rounded-xl !h-[38px] !px-4 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2">
+              <Sparkles size={14} /> Gemini
+            </Button>
+          </div>
+        )}
 
 
 
-        <div className="flex-1 overflow-y-auto p-3 md:p-6 lg:p-10 pb-[calc(100px+env(safe-area-inset-bottom))] lg:pb-10 custom-scrollbar animate-fade bg-app-bg">
+        <div className={`flex-1 overflow-y-auto custom-scrollbar animate-fade bg-app-bg ${activeTab === 'WHITEBOARD' ? 'p-0 overflow-hidden' : 'p-3 md:p-6 lg:p-10 pb-[calc(100px+env(safe-area-inset-bottom))] lg:pb-10'}`}>
           {activeTab === 'DASHBOARD' && <DashboardView clients={clients} tasks={currentTasks} financas={currentFinancas} planejamento={currentPlanejamento} rdc={currentRdc} />}
           {activeTab === 'CLIENTES' && <TableView tab="CLIENTES" data={filterArchived(clients)} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('CLIENTES')} clients={clients} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} />}
           {activeTab === 'RDC' && <TableView tab="RDC" data={currentRdc} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('RDC')} library={contentLibrary} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
@@ -1383,14 +1385,16 @@ export default function App() {
         }
 
 
-        <CopilotChat appData={fullAppContext} />
-        <AssistantDrawer
-          isOpen={isAssistantOpen}
-          onClose={() => setIsAssistantOpen(false)}
-          activeTab={activeTab}
-          appState={{ clients, cobo, matriz, planejamento, rdc, tasks, financas, collaborators, vhConfig, systematicModeling }}
-          onApplyAction={handleApplyAction}
-        />
+        {activeTab !== 'WHITEBOARD' && <CopilotChat appData={fullAppContext} />}
+        {activeTab !== 'WHITEBOARD' && (
+          <AssistantDrawer
+            isOpen={isAssistantOpen}
+            onClose={() => setIsAssistantOpen(false)}
+            activeTab={activeTab}
+            appState={{ clients, cobo, matriz, planejamento, rdc, tasks, financas, collaborators, vhConfig, systematicModeling }}
+            onApplyAction={handleApplyAction}
+          />
+        )}
 
       </main >
 
