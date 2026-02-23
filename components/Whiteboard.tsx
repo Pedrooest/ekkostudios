@@ -35,6 +35,13 @@ export function Whiteboard() {
     // ==========================================
     const [currentBoardId, setCurrentBoardId] = useState('root');
     const [camera, setCamera] = useState({ x: 0, y: 0, z: 1 });
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 1024);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
     const [activeTool, setActiveTool] = useState('cursor');
 
     const [elements, setElements] = useState<any[]>([
@@ -473,80 +480,105 @@ export function Whiteboard() {
 
             {/* Breadcrumb de Navegação (Sub-Boards) */}
             {currentBoardId !== 'root' && (
-                <div className="absolute top-6 left-24 z-40 flex items-center gap-2 px-4 py-2 bg-white/90 dark:bg-[#111114]/90 backdrop-blur-md border border-gray-200 dark:border-zinc-800 rounded-xl shadow-lg animate-in slide-in-from-top-4">
+                <div className={`absolute ${isMobile ? 'top-4 left-4 right-4' : 'top-6 left-24'} z-40 flex items-center gap-2 px-4 py-2 bg-white/90 dark:bg-[#111114]/90 backdrop-blur-md border border-gray-200 dark:border-zinc-800 rounded-xl shadow-lg animate-in slide-in-from-top-4`}>
                     <button onClick={(e) => { e.stopPropagation(); tryPlaySound('tap'); setCurrentBoardId('root'); resetCamera(); }} className="flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-indigo-600 transition-colors uppercase tracking-widest pointer-events-auto">
-                        <ArrowLeft size={14} /> Início
+                        <ArrowLeft size={14} /> {isMobile ? '' : 'Início'}
                     </button>
                     <span className="text-gray-300 dark:text-zinc-700">/</span>
                     <span className="text-sm font-black text-gray-900 dark:text-white truncate max-w-[200px] pointer-events-auto">{parentBoard?.title}</span>
                 </div>
             )}
 
-            {/* BARRA DE FERRAMENTAS ESQUERDA (Com NOVAS FERRAMENTAS) */}
-            <div className="absolute left-6 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-2 p-2 bg-white/80 dark:bg-[#111114]/80 backdrop-blur-xl border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl max-h-[85vh] overflow-y-auto custom-scrollbar">
-                <button onClick={(e) => { e.stopPropagation(); tryPlaySound('tap'); setActiveTool('cursor'); setSelectedIds([]); }} title="Selecionar (V)" className={`p-3 rounded-xl transition-all ios-btn shrink-0 pointer-events-auto ${activeTool === 'cursor' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`}><MousePointer2 size={20} /></button>
-                <button onClick={(e) => { e.stopPropagation(); tryPlaySound('tap'); setActiveTool('hand'); setSelectedIds([]); }} title="Mover Canvas (H)" className={`p-3 rounded-xl transition-all ios-btn shrink-0 pointer-events-auto ${activeTool === 'hand' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`}><Hand size={20} /></button>
-                <button onClick={(e) => { e.stopPropagation(); tryPlaySound('tap'); setActiveTool('connect'); setSelectedIds([]); }} title="Ligar Cartões" className={`p-3 rounded-xl transition-all ios-btn shrink-0 pointer-events-auto ${activeTool === 'connect' ? 'bg-emerald-500 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`}><ArrowUpRight size={20} /></button>
-                <button onClick={(e) => { e.stopPropagation(); tryPlaySound('tap'); setActiveTool('draw'); setSelectedIds([]); }} title="Desenho Livre" className={`p-3 rounded-xl transition-all ios-btn shrink-0 pointer-events-auto ${['draw', 'highlight', 'eraser'].includes(activeTool) ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`}><Pencil size={20} /></button>
+            {/* BARRA DE FERRAMENTAS (Responsiva) */}
+            <div className={`absolute z-40 flex bg-white/80 dark:bg-[#111114]/80 backdrop-blur-xl border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl transition-all
+                ${isMobile
+                    ? 'bottom-6 left-4 right-4 flex-row justify-between items-center p-1.5 h-16'
+                    : 'left-6 top-1/2 -translate-y-1/2 flex-col gap-2 p-2 max-h-[85vh]'}
+            `}>
+                <div className={`flex ${isMobile ? 'flex-row gap-1' : 'flex-col gap-2'} overflow-x-auto no-scrollbar`}>
+                    <button onClick={(e) => { e.stopPropagation(); tryPlaySound('tap'); setActiveTool('cursor'); setSelectedIds([]); }} className={`p-3 rounded-xl transition-all ios-btn shrink-0 pointer-events-auto ${activeTool === 'cursor' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`}><MousePointer2 size={isMobile ? 18 : 20} /></button>
+                    <button onClick={(e) => { e.stopPropagation(); tryPlaySound('tap'); setActiveTool('hand'); setSelectedIds([]); }} className={`p-3 rounded-xl transition-all ios-btn shrink-0 pointer-events-auto ${activeTool === 'hand' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`}><Hand size={isMobile ? 18 : 20} /></button>
+                    {!isMobile && (
+                        <>
+                            <button onClick={(e) => { e.stopPropagation(); tryPlaySound('tap'); setActiveTool('connect'); setSelectedIds([]); }} className={`p-3 rounded-xl transition-all ios-btn shrink-0 pointer-events-auto ${activeTool === 'connect' ? 'bg-emerald-500 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`}><ArrowUpRight size={20} /></button>
+                            <button onClick={(e) => { e.stopPropagation(); tryPlaySound('tap'); setActiveTool('draw'); setSelectedIds([]); }} className={`p-3 rounded-xl transition-all ios-btn shrink-0 pointer-events-auto ${['draw', 'highlight', 'eraser'].includes(activeTool) ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`}><Pencil size={20} /></button>
+                            <div className="w-full h-px bg-gray-200 dark:bg-zinc-800 my-1 shrink-0"></div>
+                        </>
+                    )}
 
-                <div className="w-full h-px bg-gray-200 dark:bg-zinc-800 my-1 shrink-0"></div>
+                    <div className={`flex ${isMobile ? 'flex-row gap-1' : 'flex-col gap-2'}`}>
+                        {/* Ferramentas Arrastáveis */}
+                        {[
+                            { id: 'sticky', icon: StickyNote },
+                            { id: 'todo', icon: ListTodo },
+                            { id: 'text', icon: Type },
+                            { id: 'image', icon: ImageIcon },
+                            ...(!isMobile ? [
+                                { id: 'board', icon: FolderOpen },
+                                { id: 'column', icon: Columns },
+                                { id: 'document', icon: FileText },
+                                { id: 'square', icon: Square },
+                                { id: 'bookmark', icon: Globe },
+                            ] : [])
+                        ].map((tool) => (
+                            <button
+                                key={tool.id}
+                                draggable={!isMobile}
+                                onDragStart={(e) => handleDragStartTool(e, tool.id)}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const bounds = canvasRef.current?.getBoundingClientRect();
+                                    if (bounds) {
+                                        const x = (bounds.width / 2 - camera.x) / camera.z;
+                                        const y = (bounds.height / 2 - camera.y) / camera.z;
+                                        if (tool.id === 'image') {
+                                            setPendingImagePos({ x, y });
+                                            fileInputRef.current?.click();
+                                        } else if (tool.id === 'bookmark') {
+                                            const url = prompt("Insira o Link da Web (URL):");
+                                            if (url) createElementAt(tool.id, x, y, null, url);
+                                        } else {
+                                            createElementAt(tool.id, x, y);
+                                        }
+                                    }
+                                }}
+                                className="p-3 rounded-xl flex items-center justify-center transition-all ios-btn text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-indigo-600 shrink-0 pointer-events-auto"
+                            >
+                                <tool.icon size={isMobile ? 18 : 20} strokeWidth={2} />
+                            </button>
+                        ))}
+                    </div>
+                </div>
 
-                {/* Ferramentas Arrastáveis (Drag & Drop + Clique para Criar) */}
-                {[
-                    { id: 'board', icon: FolderOpen, label: 'Sub-Board' },
-                    { id: 'column', icon: Columns, label: 'Coluna Kanban' },
-                    { id: 'todo', icon: ListTodo, label: 'Lista de Tarefas' },
-                    { id: 'document', icon: FileText, label: 'Documento' },
-                    { id: 'sticky', icon: StickyNote, label: 'Nota' },
-                    { id: 'text', icon: Type, label: 'Texto' },
-                    { id: 'square', icon: Square, label: 'Forma' },
-                    { id: 'image', icon: ImageIcon, label: 'Imagem' },
-                    { id: 'bookmark', icon: Globe, label: 'Link Web' },
-                ].map((tool) => (
-                    <button
-                        key={tool.id}
-                        draggable
-                        onDragStart={(e) => handleDragStartTool(e, tool.id)}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            const bounds = canvasRef.current?.getBoundingClientRect();
-                            if (bounds) {
-                                // Centraliza na viewport atual considerando zoom e pan
-                                const x = (bounds.width / 2 - camera.x) / camera.z;
-                                const y = (bounds.height / 2 - camera.y) / camera.z;
-                                if (tool.id === 'image') {
-                                    setPendingImagePos({ x, y });
-                                    fileInputRef.current?.click();
-                                } else if (tool.id === 'bookmark') {
-                                    const url = prompt("Insira o Link da Web (URL):");
-                                    if (url) createElementAt(tool.id, x, y, null, url);
-                                } else {
-                                    createElementAt(tool.id, x, y);
-                                }
-                            }
-                        }}
-                        title={tool.label}
-                        className="p-3 rounded-xl flex items-center justify-center cursor-grab active:cursor-grabbing transition-all ios-btn text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-indigo-600 shrink-0 pointer-events-auto"
-                    >
-                        <tool.icon size={20} strokeWidth={2} />
-                    </button>
-                ))}
+                {!isMobile && (
+                    <>
+                        <div className="w-full h-px bg-gray-200 dark:bg-zinc-800 my-1 shrink-0"></div>
+                        <button onClick={(e) => { e.stopPropagation(); tryPlaySound('open'); setShowTemplatesModal(true); }} className="p-3 rounded-xl flex items-center justify-center transition-all ios-btn text-indigo-600 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 shrink-0 pointer-events-auto"><LayoutTemplate size={20} /></button>
+                    </>
+                )}
 
-                <div className="w-full h-px bg-gray-200 dark:bg-zinc-800 my-1 shrink-0"></div>
-                <button onClick={(e) => { e.stopPropagation(); tryPlaySound('open'); setShowTemplatesModal(true); }} title="Templates Prontos" className="p-3 rounded-xl flex items-center justify-center transition-all ios-btn text-indigo-600 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 shrink-0 pointer-events-auto"><LayoutTemplate size={20} /></button>
+                {isMobile && (
+                    <button onClick={(e) => { e.stopPropagation(); tryPlaySound('open'); setShowTemplatesModal(true); }} className="p-3 rounded-xl bg-indigo-600 text-white shadow-lg shrink-0 pointer-events-auto"><Plus size={18} /></button>
+                )}
             </div>
 
             {/* CONTROLES DA CÂMERA E MINIMAPA */}
-            <div className="absolute right-6 bottom-6 z-40 flex flex-col gap-2 items-end pointer-events-none">
-                <button onClick={(e) => { e.stopPropagation(); setShowMinimap(!showMinimap); }} className={`p-3 rounded-xl shadow-xl transition-colors ios-btn pointer-events-auto ${showMinimap ? 'bg-indigo-600 text-white' : 'bg-white/80 dark:bg-[#111114]/80 backdrop-blur-xl border border-gray-200 dark:border-zinc-800 text-gray-500'}`}>
-                    <Map size={20} />
-                </button>
+            <div className={`absolute ${isMobile ? 'right-4 top-4' : 'right-6 bottom-6'} z-40 flex flex-col gap-2 items-end pointer-events-none`}>
+                {!isMobile && (
+                    <button onClick={(e) => { e.stopPropagation(); setShowMinimap(!showMinimap); }} className={`p-3 rounded-xl shadow-xl transition-colors ios-btn pointer-events-auto ${showMinimap ? 'bg-indigo-600 text-white' : 'bg-white/80 dark:bg-[#111114]/80 backdrop-blur-xl border border-gray-200 dark:border-zinc-800 text-gray-500'}`}>
+                        <Map size={20} />
+                    </button>
+                )}
                 <div className="flex items-center gap-1 p-1 bg-white/80 dark:bg-[#111114]/80 backdrop-blur-xl border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl pointer-events-auto">
                     <button onClick={(e) => { e.stopPropagation(); zoomOut(); }} className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg"><ZoomOut size={16} /></button>
-                    <span className="text-xs font-bold text-gray-700 dark:text-zinc-300 w-12 text-center font-mono">{Math.round(camera.z * 100)}%</span>
+                    {!isMobile && <span className="text-xs font-bold text-gray-700 dark:text-zinc-300 w-12 text-center font-mono">{Math.round(camera.z * 100)}%</span>}
                     <button onClick={(e) => { e.stopPropagation(); zoomIn(); }} className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg"><ZoomIn size={16} /></button>
-                    <div className="w-px h-4 bg-gray-200 dark:bg-zinc-700 mx-1"></div>
-                    <button onClick={(e) => { e.stopPropagation(); resetCamera(); }} className="p-2 text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg"><Maximize size={16} /></button>
+                    {!isMobile && (
+                        <>
+                            <div className="w-px h-4 bg-gray-200 dark:bg-zinc-700 mx-1"></div>
+                            <button onClick={(e) => { e.stopPropagation(); resetCamera(); }} className="p-2 text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg"><Maximize size={16} /></button>
+                        </>
+                    )}
                 </div>
             </div>
 

@@ -52,7 +52,7 @@ export function AuthView({ onSuccess }: AuthViewProps) {
             <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 blur-[120px] rounded-full animate-pulse"></div>
             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 blur-[120px] rounded-full animate-pulse"></div>
 
-            <div className="w-full max-w-md p-10 bg-[#111827]/40 backdrop-blur-2xl border border-white/10 rounded-[40px] shadow-2xl animate-fade relative overflow-hidden">
+            <div className="w-full max-w-md mx-4 sm:mx-0 p-6 sm:p-10 bg-[#111827]/40 backdrop-blur-2xl border border-white/10 rounded-[40px] shadow-2xl animate-fade relative overflow-hidden">
                 <div className="text-center mb-10">
                     <div className="flex justify-center mb-6">
                         <img src="/site-logo.png" alt="EKKO" className="h-40 object-contain" />

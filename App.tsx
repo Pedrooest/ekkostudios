@@ -1278,9 +1278,9 @@ export default function App() {
                   playUISound('tap');
                   setIsAssistantOpen(true);
                 }}
-                className="ios-btn flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:hover:bg-indigo-500/20 border border-indigo-100 dark:border-indigo-500/20 rounded-lg text-xs font-bold transition-colors shadow-sm uppercase tracking-widest"
+                className="ios-btn flex items-center gap-3 sm:gap-2 px-3 sm:px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:hover:bg-indigo-500/20 border border-indigo-100 dark:border-indigo-500/20 rounded-lg text-xs font-bold transition-colors shadow-sm uppercase tracking-widest"
               >
-                <Sparkles size={14} /> ASSISTENTE GEMINI
+                <Sparkles size={14} /> <span className="hidden sm:inline">ASSISTENTE GEMINI</span>
               </button>
               {userProfile && (
                 <ProfilePopover
@@ -1300,29 +1300,34 @@ export default function App() {
 
         {/* Action Controls (Mobile-friendly row) */}
         {activeTab !== 'WHITEBOARD' && (
-          <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar px-4 sm:px-8 py-2 border-b border-app-border/40 lg:border-none no-scrollbar">
-            <button
-              ref={clientFilterButtonRef}
-              onClick={() => setIsClientFilterOpen(!isClientFilterOpen)}
-              className={`flex items-center gap-2 text-[10px] font-black uppercase transition-all border px-4 py-2.5 rounded-xl whitespace-nowrap ${selectedClientIds.length > 0 ? 'bg-blue-600/10 border-blue-600 text-blue-600' : 'text-zinc-500 border-white/10 hover:border-white/20 hover:text-zinc-300'}`}
-            >
-              <Filter size={14} />
-              {selectedClientIds.length > 0 ? `${selectedClientIds.length} Clientes` : <><span className="md:hidden">Todos</span><span className="hidden md:inline">Todos Clientes</span></>}
-            </button>
+          <div className="relative group/scroll">
+            <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar px-4 sm:px-8 py-2 border-b border-app-border/40 lg:border-none no-scrollbar snap-x snap-mandatory">
+              <button
+                ref={clientFilterButtonRef}
+                onClick={() => setIsClientFilterOpen(!isClientFilterOpen)}
+                className={`flex items-center gap-2 text-[10px] font-black uppercase transition-all border px-4 py-2.5 rounded-xl whitespace-nowrap snap-start ${selectedClientIds.length > 0 ? 'bg-blue-600/10 border-blue-600 text-blue-600' : 'text-zinc-500 border-white/10 hover:border-white/20 hover:text-zinc-300'}`}
+              >
+                <Filter size={14} />
+                {selectedClientIds.length > 0 ? `${selectedClientIds.length} Clientes` : <><span className="md:hidden">Todos</span><span className="hidden md:inline">Todos Clientes</span></>}
+              </button>
 
-            <button onClick={() => setShowArchived(!showArchived)} className={`shrink-0 text-[10px] font-black uppercase px-4 py-2.5 rounded-xl border transition-all whitespace-nowrap flex items-center gap-2 ${showArchived ? 'bg-amber-500/10 border-amber-500 text-amber-500' : 'text-zinc-500 border-white/10 hover:border-white/20 hover:text-zinc-300'}`}>
-              {showArchived ? <Eye size={14} /> : <EyeOff size={14} />}
-              {showArchived ? 'Ocultar' : 'Arquivados'}
-            </button>
+              <button onClick={() => setShowArchived(!showArchived)} className={`shrink-0 text-[10px] font-black uppercase px-4 py-2.5 rounded-xl border transition-all whitespace-nowrap flex items-center gap-2 snap-start ${showArchived ? 'bg-amber-500/10 border-amber-500 text-amber-500' : 'text-zinc-500 border-white/10 hover:border-white/20 hover:text-zinc-300'}`}>
+                {showArchived ? <Eye size={14} /> : <EyeOff size={14} />}
+                {showArchived ? 'Ocultar' : 'Arquivados'}
+              </button>
 
-            <Button ref={exportButtonRef} variant="secondary" onClick={() => setIsExportModalOpen(true)} className="!rounded-xl !h-[38px] !px-4 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2">
-              <Download size={14} /> Exportar
-            </Button>
+              <Button ref={exportButtonRef} variant="secondary" onClick={() => setIsExportModalOpen(true)} className="!rounded-xl !h-[38px] !px-4 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2 snap-start whitespace-nowrap">
+                <Download size={14} /> Exportar
+              </Button>
 
-            {/* Desktop Assistant (Hidden here as it's in the top bar for MD+) */}
-            <Button variant="secondary" onClick={() => setIsAssistantOpen(true)} className="md:hidden !border-blue-600/30 hover:!border-blue-600 !text-blue-500 !rounded-xl !h-[38px] !px-4 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2">
-              <Sparkles size={14} /> Gemini
-            </Button>
+              {/* Desktop Assistant (Hidden here as it's in the top bar for MD+) */}
+              <Button variant="secondary" onClick={() => setIsAssistantOpen(true)} className="md:hidden !border-blue-600/30 hover:!border-blue-600 !text-blue-500 !rounded-xl !h-[38px] !px-4 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2 snap-start whitespace-nowrap">
+                <Sparkles size={14} /> Gemini
+              </Button>
+            </div>
+            {/* Visual fade indicators for scroll */}
+            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-app-bg to-transparent pointer-events-none opacity-0 sm:group-hover/scroll:opacity-100 transition-opacity"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-app-bg to-transparent pointer-events-none opacity-40 sm:group-hover/scroll:opacity-100 transition-opacity"></div>
           </div>
         )}
 
