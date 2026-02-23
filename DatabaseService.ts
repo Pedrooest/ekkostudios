@@ -51,6 +51,31 @@ export const DatabaseService = {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('Not authenticated');
 
+        // Guard: Wait for profile to be ready (prevents FK violation on owner_id)
+        // This is necessary because of the delay between signUp and the Postgres trigger finishing
+        let profileExists = false;
+        for (let i = 0; i < 5; i++) {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('id', user.id)
+                .single();
+            if (profile) {
+                profileExists = true;
+                break;
+            }
+            await new Promise(resolve => setTimeout(resolve, 500)); // Wait 500ms
+        }
+
+        if (!profileExists) {
+            // Last ditch effort: Try to insert profile ourselves if trigger failed
+            await supabase.from('profiles').upsert({
+                id: user.id,
+                email: user.email,
+                full_name: user.user_metadata?.full_name || user.email?.split('@')[0]
+            });
+        }
+
         const availableColors = ['bg-indigo-600', 'bg-blue-600', 'bg-emerald-600', 'bg-orange-500', 'bg-rose-600', 'bg-purple-600', 'bg-zinc-800'];
         const randomColor = availableColors[Math.floor(Math.random() * availableColors.length)];
 
@@ -60,7 +85,10 @@ export const DatabaseService = {
             .select()
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error('Error creating workspace:', error);
+            throw error;
+        }
         return data;
     },
 

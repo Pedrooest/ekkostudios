@@ -45,7 +45,13 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
             <div className="text-left hidden sm:block">
                 <p className="text-[10px] text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-widest leading-none mb-0.5">Workspace</p>
                 <h2 className="text-sm font-black text-gray-900 dark:text-white leading-none truncate max-w-[140px]">
-                    {currentWorkspace?.name || 'Carregando...'}
+                    {loading ? (
+                        <div className="flex items-center gap-1">
+                            <div className="w-1 h-1 bg-current rounded-full animate-bounce"></div>
+                            <div className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                            <div className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                        </div>
+                    ) : (currentWorkspace?.name || 'Selecione...')}
                 </h2>
             </div>
             <ChevronDown size={16} className={`text-gray-400 dark:text-zinc-500 transition-transform duration-300 ml-auto sm:ml-0 ${isOpen ? 'rotate-180' : ''}`} />

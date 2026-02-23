@@ -9,6 +9,7 @@ interface AuthViewProps {
 export function AuthView({ onSuccess }: AuthViewProps) {
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState('');
+    const [fullName, setFullName] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -25,7 +26,16 @@ export function AuthView({ onSuccess }: AuthViewProps) {
                 if (error) throw error;
                 onSuccess(data.user);
             } else {
-                const { data, error } = await supabase.auth.signUp({ email, password });
+                if (!fullName.trim()) throw new Error('Por favor, insira seu nome completo.');
+                const { data, error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            full_name: fullName
+                        }
+                    }
+                });
                 if (error) throw error;
                 setMessage({ type: 'success', text: 'Cadastro realizado! Verifique seu e-mail para confirmar.' });
             }
@@ -56,6 +66,20 @@ export function AuthView({ onSuccess }: AuthViewProps) {
                 </div>
 
                 <form onSubmit={handleAuth} className="space-y-6">
+                    {!isLogin && (
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-4">Nome Completo</label>
+                            <input
+                                type="text"
+                                required
+                                value={fullName}
+                                onChange={e => setFullName(e.target.value)}
+                                placeholder="Seu Nome"
+                                className="w-full px-6 py-4 bg-[#0B0F19]/50 border border-white/5 rounded-2xl text-white font-bold outline-none focus:border-blue-500 transition-all"
+                            />
+                        </div>
+                    )}
+
                     <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-4">E-mail</label>
                         <input

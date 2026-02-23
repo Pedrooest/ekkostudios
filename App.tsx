@@ -304,7 +304,9 @@ export default function App() {
         });
       }
     } catch (error) {
-      console.error(error);
+      console.error('Failed to refresh workspaces:', error);
+      // If we are stuck in loading, maybe try one last time or show error
+      setWorkspaces([]);
     } finally {
       setWorkspaceLoading(false);
     }
@@ -544,6 +546,16 @@ export default function App() {
             role: 'Especialista EKKO',
             status: 'online',
             description: ''
+          });
+          // Secondary guard: Upsert profile to be absolutely sure it exists
+          supabase.from('profiles').upsert({
+            id: session.user.id,
+            email: session.user.email,
+            full_name: session.user.user_metadata.full_name || session.user.email?.split('@')[0],
+            role: 'Especialista',
+            status: 'online'
+          }).then(({ error }) => {
+            if (error) console.warn('Secondary profile sync failed:', error);
           });
         }
       } else {
