@@ -40,7 +40,7 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
         >
 
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-white shadow-md text-xs tracking-wider shrink-0 transition-transform group-active:scale-95 ${currentWorkspace?.cor || 'bg-indigo-600'}`}>
-                {currentWorkspace?.nome?.substring(0, 2).toUpperCase() || 'EK'}
+                {currentWorkspace?.nome ? currentWorkspace.nome.substring(0, 2).toUpperCase() : 'EK'}
             </div>
             <div className="text-left hidden sm:block">
                 <p className="text-[10px] text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-widest leading-none mb-0.5">Workspace</p>
@@ -64,7 +64,7 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
             {/* Cabeçalho de Identificação */}
             <div className="px-4 py-2 mb-1 flex items-center gap-3">
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-[10px] shrink-0 ${currentWorkspace?.cor || 'bg-indigo-600'}`}>
-                    {currentWorkspace?.nome?.substring(0, 2).toUpperCase() || 'EK'}
+                    {currentWorkspace?.nome ? currentWorkspace.nome.substring(0, 2).toUpperCase() : 'EK'}
                 </div>
                 <div className="flex flex-col">
                     <span className="text-sm font-bold text-gray-900 dark:text-white leading-tight truncate max-w-[180px]">
@@ -110,9 +110,9 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
                             className="ios-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 transition-colors text-sm font-medium text-left"
                         >
                             <div className={`w-6 h-6 rounded flex items-center justify-center font-bold text-white text-[9px] shrink-0 ${ws.cor || 'bg-gray-300'}`}>
-                                {ws.nome.substring(0, 2).toUpperCase()}
+                                {ws.nome ? ws.nome.substring(0, 2).toUpperCase() : 'WS'}
                             </div>
-                            <span className="truncate flex-1">{ws.nome}</span>
+                            <span className="truncate flex-1">{ws.nome || 'Workspace sem nome'}</span>
                         </button>
                     ))}
                 </div>

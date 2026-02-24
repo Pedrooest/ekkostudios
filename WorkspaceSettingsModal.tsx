@@ -13,14 +13,14 @@ interface WorkspaceSettingsModalProps {
 }
 
 export function WorkspaceSettingsModal({ workspace, onClose, onWorkspaceDeleted, onUpdateWorkspace }: WorkspaceSettingsModalProps) {
-    const [editWsName, setEditWsName] = useState(workspace.nome);
+    const [editWsName, setEditWsName] = useState(workspace.nome || '');
     const [editWsColor, setEditWsColor] = useState(workspace.cor || 'bg-indigo-600');
     const [loading, setLoading] = useState(false);
 
     const availableColors = ['bg-indigo-600', 'bg-blue-600', 'bg-emerald-600', 'bg-orange-500', 'bg-rose-600', 'bg-purple-600', 'bg-zinc-800'];
 
     useEffect(() => {
-        setEditWsName(workspace.nome);
+        setEditWsName(workspace.nome || '');
         setEditWsColor(workspace.cor || 'bg-indigo-600');
     }, [workspace]);
 

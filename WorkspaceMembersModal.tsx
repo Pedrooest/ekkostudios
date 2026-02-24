@@ -146,7 +146,7 @@ export function WorkspaceMembersModal({ workspace, onClose, currentUserEmail }: 
                                         value={inviteEmail}
                                         onChange={(e) => setInviteEmail(e.target.value)}
                                         placeholder="Email do colaborador..."
-                                        className="w-full h-12 bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white text-sm font-medium rounded-xl pl-14 pr-4 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-shadow placeholder-gray-400 dark:placeholder-zinc-500"
+                                        className="w-full h-12 bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white text-sm font-medium rounded-xl pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-shadow placeholder-gray-400 dark:placeholder-zinc-500"
                                     />
                                 </div>
                                 <div className="sm:w-40 relative shrink-0">

@@ -128,12 +128,46 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
                             <i className="fa-solid fa-camera text-white text-base"></i>
                         </div>
                     </div>
-                    <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight leading-none mb-1">
-                        {profile.full_name || 'Configurar Nome'}
-                    </h2>
-                    <p className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-4">
-                        {profile.role || 'ESPECIALISTA EKKO'}
-                    </p>
+                    {isEditingName ? (
+                        <div className="flex items-center gap-2 mb-2">
+                            <input
+                                type="text"
+                                value={newName}
+                                onChange={(e) => setNewName(e.target.value)}
+                                className="bg-gray-50 dark:bg-zinc-900 border border-indigo-500/50 rounded-lg px-2 py-1 text-sm font-bold text-gray-900 dark:text-white outline-none w-full"
+                                autoFocus
+                                onKeyDown={(e) => e.key === 'Enter' && handleNameSubmit()}
+                                onBlur={handleNameSubmit}
+                            />
+                        </div>
+                    ) : (
+                        <h2
+                            className="text-xl font-black text-gray-900 dark:text-white tracking-tight leading-none mb-1 cursor-pointer hover:text-indigo-500 transition-colors"
+                            onClick={() => { playUISound('tap'); setIsEditingName(true); }}
+                        >
+                            {profile.full_name || 'Configurar Nome'}
+                        </h2>
+                    )}
+                    {isEditingRole ? (
+                        <div className="flex items-center gap-2 mb-4">
+                            <input
+                                type="text"
+                                value={newRole}
+                                onChange={(e) => setNewRole(e.target.value)}
+                                className="bg-gray-50 dark:bg-zinc-900 border border-indigo-500/50 rounded-lg px-2 py-1 text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest outline-none w-full"
+                                autoFocus
+                                onKeyDown={(e) => e.key === 'Enter' && handleRoleSubmit()}
+                                onBlur={handleRoleSubmit}
+                            />
+                        </div>
+                    ) : (
+                        <p
+                            className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-4 cursor-pointer hover:text-indigo-500 transition-colors"
+                            onClick={() => { playUISound('tap'); setIsEditingRole(true); }}
+                        >
+                            {profile.role || 'ESPECIALISTA EKKO'}
+                        </p>
+                    )}
 
                     {/* Status & Email (Mesma linha) */}
                     <div className="inline-flex items-center gap-2 mb-6">

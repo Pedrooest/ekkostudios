@@ -81,13 +81,14 @@ export interface ItemPlanejamento {
 
 export interface LancamentoFinancas {
   id: string;
-  Lancamento_ID: string;
+  Lançamento: string;
   Data: string;
   Cliente_ID: string;
   Tipo: 'Entrada' | 'Saída' | 'Despesa' | 'Assinatura';
   Categoria: string;
   Descrição: string;
   Valor: number;
+  Status?: 'pago' | 'pendente';
   Recorrência?: 'Mensal' | 'Única';
   Data_Início?: string;
   Data_Fim?: string;

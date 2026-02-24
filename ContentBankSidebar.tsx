@@ -91,7 +91,7 @@ export function ContentBankSidebar({ isOpen, onClose, bankItems, onImport, onUpd
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             placeholder="Buscar ideias aprovadas..."
-                            className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 dark:bg-zinc-900 dark:border-zinc-700 dark:text-zinc-300 dark:placeholder-zinc-500 text-sm rounded-lg pl-11 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-colors"
+                            className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 dark:bg-zinc-900 dark:border-zinc-700 dark:text-zinc-300 dark:placeholder-zinc-500 text-sm rounded-lg pl-12 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-colors"
                         />
                     </div>
                 </div>

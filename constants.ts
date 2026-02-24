@@ -24,8 +24,8 @@ export const FORMATOS_RDC: Record<string, string[]> = {
 };
 
 export const COLUNAS_CLIENTES = ["Nome", "Nicho", "Responsável", "WhatsApp", "Instagram", "Objetivo", "Cor (HEX)", "Status"];
-export const COLUNAS_COBO = ["Cliente_ID", "Canal", "Frequência", "Público", "Voz", "Zona", "Intenção", "Formato"];
-export const COLUNAS_MATRIZ_ESTRATEGICA = ["Cliente_ID", "Rede_Social", "Função", "Quem fala", "Papel estratégico", "Tipo de conteúdo", "Resultado esperado"];
+export const COLUNAS_COBO = ["Cliente", "Canal", "Frequência", "Público", "Voz", "Zona", "Intenção", "Formato"];
+export const COLUNAS_MATRIZ_ESTRATEGICA = ["Cliente", "Rede_Social", "Função", "Quem fala", "Papel estratégico", "Tipo de conteúdo", "Resultado esperado"];
 
 // CONSTANTES MATRIZ ESTRATEGICA (Dropdowns)
 export const OPCOES_FUNCAO_MATRIZ = [
@@ -83,18 +83,18 @@ export const OPCOES_INTENCAO_COBO = [
 export const OPCOES_FORMATO_COBO = [
   "Vídeo curto", "Carrossel", "Post imagem", "Stories", "Live", "Bastidores", "Tutorial", "Prova social", "Oferta", "Texto educativo"
 ];
-export const COLUNAS_RDC = ["Cliente_ID", "Ideia de Conteúdo", "Rede_Social", "Tipo de conteúdo", "Resolução (1–5)", "Demanda (1–5)", "Competição (1–5)", "Score (R×D×C)", "Decisão"];
+export const COLUNAS_RDC = ["Cliente", "Ideia de Conteúdo", "Rede_Social", "Tipo de conteúdo", "Resolução (1–5)", "Demanda (1–5)", "Competição (1–5)", "Score (R×D×C)", "Decisão"];
 
 export const COLUNAS_PLANEJAMENTO = [
-  "Cliente_ID", "Data", "Hora", "Conteúdo", "Rede_Social", "Tipo de conteúdo", "Função", "Intenção", "Gancho", "CTA", "Status do conteúdo"
+  "Cliente", "Data", "Hora", "Conteúdo", "Rede_Social", "Tipo de conteúdo", "Função", "Intenção", "Gancho", "CTA", "Status do conteúdo"
 ];
 
 export const COLUNAS_FINANCAS = [
-  "Lancamento_ID", "Data", "Tipo", "Categoria", "Descrição", "Valor",
+  "Lançamento", "Data", "Tipo", "Categoria", "Descrição", "Valor", "Status",
   "Recorrência", "Data_Início", "Data_Fim", "Dia_Pagamento", "Observações"
 ];
 
-export const COLUNAS_TAREFAS = ["Task_ID", "Cliente_ID", "Título", "Status", "Prioridade", "Responsável", "Data_Entrega", "Área", "Relacionado_Conteudo"];
+export const COLUNAS_TAREFAS = ["Task_ID", "Cliente", "Título", "Status", "Prioridade", "Responsável", "Data_Entrega", "Área", "Relacionado_Conteudo"];
 
 export const OPCOES_FUNCAO = ["Hero", "Hub", "Help", "Autoridade", "Relacional"];
 export const OPCOES_ZONA = ["Quente", "Morna", "Fria"];

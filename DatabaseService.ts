@@ -21,7 +21,23 @@ const MAPA_COLUNAS: Record<string, Record<string, string>> = {
         expires_at: 'expira_em',
         role: 'papel'
     },
+    financas: {
+        Lancamento_ID: 'Lançamento'
+    },
+    cobo: {
+        Cliente_ID: 'Cliente'
+    },
+    matriz_estrategica: {
+        Cliente_ID: 'Cliente'
+    },
+    rdc: {
+        Cliente_ID: 'Cliente'
+    },
+    planejamento: {
+        Cliente_ID: 'Cliente'
+    },
     tasks: {
+        Cliente_ID: 'Cliente',
         Checklist: 'Checklist',
         Anexos: 'Anexos',
         Comentarios: 'Comentarios',

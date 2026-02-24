@@ -46,7 +46,7 @@ export function TableView({
                 tab === 'COBO' ? COLUNAS_COBO :
                     tab === 'RDC' ? COLUNAS_RDC :
                         tab === 'FINANCAS' ? (
-                            activeCategory === 'Assinatura' ? COLUNAS_FINANCAS :
+                            activeCategory === 'assinatura' ? COLUNAS_FINANCAS :
                                 COLUNAS_FINANCAS.filter(col => !['Recorrência', 'Dia_Pagamento', 'Data_Início', 'Data_Fim'].includes(col))
                         ) : [];
 
@@ -116,6 +116,18 @@ export function TableView({
         </div>
     );
 
+    const filteredData = useMemo(() => {
+        if (tab !== 'FINANCAS' || !activeCategory) return data;
+        const tipoMap: Record<string, string> = {
+            'entrada': 'Entrada',
+            'saida': 'Saída',
+            'despesa': 'Despesa',
+            'assinatura': 'Assinatura'
+        };
+        const targetTipo = tipoMap[activeCategory];
+        return data.filter((item: any) => item.Tipo === targetTipo);
+    }, [data, tab, activeCategory]);
+
     return (
         <Card
             title={hideHeader ? undefined : (isRDC ? undefined : ROTULOS_TABELAS[tab])}
@@ -138,12 +150,12 @@ export function TableView({
             ))}
         >
             {!hideHeader && isRDC && rdcHeader}
-            <div className={`hidden md:block custom-scrollbar bg-app-bg/50 w-full ${(tab === 'MATRIZ' || tab === 'RDC') ? 'overflow-auto max-h-[70vh]' : ''}`}>
-                <table className={`w-full text-left text-[11px] border-separate border-spacing-0 ${(tab === 'MATRIZ' || tab === 'RDC') ? 'whitespace-nowrap min-w-max' : ''}`}>
+            <div className={`hidden md:block custom-scrollbar bg-app-bg/50 w-full ${(tab === 'MATRIZ' || tab === 'RDC' || tab === 'FINANCAS') ? 'overflow-auto max-h-[60vh]' : ''}`}>
+                <table className={`w-full text-left text-[11px] border-separate border-spacing-0 ${(tab === 'MATRIZ' || tab === 'RDC' || tab === 'FINANCAS') ? 'whitespace-nowrap min-w-max' : ''}`}>
                     <thead className="sticky top-0 z-20">
                         <tr className="border-b border-app-border bg-app-surface-2 shadow-md">
                             <th className={`px-4 py-5 text-center bg-app-surface-2 border-b border-app-border ${tab === 'RDC' ? 'w-[50px]' : 'w-10'}`}>
-                                <input type="checkbox" onChange={e => { if (e.target.checked) data.forEach((r: any) => !selection.includes(r.id) && onSelect(r.id)); else onClearSelection(); }} checked={data.length > 0 && data.every((r: any) => selection.includes(r.id))} className="rounded bg-app-bg border-app-border text-blue-500 focus:ring-0 focus:ring-offset-0" />
+                                <input type="checkbox" onChange={e => { if (e.target.checked) filteredData.forEach((r: any) => !selection.includes(r.id) && onSelect(r.id)); else onClearSelection(); }} checked={filteredData.length > 0 && filteredData.every((r: any) => selection.includes(r.id))} className="rounded bg-app-bg border-app-border text-blue-500 focus:ring-0 focus:ring-offset-0" />
                             </th>
                             {cols.map(c => {
                                 let widthStyle = {};
@@ -175,7 +187,7 @@ export function TableView({
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-[#1F2937]">
-                        {data.map((row: any) => (
+                        {filteredData.map((row: any) => (
                             <TableRow
                                 key={row.id}
                                 row={row}
@@ -197,7 +209,7 @@ export function TableView({
 
             {/* MOBILE CARD VIEW */}
             <div className="md:hidden space-y-6 px-1 pb-20">
-                {data.map((row: any) => {
+                {filteredData.map((row: any) => {
                     const mobileGroups = tab === 'COBO' ? [
                         { title: 'Veiculação', cols: ['Canal', 'Frequência'] },
                         { title: 'Público & Voz', cols: ['Público', 'Voz'] },
