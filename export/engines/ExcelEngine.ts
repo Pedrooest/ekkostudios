@@ -17,7 +17,7 @@ export const generateExcelReport = async (config: ExportConfig, context: ExportC
     headerCell.value = {
         richText: [
             { font: { size: 18, bold: true, name: 'Segoe UI' }, text: `EKKO STUDIOS — ${config.title}\n` },
-            { font: { size: 12, name: 'Segoe UI', color: { argb: 'FF666666' } }, text: `CLIENTE: ${config.client.toUpperCase()}  |  DATA: ${new Date().toLocaleDateString('pt-BR')}` }
+            { font: { size: 12, name: 'Segoe UI', color: { argb: 'FF666666' } }, text: `CLIENTE: ${config.Cliente.toUpperCase()}  |  DATA: ${new Date().toLocaleDateString('pt-BR')}` }
         ]
     };
     headerCell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
@@ -99,5 +99,5 @@ export const generateExcelReport = async (config: ExportConfig, context: ExportC
     // Generate Buffer
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    saveAs(blob, `Relatorio_Organick_${config.tab}_${config.client}.xlsx`);
+    saveAs(blob, `Relatorio_Organick_${config.tab}_${config.Cliente}.xlsx`);
 };

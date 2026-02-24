@@ -1,0 +1,10 @@
+﻿PresentationRenderer.tsx(218,111): error TS2339: Property 'Nome' does not exist on type 'string'.
+ProfilePopover.tsx(3,10): error TS2305: Module '"./types"' has no exported member 'UserProfile'.
+views/FinancasView.tsx(10,10): error TS2305: Module '"../constants"' has no exported member 'FINANCAS_SERVICOS_OPTIONS'.
+views/FinancasView.tsx(11,10): error TS2305: Module '"../types"' has no exported member 'FinancasLancamento'.
+views/FinancasView.tsx(303,21): error TS2322: Type 'Function' is not assignable to type '(id: string, tab: TipoTabela, field: string, value: any) => void'.
+  Type 'Function' provides no match for the signature '(id: string, tab: TipoTabela, field: string, value: any): void'.
+views/FinancasView.tsx(304,21): error TS2322: Type 'Function' is not assignable to type '(ids: string[], tab: TipoTabela) => void'.
+  Type 'Function' provides no match for the signature '(ids: string[], tab: TipoTabela): void'.
+views/FinancasView.tsx(305,21): error TS2322: Type 'Function' is not assignable to type '(ids: string[], tab: TipoTabela, archive: boolean) => void'.
+  Type 'Function' provides no match for the signature '(ids: string[], tab: TipoTabela, archive: boolean): void'.

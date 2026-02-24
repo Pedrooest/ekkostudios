@@ -1,129 +1,149 @@
 
 import React from 'react';
-import { PresentationConfig, PresentationTemplate, TableType, Client, RdcItem, PlanejamentoItem, Task, CoboItem, MatrizEstrategicaItem } from './types';
+import { ConfiguracaoApresentacao, ModeloApresentacao, TipoTabela, Cliente, ItemRdc, ItemPlanejamento, Tarefa, ItemCobo, ItemMatrizEstrategica } from './types';
 
-// Fixed missing 'FINANCAS' property in Record<TableType, PresentationTemplate>
-const TAB_TEMPLATES: Record<TableType, PresentationTemplate> = {
+const TAB_TEMPLATES: Record<TipoTabela, ModeloApresentacao> = {
   DASHBOARD: {
-    tab: 'DASHBOARD',
-    label: 'Overview Estratégico',
-    subtitle: 'Monitoramento em tempo real de ativos e pautas.',
-    nextStep: 'Analisar gargalos operacionais e pautas pendentes.',
-    callouts: [
-      { id: 1, title: 'Monitor de Ativos', desc: 'Controle central de clientes ativos.', top: '25%', left: '15%' }
+    aba: 'DASHBOARD',
+    rotulo: 'Overview Estratégico',
+    subtitulo: 'Monitoramento em tempo real de ativos e pautas.',
+    proximoPasso: 'Analisar gargalos operacionais e pautas pendentes.',
+    chamadas: [
+      { id: 1, titulo: 'Monitor de Ativos', desc: 'Controle central de clientes ativos.', top: '25%', left: '15%' }
     ]
   },
   CLIENTES: {
-    tab: 'CLIENTES',
-    label: 'Ecossistema de Stakeholders',
-    subtitle: 'Gestão de branding e segmentação da carteira.',
-    nextStep: 'Atualizar objetivos estratégicos de cada conta.',
-    callouts: [
-      { id: 1, title: 'Identidade', desc: 'Cromia e nicho do parceiro.', top: '30%', left: '10%' },
-      { id: 2, title: 'Foco e Objetivo', desc: 'Meta trimestral definida.', top: '50%', left: '50%' }
+    aba: 'CLIENTES',
+    rotulo: 'Ecossistema de Stakeholders',
+    subtitulo: 'Gestão de branding e segmentação da carteira.',
+    proximoPasso: 'Atualizar objetivos estratégicos de cada conta.',
+    chamadas: [
+      { id: 1, titulo: 'Identidade', desc: 'Cromia e nicho do parceiro.', top: '30%', left: '10%' },
+      { id: 2, titulo: 'Foco e Objetivo', desc: 'Meta trimestral definida.', top: '50%', left: '50%' }
     ]
   },
   RDC: {
-    tab: 'RDC',
-    label: 'Matriz de Validação Científica',
-    subtitle: 'Priorização de conteúdo baseada em dados objetivos.',
-    nextStep: 'Agendar as ideias marcadas como "Implementar já".',
-    callouts: [
-      { id: 1, title: 'Validação Objetiva', desc: 'Resolução, Demanda e Competição.', top: '35%', left: '15%' },
-      { id: 2, title: 'Decisão Ágil', desc: 'Filtro automático do que gera ROI.', top: '60%', left: '70%' }
+    aba: 'RDC',
+    rotulo: 'Matriz de Validação Científica',
+    subtitulo: 'Priorização de conteúdo baseada em dados objetivos.',
+    proximoPasso: 'Agendar as ideias marcadas como "Implementar já".',
+    chamadas: [
+      { id: 1, titulo: 'Validação Objetiva', desc: 'Resolução, Demanda e Competição.', top: '35%', left: '15%' },
+      { id: 2, titulo: 'Decisão Ágil', desc: 'Filtro automático do que gera ROI.', top: '60%', left: '70%' }
     ]
   },
   COBO: {
-    tab: 'COBO',
-    label: 'Mix de Distribuição (COBO)',
-    subtitle: 'Estrutura de canais e frequência de veiculação.',
-    nextStep: 'Garantir que a frequência sugerida está sendo cumprida.',
-    callouts: [
-      { id: 1, title: 'Intenção por Canal', desc: 'Onde focar em atenção vs relacionamento.', top: '25%', left: '20%' },
-      { id: 2, title: 'Formatos Táticos', desc: 'Adequação de peça para cada veículo.', top: '55%', left: '60%' }
+    aba: 'COBO',
+    rotulo: 'Mix de Distribuição (COBO)',
+    subtitulo: 'Estrutura de canais e frequência de veiculação.',
+    proximoPasso: 'Garantir que a frequência sugerida está sendo cumprida.',
+    chamadas: [
+      { id: 1, titulo: 'Intenção por Canal', desc: 'Onde focar em atenção vs relacionamento.', top: '25%', left: '20%' },
+      { id: 2, titulo: 'Formatos Táticos', desc: 'Adequação de peça para cada veículo.', top: '55%', left: '60%' }
     ]
   },
   MATRIZ: {
-    tab: 'MATRIZ',
-    label: 'DNA de Conteúdo',
-    subtitle: 'Definição de pilares e autoridade de marca.',
-    nextStep: 'Refinar os papéis Hero/Hub para a pauta mensal.',
-    callouts: [
-      { id: 1, title: 'Função Estratégica', desc: 'O papel de cada post no funil.', top: '30%', left: '15%' },
-      { id: 2, title: 'Resultado Projetado', desc: 'Expectativa de conversão ou engajamento.', top: '65%', left: '55%' }
+    aba: 'MATRIZ',
+    rotulo: 'DNA de Conteúdo',
+    subtitulo: 'Definição de pilares e autoridade de marca.',
+    proximoPasso: 'Refinar os papéis Hero/Hub para a pauta mensal.',
+    chamadas: [
+      { id: 1, titulo: 'Função Estratégica', desc: 'O papel de cada post no funil.', top: '30%', left: '15%' },
+      { id: 2, titulo: 'Resultado Projetado', desc: 'Expectativa de conversão ou engajamento.', top: '65%', left: '55%' }
     ]
   },
   PLANEJAMENTO: {
-    tab: 'PLANEJAMENTO',
-    label: 'Cronograma de Produção 2026',
-    subtitle: 'Execução tática com sincronia multicanal.',
-    nextStep: 'Iniciar produção das pautas agendadas para esta semana.',
-    callouts: [
-      { id: 1, title: 'Status Operacional', desc: 'Acompanhamento do pipeline de aprovação.', top: '25%', left: '70%' },
-      { id: 2, title: 'Biblioteca Integrada', desc: 'Puxar ideias validadas no RDC.', top: '55%', left: '15%' }
+    aba: 'PLANEJAMENTO',
+    rotulo: 'Cronograma de Produção 2026',
+    subtitulo: 'Execução tática com sincronia multicanal.',
+    proximoPasso: 'Iniciar produção das pautas agendadas para esta semana.',
+    chamadas: [
+      { id: 1, titulo: 'Status Operacional', desc: 'Acompanhamento do pipeline de aprovação.', top: '25%', left: '70%' },
+      { id: 2, titulo: 'Biblioteca Integrada', desc: 'Puxar ideias validadas no RDC.', top: '55%', left: '15%' }
     ]
   },
   FINANCAS: {
-    tab: 'FINANCAS',
-    label: 'Gestão Financeira e Fluxo',
-    subtitle: 'Controle de rentabilidade e distribuição de resultados.',
-    nextStep: 'Revisar saldo líquido e provisionar repasses.',
-    callouts: [
-      { id: 1, title: 'Saldo Operacional', desc: 'Visão de entradas vs saídas reais.', top: '25%', left: '15%' },
-      { id: 2, title: 'Regra de Lucros', desc: 'Divisão estratégica 30/30/40.', top: '60%', left: '70%' }
+    aba: 'FINANCAS',
+    rotulo: 'Gestão Financeira e Fluxo',
+    subtitulo: 'Controle de rentabilidade e distribuição de resultados.',
+    proximoPasso: 'Revisar saldo líquido e provisionar repasses.',
+    chamadas: [
+      { id: 1, titulo: 'Saldo Operacional', desc: 'Visão de entradas vs saídas reais.', top: '25%', left: '15%' },
+      { id: 2, titulo: 'Regra de Lucros', desc: 'Divisão estratégica 30/30/40.', top: '60%', left: '70%' }
     ]
   },
   TAREFAS: {
-    tab: 'TAREFAS',
-    label: 'Workflow de Operações',
-    subtitle: 'Pipeline de design, copy e atendimento.',
-    nextStep: 'Desbloquear tarefas em aprovação.',
-    callouts: [
-      { id: 1, title: 'Vínculo Direto', desc: 'Tarefa ligada ao post do plano.', top: '30%', left: '15%' },
-      { id: 2, title: 'Prioridade ClickUp', desc: 'Foco total no que é urgente.', top: '60%', left: '70%' }
+    aba: 'TAREFAS',
+    rotulo: 'Workflow de Operações',
+    subtitulo: 'Pipeline de design, copy e atendimento.',
+    proximoPasso: 'Desbloquear tarefas em aprovação.',
+    chamadas: [
+      { id: 1, titulo: 'Vínculo Direto', desc: 'Tarefa ligada ao post do plano.', top: '30%', left: '15%' },
+      { id: 2, titulo: 'Prioridade ClickUp', desc: 'Foco total no que é urgente.', top: '60%', left: '70%' }
     ]
   },
   VH: {
-    tab: 'VH',
-    label: 'Gestão de Valor Hora',
-    subtitle: 'Engenharia operacional e lucratividade.',
-    nextStep: 'Avaliar contratos com carga operacional acima do esperado.',
-    callouts: [
-      { id: 1, title: 'Custo de Hora Real', desc: 'Quanto custa 60min de agência.', top: '25%', left: '15%' },
-      { id: 2, title: 'Carga Horária', desc: 'Resultado operacional por cliente.', top: '60%', left: '75%' }
+    aba: 'VH',
+    rotulo: 'Gestão de Valor Hora',
+    subtitulo: 'Engenharia operacional e lucratividade.',
+    proximoPasso: 'Avaliar contratos com carga operacional acima do esperado.',
+    chamadas: [
+      { id: 1, titulo: 'Custo de Hora Real', desc: 'Quanto custa 60min de agência.', top: '25%', left: '15%' },
+      { id: 2, titulo: 'Carga Horária', desc: 'Resultado operacional por cliente.', top: '60%', left: '75%' }
     ]
   },
   ORGANICKIA: {
-    tab: 'ORGANICKIA',
-    label: 'OrganickAI 2.0',
-    subtitle: 'Inteligência Artificial aplicada ao Método Organick.',
-    nextStep: 'Utilizar a IA para gerar roteiros e ganchos de alta conversão.',
-    callouts: [
-      { id: 1, title: 'Cérebro Estratégico', desc: 'Briefing consolidado para ganchos magnéticos.', top: '30%', left: '20%' },
-      { id: 2, title: 'Integração Direta', desc: 'Dados reais transformados em criatividade.', top: '55%', left: '70%' }
+    aba: 'ORGANICKIA',
+    rotulo: 'OrganickAI 2.0',
+    subtitulo: 'Inteligência Artificial aplicada ao Método Organick.',
+    proximoPasso: 'Utilizar a IA para gerar roteiros e ganchos de alta conversão.',
+    chamadas: [
+      { id: 1, titulo: 'Cérebro Estratégico', desc: 'Briefing consolidado para ganchos magnéticos.', top: '30%', left: '20%' },
+      { id: 2, titulo: 'Integração Direta', desc: 'Dados reais transformados em criatividade.', top: '55%', left: '70%' }
     ]
+  },
+  WHITEBOARD: {
+    aba: 'WHITEBOARD',
+    rotulo: 'Ecossistema Visual (Whiteboard)',
+    subtitulo: 'Mapeamento de ideias e conexões estratégicas.',
+    proximoPasso: 'Consolidar as conexões visuais no plano tático.',
+    chamadas: []
+  },
+  IA_HISTORY: {
+    aba: 'IA_HISTORY',
+    rotulo: 'Log de Inteligência',
+    subtitulo: 'Histórico de conversas e insights gerados pela IA.',
+    proximoPasso: 'Reativar insights antigos para novas campanhas.',
+    chamadas: []
+  },
+  WORKSPACE: {
+    aba: 'WORKSPACE',
+    rotulo: 'Configuração de Workspace',
+    subtitulo: 'Gestão de membros e ativos do ecossistema.',
+    proximoPasso: 'Garantir que todos os membros tenham acesso aos ativos.',
+    chamadas: []
   }
 };
 
 interface PresentationSlideProps {
-  tab: TableType;
-  config: PresentationConfig;
+  tab: TipoTabela;
+  config: ConfiguracaoApresentacao;
   data: {
-    clients: Client[];
-    rdc: RdcItem[];
-    planning: PlanejamentoItem[];
-    tasks: Task[];
-    cobo: CoboItem[];
-    matriz: MatrizEstrategicaItem[];
-    finances: any[]; // Fallback neutro
+    clients: Cliente[];
+    rdc: ItemRdc[];
+    planning: ItemPlanejamento[];
+    tasks: Tarefa[];
+    cobo: ItemCobo[];
+    matriz: ItemMatrizEstrategica[];
+    finances: any[];
   };
   clientColor?: string;
-  selectedClient?: Client;
+  selectedClient?: Cliente;
 }
 
 export const PresentationSlide: React.FC<PresentationSlideProps> = ({ tab, config, data, clientColor, selectedClient }) => {
   const template = TAB_TEMPLATES[tab];
-  const isDark = config.theme === 'dark';
+  const isDark = config.tema === 'dark';
   const bgColor = isDark ? '#0B0F19' : '#F9FAFB';
   const textColor = isDark ? '#F9FAFB' : '#0B0F19';
   const accentColor = clientColor || '#3B82F6';
@@ -190,14 +210,14 @@ export const PresentationSlide: React.FC<PresentationSlideProps> = ({ tab, confi
       case 'TAREFAS':
         return (
           <div className="space-y-4">
-            {(data?.tasks || []).filter(t => t.Status !== 'arquivado').slice(0, 5).map(t => (
+            {(data?.tasks || []).filter(t => !t.__arquivado).slice(0, 5).map(t => (
               <div key={t.id} className="p-3 border border-gray-700/30 bg-gray-900/40 rounded-xl flex items-center gap-3">
                 <div className="w-1 h-8 rounded-full bg-blue-500"></div>
                 <div className="flex-1">
                   <div className="text-[11px] font-black uppercase truncate tracking-tight">{t.Título}</div>
                   <div className="text-[9px] opacity-40 uppercase tracking-[0.1em] font-bold">{t.Responsável || 'Sem Resp.'} • {t.Status}</div>
                 </div>
-                <div className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${t.Prioridade === 'Urgente' ? 'bg-rose-500 text-white' : 'border border-gray-600'}`}>{t.Prioridade}</div>
+                <div className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${t.Prioridade === 'Alta' ? 'bg-rose-500 text-white' : 'border border-gray-600'}`}>{t.Prioridade}</div>
               </div>
             ))}
           </div>
@@ -242,11 +262,11 @@ export const PresentationSlide: React.FC<PresentationSlideProps> = ({ tab, confi
         <div className="flex flex-col gap-3">
           <h4 className="text-[10px] font-black uppercase tracking-[0.5em]" style={{ color: accentColor }}>EKKO STUDIOS — DOCUMENTAÇÃO DE ATIVOS</h4>
           <h1 className="text-7xl font-bold tracking-tighter leading-none uppercase">
-            {selectedClient ? `${selectedClient.Nome} — ` : ''}{template?.label || 'Apresentação'}
+            {selectedClient ? `${selectedClient.Nome} — ` : ''}{template?.rotulo || 'Apresentação'}
           </h1>
         </div>
         <p className="text-2xl font-medium mt-6 max-w-3xl leading-relaxed text-gray-400">
-          {template?.subtitle || 'Relatório operacional e tático.'}
+          {template?.subtitulo || 'Relatório operacional e tático.'}
         </p>
       </header>
 
@@ -258,14 +278,14 @@ export const PresentationSlide: React.FC<PresentationSlideProps> = ({ tab, confi
             {renderDataPreview()}
           </div>
 
-          {template?.callouts.map((c) => (
+          {template?.chamadas?.map((c) => (
             <div key={c.id} className="absolute z-20 flex flex-col items-center group pointer-events-none" style={{ top: c.top, left: c.left }}>
               <div className="w-12 h-12 rounded-full border-2 flex items-center justify-center font-black text-lg shadow-2xl backdrop-blur-md"
                 style={{ borderColor: accentColor, backgroundColor: isDark ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)', color: textColor }}>
                 {c.id}
               </div>
               <div className="mt-4 px-6 py-3 bg-black/80 backdrop-blur-xl rounded-2xl text-center border border-white/10 shadow-2xl min-w-[180px]">
-                <h5 className="text-[11px] font-black uppercase tracking-widest text-white mb-1">{c.title}</h5>
+                <h5 className="text-[11px] font-black uppercase tracking-widest text-white mb-1">{c.titulo}</h5>
                 <p className="text-[9px] text-gray-400 font-medium leading-tight">{c.desc}</p>
               </div>
             </div>
@@ -276,11 +296,11 @@ export const PresentationSlide: React.FC<PresentationSlideProps> = ({ tab, confi
           <div>
             <h3 className="text-[10px] font-black uppercase tracking-[0.4em] mb-8" style={{ color: accentColor }}>Propriedades da Aba</h3>
             <div className="space-y-10">
-              {template?.callouts.map((c) => (
+              {template?.chamadas?.map((c) => (
                 <div key={c.id} className="flex gap-6 items-start border-l-2 border-gray-800/30 pl-8 py-2">
                   <div className="text-4xl font-black opacity-10" style={{ color: accentColor }}>{String(c.id).padStart(2, '0')}</div>
                   <div>
-                    <h3 className="text-lg font-bold uppercase tracking-widest leading-none mb-2">{c.title}</h3>
+                    <h3 className="text-lg font-bold uppercase tracking-widest leading-none mb-2">{c.titulo}</h3>
                     <p className="text-sm font-semibold leading-relaxed text-gray-500">{c.desc}</p>
                   </div>
                 </div>
@@ -293,7 +313,7 @@ export const PresentationSlide: React.FC<PresentationSlideProps> = ({ tab, confi
       <footer className="mt-16 flex justify-between items-end border-t border-gray-800/20 pt-10">
         <div className="space-y-1">
           <div className="text-[9px] font-black tracking-[0.3em] uppercase opacity-30">MÉTODO ORGANICK — AGENCY INTELLIGENCE</div>
-          <div className="text-[10px] font-bold text-gray-400"><i className="fa-solid fa-arrow-right mr-2 opacity-40"></i>{template?.nextStep || 'Ação sugerida.'}</div>
+          <div className="text-[10px] font-bold text-gray-400"><i className="fa-solid fa-arrow-right mr-2 opacity-40"></i>{template?.proximoPasso || 'Ação sugerida.'}</div>
         </div>
         <div className="flex items-center gap-6">
           <div className="text-right">

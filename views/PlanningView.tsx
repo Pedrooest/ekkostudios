@@ -120,14 +120,14 @@ export function PlanningView({
                         plugins={[dayGridPlugin, interactionPlugin, listPlugin]}
                         initialView={window.innerWidth < 1024 ? "listWeek" : "dayGridMonth"}
                         events={filteredData.map((p: any) => {
-                            const client = clients.find((c: any) => c.id === p.Cliente_ID);
+                            const Cliente = clients.find((c: any) => c.id === p.Cliente_ID);
                             return {
                                 id: p.id,
                                 title: p.Conteúdo,
                                 start: p.Data + (p.Hora ? `T${p.Hora}` : ''),
-                                backgroundColor: client?.['Cor (HEX)'] || '#3B82F6',
+                                backgroundColor: Cliente?.['Cor (HEX)'] || '#3B82F6',
                                 borderColor: 'transparent',
-                                extendedProps: { ...p, clientName: client?.Nome || 'Geral' }
+                                extendedProps: { ...p, clientName: Cliente?.Nome || 'Geral' }
                             };
                         })}
                         height="auto"

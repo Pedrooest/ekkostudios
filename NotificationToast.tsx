@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { AppNotification } from './types';
+import { NotificacaoApp } from './types';
 
 interface Props {
-    notification: AppNotification;
+    notification: NotificacaoApp;
     onClose: (id: string) => void;
 }
 
@@ -26,7 +26,7 @@ export const NotificationToast: React.FC<Props> = ({ notification, onClose }) =>
     };
 
     const getIcon = () => {
-        switch (notification.type) {
+        switch (notification.tipo) {
             case 'success': return 'fa-circle-check text-emerald-400';
             case 'error': return 'fa-circle-xmark text-rose-500';
             case 'warning': return 'fa-triangle-exclamation text-amber-400';
@@ -50,10 +50,10 @@ export const NotificationToast: React.FC<Props> = ({ notification, onClose }) =>
                 <i className={`fa-solid ${getIcon().split(' ')[0]} ${getIcon().split(' ')[1]} mt-1 text-lg`}></i>
                 <div className="flex-1 min-w-0">
                     <h4 className="text-[11px] font-black uppercase tracking-[0.1em] text-white">
-                        {notification.title}
+                        {notification.titulo}
                     </h4>
                     <p className="text-[12px] font-medium text-gray-300 mt-0.5 leading-snug">
-                        {notification.message}
+                        {notification.mensagem}
                     </p>
                 </div>
                 <button

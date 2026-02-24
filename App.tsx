@@ -233,7 +233,7 @@ export default function App() {
   const [iaPdfInsight, setIaPdfInsight] = useState<string>('');
   const [iaHistory, setIaHistory] = useState<any[]>([]);
 
-  const [notifications, setNotifications] = useState<NotificacaoApp[]>([]);
+  const [notificacoes, setNotificacoes] = useState<NotificacaoApp[]>([]);
   const [toasts, setToasts] = useState<NotificacaoApp[]>([]);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const exportButtonRef = useRef<HTMLButtonElement>(null);
@@ -573,7 +573,7 @@ export default function App() {
   }, [currentWorkspace, loadWorkspaceData]);
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // SMART NOTIFICATIONS (CHECKS)
+  // SMART notificacoes (CHECKS)
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   useEffect(() => {
     console.log('ActiveTab Changed', { activeTab });
@@ -651,7 +651,7 @@ export default function App() {
       timestamp: new Date().toISOString(),
       lida: false
     };
-    setNotifications(prev => [newNotif, ...prev].slice(0, 50));
+    setNotificacoes(prev => [newNotif, ...prev].slice(0, 50));
   }, []);
 
 
@@ -1154,11 +1154,11 @@ export default function App() {
 
       {/* APPLE-STYLE NOTIFICATION TOAST OVERLAY (PATCH: BOTTOM-RIGHT) */}
       <div className="fixed bottom-6 z-[9999] pointer-events-none flex flex-col-reverse left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-6 items-center sm:items-end">
-        {notifications.slice(0, 2).map((n) => (
+        {notificacoes.slice(0, 2).map((n) => (
           <NotificationToast
             key={n.id}
             notification={n}
-            onClose={(id) => setNotifications(prev => prev.filter(x => x.id !== id))}
+            onClose={(id) => setNotificacoes(prev => prev.filter(x => x.id !== id))}
           />
         ))}
       </div>
@@ -1198,7 +1198,7 @@ export default function App() {
                 className="ios-btn p-2.5 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 dark:border-white/5 dark:bg-white/5 dark:text-zinc-400 dark:hover:text-white transition-colors active:scale-90 relative"
               >
                 <Bell size={18} />
-                {notifications.some(n => !n.lida) && (
+                {notificacoes.some(n => !n.lida) && (
                   <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-app-bg"></span>
                 )}
               </button>
@@ -1216,7 +1216,7 @@ export default function App() {
                     <button
                       onClick={() => {
                         playUISound('tap');
-                        setNotifications(prev => prev.map(n => ({ ...n, lida: true })));
+                        setNotificacoes(prev => prev.map(n => ({ ...n, lida: true })));
                       }}
                       className="ios-btn text-[9px] font-black uppercase text-blue-500 hover:text-app-text-strong transition-all"
                     >
@@ -1224,13 +1224,13 @@ export default function App() {
                     </button>
                   </div>
                   <div className="max-h-[450px] overflow-y-auto custom-scrollbar bg-app-surface">
-                    {notifications.length === 0 ? (
+                    {notificacoes.length === 0 ? (
                       <div className="p-12 text-center opacity-20">
                         <BellOff size={40} className="mx-auto mb-4" />
                         <p className="text-[10px] font-black uppercase tracking-widest">Silêncio absoluto</p>
                       </div>
                     ) : (
-                      notifications.map(n => (
+                      notificacoes.map(n => (
                         <div key={n.id} className={`p-5 border-b border-app-border/50 hover:bg-app-bg transition-all cursor-pointer group ${!n.lida ? 'bg-blue-500/5' : ''}`}>
                           <div className="flex gap-4">
                             <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 border ${n.tipo === 'success' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
@@ -1270,12 +1270,12 @@ export default function App() {
               >
                 <Sparkles size={14} /> <span className="hidden sm:inline">ASSISTENTE GEMINI</span>
               </button>
-              {PerfilUsuario && (
+              {perfilUsuario && (
                 <ProfilePopover
-                  profile={PerfilUsuario}
+                  profile={perfilUsuario}
                   tasks={tasks}
                   onUpdate={(updates) => {
-                    const newProfile = { ...PerfilUsuario, ...updates };
+                    const newProfile = { ...perfilUsuario, ...updates };
                     setPerfilUsuario(newProfile);
                     localStorage.setItem(`profile_${perfilUsuario.id}`, JSON.stringify(newProfile));
                   }}
@@ -1499,7 +1499,28 @@ export default function App() {
                             }
                           />
                         ) : (
-                          <PresentationSlide tab={activeTab} config={{ agencyName: 'EKKO STUDIOS', title: presentationBrief.title, subtitle: presentationBrief.subtitle, theme: 'dark', aspectRatio: '16:9', detailLevel: 'Completo' }} data={{ clients, rdc, planning: currentPlanejamento, finances: currentFinancas, tasks: currentTasks, cobo: currentCobo, matriz: currentMatriz }} selectedClient={currentClient} clientColor={currentClient?.['Cor (HEX)']} />
+                          <PresentationSlide
+                            tab={activeTab}
+                            config={{
+                              nomeAgencia: 'EKKO STUDIOS',
+                              titulo: presentationBrief?.titulo || '',
+                              subtitulo: presentationBrief?.subtitulo || '',
+                              tema: 'dark',
+                              proporcao: '16:9',
+                              nivelDetalhe: 'Completo'
+                            }}
+                            data={{
+                              clients: clients,
+                              rdc: currentRdc,
+                              planning: currentPlanejamento,
+                              tasks: currentTasks,
+                              cobo: currentCobo,
+                              matriz: currentMatriz,
+                              finances: currentFinancas
+                            }}
+                            selectedClient={currentClient || undefined}
+                            clientColor={currentClient?.['Cor (HEX)']}
+                          />
                         )}
                       </div>
                     </div>
@@ -1592,7 +1613,7 @@ export default function App() {
         )
       }
 
-      {/* Toast Notifications */}
+      {/* Toast notificacoes */}
       <div className="fixed top-4 right-4 z-[200] flex flex-col items-end gap-2 pointer-events-none">
         {toasts.map(t => (
           <NotificationToast

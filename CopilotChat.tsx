@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ChatMessage } from './types';
+import { MensagemChat } from './types';
 import { sendCopilotMessage } from './geminiService';
 
 interface CopilotChatProps {
@@ -9,7 +9,7 @@ interface CopilotChatProps {
 
 export const CopilotChat: React.FC<CopilotChatProps> = ({ appData }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<MensagemChat[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -23,9 +23,9 @@ export const CopilotChat: React.FC<CopilotChatProps> = ({ appData }) => {
   const handleSend = async () => {
     if (!inputValue.trim() || isLoading) return;
 
-    const userMsg: ChatMessage = {
+    const userMsg: MensagemChat = {
       role: 'user',
-      text: inputValue,
+      texto: inputValue,
       timestamp: new Date().toLocaleTimeString()
     };
 
@@ -35,9 +35,9 @@ export const CopilotChat: React.FC<CopilotChatProps> = ({ appData }) => {
 
     try {
       const responseText = await sendCopilotMessage(inputValue, messages, appData);
-      const modelMsg: ChatMessage = {
+      const modelMsg: MensagemChat = {
         role: 'model',
-        text: responseText,
+        texto: responseText,
         timestamp: new Date().toLocaleTimeString()
       };
       setMessages(prev => [...prev, modelMsg]);
@@ -88,7 +88,7 @@ export const CopilotChat: React.FC<CopilotChatProps> = ({ appData }) => {
                     ? 'bg-[#3B82F6] text-white rounded-tr-none'
                     : 'bg-[#1F2937] text-gray-200 rounded-tl-none border border-[#334155]/30'
                     }`}>
-                    <div className="whitespace-pre-wrap">{msg.text}</div>
+                    <div className="whitespace-pre-wrap">{msg.texto}</div>
                   </div>
                   <span className="text-[8px] font-black text-[#334155] uppercase mt-1 tracking-widest">{msg.timestamp}</span>
                 </div>

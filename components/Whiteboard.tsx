@@ -705,13 +705,13 @@ export function Whiteboard() {
                                         <div className="w-full h-full flex flex-col p-4 cursor-default no-drag">
                                             <input value={el.title} onChange={(e) => setElements(els => els.map(old => old.id === el.id ? { ...old, title: e.target.value } : old))} disabled={el.locked} className="w-full bg-transparent font-black text-sm outline-none mb-3" placeholder="Título da Lista" />
                                             <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2">
-                                                {el.tasks && el.tasks.map((task: any) => (
-                                                    <div key={task.id} className="flex items-start gap-2 group">
-                                                        <button disabled={el.locked} onClick={(e) => { e.stopPropagation(); toggleTask(el.id, task.id); }} className={`mt-0.5 shrink-0 transition-colors ${task.done ? 'text-emerald-500' : 'text-gray-400 hover:text-indigo-500'}`}>
-                                                            {task.done ? <CheckSquare size={16} /> : <Square size={16} />}
+                                                {el.tasks && el.tasks.map((Tarefa: any) => (
+                                                    <div key={Tarefa.id} className="flex items-start gap-2 group">
+                                                        <button disabled={el.locked} onClick={(e) => { e.stopPropagation(); toggleTask(el.id, Tarefa.id); }} className={`mt-0.5 shrink-0 transition-colors ${Tarefa.done ? 'text-emerald-500' : 'text-gray-400 hover:text-indigo-500'}`}>
+                                                            {Tarefa.done ? <CheckSquare size={16} /> : <Square size={16} />}
                                                         </button>
-                                                        <input disabled={el.locked} value={task.text} onChange={(e) => updateTaskText(el.id, task.id, e.target.value)} className={`flex-1 bg-transparent text-sm outline-none ${task.done ? 'line-through text-gray-400 opacity-60' : 'text-gray-800 dark:text-zinc-200'}`} placeholder="Nova tarefa..." />
-                                                        {!el.locked && <button onClick={(e) => { e.stopPropagation(); deleteTask(el.id, task.id); }} className="text-gray-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity"><X size={14} /></button>}
+                                                        <input disabled={el.locked} value={Tarefa.text} onChange={(e) => updateTaskText(el.id, Tarefa.id, e.target.value)} className={`flex-1 bg-transparent text-sm outline-none ${Tarefa.done ? 'line-through text-gray-400 opacity-60' : 'text-gray-800 dark:text-zinc-200'}`} placeholder="Nova tarefa..." />
+                                                        {!el.locked && <button onClick={(e) => { e.stopPropagation(); deleteTask(el.id, Tarefa.id); }} className="text-gray-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity"><X size={14} /></button>}
                                                     </div>
                                                 ))}
                                             </div>

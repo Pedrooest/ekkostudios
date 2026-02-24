@@ -21,7 +21,7 @@ export const generatePdfReport = async (config: ExportConfig): Promise<void> => 
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    const subtitle = `${config.subtitle} • ${config.client}`;
+    const subtitle = `${config.subtitle} • ${config.Cliente}`;
     doc.text(subtitle.toUpperCase(), margin, 32);
 
     doc.setFontSize(8);
@@ -136,6 +136,6 @@ export const generatePdfReport = async (config: ExportConfig): Promise<void> => 
     });
 
     // Save
-    const filename = `Relatorio_${config.tab}_${config.client.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+    const filename = `Relatorio_${config.tab}_${config.Cliente.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
     doc.save(filename);
 };

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button, Card, Badge } from './Components';
-import { TableType } from './types';
+import { TipoTabela } from './types';
 import { AssistantResponse, AssistantAction } from './ai/types';
 import { buildContext } from './ai/contextBuilder';
 import { renderPrompt } from './ai/promptTemplates';
@@ -10,7 +10,7 @@ import { callGemini, parseAssistantResponse } from './ai/geminiGateway';
 interface AssistantDrawerProps {
     isOpen: boolean;
     onClose: () => void;
-    activeTab: TableType;
+    activeTab: TipoTabela;
     appState: any;
     onApplyAction: (action: AssistantAction) => void;
 }

@@ -1,13 +1,13 @@
 
 import React, { useState } from 'react';
-import { TableType } from './types';
+import { TipoTabela } from './types';
 import { analyzeContextualData } from './geminiService';
 import { Button, Badge } from './Components';
 
 interface GeminiSidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  activeTab: TableType;
+  activeTab: TipoTabela;
   tabData: any;
 }
 

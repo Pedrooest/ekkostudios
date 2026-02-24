@@ -106,7 +106,7 @@ export function TaskFlowView({
 
                     {/* Deletion Bar integration */}
                     <DeletionBar count={selection.length} onDelete={() => onDelete(selection, 'TAREFAS')} onArchive={() => onArchive(selection, 'TAREFAS', true)} onClear={onClearSelection} />
-                    {/* New Task Button */}
+                    {/* New Tarefa Button */}
                     <button
                         onClick={() => onAdd('TAREFAS')}
                         className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 transition-all whitespace-nowrap"
@@ -137,21 +137,21 @@ export function TaskFlowView({
 
                                 {/* Column Tasks Area */}
                                 <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar pr-2 pb-2">
-                                    {filteredTasks.filter(t => t.Status === status.id).map(task => {
-                                        const client = clients.find((c: any) => c.id === task.Cliente_ID);
-                                        const prio = getPriorityInfo(task.Prioridade);
+                                    {filteredTasks.filter(t => t.Status === status.id).map(Tarefa => {
+                                        const Cliente = clients.find((c: any) => c.id === Tarefa.Cliente_ID);
+                                        const prio = getPriorityInfo(Tarefa.Prioridade);
 
                                         return (
                                             <div
-                                                key={task.id} onClick={() => onSelectTask(task.id)}
-                                                className={`bg-app-surface border border-app-border p-4 rounded-2xl shadow-sm hover:shadow-xl hover:border-blue-500/30 cursor-pointer transition-all group flex flex-col gap-3 relative overflow-hidden ${selection.includes(task.id) ? 'ring-2 ring-blue-500/50 bg-blue-500/5' : ''}`}
+                                                key={Tarefa.id} onClick={() => onSelectTask(Tarefa.id)}
+                                                className={`bg-app-surface border border-app-border p-4 rounded-2xl shadow-sm hover:shadow-xl hover:border-blue-500/30 cursor-pointer transition-all group flex flex-col gap-3 relative overflow-hidden ${selection.includes(Tarefa.id) ? 'ring-2 ring-blue-500/50 bg-blue-500/5' : ''}`}
                                             >
                                                 <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: status.cor }} />
 
-                                                {/* Top row: Client Tag & Priority */}
+                                                {/* Top row: Cliente Tag & Priority */}
                                                 <div className="flex justify-between items-start">
                                                     <span className="text-[9px] font-black uppercase tracking-widest text-app-text-muted truncate max-w-[180px]">
-                                                        {client?.Nome || 'Agência'}
+                                                        {Cliente?.Nome || 'Agência'}
                                                     </span>
                                                     <div className={`p-1 rounded flex items-center justify-center ${prio.color}`}>
                                                         <i className={`fa-solid ${prio.icon} text-[10px]`}></i>
@@ -160,17 +160,17 @@ export function TaskFlowView({
 
                                                 {/* Title */}
                                                 <h4 className="text-sm font-bold text-app-text-strong leading-snug group-hover:text-blue-500 transition-colors uppercase tracking-tight">
-                                                    {task.Título}
+                                                    {Tarefa.Título}
                                                 </h4>
 
                                                 {/* Bottom Row: Date, Comments, Assignee */}
                                                 <div className="flex items-center justify-between mt-1 pt-3 border-t border-app-border/50">
                                                     <div className="flex items-center gap-3 text-[10px] font-bold text-app-text-muted uppercase tracking-tight">
-                                                        <span className="flex items-center gap-1.5"><Clock size={12} /> {task.Data_Entrega || '--/--'}</span>
-                                                        {task.Comentarios && task.Comentarios.length > 0 && <span className="flex items-center gap-1.5"><MessageSquare size={12} /> {task.Comentarios.length}</span>}
+                                                        <span className="flex items-center gap-1.5"><Clock size={12} /> {Tarefa.Data_Entrega || '--/--'}</span>
+                                                        {Tarefa.Comentarios && Tarefa.Comentarios.length > 0 && <span className="flex items-center gap-1.5"><MessageSquare size={12} /> {Tarefa.Comentarios.length}</span>}
                                                     </div>
                                                     <div className="w-6 h-6 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center text-[10px] font-black border border-blue-500/20 group-hover:ring-4 group-hover:ring-blue-500/10 transition-all">
-                                                        {task.Responsável?.slice(0, 1).toUpperCase() || '?'}
+                                                        {Tarefa.Responsável?.slice(0, 1).toUpperCase() || '?'}
                                                     </div>
                                                 </div>
                                             </div>
@@ -204,22 +204,22 @@ export function TaskFlowView({
                                     </div>
 
                                     <div className="grid grid-cols-1 gap-2">
-                                        {statusTasks.map(task => {
-                                            const client = clients.find((c: any) => c.id === task.Cliente_ID);
-                                            const prio = getPriorityInfo(task.Prioridade);
+                                        {statusTasks.map(Tarefa => {
+                                            const Cliente = clients.find((c: any) => c.id === Tarefa.Cliente_ID);
+                                            const prio = getPriorityInfo(Tarefa.Prioridade);
                                             return (
                                                 <div
-                                                    key={task.id}
-                                                    onClick={() => onSelectTask(task.id)}
-                                                    className={`flex items-center gap-6 p-4 bg-app-surface border border-app-border rounded-2xl hover:border-blue-500/50 cursor-pointer transition-all group ${selection.includes(task.id) ? 'ring-2 ring-blue-500/50 bg-blue-500/5' : ''}`}
+                                                    key={Tarefa.id}
+                                                    onClick={() => onSelectTask(Tarefa.id)}
+                                                    className={`flex items-center gap-6 p-4 bg-app-surface border border-app-border rounded-2xl hover:border-blue-500/50 cursor-pointer transition-all group ${selection.includes(Tarefa.id) ? 'ring-2 ring-blue-500/50 bg-blue-500/5' : ''}`}
                                                 >
-                                                    <div className="flex items-center justify-center w-5 h-5 rounded border border-app-border group-hover:border-blue-500/50 bg-app-bg transition-all" onClick={e => { e.stopPropagation(); onSelect(task.id); }}>
-                                                        <input type="checkbox" checked={selection.includes(task.id)} readOnly className="w-3 h-3 text-blue-500 rounded focus:ring-0 bg-transparent border-none" />
+                                                    <div className="flex items-center justify-center w-5 h-5 rounded border border-app-border group-hover:border-blue-500/50 bg-app-bg transition-all" onClick={e => { e.stopPropagation(); onSelect(Tarefa.id); }}>
+                                                        <input type="checkbox" checked={selection.includes(Tarefa.id)} readOnly className="w-3 h-3 text-blue-500 rounded focus:ring-0 bg-transparent border-none" />
                                                     </div>
 
                                                     <div className="flex-1 min-w-0">
-                                                        <span className="text-[9px] font-black text-app-text-muted uppercase tracking-widest block mb-1 leading-none">{client?.Nome || 'Agência'}</span>
-                                                        <h5 className="text-sm font-bold text-app-text-strong uppercase truncate group-hover:text-blue-500 transition-colors">{task.Título}</h5>
+                                                        <span className="text-[9px] font-black text-app-text-muted uppercase tracking-widest block mb-1 leading-none">{Cliente?.Nome || 'Agência'}</span>
+                                                        <h5 className="text-sm font-bold text-app-text-strong uppercase truncate group-hover:text-blue-500 transition-colors">{Tarefa.Título}</h5>
                                                     </div>
 
                                                     <div className="flex items-center gap-10 shrink-0">
@@ -227,16 +227,16 @@ export function TaskFlowView({
                                                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${prio.color}`}>
                                                                 <i className={`fa-solid ${prio.icon} text-[10px]`}></i>
                                                             </div>
-                                                            <span className="text-[10px] font-black uppercase text-app-text-muted tracking-tight">{task.Prioridade}</span>
+                                                            <span className="text-[10px] font-black uppercase text-app-text-muted tracking-tight">{Tarefa.Prioridade}</span>
                                                         </div>
 
                                                         <div className="flex items-center gap-3 w-32 border-l border-app-border/50 pl-6">
                                                             <Clock size={12} className="text-app-text-muted" />
-                                                            <span className="text-[10px] font-black uppercase text-app-text-muted tracking-tight">{task.Data_Entrega || '--/--'}</span>
+                                                            <span className="text-[10px] font-black uppercase text-app-text-muted tracking-tight">{Tarefa.Data_Entrega || '--/--'}</span>
                                                         </div>
 
                                                         <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center text-[10px] font-black border border-blue-500/20">
-                                                            {task.Responsável?.slice(0, 1).toUpperCase() || '?'}
+                                                            {Tarefa.Responsável?.slice(0, 1).toUpperCase() || '?'}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -255,14 +255,14 @@ export function TaskFlowView({
                             plugins={[dayGridPlugin, interactionPlugin, listPlugin]}
                             initialView={isMobile ? "listWeek" : "dayGridMonth"}
                             events={filteredTasks.filter(t => t.Data_Entrega).map(t => {
-                                const client = clients.find((c: any) => c.id === t.Cliente_ID);
+                                const Cliente = clients.find((c: any) => c.id === t.Cliente_ID);
                                 return {
                                     id: t.id,
                                     title: t.Título,
                                     start: t.Data_Entrega + (t.Hora_Entrega ? `T${t.Hora_Entrega}` : ''),
-                                    backgroundColor: client?.['Cor (HEX)'] || '#3B82F6',
+                                    backgroundColor: Cliente?.['Cor (HEX)'] || '#3B82F6',
                                     borderColor: 'transparent',
-                                    extendedProps: { ...t, clientName: client?.Nome || 'Agência' }
+                                    extendedProps: { ...t, clientName: Cliente?.Nome || 'Agência' }
                                 };
                             })}
                             height="100%"
@@ -338,7 +338,7 @@ export function TaskDetailPanel({
     onUpdate, onArchive, onDelete, onAdd,
     viewMode, setViewMode
 }: TaskDetailPanelProps) {
-    const t = tasks.find((task: Tarefa) => task.id === taskId);
+    const t = tasks.find((Tarefa: Tarefa) => Tarefa.id === taskId);
     const [newCheckItem, setNewCheckItem] = useState('');
     const [uploading, setUploading] = useState(false);
     const [comment, setComment] = useState('');
@@ -417,7 +417,7 @@ export function TaskDetailPanel({
         setComment('');
     };
 
-    const client = clients.find((c: any) => c.id === t.Cliente_ID);
+    const Cliente = clients.find((c: any) => c.id === t.Cliente_ID);
 
     return (
         <div className="flex flex-col h-full bg-app-surface text-left overflow-hidden">
@@ -429,7 +429,7 @@ export function TaskDetailPanel({
                     </div>
                     <div>
                         <div className="text-[10px] font-black text-app-text-muted uppercase tracking-[0.2em] mb-0.5 leading-none">
-                            {client?.Nome || 'Agência'} • {t.Task_ID}
+                            {Cliente?.Nome || 'Agência'} • {t.Task_ID}
                         </div>
                         <h3 className="text-sm font-black text-app-text-strong uppercase tracking-tight">Detalhes de Tarefa</h3>
                     </div>
@@ -448,7 +448,7 @@ export function TaskDetailPanel({
             </div>
 
             <div className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-10">
-                {/* TASK TITLE */}
+                {/* Tarefa TITLE */}
                 <section>
                     <label className="text-[10px] font-black text-app-text-muted uppercase tracking-[0.2em] block mb-3 ml-1">Título</label>
                     <input

@@ -1,6 +1,6 @@
-import { TableType } from '../types';
+import { TipoTabela } from '../types';
 
-export function renderPrompt(tab: TableType, objective: string, mode: 'chat' | 'action', context: any, userNotes: string = ''): string {
+export function renderPrompt(tab: TipoTabela, objective: string, mode: 'chat' | 'action', context: any, userNotes: string = ''): string {
   const basePrompt = `Você é o Assistente Inteligente Organick.
   Atue como um estrategista sênior de agência de marketing.
   

@@ -93,7 +93,7 @@ export const SlideRenderer: React.FC<SlideRendererProps> = ({ config, elementId 
             <div id={elementId}>
                 <MasterExportSlide
                     tab={masterTab}
-                    clientName={config.client}
+                    clientName={config.Cliente}
                     date={new Date().toLocaleDateString('pt-BR')}
                     data={mappedData}
                 />
@@ -128,7 +128,7 @@ export const SlideRenderer: React.FC<SlideRendererProps> = ({ config, elementId 
                     </h1>
                 </div>
                 <div className="text-right">
-                    <p className="text-[#B7B7C2] text-xl font-medium uppercase tracking-widest">{config.client}</p>
+                    <p className="text-[#B7B7C2] text-xl font-medium uppercase tracking-widest">{config.Cliente}</p>
                     <p className="text-[#52525b] text-lg mt-1">{new Date().toLocaleDateString()}</p>
                 </div>
             </div>

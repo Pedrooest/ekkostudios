@@ -39,8 +39,8 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
             className="ios-btn flex items-center gap-3 p-1.5 pr-3 rounded-xl border border-transparent hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all focus:outline-none group"
         >
 
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-white shadow-md text-xs tracking-wider shrink-0 transition-transform group-active:scale-95 ${currentWorkspace?.color || 'bg-indigo-600'}`}>
-                {currentWorkspace?.name?.substring(0, 2).toUpperCase() || 'EK'}
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-white shadow-md text-xs tracking-wider shrink-0 transition-transform group-active:scale-95 ${currentWorkspace?.cor || 'bg-indigo-600'}`}>
+                {currentWorkspace?.nome?.substring(0, 2).toUpperCase() || 'EK'}
             </div>
             <div className="text-left hidden sm:block">
                 <p className="text-[10px] text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-widest leading-none mb-0.5">Workspace</p>
@@ -51,7 +51,7 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
                             <div className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.15s]"></div>
                             <div className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></div>
                         </div>
-                    ) : (currentWorkspace?.name || 'Selecione...')}
+                    ) : (currentWorkspace?.nome || 'Selecione...')}
                 </h2>
             </div>
             <ChevronDown size={16} className={`text-gray-400 dark:text-zinc-500 transition-transform duration-300 ml-auto sm:ml-0 ${isOpen ? 'rotate-180' : ''}`} />
@@ -63,12 +63,12 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
 
             {/* Cabeçalho de Identificação */}
             <div className="px-4 py-2 mb-1 flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-[10px] shrink-0 ${currentWorkspace?.color || 'bg-indigo-600'}`}>
-                    {currentWorkspace?.name?.substring(0, 2).toUpperCase() || 'EK'}
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-[10px] shrink-0 ${currentWorkspace?.cor || 'bg-indigo-600'}`}>
+                    {currentWorkspace?.nome?.substring(0, 2).toUpperCase() || 'EK'}
                 </div>
                 <div className="flex flex-col">
                     <span className="text-sm font-bold text-gray-900 dark:text-white leading-tight truncate max-w-[180px]">
-                        {currentWorkspace?.name || 'Meu Workspace'}
+                        {currentWorkspace?.nome || 'Meu Workspace'}
                     </span>
                     <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mt-0.5">
                         Ativo Agora
@@ -109,10 +109,10 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
                             onClick={() => { playUISound('tap'); onSelect(ws); setIsOpen(false); }}
                             className="ios-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 transition-colors text-sm font-medium text-left"
                         >
-                            <div className={`w-6 h-6 rounded flex items-center justify-center font-bold text-white text-[9px] shrink-0 ${ws.color || 'bg-gray-300'}`}>
-                                {ws.name.substring(0, 2).toUpperCase()}
+                            <div className={`w-6 h-6 rounded flex items-center justify-center font-bold text-white text-[9px] shrink-0 ${ws.cor || 'bg-gray-300'}`}>
+                                {ws.nome.substring(0, 2).toUpperCase()}
                             </div>
-                            <span className="truncate flex-1">{ws.name}</span>
+                            <span className="truncate flex-1">{ws.nome}</span>
                         </button>
                     ))}
                 </div>

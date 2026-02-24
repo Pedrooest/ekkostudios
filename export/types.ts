@@ -1,4 +1,4 @@
-import { TableType } from '../types';
+import { TipoTabela } from '../types';
 
 export interface ExportColumn {
     key: string;
@@ -15,10 +15,10 @@ export interface ExportMetric {
 }
 
 export interface ExportConfig {
-    tab: TableType;
+    tab: TipoTabela;
     title: string;
     subtitle: string;
-    client: string; // Client Name
+    Cliente: string; // Cliente Name
     data: any[];
     columns: ExportColumn[];
     metrics: ExportMetric[];

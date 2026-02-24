@@ -1,6 +1,6 @@
 
 import { GoogleGenerativeAI, Part } from "@google/generative-ai";
-import { GeminiSuggestion, ChatMessage, TableType } from "./types";
+import { SugestaoGemini, MensagemChat, TipoTabela } from "./types";
 
 // Lazy initialization to prevent crash on load if key is missing
 let genAIInstance: GoogleGenerativeAI | null = null;
@@ -103,7 +103,7 @@ export async function suggestGeminiContent(context: {
   canaisContext: string;
   estrategiaContext: string;
   rdcContext: string;
-}): Promise<GeminiSuggestion[]> {
+}): Promise<SugestaoGemini[]> {
   const prompt = `Você é o estrategista sênior da EKKO, especialista no Método Organick.
   CONTEXTO DO CLIENTE:
   - Nicho: ${context.nicho}
@@ -168,7 +168,7 @@ export async function transcribeAndExtractInsights(files: { data: string, mimeTy
  */
 export async function sendCopilotMessage(
   message: string,
-  history: ChatMessage[],
+  history: MensagemChat[],
   appContext: any
 ): Promise<string> {
   // Config Copilot Model
@@ -184,7 +184,7 @@ export async function sendCopilotMessage(
   const chat = model.startChat({
     history: history.map(msg => ({
       role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.text }]
+      parts: [{ text: msg.texto }]
     }))
   });
 
@@ -219,15 +219,15 @@ export async function generatePresentationBriefing(context: {
   Sua tarefa é gerar um conteúdo de slide estratégico e persuasivo.
   RETORNE APENAS UM JSON VÁLIDO no seguinte formato:
   {
-    "title": "Headline impactante e curta",
-    "subtitle": "Subtítulo estratégico explicando o valor desse dado",
-    "key_points": ["Ponto 1", "Ponto 2", "Ponto 3"],
-    "callouts": [
-      {"id": 1, "title": "Título Callout 1", "desc": "Explicação curta", "top": "20%", "left": "15%"},
-      {"id": 2, "title": "Título Callout 2", "desc": "Explicação curta", "top": "45%", "left": "70%"},
-      {"id": 3, "title": "Título Callout 3", "desc": "Explicação curta", "top": "60%", "left": "25%"}
+    "titulo": "Headline impactante e curta",
+    "subtitulo": "Subtítulo estratégico explicando o valor desse dado",
+    "pontos_chave": ["Ponto 1", "Ponto 2", "Ponto 3"],
+    "chamadas": [
+      {"id": 1, "titulo": "Título Callout 1", "desc": "Explicação curta", "top": "20%", "left": "15%"},
+      {"id": 2, "titulo": "Título Callout 2", "desc": "Explicação curta", "top": "45%", "left": "70%"},
+      {"id": 3, "titulo": "Título Callout 3", "desc": "Explicação curta", "top": "60%", "left": "25%"}
     ],
-    "next_step": "Próximo passo sugerido para a operação"
+    "proximo_passo": "Próximo passo sugerido para a operação"
   }`;
 
   try {
@@ -251,7 +251,7 @@ export async function generatePresentationBriefing(context: {
 /**
  * Contextual Analysis Function
  */
-export async function analyzeContextualData(tab: TableType, data: any): Promise<string> {
+export async function analyzeContextualData(tab: TipoTabela, data: any): Promise<string> {
   const promptTemplates: Record<string, string> = {
     DASHBOARD: "Analise o panorama geral...",
     CLIENTES: "Analise a lista de clientes...",

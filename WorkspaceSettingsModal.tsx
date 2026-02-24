@@ -13,23 +13,23 @@ interface WorkspaceSettingsModalProps {
 }
 
 export function WorkspaceSettingsModal({ workspace, onClose, onWorkspaceDeleted, onUpdateWorkspace }: WorkspaceSettingsModalProps) {
-    const [editWsName, setEditWsName] = useState(workspace.name);
-    const [editWsColor, setEditWsColor] = useState(workspace.color || 'bg-indigo-600');
+    const [editWsName, setEditWsName] = useState(workspace.nome);
+    const [editWsColor, setEditWsColor] = useState(workspace.cor || 'bg-indigo-600');
     const [loading, setLoading] = useState(false);
 
     const availableColors = ['bg-indigo-600', 'bg-blue-600', 'bg-emerald-600', 'bg-orange-500', 'bg-rose-600', 'bg-purple-600', 'bg-zinc-800'];
 
     useEffect(() => {
-        setEditWsName(workspace.name);
-        setEditWsColor(workspace.color || 'bg-indigo-600');
+        setEditWsName(workspace.nome);
+        setEditWsColor(workspace.cor || 'bg-indigo-600');
     }, [workspace]);
 
     const saveSettings = async () => {
         setLoading(true);
         try {
             const updated = await DatabaseService.updateWorkspace(workspace.id, {
-                name: editWsName,
-                color: editWsColor
+                nome: editWsName,
+                cor: editWsColor
             });
             playUISound('success');
             onUpdateWorkspace(updated);

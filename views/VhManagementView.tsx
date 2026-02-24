@@ -12,8 +12,8 @@ import { TableView } from '../components/TableView';
 import { Colaborador, Cliente } from '../types';
 
 interface VhManagementViewProps {
-    clients: Client[];
-    collaborators: Collaborator[];
+    clients: Cliente[];
+    collaborators: Colaborador[];
     setCollaborators: any;
     onUpdate: (id: string, table: string, field: string, value: any, silent?: boolean) => void;
     selection: string[];
@@ -30,7 +30,7 @@ export function VhManagementView({
     const formatBRL = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
     const handleUpdateCollab = (id: string, field: string, value: any) => {
-        setCollaborators((prev: Collaborator[]) => prev.map(c => c.id === id ? { ...c, [field]: value } : c));
+        setCollaborators((prev: Colaborador[]) => prev.map(c => c.id === id ? { ...c, [field]: value } : c));
     };
 
     const dashboardData = useMemo(() => {
@@ -236,7 +236,7 @@ export function VhManagementView({
                                                     <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-sm font-black border border-blue-500/20">{c.Nome.charAt(0)}</div>
                                                     <div>
                                                         <span className="text-sm font-black text-app-text-strong uppercase truncate max-w-[140px] block leading-none mb-1">{c.Nome}</span>
-                                                        <span className="text-[9px] font-bold text-app-text-muted uppercase tracking-widest opacity-60">{c.Papel || 'Time'}</span>
+                                                        <span className="text-xs text-app-text-muted uppercase tracking-[0.2em] font-medium">{c.Cargo || 'Sem Cargo'}</span>
                                                     </div>
                                                 </div>
                                             </td>

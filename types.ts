@@ -10,6 +10,7 @@ export interface Cliente {
   Observações: string;
   "Cor (HEX)": string;
   Status: 'Ativo' | 'Pausado' | 'Prospect';
+  Fee: number;
   __arquivado?: boolean;
 }
 
@@ -165,10 +166,12 @@ export interface Colaborador {
   id: string;
   Nome: string;
   Cargo: string;
+  Remuneracao: number;
   CustosIndividuais: number;
   ProLabore: number;
   HorasProdutivas: number;
   valorHora?: number;
+  calculatedVh?: number;
   horasMensais?: number;
 }
 

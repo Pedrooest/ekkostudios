@@ -1,4 +1,4 @@
-import { TableType } from '../types';
+import { TipoTabela } from '../types';
 
 export type AssistantMode = 'chat' | 'action';
 
@@ -44,7 +44,7 @@ export interface AssistantResponse {
 }
 
 export interface AssistantContext {
-    tab: TableType;
+    tab: TipoTabela;
     data: any;
     userNotes?: string;
 }

@@ -27,7 +27,7 @@ export const useExport = () => {
         // Needed to wait for render of hidden slide
         await new Promise(resolve => setTimeout(resolve, 1000));
         try {
-            await captureSlide(slideElementId, `Slide_Organick_${config.tab}_${config.client}`);
+            await captureSlide(slideElementId, `Slide_Organick_${config.tab}_${config.Cliente}`);
             return true;
         } catch (error) {
             console.error('PNG Export Error:', error);

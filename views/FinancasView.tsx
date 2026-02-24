@@ -2,25 +2,25 @@
 import React, { useState, useMemo } from 'react';
 import {
     TrendingUp, TrendingDown, Receipt, CreditCard, Wallet,
-    ArrowRight, Activity, DollarSign, Search, Plus
+    ArrowRight, Activity, DollarSign, Search, Plus, Target, Filter
 } from 'lucide-react';
 import { Card, Button, StatCard, DeletionBar } from '../Components';
 import { TableView } from '../components/TableView';
 import { playUISound } from '../utils/uiSounds';
-import { FINANCAS_SERVICOS_OPTIONS } from '../constants';
-import { FinancasLancamento, Client } from '../types';
+import { OPCOES_TIPO_FINANCAS, OPCOES_SERVICOS_FINANCAS } from '../constants';
+import { LancamentoFinancas, TipoTabela, Cliente } from '../types';
 
 interface FinancasViewProps {
-    data: FinancasLancamento[];
-    onUpdate: Function;
-    onDelete: Function;
-    onArchive: Function;
+    data: LancamentoFinancas[];
+    onUpdate: (id: string, tab: TipoTabela, field: string, value: any) => void;
+    onDelete: (ids: string[], tab: TipoTabela) => void;
+    onArchive: (ids: string[], tab: TipoTabela, archive: boolean) => void;
     onAdd: Function;
     selection: string[];
     onSelect: (id: string) => void;
     onClearSelection: () => void;
-    clients: Client[];
-    activeClient: Client | null;
+    clients: Cliente[];
+    activeClient: Cliente | null;
     onSelectClient: (id: string) => void;
 }
 
@@ -33,7 +33,7 @@ export function FinancasView({
 
     const totals = useMemo(() => {
         const res = { entradas: 0, saidas: 0, despesas: 0, assinaturas: 0 };
-        data.forEach((f: FinancasLancamento) => {
+        data.forEach((f: LancamentoFinancas) => {
             const v = f.Valor || 0;
             if (f.Tipo === 'Entrada') res.entradas += v;
             else if (f.Tipo === 'Saída') res.saidas += v;
@@ -55,7 +55,7 @@ export function FinancasView({
     };
 
     const quickCategories: any = {
-        'entrada': FINANCAS_SERVICOS_OPTIONS,
+        'entrada': OPCOES_SERVICOS_FINANCAS,
         'saida': ['Reembolso', 'Devolução', 'Pagamento Fornecedor', 'Outros'],
         'despesa': ['Equipamento', 'Software', 'Impostos', 'Marketing da Agência', 'Outros'],
         'assinatura': ['Ferramentas IA', 'Hospedagem', 'Bancos de Imagem', 'Outros']

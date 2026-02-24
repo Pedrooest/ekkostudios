@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { UserProfile, Task } from './types';
+import { PerfilUsuario, Tarefa } from './types';
 import { Button } from './Components';
 import { BottomSheet } from './components/BottomSheet';
 import { PortalPopover } from './components/PortalPopover';
@@ -8,9 +8,9 @@ import { Sparkles, X, ChevronDown, Activity, Calendar, Check, LogOut } from 'luc
 import { playUISound } from './utils/uiSounds';
 
 interface ProfilePopoverProps {
-    profile: UserProfile;
-    tasks: Task[];
-    onUpdate: (updatedProfile: Partial<UserProfile>) => void;
+    profile: PerfilUsuario;
+    tasks: Tarefa[];
+    onUpdate: (updatedProfile: Partial<PerfilUsuario>) => void;
     onLogout: () => void;
 }
 
@@ -79,15 +79,15 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
 
     const handleAddPriority = () => {
         if (!newPriority.trim()) return;
-        const priorities = [...(profile.priorities || []), newPriority.trim()];
-        onUpdate({ priorities });
+        const prioridades = [...(profile.prioridades || []), newPriority.trim()];
+        onUpdate({ prioridades });
         setNewPriority('');
         setIsAddingPriority(false);
     };
 
     const removePriority = (index: number) => {
-        const priorities = (profile.priorities || []).filter((_, i) => i !== index);
-        onUpdate({ priorities });
+        const prioridades = (profile.prioridades || []).filter((_, i) => i !== index);
+        onUpdate({ prioridades });
     };
 
     // Filter tasks for the logged in user

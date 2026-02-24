@@ -1,6 +1,6 @@
-import { TableType } from '../types';
+import { TipoTabela } from '../types';
 
-export function buildContext(tab: TableType, state: any): any {
+export function buildContext(tab: TipoTabela, state: any): any {
     const { clients, cobo, matriz, planejamento, rdc, tasks, financas, collaborators, vhConfig, systematicModeling } = state;
 
     switch (tab) {
@@ -67,7 +67,7 @@ export function buildContext(tab: TableType, state: any): any {
             };
 
         case 'MATRIZ':
-            // Try to find the first selected client to provide niche/objective context
+            // Try to find the first selected Cliente to provide niche/objective context
             const activeMatrizClient = state.clients.find((c: any) => state.selectedClientIds?.includes(c.id));
             return {
                 description: 'Matriz Estratégica de Conteúdo.',

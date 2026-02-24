@@ -5,7 +5,7 @@ import {
     Trash2, Sparkles, Loader2, Copy, FileImage, MessageSquare,
     ExternalLink, ShieldAlert, Eye, FolderOpen, Box, User,
     Radio, Target, Lightbulb, Calendar as LucideCalendar,
-    ChevronDown, Zap
+    ChevronDown, Zap, X, Plus
 } from 'lucide-react';
 import { Card, Button, SimpleMarkdown, DeletionBar, InputSelect } from '../Components';
 import { playUISound } from '../utils/uiSounds';
@@ -14,9 +14,10 @@ import {
     transcribeAndExtractInsights,
     extractStructuredDataFromPDF
 } from '../geminiService';
+import { Cliente } from '../types';
 
 interface OrganickIAViewProps {
-    clients: any[];
+    clients: Cliente[];
     cobo: any[];
     matriz: any[];
     rdc: any[];
@@ -29,7 +30,7 @@ interface OrganickIAViewProps {
     setPdfInsight: (insight: string) => void;
     history: any[];
     setHistory: any;
-    onArchive: (ids: string[], table: any, archived?: boolean) => void;
+    onArchive: (ids: string[], table: any, archived: boolean) => void;
     onDelete: (ids: string[], table: any) => void;
     showArchived: boolean;
     onGenerateSlide: (briefing: string) => void;
@@ -441,7 +442,7 @@ export function OrganickIAView({
                         <HistoryIcon className="text-app-text-muted" size={18} />
                         <h3 className="text-xs font-black uppercase text-app-text-strong tracking-[0.3em]">Histórico de Inteligência</h3>
                     </div>
-                    <DeletionBar count={selection.length} onDelete={() => onDelete(selection, 'IA_HISTORY')} onArchive={() => onArchive(selection, 'IA_HISTORY')} onClear={() => setSelection([])} />
+                    <DeletionBar count={selection.length} onDelete={() => onDelete(selection, 'IA_HISTORY')} onArchive={() => onArchive(selection, 'IA_HISTORY', true)} onClear={() => setSelection([])} />
                 </div>
 
                 {filteredHistory.length === 0 ? (
