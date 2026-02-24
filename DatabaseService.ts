@@ -1,74 +1,127 @@
 import { supabase } from './supabase';
 import {
-    Client, CoboItem, MatrizEstrategicaItem, RdcItem, PlanejamentoItem,
-    FinancasLancamento, Task, Collaborator, VhConfig, SystematicModelingData,
-    Workspace, WorkspaceMember, Invite
+    Cliente, ItemCobo, ItemMatrizEstrategica, ItemRdc, ItemPlanejamento,
+    LancamentoFinancas, Tarefa, Colaborador, VhConfig, DadosModelagemSistematica,
+    Workspace, MembroWorkspace, Convite
 } from './types';
+
+// Mapeamento de nomes de colunas do Banco para nomes em Português nas Interfaces
+const MAPA_COLUNAS: Record<string, Record<string, string>> = {
+    workspaces: {
+        owner_id: 'id_proprietario',
+        created_at: 'criado_em'
+    },
+    workspace_members: {
+        user_id: 'id_usuario',
+        role: 'papel',
+        joined_at: 'entrou_em'
+    },
+    invites: {
+        workspace_id: 'id_workspace',
+        expires_at: 'expira_em',
+        role: 'papel'
+    },
+    tasks: {
+        Checklist: 'Checklist',
+        Anexos: 'Anexos',
+        Comentarios: 'Comentarios',
+        Activities: 'Atividades',
+        created_at: 'Criado_Em',
+        updated_at: 'Atualizado_Em'
+    }
+};
+
+const mapToFrontend = (data: any, table: string) => {
+    if (!data) return data;
+    if (Array.isArray(data)) return data.map(item => mapToFrontend(item, table));
+
+    const mapa = MAPA_COLUNAS[table];
+    if (!mapa) return data;
+
+    const mapped: any = { ...data };
+    Object.entries(mapa).forEach(([dbKey, feKey]) => {
+        if (dbKey in mapped) {
+            mapped[feKey] = mapped[dbKey];
+            delete mapped[dbKey];
+        }
+    });
+
+    // Recursively map joined objects
+    if (table === 'workspaces' && data.workspace_members) {
+        mapped.membros_workspace = mapToFrontend(data.workspace_members, 'workspace_members');
+        delete mapped.workspace_members;
+    }
+    if (table === 'workspace_members' && data.profiles) {
+        mapped.perfis = data.profiles; // Profiles already match
+        delete mapped.profiles;
+    }
+
+    return mapped;
+};
+
+const mapToDB = (data: any, table: string) => {
+    if (!data) return data;
+    const mapa = MAPA_COLUNAS[table];
+    if (!mapa) return data;
+
+    const mapped: any = { ...data };
+    Object.entries(mapa).forEach(([dbKey, feKey]) => {
+        if (feKey in mapped) {
+            mapped[dbKey] = mapped[feKey];
+            delete mapped[feKey];
+        }
+    });
+    return mapped;
+};
 
 export const DatabaseService = {
     // WORKSPACES
-    async getMyWorkspaces() {
+    async getMyWorkspaces(): Promise<Workspace[]> {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return [];
 
-        // 1. Get workspaces I own
-        const { data: owned, error: ownError } = await supabase
+        const { data: owned } = await supabase
             .from('workspaces')
             .select('*, workspace_members(role, user_id)')
             .eq('owner_id', user.id)
             .order('created_at', { ascending: false });
 
-        // 2. Get workspaces I am a member of (but not owner)
-        // We first find the IDs from workspace_members to be safe against RLS recursion issues on the main table join
-        const { data: memberships, error: memberError } = await supabase
+        const { data: memberships } = await supabase
             .from('workspace_members')
             .select('workspace_id, role, user_id')
             .eq('user_id', user.id);
 
         let memberWorkspaces: any[] = [];
-
         if (memberships && memberships.length > 0) {
             const workspaceIds = memberships.map(m => m.workspace_id);
-            const { data: memberWs, error: mwError } = await supabase
+            const { data: memberWs } = await supabase
                 .from('workspaces')
-                .select('*, workspace_members(role, user_id)') // We still try to fetch members for role info
+                .select('*, workspace_members(role, user_id)')
                 .in('id', workspaceIds)
-                .neq('owner_id', user.id); // Exclude owned ones to avoid duplicates
+                .neq('owner_id', user.id);
 
-            if (!mwError && memberWs) {
-                memberWorkspaces = memberWs;
-            }
+            if (memberWs) memberWorkspaces = memberWs;
         }
 
         const allWorkspaces = [...(owned || []), ...memberWorkspaces];
-        // Deduplicate just in case
         const unique = Array.from(new Map(allWorkspaces.map(item => [item.id, item])).values());
+        const frontendWorkspaces = mapToFrontend(unique, 'workspaces');
 
-        return unique.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        return frontendWorkspaces.sort((a: any, b: any) => new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime());
     },
 
     async createWorkspace(name: string) {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('Not authenticated');
+        if (!user) throw new Error('Não autenticado');
 
-        // Guard: Wait for profile to be ready (prevents FK violation on owner_id)
-        // This is necessary because of the delay between signUp and the Postgres trigger finishing
         let profileExists = false;
         for (let i = 0; i < 5; i++) {
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('id')
-                .eq('id', user.id)
-                .single();
-            if (profile) {
-                profileExists = true;
-                break;
-            }
-            await new Promise(resolve => setTimeout(resolve, 500)); // Wait 500ms
+            const { data: profile } = await supabase.from('profiles').select('id').eq('id', user.id).single();
+            if (profile) { profileExists = true; break; }
+            await new Promise(resolve => setTimeout(resolve, 500));
         }
 
         if (!profileExists) {
-            // Last ditch effort: Try to insert profile ourselves if trigger failed
             await supabase.from('profiles').upsert({
                 id: user.id,
                 email: user.email,
@@ -85,46 +138,33 @@ export const DatabaseService = {
             .select()
             .single();
 
-        if (error) {
-            console.error('Error creating workspace:', error);
-            throw error;
-        }
-        return data;
+        if (error) throw error;
+        return mapToFrontend(data, 'workspaces');
     },
 
     async deleteWorkspace(id: string) {
-        const { error } = await supabase
-            .from('workspaces')
-            .delete()
-            .eq('id', id);
-
+        const { error } = await supabase.from('workspaces').delete().eq('id', id);
         if (error) throw error;
         return true;
     },
 
     async updateWorkspace(id: string, updates: any) {
-        const { data, error } = await supabase
-            .from('workspaces')
-            .update(updates)
-            .eq('id', id)
-            .select()
-            .single();
-
+        const dbUpdates = mapToDB(updates, 'workspaces');
+        const { data, error } = await supabase.from('workspaces').update(dbUpdates).eq('id', id).select().single();
         if (error) throw error;
-        return data;
+        return mapToFrontend(data, 'workspaces');
     },
 
-    async getWorkspaceMembers(elementId: string) {
+    async getWorkspaceMembers(workspaceId: string) {
         const { data, error } = await supabase
             .from('workspace_members')
             .select('*, profiles(full_name, email, avatar_url, role)')
-            .eq('workspace_id', elementId);
+            .eq('workspace_id', workspaceId);
 
         if (error) throw error;
-        return data;
+        return mapToFrontend(data, 'workspace_members');
     },
 
-    // INVITES
     async getWorkspaceInvites(workspaceId: string) {
         const { data, error } = await supabase
             .from('invites')
@@ -133,7 +173,7 @@ export const DatabaseService = {
             .gt('expires_at', new Date().toISOString());
 
         if (error) throw error;
-        return data;
+        return mapToFrontend(data, 'invites');
     },
 
     async createInvite(workspaceId: string, role: string = 'editor') {
@@ -147,34 +187,23 @@ export const DatabaseService = {
                 token,
                 role,
                 created_by: user?.id,
-                expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
+                expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
             })
             .select()
             .single();
 
         if (error) throw error;
-        return data;
+        return mapToFrontend(data, 'invites');
     },
 
     async acceptInvite(token: string) {
-        // Use RPC to bypass RLS for membership insertion
         const { data, error } = await supabase.rpc('accept_invite', { token_in: token });
-
-        if (error) {
-            console.error('Error accepting invite:', error);
-            throw new Error(error.message || 'Erro ao aceitar convite.');
-        }
-
+        if (error) throw new Error(error.message || 'Erro ao aceitar convite.');
         return data?.workspace_id;
     },
 
     async removeMember(workspaceId: string, userId: string) {
-        const { error } = await supabase
-            .from('workspace_members')
-            .delete()
-            .eq('workspace_id', workspaceId)
-            .eq('user_id', userId);
-
+        const { error } = await supabase.from('workspace_members').delete().eq('workspace_id', workspaceId).eq('user_id', userId);
         if (error) throw error;
         return true;
     },
@@ -185,23 +214,20 @@ export const DatabaseService = {
             .from(table)
             .select('*')
             .eq('workspace_id', workspaceId)
-            .or('__archived.is.null,__archived.eq.false'); // Handle potential nulls
+            .or('__archived.is.null,__archived.eq.false');
 
-        if (error) {
-            return [];
-        }
-        return data;
+        if (error) return [];
+        return mapToFrontend(data, table);
     },
 
     async syncItem(table: string, item: any, workspaceId: string) {
-        if (!item.id) {
-            console.error(`[EKKO-SYNC] SYNC_ERROR: Item missing ID in ${table}`);
-            return new Error('Missing ID');
-        }
+        if (!item.id) return new Error('ID ausente');
 
         const user = (await supabase.auth.getUser()).data.user;
+        const dbItem = mapToDB(item, table);
+
         const payload = {
-            ...item,
+            ...dbItem,
             workspace_id: workspaceId,
             updated_by: user?.id,
             updated_at: new Date().toISOString()
@@ -211,41 +237,21 @@ export const DatabaseService = {
             payload.created_by = user.id;
         }
 
-        const { error } = await supabase
-            .from(table)
-            .upsert(payload);
-
-        if (error) {
-            return error;
-        }
-
-        return null;
+        const { error } = await supabase.from(table).upsert(payload);
+        return error || null;
     },
 
     async updateItem(table: string, id: string, updates: any) {
-        const { error } = await supabase
-            .from(table)
-            .update({ ...updates, updated_at: new Date().toISOString() })
-            .eq('id', id);
-
-        if (error) {
-            return error;
-        }
-
-        return null;
+        const dbUpdates = mapToDB(updates, table);
+        const { error } = await supabase.from(table).update({ ...dbUpdates, updated_at: new Date().toISOString() }).eq('id', id);
+        return error || null;
     },
 
     async deleteItem(table: string, id: string) {
-        const { error } = await supabase
-            .from(table)
-            .delete()
-            .eq('id', id);
-
-        if (error) console.error(`Error deleting from ${table}:`, error);
+        const { error } = await supabase.from(table).delete().eq('id', id);
         return error;
     },
 
-    // SPECIFIC DATA FETCHERS (Typed)
     async fetchAllWorkspaceData(workspaceId: string) {
         const [clients, cobo, matriz, rdc, planning, financas, tasks, collaborators] = await Promise.all([
             this.fetchData('clients', workspaceId),

@@ -1,5 +1,5 @@
 
-export interface Client {
+export interface Cliente {
   id: string;
   Nome: string;
   Nicho: string;
@@ -10,23 +10,23 @@ export interface Client {
   Observações: string;
   "Cor (HEX)": string;
   Status: 'Ativo' | 'Pausado' | 'Prospect';
-  __archived?: boolean;
+  __arquivado?: boolean;
 }
 
-export interface CoboItem {
+export interface ItemCobo {
   id: string;
   Cliente_ID: string;
-  Canal: string; // Social Network
+  Canal: string; // Rede Social
   Frequência: string;
   Público: string;
   Voz: string;
   Zona: string;
   Intenção: string;
-  Formato: string; // Content Type
-  __archived?: boolean;
+  Formato: string; // Tipo de Conteúdo
+  __arquivado?: boolean;
 }
 
-export interface MatrizEstrategicaItem {
+export interface ItemMatrizEstrategica {
   id: string;
   Cliente_ID: string;
   Rede_Social: string;
@@ -35,10 +35,10 @@ export interface MatrizEstrategicaItem {
   "Papel estratégico": string;
   "Tipo de conteúdo": string;
   "Resultado esperado": string;
-  __archived?: boolean;
+  __arquivado?: boolean;
 }
 
-export interface RdcItem {
+export interface ItemRdc {
   id: string;
   Cliente_ID: string;
   "Ideia de Conteúdo": string;
@@ -49,10 +49,10 @@ export interface RdcItem {
   "Competição (1–5)": number;
   "Score (R×D×C)": number;
   Decisão: string;
-  __archived?: boolean;
+  __arquivado?: boolean;
 }
 
-export interface PlanejamentoItem {
+export interface ItemPlanejamento {
   id: string;
   Cliente_ID: string;
   Data: string;
@@ -75,10 +75,10 @@ export interface PlanejamentoItem {
   CTA?: string;
   Fonte_Origem?: 'RDC' | 'Estratégia' | 'COBO' | 'Tarefa' | 'IA' | 'Manual' | 'Gemini';
   Origem_ID?: string;
-  __archived?: boolean;
+  __arquivado?: boolean;
 }
 
-export interface FinancasLancamento {
+export interface LancamentoFinancas {
   id: string;
   Lancamento_ID: string;
   Data: string;
@@ -92,49 +92,49 @@ export interface FinancasLancamento {
   Data_Fim?: string;
   Dia_Pagamento?: number;
   Observações?: string;
-  __archived?: boolean;
+  __arquivado?: boolean;
 }
 
-export interface TaskChecklistItem {
+export interface ItemChecklistTarefa {
   id: string;
-  text: string;
-  completed: boolean;
+  texto: string;
+  concluido: boolean;
 }
 
-export interface TaskAttachment {
+export interface AnexoTarefa {
   id: string;
-  filename: string;
-  mimeType: string;
-  size: number;
-  data: string; // Base64 encoded data
-  createdAt: string;
+  nomeArquivo: string;
+  tipoMime: string;
+  tamanho: number;
+  dados: string; // Dados codificados em Base64
+  criadoEm: string;
 }
 
-export interface Subtask {
+export interface Subtarefa {
   id: string;
-  Task_ID: string;
-  text: string;
-  completed: boolean;
+  Tarefa_ID: string;
+  texto: string;
+  concluido: boolean;
 }
 
-export interface TaskComment {
+export interface ComentarioTarefa {
   id: string;
-  Task_ID: string;
+  Tarefa_ID: string;
   Autor: string;
   Texto: string;
   Data: string;
 }
 
-export interface TaskActivity {
+export interface AtividadeTarefa {
   id: string;
-  type: 'update' | 'upload' | 'comment' | 'status_change' | 'create';
-  user: string;
-  message: string;
+  tipo: 'update' | 'upload' | 'comment' | 'status_change' | 'create';
+  usuario: string;
+  mensagem: string;
   timestamp: string;
-  metadata?: any;
+  metadados?: any;
 }
 
-export interface Task {
+export interface Tarefa {
   id: string;
   Task_ID: string;
   Cliente_ID: string;
@@ -152,16 +152,16 @@ export interface Task {
   Relacionado_A?: 'RDC' | 'Planejamento' | 'COBO' | 'Matriz' | 'Nenhum';
   Relacionado_ID?: string;
   Relacionado_Conteudo?: string;
-  Checklist: TaskChecklistItem[];
-  Anexos?: TaskAttachment[];
-  Comentarios: TaskComment[];
-  Activities: TaskActivity[]; // Added for activity tracking
+  Checklist: ItemChecklistTarefa[];
+  Anexos?: AnexoTarefa[];
+  Comentarios: ComentarioTarefa[];
+  Atividades: AtividadeTarefa[];
   Criado_Em: string;
   Atualizado_Em: string;
-  __archived?: boolean;
+  __arquivado?: boolean;
 }
 
-export interface Collaborator {
+export interface Colaborador {
   id: string;
   Nome: string;
   Cargo: string;
@@ -177,8 +177,8 @@ export interface VhConfig {
   lucroDesejado: number;
 }
 
-export interface ClientVhMetric {
-  clientId: string;
+export interface MetricaClienteVh {
+  clienteId: string;
   nome: string;
   horasConsumidas: number;
   valorCobrado: number;
@@ -187,30 +187,30 @@ export interface ClientVhMetric {
   margem: number;
 }
 
-export interface TaskStatus {
+export interface StatusTarefa {
   id: string;
-  label: string;
-  order: number;
-  color: string;
+  rotulo: string;
+  ordem: number;
+  cor: string;
 }
 
-export interface TaskViewConfig {
+export interface ConfiguracaoVisaoTarefa {
   id: string;
-  name: string;
-  type: 'List' | 'Board' | 'Calendar';
-  filters: {
+  nome: string;
+  tipo: 'List' | 'Board' | 'Calendar';
+  filtros: {
     status?: string[];
-    priority?: string[];
+    prioridade?: string[];
     area?: string[];
-    client?: string[];
+    cliente?: string[];
   };
-  visibleColumns: string[];
-  sortBy: string;
-  sortOrder: 'asc' | 'desc';
-  groupBy: 'Status' | 'Cliente_ID' | 'Área' | 'Nenhum';
+  colunasVisiveis: string[];
+  ordenarPor: string;
+  ordemOrdenacao: 'asc' | 'desc';
+  agruparPor: 'Status' | 'Cliente_ID' | 'Área' | 'Nenhum';
 }
 
-export interface TaskTemplate {
+export interface ModeloTarefa {
   id: string;
   modelo: string;
   area: string;
@@ -218,31 +218,31 @@ export interface TaskTemplate {
   tags?: string[];
 }
 
-export type ContentLibrary = Record<string, string[]>;
+export type BibliotecaConteudo = Record<string, string[]>;
 
-export type TaskViewMode = 'sidebar' | 'modal' | 'fullscreen';
+export type ModoVisaoTarefa = 'sidebar' | 'modal' | 'fullscreen';
 
-export type TableType = 'DASHBOARD' | 'CLIENTES' | 'RDC' | 'MATRIZ' | 'COBO' | 'PLANEJAMENTO' | 'FINANCAS' | 'TAREFAS' | 'VH' | 'ORGANICKIA' | 'WHITEBOARD' | 'IA_HISTORY' | 'WORKSPACE';
+export type TipoTabela = 'DASHBOARD' | 'CLIENTES' | 'RDC' | 'MATRIZ' | 'COBO' | 'PLANEJAMENTO' | 'FINANCAS' | 'TAREFAS' | 'VH' | 'ORGANICKIA' | 'WHITEBOARD' | 'IA_HISTORY' | 'WORKSPACE';
 
-export interface PresentationConfig {
-  agencyName: string;
-  title: string;
-  subtitle: string;
-  theme: 'dark' | 'light';
-  aspectRatio: '16:9' | '9:16';
-  detailLevel: 'Resumido' | 'Completo';
-  useClientColor?: boolean;
+export interface ConfiguracaoApresentacao {
+  nomeAgencia: string;
+  titulo: string;
+  subtitulo: string;
+  tema: 'dark' | 'light';
+  proporcao: '16:9' | '9:16';
+  nivelDetalhe: 'Resumido' | 'Completo';
+  usarCorCliente?: boolean;
 }
 
-export interface PresentationTemplate {
-  tab: TableType;
-  label: string;
-  subtitle: string;
-  nextStep: string;
-  callouts: { id: number; title: string; desc: string; top: string; left: string }[];
+export interface ModeloApresentacao {
+  aba: TipoTabela;
+  rotulo: string;
+  subtitulo: string;
+  proximoPasso: string;
+  chamadas: { id: number; titulo: string; desc: string; top: string; left: string }[];
 }
 
-export interface GeminiSuggestion {
+export interface SugestaoGemini {
   ideia: string;
   funcao: string;
   tipo: string;
@@ -255,61 +255,62 @@ export interface GeminiSuggestion {
   c?: number;
 }
 
-export interface ChatMessage {
+export interface MensagemChat {
   role: 'user' | 'model';
-  text: string;
+  texto: string;
   timestamp: string;
 }
 
-export interface AppNotification {
+export interface NotificacaoApp {
   id: string;
-  type: 'info' | 'success' | 'warning' | 'error';
-  title: string;
-  message: string;
+  tipo: 'info' | 'success' | 'warning' | 'error';
+  titulo: string;
+  mensagem: string;
   timestamp: string;
-  read: boolean;
+  lida: boolean;
   actionUrl?: string;
-  metadata?: any;
+  metadados?: any;
 }
 
-export interface UserProfile {
+export interface PerfilUsuario {
   id: string;
   full_name: string;
   email: string;
   avatar_url?: string;
   role?: string;
   status: 'online' | 'ocupado' | 'ausente' | 'offline';
-  description?: string;
-  priorities?: string[];
+  descricao?: string;
+  prioridades?: string[];
 }
-export type SystematicModelingData = Record<string, Record<string, string>>; // clientId -> { "day-rowId": "value" }
+
+export type DadosModelagemSistematica = Record<string, Record<string, string>>; // clientId -> { "day-rowId": "value" }
 
 export interface Workspace {
   id: string;
-  name: string;
-  owner_id: string;
-  created_at: string;
-  color?: string;
-  workspace_members?: WorkspaceMember[];
+  nome: string;
+  id_proprietario: string;
+  criado_em: string;
+  cor?: string;
+  membros_workspace?: MembroWorkspace[];
 }
 
-export interface WorkspaceMember {
-  workspace_id: string;
-  user_id: string;
-  role: 'admin' | 'editor' | 'viewer';
-  joined_at: string;
-  profiles: {
+export interface MembroWorkspace {
+  id_workspace: string;
+  id_usuario: string;
+  papel: 'admin' | 'editor' | 'viewer';
+  entrou_em: string;
+  perfis: {
     full_name: string;
     email: string;
     avatar_url?: string;
   };
 }
 
-export interface Invite {
+export interface Convite {
   id: string;
-  workspace_id: string;
+  id_workspace: string;
   email?: string;
   token: string;
-  role: string;
-  expires_at: string;
+  papel: string;
+  expira_em: string;
 }

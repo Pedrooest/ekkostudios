@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Workspace, WorkspaceMember, Invite } from './types';
+import { Workspace, MembroWorkspace, Convite } from './types';
 import { DatabaseService } from './DatabaseService';
 import { X, Users, Link as LinkIcon, LogOut, Mail, Clock, Shield, ChevronDown } from 'lucide-react';
 import { playUISound } from './utils/uiSounds';
@@ -12,8 +12,8 @@ interface WorkspaceMembersModalProps {
 }
 
 export function WorkspaceMembersModal({ workspace, onClose, currentUserEmail }: WorkspaceMembersModalProps) {
-    const [members, setMembers] = useState<WorkspaceMember[]>([]);
-    const [invites, setInvites] = useState<Invite[]>([]);
+    const [members, setMembers] = useState<MembroWorkspace[]>([]);
+    const [invites, setInvites] = useState<Convite[]>([]);
     const [loading, setLoading] = useState(true);
     const [inviteRole, setInviteRole] = useState('editor');
     const [error, setError] = useState('');
@@ -61,7 +61,7 @@ export function WorkspaceMembersModal({ workspace, onClose, currentUserEmail }: 
         playUISound('tap');
         try {
             await DatabaseService.removeMember(workspace.id, userId);
-            setMembers(prev => prev.filter(m => m.user_id !== userId));
+            setMembers(prev => prev.filter(m => m.id_usuario !== userId));
         } catch (e) {
             console.error(e);
             alert('Erro ao remover membro.');
@@ -79,7 +79,7 @@ export function WorkspaceMembersModal({ workspace, onClose, currentUserEmail }: 
                 <div className="px-6 py-5 border-b border-gray-200 dark:border-zinc-800 flex justify-between items-start shrink-0">
                     <div>
                         <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight leading-tight uppercase">Gerir Membros</h2>
-                        <p className="text-xs text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-widest mt-1">{workspace.name}</p>
+                        <p className="text-xs text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-widest mt-1">{workspace.nome}</p>
                     </div>
                     <button onClick={() => { playUISound('close'); onClose(); }} className="ios-btn p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 dark:text-zinc-500 dark:hover:text-white dark:hover:bg-zinc-800 rounded-full bg-gray-50 dark:bg-zinc-900">
                         <X size={20} />
@@ -97,28 +97,26 @@ export function WorkspaceMembersModal({ workspace, onClose, currentUserEmail }: 
                                 <div className="p-8 text-center text-gray-500">Carregando membros...</div>
                             ) : (
                                 members.map(member => (
-                                    <div key={member.user_id} className="ios-btn flex items-center justify-between p-3.5 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-900/50 transition-colors group">
+                                    <div key={member.id_usuario} className="ios-btn flex items-center justify-between p-3.5 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-900/50 transition-colors group">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400 flex items-center justify-center text-sm font-bold shrink-0 border border-black/5 dark:border-white/5">
-                                                {member.profiles?.full_name?.substring(0, 2).toUpperCase() || 'US'}
+                                                {member.perfis?.full_name?.substring(0, 2).toUpperCase() || 'US'}
                                             </div>
                                             <div className="flex flex-col">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-sm font-bold text-gray-900 dark:text-zinc-200 leading-none">{member.profiles?.full_name}</span>
-                                                    {member.profiles?.email === currentUserEmail && (
+                                                    <span className="text-sm font-bold text-gray-900 dark:text-zinc-200 leading-none">{member.perfis?.full_name}</span>
+                                                    {member.perfis?.email === currentUserEmail && (
                                                         <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-indigo-600 text-white leading-none">Você</span>
                                                     )}
                                                 </div>
-                                                <span className="text-xs text-gray-500 dark:text-zinc-500 mt-1 leading-none">{member.profiles?.email}</span>
+                                                <span className="text-xs text-gray-500 dark:text-zinc-500 mt-1 leading-none">{member.perfis?.email}</span>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4">
-                                            <span className={`text-sm font-medium ${member.profiles?.email === currentUserEmail ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-600 dark:text-zinc-400'}`}>
-                                                {member.role?.toUpperCase()}
-                                            </span>
-                                            {member.profiles?.email !== currentUserEmail && (
+                                            {member.papel?.toUpperCase()}
+                                            {member.perfis?.email !== currentUserEmail && (
                                                 <button
-                                                    onClick={() => handleRemoveMember(member.user_id)}
+                                                    onClick={() => handleRemoveMember(member.id_usuario)}
                                                     className="ios-btn p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 dark:text-zinc-500 dark:hover:text-rose-400 dark:hover:bg-rose-500/10 rounded-xl transition-colors opacity-0 group-hover:opacity-100"
                                                     title="Remover Acesso"
                                                 >
@@ -148,7 +146,7 @@ export function WorkspaceMembersModal({ workspace, onClose, currentUserEmail }: 
                                         value={inviteEmail}
                                         onChange={(e) => setInviteEmail(e.target.value)}
                                         placeholder="Email do colaborador..."
-                                        className="w-full h-12 bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white text-sm font-medium rounded-xl pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-shadow placeholder-gray-400 dark:placeholder-zinc-500"
+                                        className="w-full h-12 bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white text-sm font-medium rounded-xl pl-14 pr-4 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-shadow placeholder-gray-400 dark:placeholder-zinc-500"
                                     />
                                 </div>
                                 <div className="sm:w-40 relative shrink-0">
@@ -188,10 +186,10 @@ export function WorkspaceMembersModal({ workspace, onClose, currentUserEmail }: 
                                             </div>
                                             <div className="flex flex-col">
                                                 <span className="text-sm font-bold text-gray-700 dark:text-zinc-300 leading-none mb-1">
-                                                    Link Ativo ({invite.role})
+                                                    Link Ativo ({invite.papel})
                                                 </span>
                                                 <span className="text-[10px] text-gray-400 dark:text-zinc-500 leading-none">
-                                                    Expira em: {new Date(invite.expires_at).toLocaleDateString()}
+                                                    Expira em: {new Date(invite.expira_em).toLocaleDateString()}
                                                 </span>
                                             </div>
                                         </div>

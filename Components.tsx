@@ -362,3 +362,141 @@ export const SimpleMarkdown = ({ content }: { content: string }) => {
     />
   );
 };
+
+export const DeletionBar: React.FC<{ count: number; onDelete: () => void; onArchive: () => void; onClear: () => void }> = ({ count, onDelete, onArchive, onClear }) => {
+  if (count === 0) return null;
+  return (
+    <div className="flex items-center gap-2 px-3 py-1.5 bg-rose-500/10 border border-rose-500/20 rounded-lg animate-fade pointer-events-auto">
+      <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest">{count} Selecionados</span>
+      <div className="w-px h-4 bg-rose-500/20 mx-1"></div>
+      <button onClick={onArchive} className="text-app-text-muted hover:text-app-text-strong text-[10px] font-black uppercase tracking-widest transition-all">Arquivar</button>
+      <button onClick={onDelete} className="text-rose-500 hover:text-rose-400 text-[10px] font-black uppercase tracking-widest transition-all ml-2">Excluir Permanente</button>
+      <button onClick={onClear} className="text-[#4B5563] hover:text-app-text-strong text-[10px] font-black uppercase tracking-widest transition-all ml-1 underline">Limpar</button>
+    </div>
+  );
+};
+
+export const StatCard: React.FC<{ label: string; value: string | number; icon?: string; color?: "emerald" | "rose" | "blue" | "orange" | "slate"; onClick?: (e: React.MouseEvent) => void; active?: boolean }> = ({ label, value, icon, color = "blue", onClick, active }) => {
+  const colors: any = { emerald: "text-emerald-500", rose: "text-rose-500", blue: "text-[#3B82F6]", orange: "text-orange-500", slate: "text-slate-400" };
+  const borderColors: any = { emerald: "border-emerald-500/30 bg-emerald-500/5", rose: "border-rose-500/30 bg-rose-500/5", blue: "border-[#3B82F6]/30 bg-[#3B82F6]/5", orange: "border-orange-500/30 bg-orange-500/5", slate: "border-slate-400/30 bg-slate-400/5" };
+
+  return (
+    <div
+      onClick={(e) => {
+        if (onClick) {
+          playUISound('tap');
+          onClick(e);
+        }
+      }}
+      className={`ios-btn p-4 md:p-6 rounded-2xl md:rounded-3xl border ${active ? borderColors[color] : 'bg-app-surface border-app-border'} flex flex-col gap-3 md:gap-4 transition-all ${onClick ? 'cursor-pointer hover:border-[#3B82F6]/20' : ''} shadow-xl group w-full`}
+    >
+      <div className="flex justify-between items-start">
+        <span className={`text-[9px] font-black tracking-[0.2em] transition-colors uppercase flex-1 ${active ? 'text-app-text-strong' : 'text-app-text-muted group-hover:text-app-text-strong'}`}>{label}</span>
+        {icon && <i className={`fa-solid ${icon} transition-colors shrink-0 ml-2 ${active ? colors[color] : 'text-[#334155] group-hover:text-[#3B82F6]'}`}></i>}
+      </div>
+      <p className={`text-2xl md:text-3xl font-black tracking-tighter leading-none break-all ${colors[color]}`}>{value}</p>
+    </div>
+  );
+};
+
+export const LibraryEditorModal: React.FC<{ library: any; onClose: () => void }> = ({ library, onClose }) => {
+  return (
+    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-md md:p-10 pointer-events-auto text-left">
+      <div className="w-full h-full md:h-[80vh] md:max-w-4xl bg-app-surface-2 border border-app-border md:rounded-[30px] shadow-2xl flex flex-col">
+        <div className="h-20 flex items-center justify-between px-10 border-b border-app-border">
+          <h3 className="text-xl font-bold uppercase text-app-text-strong">Biblioteca de Formatos</h3>
+          <button onClick={() => { playUISound('tap'); onClose(); }} className="ios-btn text-app-text-muted hover:text-app-text-strong">
+            <i className="fa-solid fa-xmark text-2xl"></i>
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-10 custom-scrollbar space-y-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            {Object.keys(library).map(net => (
+              <div key={net} className="p-6 rounded-2xl bg-app-surface border border-app-border space-y-4">
+                <h4 className="text-sm font-black text-[#3B82F6] uppercase">{net}</h4>
+                <div className="flex flex-wrap gap-2">
+                  {library[net].map((type: string, idx: number) => (
+                    <Badge key={idx} color="slate">{type}</Badge>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="p-10 border-t border-app-border text-right">
+          <Button onClick={onClose}>Fechar</Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+import { TipoTabela } from './types';
+import { ROTULOS_TABELAS } from './constants';
+
+export const ReorderTabsModal: React.FC<{ tabOrder: TipoTabela[]; setTabOrder: (order: TipoTabela[]) => void; onClose: () => void }> = ({ tabOrder, onClose }) => {
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-10 pointer-events-auto text-left">
+      <div className="w-full max-w-lg bg-app-surface-2 border border-app-border rounded-2xl shadow-2xl p-8 flex flex-col">
+        <h3 className="text-xl font-bold uppercase text-app-text-strong mb-6">Ordem das Abas</h3>
+        <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-2 mb-8">
+          {tabOrder.map((tab) => (
+            <div key={tab} className="flex items-center gap-4 p-4 rounded-xl border border-app-border bg-app-surface">
+              <span className="text-xs font-black uppercase text-app-text-strong">{ROTULOS_TABELAS[tab]}</span>
+            </div>
+          ))}
+        </div>
+        <Button onClick={onClose} className="w-full h-12 !bg-[#3B82F6]">Fechar</Button>
+      </div>
+    </div>
+  );
+};
+
+export const ColorPickerModal: React.FC<{ target: { id: string; value: string }; onClose: () => void; onConfirm: (color: string) => void }> = ({ target, onClose, onConfirm }) => {
+  const PRESETS = [
+    '#3B82F6', '#10b981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899',
+    '#14B8A6', '#6366F1', '#F43F5E', '#84CC16', '#06B6D4', '#D946EF',
+    '#1E293B', '#64748B', '#94A3B8', '#CBD5E1'
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade pointer-events-auto" onClick={onClose}>
+      <div className="bg-app-surface-2 border border-app-border rounded-3xl p-8 shadow-2xl space-y-6 w-full max-w-sm transform transition-all scale-100" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-black uppercase text-app-text-strong tracking-widest">Escolher Cor</h3>
+          <button onClick={() => { playUISound('tap'); onClose(); }} className="ios-btn text-app-text-muted hover:text-app-text-strong transition-colors"><i className="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+
+        <div className="grid grid-cols-4 gap-4">
+          {PRESETS.map(color => (
+            <button
+              key={color}
+              onClick={() => { playUISound('tap'); onConfirm(color); }}
+              className="ios-btn group aspect-square rounded-2xl border border-white/10 hover:border-white transition-all shadow-lg hover:shadow-xl hover:shadow-white/10 relative overflow-hidden"
+              style={{ backgroundColor: color }}
+            >
+              {target.value === color && <div className="absolute inset-0 flex items-center justify-center bg-black/20"><i className="fa-solid fa-check text-app-text-strong drop-shadow-md"></i></div>}
+            </button>
+          ))}
+
+          <div className="aspect-square rounded-2xl border-2 border-dashed border-gray-600 hover:border-white transition-all flex items-center justify-center relative cursor-pointer group bg-app-surface">
+            <i className="fa-solid fa-plus text-app-text-muted group-hover:text-app-text-strong text-xl"></i>
+            <input
+              type="color"
+              value={target.value}
+              onChange={e => onConfirm(e.target.value)}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-app-border flex gap-2">
+          <div className="flex-1 h-10 rounded-xl bg-app-surface border border-app-border flex items-center px-4 gap-3">
+            <div className="w-4 h-4 rounded-full border border-white/20" style={{ backgroundColor: target.value }}></div>
+            <span className="text-xs font-bold text-app-text-muted uppercase tracking-widest">{target.value}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
