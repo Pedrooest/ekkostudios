@@ -3,7 +3,8 @@ import {
     Plus, Search, Clock, User, Check, X,
     Filter, Image as ImageIcon, Archive, Database,
     ChevronLeft, ChevronRight, FolderOpen, Copy, Trash2,
-    ChevronDown, Download, Loader2, Moon, Sun, Calendar as CalendarIcon
+    ChevronDown, Download, Loader2, Moon, Sun,
+    Calendar as CalendarIcon, CalendarDays, CalendarRange, List
 } from 'lucide-react';
 import { playUISound } from '../utils/uiSounds';
 import { getCalendarDays, MONTH_NAMES_BR, WEEKDAYS_BR_SHORT } from '../utils/calendarUtils';
@@ -36,7 +37,7 @@ export function PlanningView({
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [activeStatus, setActiveStatus] = useState('ALL');
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
+    const [viewMode, setViewMode] = useState<'month' | 'week' | 'list'>('month');
 
     // Filtros e Sidebars
     const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
@@ -234,13 +235,6 @@ export function PlanningView({
                                 <Download size={14} /> EXPORTAR
                             </button>
                         </div>
-
-                        <button
-                            onClick={() => { playUISound('tap'); setIsDarkMode(!isDarkMode); }}
-                            className="p-2 bg-gray-200 dark:bg-zinc-800 rounded-full text-gray-700 dark:text-zinc-300 ios-btn"
-                        >
-                            {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
-                        </button>
                     </div>
 
                     <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6">
@@ -291,18 +285,31 @@ export function PlanningView({
                             </button>
                         </div>
 
-                        <div className="flex bg-[#F8FAFC] dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-1 rounded-lg">
+                        <div className="flex bg-[#F8FAFC] dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-1 rounded-2xl items-center relative overflow-hidden shadow-sm">
+                            <div
+                                className="absolute top-1 bottom-1 w-10 bg-white dark:bg-zinc-800 rounded-xl shadow-sm transition-transform duration-300 ease-in-out"
+                                style={{ transform: `translateX(${viewMode === 'month' ? 4 : viewMode === 'week' ? 48 : 92}px)` }}
+                            />
                             <button
                                 onClick={() => { playUISound('tap'); setViewMode('month'); }}
-                                className={`px-5 py-1.5 rounded-md text-xs font-bold transition-colors ${viewMode === 'month' ? 'bg-white dark:bg-zinc-800 text-[#0B1527] dark:text-white shadow-sm border border-gray-100 dark:border-zinc-700' : 'text-gray-500 dark:text-zinc-500 hover:text-[#0B1527] dark:hover:text-white'}`}
+                                className={`relative z-10 w-11 h-8 flex items-center justify-center rounded-xl transition-colors ios-btn ${viewMode === 'month' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300'}`}
+                                title="Mês"
                             >
-                                Mês
+                                <CalendarDays size={18} strokeWidth={2.5} />
                             </button>
                             <button
                                 onClick={() => { playUISound('tap'); setViewMode('week'); }}
-                                className={`px-5 py-1.5 rounded-md text-xs font-bold transition-colors ${viewMode === 'week' ? 'bg-white dark:bg-zinc-800 text-[#0B1527] dark:text-white shadow-sm border border-gray-100 dark:border-zinc-700' : 'text-gray-500 dark:text-zinc-500 hover:text-[#0B1527] dark:hover:text-white'}`}
+                                className={`relative z-10 w-11 h-8 flex items-center justify-center rounded-xl transition-colors ios-btn ${viewMode === 'week' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300'}`}
+                                title="Semana"
                             >
-                                Semana
+                                <CalendarRange size={18} strokeWidth={2.5} />
+                            </button>
+                            <button
+                                onClick={() => { playUISound('tap'); setViewMode('list'); }}
+                                className={`relative z-10 w-11 h-8 flex items-center justify-center rounded-xl transition-colors ios-btn ${viewMode === 'list' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300'}`}
+                                title="Lista"
+                            >
+                                <List size={18} strokeWidth={2.5} />
                             </button>
                         </div>
                     </div>

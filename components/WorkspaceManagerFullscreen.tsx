@@ -31,8 +31,25 @@ export function WorkspaceManagerFullscreen({
     // ESTADOS INTERNOS DE CONFIGURAÇÕES
     const [editWsName, setEditWsName] = useState(workspace?.nome || '');
     const [selectedColor, setSelectedColor] = useState(workspace?.cor || 'bg-indigo-600');
-    const themeColors = ['bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-emerald-500', 'bg-teal-500', 'bg-blue-500', 'bg-indigo-600', 'bg-violet-500', 'bg-purple-500', 'bg-fuchsia-500', 'bg-pink-500', 'bg-slate-500'];
+    const [avatarUrl, setAvatarUrl] = useState<string | null>(workspace?.avatar_url || null);
+    const avatarInputRef = React.useRef<HTMLInputElement>(null);
+    const themeColors = [
+        '#EF4444', '#F97316', '#F59E0B', '#10B981', '#14B8A6',
+        '#3B82F6', '#6366F1', '#8B5CF6', '#A855F7', '#D946EF', '#EC4899', '#64748B'
+    ];
     const [savingConfig, setSavingConfig] = useState(false);
+
+    const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            playUISound('tap');
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                setAvatarUrl(event.target?.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     // ESTADOS DE PESSOAS E CONVITES
     const [members, setMembers] = useState<MembroWorkspace[]>([]);
@@ -72,7 +89,8 @@ export function WorkspaceManagerFullscreen({
         try {
             const updated = await DatabaseService.updateWorkspace(workspace.id, {
                 nome: editWsName,
-                cor: selectedColor
+                cor: selectedColor,
+                avatar_url: avatarUrl
             });
             playUISound('success');
             onUpdateWorkspace(updated);
@@ -242,9 +260,44 @@ export function WorkspaceManagerFullscreen({
                                 <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4 md:gap-8 items-center mb-8">
                                     <span className="text-sm font-bold text-gray-600 dark:text-zinc-400">Avatar</span>
                                     <div className="flex items-center gap-6">
-                                        <div className={`w-16 h-16 rounded-xl flex items-center justify-center shadow-md ${selectedColor || 'bg-amber-400'}`}>
-                                            <Building2 size={32} className="text-white" />
+                                        <div
+                                            className={`relative w-20 h-20 rounded-2xl flex items-center justify-center shadow-md text-white cursor-pointer group ios-btn transition-colors overflow-hidden ${selectedColor?.startsWith('#') ? '' : selectedColor || 'bg-indigo-600'}`}
+                                            style={selectedColor?.startsWith('#') ? { backgroundColor: selectedColor } : undefined}
+                                            onClick={() => avatarInputRef.current?.click()}
+                                        >
+                                            {avatarUrl ? (
+                                                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <Building2 size={32} />
+                                            )}
+
+                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-[2px]">
+                                                <span className="text-white font-bold drop-shadow-md text-[10px] uppercase tracking-widest text-center leading-tight">Alterar</span>
+                                            </div>
                                         </div>
+                                        <div className="flex flex-col gap-1 items-start">
+                                            <button
+                                                onClick={() => avatarInputRef.current?.click()}
+                                                className="text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:underline text-left ios-btn"
+                                            >
+                                                Alterar avatar
+                                            </button>
+                                            {avatarUrl && (
+                                                <button
+                                                    onClick={() => { playUISound('close'); setAvatarUrl(null); }}
+                                                    className="text-xs font-medium text-rose-500 hover:underline text-left ios-btn"
+                                                >
+                                                    Remover imagem
+                                                </button>
+                                            )}
+                                        </div>
+                                        <input
+                                            type="file"
+                                            ref={avatarInputRef}
+                                            className="hidden"
+                                            accept="image/*"
+                                            onChange={handleAvatarUpload}
+                                        />
                                     </div>
                                 </div>
 
@@ -275,10 +328,11 @@ export function WorkspaceManagerFullscreen({
                                                 <button
                                                     key={color}
                                                     onClick={() => { playUISound('tap'); setSelectedColor(color); }}
-                                                    className={`w-8 h-8 rounded-full transition-transform ios-btn ${color} ${selectedColor === color ? 'ring-2 ring-offset-4 ring-gray-400 dark:ring-offset-[#0a0a0c] scale-110' : 'hover:scale-110'}`}
+                                                    className={`w-9 h-9 rounded-full transition-transform ios-btn flex items-center justify-center relative ${selectedColor === color ? 'ring-2 ring-offset-4 ring-gray-400 dark:ring-offset-[#0a0a0c] scale-110' : 'hover:scale-110'}`}
+                                                    style={{ backgroundColor: color }}
                                                     title={color}
                                                 >
-                                                    {selectedColor === color && <Check size={16} className="text-white mx-auto drop-shadow-md" />}
+                                                    {selectedColor === color && <Check size={18} className="text-white drop-shadow-md" strokeWidth={3} />}
                                                 </button>
                                             ))}
                                         </div>

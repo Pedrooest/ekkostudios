@@ -10,6 +10,7 @@ const MAPA_COLUNAS: Record<string, Record<string, string>> = {
     workspaces: {
         name: 'nome',
         color: 'cor',
+        avatar_url: 'avatar_url',
         owner_id: 'id_proprietario',
         created_at: 'criado_em'
     },

@@ -295,6 +295,7 @@ export interface Workspace {
   id_proprietario: string;
   criado_em: string;
   cor?: string;
+  avatar_url?: string;
   membros_workspace?: MembroWorkspace[];
 }
 
