@@ -105,9 +105,26 @@ export function PlanningView({
         }
     };
 
-    const getClientColor = (clientId: string) => {
+    const hexToRGBA = (hex: string, alpha: number) => {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    };
+
+    const getCardStyles = (clientId: string) => {
         const client = clients.find(c => c.id === clientId);
-        return client?.['Cor (HEX)'] || '#3B82F6';
+        const hex = client?.['Cor (HEX)'] || '#3B82F6';
+        return {
+            bg: hexToRGBA(hex, 0.08),
+            border: hexToRGBA(hex, 0.2),
+            text: hex,
+            hex
+        };
+    };
+
+    const getClientColor = (clientId: string) => {
+        return getCardStyles(clientId).hex;
     };
 
     const handleRealDownload = async () => {
@@ -301,11 +318,14 @@ export function PlanningView({
                                                     <div
                                                         key={evt.id}
                                                         onClick={() => openEditSidebar(evt.id)}
-                                                        className="group relative bg-white dark:bg-[#1A1A20] border border-gray-100 dark:border-white/5 p-3 rounded-2xl shadow-sm hover:shadow-xl transition-all cursor-pointer overflow-hidden transform hover:-translate-y-1 active:scale-95"
+                                                        className="group relative border p-3 rounded-2xl shadow-sm hover:shadow-xl transition-all cursor-pointer overflow-hidden transform hover:-translate-y-1 active:scale-95"
+                                                        style={{
+                                                            backgroundColor: getCardStyles(evt.Cliente_ID).bg,
+                                                            borderColor: getCardStyles(evt.Cliente_ID).border
+                                                        }}
                                                     >
-                                                        <div className="absolute left-0 top-0 bottom-0 w-1 rounded-full m-1" style={{ backgroundColor: color }}></div>
-                                                        <div className="pl-2 space-y-2">
-                                                            <div className="flex items-center gap-2 text-[8px] font-black text-blue-500 uppercase tracking-widest italic">
+                                                        <div className="space-y-2">
+                                                            <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest italic" style={{ color: getCardStyles(evt.Cliente_ID).text }}>
                                                                 <Clock size={10} strokeWidth={3} /> {evt.Hora || '09:00'}
                                                             </div>
                                                             <div className="text-[11px] font-black leading-tight text-[#0B1527] dark:text-white uppercase italic tracking-tighter line-clamp-2">
@@ -313,14 +333,14 @@ export function PlanningView({
                                                             </div>
                                                             <div className="flex items-center justify-between">
                                                                 <div className="flex items-center gap-1.5">
-                                                                    <div className="w-4 h-4 rounded-full flex items-center justify-center bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-500">
+                                                                    <div className="w-4 h-4 rounded-full flex items-center justify-center bg-white/50 dark:bg-black/20" style={{ color: getCardStyles(evt.Cliente_ID).text }}>
                                                                         <User size={10} strokeWidth={3} />
                                                                     </div>
-                                                                    <span className="text-[8px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest truncate max-w-[80px]">
+                                                                    <span className="text-[8px] font-black uppercase tracking-widest truncate max-w-[80px]" style={{ color: getCardStyles(evt.Cliente_ID).text }}>
                                                                         {clients.find(c => c.id === evt.Cliente_ID)?.Nome || 'GERAL'}
                                                                     </span>
                                                                 </div>
-                                                                <ChevronRight size={12} className="text-gray-300 dark:text-zinc-700 group-hover:text-blue-500 transition-colors" />
+                                                                <ChevronRight size={12} className="opacity-30 group-hover:opacity-100 transition-opacity" style={{ color: getCardStyles(evt.Cliente_ID).text }} />
                                                             </div>
                                                         </div>
                                                     </div>
@@ -588,17 +608,22 @@ export function PlanningView({
                                                             {evts.map(evt => {
                                                                 const color = getClientColor(evt.Cliente_ID);
                                                                 return (
-                                                                    <div key={evt.id} className="p-4 rounded-[1.25rem] bg-white border border-gray-100 shadow-sm flex flex-col relative overflow-hidden">
-                                                                        <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: color }}></div>
-                                                                        <div className="pl-2 space-y-1.5">
-                                                                            <div className="text-[9px] font-black text-blue-600 uppercase italic tracking-widest">{evt.Hora || '09:00'}</div>
-                                                                            <div className="text-[11px] font-black text-gray-800 uppercase leading-snug line-clamp-2 tracking-tighter">{evt.Conteúdo}</div>
-                                                                            {exportSelectedClient === 'Todos' && (
-                                                                                <div className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1 border-t border-gray-50 pt-2 flex items-center gap-2">
-                                                                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }}></div>
-                                                                                    {clients.find(c => c.id === evt.Cliente_ID)?.Nome}
-                                                                                </div>
-                                                                            )}
+                                                                    <div key={evt.id} className="p-4 rounded-[1.25rem] border shadow-sm flex flex-col relative overflow-hidden"
+                                                                        style={{
+                                                                            backgroundColor: getCardStyles(evt.Cliente_ID).bg,
+                                                                            borderColor: getCardStyles(evt.Cliente_ID).border
+                                                                        }}
+                                                                    >
+                                                                        <div className="space-y-1.5">
+                                                                            <div className="text-[11px] font-black uppercase tracking-widest flex items-center gap-1.5" style={{ color: getCardStyles(evt.Cliente_ID).text }}>
+                                                                                <Clock size={12} strokeWidth={3} /> {evt.Hora || '09:00'}
+                                                                            </div>
+                                                                            <div className="text-[13px] font-black text-[#0B1527] uppercase leading-snug line-clamp-2 tracking-tighter">{evt.Conteúdo}</div>
+                                                                            <div className="text-[9px] font-black uppercase tracking-widest mt-1 bg-white/50 px-2.5 py-1 rounded-md w-fit flex items-center gap-2"
+                                                                                style={{ color: getCardStyles(evt.Cliente_ID).text }}>
+                                                                                <User size={11} strokeWidth={3} />
+                                                                                {clients.find(c => c.id === evt.Cliente_ID)?.Nome}
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                 );
