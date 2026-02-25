@@ -34,7 +34,7 @@ interface OrganickIAViewProps {
     onDelete: (ids: string[], table: any) => void;
     showArchived: boolean;
     onGenerateSlide: (briefing: string) => void;
-    onAddItem: (table: any, data: any) => Promise<string | undefined>;
+    onAddItem: (table: any, data: any) => Promise<string>;
     addNotification: (type: 'success' | 'error' | 'info', title: string, message: string) => void;
 }
 
