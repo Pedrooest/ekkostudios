@@ -1,0 +1,7 @@
+App.tsx(44,33): error TS2307: Cannot find module './services/DatabaseService' or its corresponding type declarations.
+App.tsx(1176,14): error TS2304: Cannot find name 'WorkspaceSelector'.
+App.tsx(1342,77): error TS2322: Type '(id: string, tab: TipoTabela, field: string, value: any, skipLog?: boolean) => Promise<void>' is not assignable to type '(tab: TipoTabela, id: string, item: any) => void'.
+  Target signature provides too few arguments. Expected 4 or more, but got 3.
+App.tsx(1342,242): error TS2322: Type '(id: string) => void' is not assignable to type '(ids: string[]) => void'.
+  Types of parameters 'id' and 'ids' are incompatible.
+    Type 'string[]' is not assignable to type 'string'.

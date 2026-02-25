@@ -41,11 +41,10 @@ import {
   VhConfig, BibliotecaConteudo, Colaborador, ItemChecklistTarefa, ConfiguracaoApresentacao, AnexoTarefa, AtividadeTarefa, NotificacaoApp, PerfilUsuario, DadosModelagemSistematica,
   Workspace, MembroWorkspace
 } from './types';
-import { WorkspaceSelector } from './WorkspaceSelector';
-import { WorkspaceSettingsModal } from './WorkspaceSettingsModal';
-import { WorkspaceMembersModal } from './WorkspaceMembersModal';
-import { NewWorkspaceModal } from './NewWorkspaceModal';
 import { DatabaseService } from './DatabaseService';
+import { WorkspaceSelector } from './WorkspaceSelector';
+import { WorkspaceManagerFullscreen } from './components/WorkspaceManagerFullscreen';
+import { NewWorkspaceModal } from './components/NewWorkspaceModal';
 import { initAudio, playUISound } from './utils/uiSounds';
 
 
@@ -77,7 +76,6 @@ import { ExportModal } from './export/components/ExportModal';
 import { SlideRenderer } from './export/components/SlideRenderer';
 import { useExport } from './export/hooks/useExport';
 import { ExportConfig } from './export/types';
-import WorkspaceManager from './components/WorkspaceManager';
 
 
 
@@ -242,8 +240,8 @@ export default function App() {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [isWorkspaceSettingsOpen, setIsWorkspaceSettingsOpen] = useState(false);
-  const [isMembroWorkspacesOpen, setIsMembroWorkspacesOpen] = useState(false);
+  const [isSettingsFullscreenOpen, setIsSettingsFullscreenOpen] = useState(false);
+  const [activeSettingsTab, setActiveSettingsTab] = useState<'configuracoes' | 'pessoas'>('configuracoes');
   const [isNewWorkspaceModalOpen, setIsNewWorkspaceModalOpen] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
@@ -269,7 +267,6 @@ export default function App() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [currentWorkspace, setCurrentWorkspace] = useState<Workspace | null>(null);
   const [workspaceLoading, setWorkspaceLoading] = useState(false);
-  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
   const refreshWorkspaces = useCallback(async () => {
     if (!currentUser) return;
@@ -300,6 +297,12 @@ export default function App() {
       setWorkspaceLoading(false);
     }
   }, [currentUser]);
+
+  const handleWorkspaceSelect = useCallback((workspace: Workspace) => {
+    setCurrentWorkspace(workspace);
+    // Optionally, close the settings modal if it's open
+    setIsSettingsFullscreenOpen(false);
+  }, []);
 
   const loadWorkspaceData = useCallback(async (wsId: string) => {
     const data = await DatabaseService.fetchAllWorkspaceData(wsId);
@@ -1174,9 +1177,15 @@ export default function App() {
             <WorkspaceSelector
               workspaces={workspaces}
               currentWorkspace={currentWorkspace}
-              onSelect={setCurrentWorkspace}
-              onManageMembers={() => setIsMembroWorkspacesOpen(true)}
-              onSettings={() => setIsWorkspaceSettingsOpen(true)}
+              onSelect={handleWorkspaceSelect}
+              onSettings={() => {
+                setActiveSettingsTab('configuracoes');
+                setIsSettingsFullscreenOpen(true);
+              }}
+              onManageMembers={() => {
+                setActiveSettingsTab('pessoas');
+                setIsSettingsFullscreenOpen(true);
+              }}
               onCreate={() => setIsNewWorkspaceModalOpen(true)}
               loading={workspaceLoading}
             />
@@ -1331,7 +1340,7 @@ export default function App() {
           {activeTab === 'COBO' && <TableView tab="COBO" data={currentCobo} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('COBO')} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} library={BibliotecaConteudo} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
 
           {activeTab === 'PLANEJAMENTO' && <PlanningView data={currentPlanejamento} clients={clients} onUpdate={handleUpdate} onAdd={handleAddRow} rdc={rdc} matriz={matriz} cobo={cobo} tasks={tasks} iaHistory={iaHistory} setActiveTab={setActiveTab} performArchive={performArchive} performDelete={performDelete} library={BibliotecaConteudo} />}
-          {activeTab === 'FINANCAS' && <FinancasView data={currentFinancas} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={(tab, initial) => handleAddRow(tab || 'FINANCAS', initial)} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} />}
+          {activeTab === 'FINANCAS' && <FinancasView data={currentFinancas} onUpdate={async (tab, id, item) => { for (const key of Object.keys(item)) { if (key !== 'id') await handleUpdate(id, tab, key, item[key], true); } }} onDelete={performDelete} onArchive={performArchive} onAdd={(tab, initial) => handleAddRow(tab || 'FINANCAS', initial)} selection={selection} onSelect={setSelection} onClearSelection={() => setSelection([])} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} activeRegMode="lista" />}
           {activeTab === 'TAREFAS' && <TaskFlowView tasks={currentTasks} clients={clients} collaborators={collaborators} activeViewId={activeTaskViewId} setActiveViewId={setActiveTaskViewId} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('TAREFAS')} onSelectTask={setSelectedTaskId} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
           {activeTab === 'VH' && <VhManagementView clients={clients} collaborators={collaborators} setCollaborators={setCollaborators} onUpdate={handleUpdate} selection={selection} onSelect={toggleSelection} />}
           {activeTab === 'ORGANICKIA' && <OrganickIAView
@@ -1402,26 +1411,20 @@ export default function App() {
 
       </main >
 
-      {isWorkspaceSettingsOpen && currentWorkspace && (
-        <WorkspaceSettingsModal
+      {isSettingsFullscreenOpen && currentWorkspace && currentUser && (
+        <WorkspaceManagerFullscreen
           workspace={currentWorkspace}
-          onClose={() => setIsWorkspaceSettingsOpen(false)}
+          currentUser={currentUser}
+          initialTab={activeSettingsTab}
+          onClose={() => setIsSettingsFullscreenOpen(false)}
           onUpdateWorkspace={(updated) => {
             setWorkspaces(prev => prev.map(ws => ws.id === updated.id ? updated : ws));
             setCurrentWorkspace(updated);
           }}
           onWorkspaceDeleted={() => {
-            setIsWorkspaceSettingsOpen(false);
+            setIsSettingsFullscreenOpen(false);
             window.location.reload();
           }}
-        />
-      )}
-
-      {isMembroWorkspacesOpen && currentWorkspace && (
-        <WorkspaceMembersModal
-          workspace={currentWorkspace}
-          onClose={() => setIsMembroWorkspacesOpen(false)}
-          currentUserEmail={currentUser?.email}
         />
       )}
 
