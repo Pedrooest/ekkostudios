@@ -210,7 +210,7 @@ export const PresentationSlide: React.FC<PresentationSlideProps> = ({ tab, confi
       case 'TAREFAS':
         return (
           <div className="space-y-4">
-            {(data?.tasks || []).filter(t => !t.__arquivado).slice(0, 5).map(t => (
+            {(data?.tasks || []).filter(t => !t.__archived).slice(0, 5).map(t => (
               <div key={t.id} className="p-3 border border-gray-700/30 bg-gray-900/40 rounded-xl flex items-center gap-3">
                 <div className="w-1 h-8 rounded-full bg-blue-500"></div>
                 <div className="flex-1">

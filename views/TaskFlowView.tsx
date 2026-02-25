@@ -657,10 +657,10 @@ export function TaskDetailPanel({
             {/* FOOTER ACTIONS */}
             <div className="px-8 py-6 border-t border-app-border bg-app-surface-2/30 flex gap-3">
                 <button
-                    onClick={() => { onArchive([t.id], 'TAREFAS', !t.__arquivado); onClose(); }}
+                    onClick={() => { onArchive([t.id], 'TAREFAS', !t.__archived); onClose(); }}
                     className="flex-1 h-12 rounded-xl border border-app-border bg-app-bg text-app-text-muted hover:text-app-text-strong hover:bg-app-surface transition-all text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2"
                 >
-                    <Box size={16} /> {t.__arquivado ? 'RESTAURAR' : 'ARQUIVAR'}
+                    <Box size={16} /> {t.__archived ? 'RESTAURAR' : 'ARQUIVAR'}
                 </button>
                 <button
                     onClick={() => { if (window.confirm("EXCLUIR DEFINITIVAMENTE?")) { onDelete([t.id], 'TAREFAS'); onClose(); } }}
