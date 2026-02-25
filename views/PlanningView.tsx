@@ -328,7 +328,7 @@ export function PlanningView({
                                                             <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest italic" style={{ color: getCardStyles(evt.Cliente_ID).text }}>
                                                                 <Clock size={10} strokeWidth={3} /> {evt.Hora || '09:00'}
                                                             </div>
-                                                            <div className="text-[11px] font-black leading-tight text-[#0B1527] dark:text-white uppercase italic tracking-tighter line-clamp-2">
+                                                            <div className="text-[10px] font-black leading-tight text-[#0B1527] dark:text-white uppercase italic tracking-tighter line-clamp-2">
                                                                 {evt.Conteúdo}
                                                             </div>
                                                             <div className="flex items-center justify-between">
@@ -618,7 +618,7 @@ export function PlanningView({
                                                                             <div className="text-[11px] font-black uppercase tracking-widest flex items-center gap-1.5" style={{ color: getCardStyles(evt.Cliente_ID).text }}>
                                                                                 <Clock size={12} strokeWidth={3} /> {evt.Hora || '09:00'}
                                                                             </div>
-                                                                            <div className="text-[13px] font-black text-[#0B1527] uppercase leading-snug line-clamp-2 tracking-tighter">{evt.Conteúdo}</div>
+                                                                            <div className="text-[12px] font-black text-[#0B1527] uppercase leading-snug line-clamp-2 tracking-tighter">{evt.Conteúdo}</div>
                                                                             <div className="text-[9px] font-black uppercase tracking-widest mt-1 bg-white/50 px-2.5 py-1 rounded-md w-fit flex items-center gap-2"
                                                                                 style={{ color: getCardStyles(evt.Cliente_ID).text }}>
                                                                                 <User size={11} strokeWidth={3} />
