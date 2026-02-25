@@ -191,92 +191,116 @@ export function PlanningView({
         <div className={`${isDarkMode ? 'dark' : ''} flex-1 flex flex-col font-sans w-full h-full transition-colors overflow-hidden`}>
             <div className="flex-1 flex flex-col w-full h-full bg-[#F8FAFC] dark:bg-[#0a0a0c] transition-colors overflow-y-auto custom-scrollbar">
 
-                <div className="p-6 lg:p-10 space-y-8 w-full">
+                <div className="p-6 lg:p-8 space-y-8 w-full">
 
-                    {/* TOP STATUS BAR (THEME) */}
-                    <div className="flex items-center justify-end mb-2">
+                    {/* TOP ACTION BAR */}
+                    <div className="flex items-center justify-between mb-8">
+                        <div className="flex items-center gap-4 text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest relative z-10">
+                            <div className="relative">
+                                <button
+                                    onClick={() => setIsClientDropdownOpen(!isClientDropdownOpen)}
+                                    className="flex items-center gap-2 hover:text-gray-800 dark:hover:text-white transition-colors ios-btn"
+                                >
+                                    <Filter size={16} /> {activeClientId ? (clients.find(c => c.id === activeClientId)?.Nome || 'Cliente') : 'Todos Clientes'} <ChevronDown size={14} />
+                                </button>
+                                {isClientDropdownOpen && (
+                                    <div className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl py-1 z-50">
+                                        <button
+                                            onClick={() => { playUISound('tap'); setIsClientFilterOpen?.(false); setIsClientDropdownOpen(false); }}
+                                            className="w-full text-left px-4 py-2 text-sm font-bold text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                                        >
+                                            Todos Clientes
+                                        </button>
+                                        {clients.map(c => (
+                                            <button
+                                                key={c.id}
+                                                onClick={() => { playUISound('tap'); onUpdate('', 'PLANEJAMENTO', 'FILTER_CLIENT', c.id); setIsClientDropdownOpen(false); }}
+                                                className="w-full text-left px-4 py-2 text-sm font-bold text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                                            >
+                                                {c.Nome}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <button className="flex items-center gap-2 hover:text-gray-800 dark:hover:text-white transition-colors ios-btn ml-2" onClick={() => { playUISound('tap'); setShowArchived?.(!showArchived); }}>
+                                <Archive size={16} /> {showArchived ? 'OCULTAR' : 'ARQUIVADOS'}
+                            </button>
+                            <button
+                                onClick={() => { playUISound('open'); setIsExportModalOpen(true); }}
+                                className="flex items-center gap-2 px-4 py-1.5 bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 text-gray-800 dark:text-white rounded-full shadow-sm hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all ios-btn ml-2"
+                            >
+                                <Download size={14} /> EXPORTAR
+                            </button>
+                        </div>
+
                         <button
                             onClick={() => { playUISound('tap'); setIsDarkMode(!isDarkMode); }}
-                            className="p-2.5 bg-white dark:bg-[#111114] border border-gray-100 dark:border-zinc-800 rounded-full text-gray-400 hover:text-blue-500 transition-all shadow-sm ios-btn"
-                            title="Alternar Tema Escuro"
+                            className="p-2 bg-gray-200 dark:bg-zinc-800 rounded-full text-gray-700 dark:text-zinc-300 ios-btn"
                         >
-                            {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+                            {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
                         </button>
                     </div>
 
                     <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6">
-                        <div className="flex-1">
-                            <div className="flex items-center gap-4 mb-6">
-                                <div className="w-2.5 h-10 bg-blue-600 rounded-full shadow-[0_0_20px_rgba(37,99,235,0.4)]"></div>
-                                <h1 className="text-3xl md:text-4xl font-black text-[#0B1527] dark:text-white tracking-tighter uppercase italic leading-none">
+                        <div>
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="w-2.5 h-8 bg-blue-600 rounded-full"></div>
+                                <h1 className="text-[32px] font-black text-[#0B1527] dark:text-white tracking-tight leading-none uppercase">
                                     PLANEJAMENTO ESTRATÉGICO
                                 </h1>
                             </div>
 
-                            <div className="flex flex-wrap items-center gap-3">
-                                <div className="flex bg-white dark:bg-[#111114] p-1.5 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm mr-4">
-                                    {['ALL', 'EM ESPERA', 'PRODUÇÃO', 'CONCLUÍDO'].map((status) => (
-                                        <button
-                                            key={status}
-                                            onClick={() => { playUISound('tap'); setActiveStatus(status); }}
-                                            className={`text-[9px] font-black uppercase tracking-widest transition-all px-4 py-2 rounded-xl ios-btn ${activeStatus === status
-                                                ? 'bg-blue-600 text-white shadow-md shadow-blue-900/40'
-                                                : 'text-gray-400 dark:text-zinc-500 hover:text-gray-900 dark:hover:text-white'
-                                                }`}
-                                        >
-                                            {status}
-                                        </button>
-                                    ))}
-                                </div>
-
-                                <button onClick={() => setIsClientFilterOpen?.(true)} className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-tighter transition-all px-3 py-2 ${activeClientId ? 'text-blue-500' : 'text-zinc-400 hover:text-blue-500'}`}>
-                                    <Filter size={14} /> FILTRAR
-                                </button>
-                                <button onClick={() => setShowArchived?.(!showArchived)} className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-tighter transition-all px-3 py-2 ${showArchived ? 'text-amber-500' : 'text-zinc-400 hover:text-blue-500'}`}>
-                                    <Archive size={14} /> {showArchived ? 'OCULTAR' : 'ARQUIVADOS'}
-                                </button>
-                                <button onClick={() => setIsExportModalOpen(true)} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-tighter text-zinc-400 hover:text-blue-500 transition-all px-3 py-2">
-                                    <Download size={14} /> EXPORTAR
-                                </button>
+                            <div className="flex flex-wrap items-center gap-2 lg:gap-6">
+                                {['ALL', 'EM ESPERA', 'AGUARDANDO APROVAÇÃO', 'PRODUÇÃO', 'PUBLICADO', 'CONCLUÍDO'].map((tab) => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => { playUISound('tap'); setActiveStatus(tab); }}
+                                        className={`text-[11px] font-black uppercase tracking-widest transition-all ios-btn ${activeStatus === tab
+                                            ? 'bg-blue-600 text-white px-5 py-2 rounded-full shadow-md'
+                                            : 'text-gray-500 dark:text-zinc-400 hover:text-gray-800 dark:hover:text-white px-2 py-2'
+                                            }`}
+                                    >
+                                        {tab}
+                                    </button>
+                                ))}
                             </div>
                         </div>
 
                         <div className="flex items-center gap-3 shrink-0">
-                            <button onClick={() => setSidebarView('banco')} className="flex items-center gap-2 px-6 py-4 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 text-[#0B1527] dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-3xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm ios-btn">
-                                <Database size={16} /> BANCO
+                            <button onClick={() => { playUISound('open'); setSidebarView('banco'); }} className="flex items-center gap-2 px-6 py-3 bg-[#9CA3AF] dark:bg-zinc-700 hover:bg-gray-500 dark:hover:bg-zinc-600 text-white rounded-full text-xs font-bold uppercase tracking-wider transition-all ios-btn">
+                                <Database size={16} /> BANCO DE CONTEÚDO
                             </button>
-                            <button onClick={handleAddContent} className="flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl text-[10px] font-black uppercase tracking-widest shadow-2xl shadow-blue-500/40 transition-all hover:scale-105 active:scale-95">
+                            <button onClick={handleAddContent} className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-xs font-bold uppercase tracking-wider shadow-[0_4px_14px_rgba(59,130,246,0.4)] transition-all ios-btn">
                                 <Plus size={16} strokeWidth={3} /> NOVO CONTEÚDO
                             </button>
                         </div>
                     </div>
 
-                    {/* CALENDAR CONTROLS */}
-                    <div className="flex items-center justify-between bg-white dark:bg-[#111114] border border-gray-100 dark:border-zinc-800 p-4 px-6 rounded-[2.5rem] shadow-sm">
-                        <div className="flex items-center gap-6">
-                            <div className="flex items-center gap-2">
-                                <button onClick={() => handleMonthNav(-1)} className="p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-400 dark:text-zinc-500 transition-all ios-btn border border-transparent hover:border-gray-200 dark:hover:border-zinc-700">
-                                    <ChevronLeft size={24} />
-                                </button>
-                                <h3 className="text-xl font-black text-[#0B1527] dark:text-white min-w-[200px] text-center uppercase tracking-tighter italic">
-                                    {viewMode === 'month' ? `${MONTH_NAMES_BR[currentDate.getMonth()]} ${currentDate.getFullYear()}` : 'Vista Semanal'}
-                                </h3>
-                                <button onClick={() => handleMonthNav(1)} className="p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-900 text-gray-400 dark:text-zinc-500 transition-all ios-btn border border-transparent hover:border-gray-200 dark:hover:border-zinc-700">
-                                    <ChevronRight size={24} />
-                                </button>
-                            </div>
+                    <div className="flex items-center justify-between mb-4 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 p-3 px-5 rounded-2xl shadow-sm max-w-[1400px]">
+                        <div className="flex items-center gap-4">
+                            <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 transition-colors ios-btn" onClick={() => handleMonthNav(-1)}>
+                                <ChevronLeft size={20} />
+                            </button>
+                            <h3 className="text-lg font-black text-[#0B1527] dark:text-white min-w-[150px] text-center uppercase tracking-tight">
+                                {viewMode === 'month' ? `${MONTH_NAMES_BR[currentDate.getMonth()]} ${currentDate.getFullYear()}` : 'Vista Semanal'}
+                            </h3>
+                            <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 transition-colors ios-btn" onClick={() => handleMonthNav(1)}>
+                                <ChevronRight size={20} />
+                            </button>
                         </div>
 
-                        <div className="flex bg-[#F8FAFC] dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 p-1.5 rounded-2xl">
+                        <div className="flex bg-[#F8FAFC] dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-1 rounded-lg">
                             <button
                                 onClick={() => { playUISound('tap'); setViewMode('month'); }}
-                                className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'month' ? 'bg-white dark:bg-zinc-800 text-[#0B1527] dark:text-white shadow-xl border border-gray-100 dark:border-white/5' : 'text-gray-500 dark:text-zinc-500 hover:text-[#0B1527] dark:hover:text-white'}`}
+                                className={`px-5 py-1.5 rounded-md text-xs font-bold transition-colors ${viewMode === 'month' ? 'bg-white dark:bg-zinc-800 text-[#0B1527] dark:text-white shadow-sm border border-gray-100 dark:border-zinc-700' : 'text-gray-500 dark:text-zinc-500 hover:text-[#0B1527] dark:hover:text-white'}`}
                             >
                                 Mês
                             </button>
                             <button
                                 onClick={() => { playUISound('tap'); setViewMode('week'); }}
-                                className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'week' ? 'bg-white dark:bg-zinc-800 text-[#0B1527] dark:text-white shadow-xl border border-gray-100 dark:border-white/5' : 'text-gray-500 dark:text-zinc-500 hover:text-[#0B1527] dark:hover:text-white'}`}
+                                className={`px-5 py-1.5 rounded-md text-xs font-bold transition-colors ${viewMode === 'week' ? 'bg-white dark:bg-zinc-800 text-[#0B1527] dark:text-white shadow-sm border border-gray-100 dark:border-zinc-700' : 'text-gray-500 dark:text-zinc-500 hover:text-[#0B1527] dark:hover:text-white'}`}
                             >
                                 Semana
                             </button>
@@ -328,7 +352,7 @@ export function PlanningView({
                                                             <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest italic" style={{ color: getCardStyles(evt.Cliente_ID).text }}>
                                                                 <Clock size={10} strokeWidth={3} /> {evt.Hora || '09:00'}
                                                             </div>
-                                                            <div className="text-[10px] font-black leading-tight text-[#0B1527] dark:text-white uppercase italic tracking-tighter line-clamp-2">
+                                                            <div className="text-[10px] font-black leading-tight text-[#0B1527] dark:text-white italic tracking-tighter line-clamp-2">
                                                                 {evt.Conteúdo}
                                                             </div>
                                                             <div className="flex items-center justify-between">
@@ -369,7 +393,7 @@ export function PlanningView({
 
                             <div className="flex-1 overflow-y-auto px-10 py-8 space-y-10 custom-scrollbar">
                                 <textarea
-                                    className="w-full text-3xl font-black text-[#0B1527] dark:text-white bg-transparent border-none p-0 focus:ring-0 uppercase tracking-tighter leading-none min-h-[100px] animate-fade placeholder:opacity-20 italic"
+                                    className="w-full text-3xl font-black text-[#0B1527] dark:text-white bg-transparent border-none p-0 focus:ring-0 italic tracking-tighter leading-none min-h-[100px] animate-fade placeholder:opacity-20"
                                     value={selectedEvent?.Conteúdo || ''}
                                     onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Conteúdo', e.target.value)}
                                     placeholder="QUAL O CONTEÚDO?"
@@ -459,16 +483,16 @@ export function PlanningView({
                                 </div>
                             </div>
 
-                            <div className="p-10 border-t border-gray-100 dark:border-zinc-800/50 bg-white dark:bg-[#0C0C14]">
+                            <div className="p-10 border-t border-gray-100 dark:border-zinc-800/50 bg-white dark:bg-[#0C0C14] shrink-0">
                                 <div className="flex gap-4 mb-6">
                                     <button className="flex-1 h-14 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 text-[10px] font-black uppercase tracking-widest text-gray-600 dark:text-zinc-400 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all ios-btn flex items-center justify-center gap-2">
-                                        DUPLICAR
+                                        <Copy size={16} /> DUPLICAR
                                     </button>
                                     <button onClick={() => selectedEvent && performArchive([selectedEvent.id], 'PLANEJAMENTO', true)} className="flex-1 h-14 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 text-[10px] font-black uppercase tracking-widest text-gray-600 dark:text-zinc-400 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all ios-btn flex items-center justify-center gap-2">
-                                        ARQUIVAR
+                                        <Archive size={16} /> ARQUIVAR
                                     </button>
                                     <button onClick={() => selectedEvent && performDelete([selectedEvent.id], 'PLANEJAMENTO')} className="flex-1 h-14 bg-white dark:bg-zinc-900 border border-rose-100 dark:border-rose-900/10 text-[10px] font-black uppercase tracking-widest text-rose-500 rounded-2xl hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all ios-btn flex items-center justify-center gap-2">
-                                        EXCLUIR
+                                        <Trash2 size={16} /> EXCLUIR
                                     </button>
                                 </div>
                                 <button onClick={() => setSidebarView(null)} className="w-full h-16 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-2xl shadow-blue-500/40 transition-all ios-btn flex items-center justify-center gap-3 active:scale-[0.98]">
@@ -618,7 +642,7 @@ export function PlanningView({
                                                                             <div className="text-[11px] font-black uppercase tracking-widest flex items-center gap-1.5" style={{ color: getCardStyles(evt.Cliente_ID).text }}>
                                                                                 <Clock size={12} strokeWidth={3} /> {evt.Hora || '09:00'}
                                                                             </div>
-                                                                            <div className="text-[12px] font-black text-[#0B1527] uppercase leading-snug line-clamp-2 tracking-tighter">{evt.Conteúdo}</div>
+                                                                            <div className="text-[12px] font-black text-[#0B1527] leading-snug line-clamp-2 tracking-tighter">{evt.Conteúdo}</div>
                                                                             <div className="text-[9px] font-black uppercase tracking-widest mt-1 bg-white/50 px-2.5 py-1 rounded-md w-fit flex items-center gap-2"
                                                                                 style={{ color: getCardStyles(evt.Cliente_ID).text }}>
                                                                                 <User size={11} strokeWidth={3} />

@@ -8,10 +8,13 @@ import {
 // Mapeamento de nomes de colunas do Banco para nomes em Português nas Interfaces
 const MAPA_COLUNAS: Record<string, Record<string, string>> = {
     workspaces: {
+        name: 'nome',
+        color: 'cor',
         owner_id: 'id_proprietario',
         created_at: 'criado_em'
     },
     workspace_members: {
+        workspace_id: 'id_workspace',
         user_id: 'id_usuario',
         role: 'papel',
         joined_at: 'entrou_em'
