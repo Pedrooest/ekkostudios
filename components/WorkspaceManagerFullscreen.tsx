@@ -4,7 +4,8 @@ import { DatabaseService } from '../DatabaseService';
 import {
     ChevronDown, Users, Settings, Plus, Check,
     X, LogOut, Link as LinkIcon, Mail, Shield,
-    Building2, ArrowLeft, Search, AlertTriangle
+    Building2, ArrowLeft, Search, AlertTriangle,
+    Smartphone, Lock, Github, Slack, Trello
 } from 'lucide-react';
 import { playUISound } from '../utils/uiSounds';
 
@@ -25,7 +26,7 @@ export function WorkspaceManagerFullscreen({
     onUpdateWorkspace,
     onWorkspaceDeleted
 }: WorkspaceManagerFullscreenProps) {
-    const [activeSettingsTab, setActiveSettingsTab] = useState<'configuracoes' | 'pessoas'>(initialTab);
+    const [activeSettingsTab, setActiveSettingsTab] = useState<'configuracoes' | 'pessoas' | 'seguranca' | 'integracoes'>(initialTab);
 
     // ESTADOS INTERNOS DE CONFIGURAÇÕES
     const [editWsName, setEditWsName] = useState(workspace?.nome || '');
@@ -186,10 +187,22 @@ export function WorkspaceManagerFullscreen({
                             Avançado
                         </h3>
 
-                        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800/50 hover:text-gray-900 dark:hover:text-zinc-200 transition-all ios-btn border border-transparent cursor-not-allowed opacity-60">
+                        <button
+                            onClick={() => { playUISound('tap'); setActiveSettingsTab('seguranca'); }}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ios-btn border border-transparent ${activeSettingsTab === 'seguranca'
+                                ? 'bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 shadow-sm border-gray-200 dark:border-zinc-700'
+                                : 'text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800/50 hover:text-gray-900 dark:hover:text-zinc-200'
+                                }`}
+                        >
                             <Shield size={18} /> Segurança e permissões
                         </button>
-                        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800/50 hover:text-gray-900 dark:hover:text-zinc-200 transition-all ios-btn border border-transparent cursor-not-allowed opacity-60">
+                        <button
+                            onClick={() => { playUISound('tap'); setActiveSettingsTab('integracoes'); }}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ios-btn border border-transparent ${activeSettingsTab === 'integracoes'
+                                ? 'bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 shadow-sm border-gray-200 dark:border-zinc-700'
+                                : 'text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800/50 hover:text-gray-900 dark:hover:text-zinc-200'
+                                }`}
+                        >
                             <LinkIcon size={18} /> Integrações
                         </button>
                     </nav>
@@ -441,6 +454,112 @@ export function WorkspaceManagerFullscreen({
                                 </div>
                             </div>
 
+                        </div>
+                    )}
+
+                    {/* ==================================== */}
+                    {/* TAB: SEGURANÇA E PERMISSÕES */}
+                    {/* ==================================== */}
+                    {activeSettingsTab === 'seguranca' && (
+                        <div className="max-w-4xl mx-auto animate-in fade-in duration-300">
+                            <h1 className="text-3xl font-black text-gray-900 dark:text-white mb-4 tracking-tight">
+                                Segurança e Permissões
+                            </h1>
+                            <p className="text-sm font-medium text-gray-500 dark:text-zinc-400 mb-10">Controle a autenticação global e as restrições do seu espaço de trabalho.</p>
+
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between bg-white dark:bg-[#111114] p-6 rounded-2xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+                                    <div className="flex items-start gap-4">
+                                        <div className="p-3 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl">
+                                            <Smartphone size={24} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">Autenticação de Dois Fatores (2FA)</h3>
+                                            <p className="text-sm text-gray-500 dark:text-zinc-400">Exigir que todos os membros do workspace ativem o 2FA nas suas contas.</p>
+                                        </div>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer ios-btn shrink-0">
+                                        <input type="checkbox" className="sr-only peer" onChange={() => playUISound('tap')} />
+                                        <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-indigo-600"></div>
+                                    </label>
+                                </div>
+
+                                <div className="flex items-center justify-between bg-white dark:bg-[#111114] p-6 rounded-2xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+                                    <div className="flex items-start gap-4">
+                                        <div className="p-3 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl">
+                                            <Lock size={24} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">Restringir Convites Externos</h3>
+                                            <p className="text-sm text-gray-500 dark:text-zinc-400">Apenas proprietários e administradores podem adicionar novas pessoas.</p>
+                                        </div>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer ios-btn shrink-0">
+                                        <input type="checkbox" className="sr-only peer" defaultChecked onChange={() => playUISound('tap')} />
+                                        <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-indigo-600"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ==================================== */}
+                    {/* TAB: INTEGRAÇÕES */}
+                    {/* ==================================== */}
+                    {activeSettingsTab === 'integracoes' && (
+                        <div className="max-w-5xl mx-auto animate-in fade-in duration-300">
+                            <h1 className="text-3xl font-black text-gray-900 dark:text-white mb-4 tracking-tight">
+                                Integrações e Aplicativos
+                            </h1>
+                            <p className="text-sm font-medium text-gray-500 dark:text-zinc-400 mb-10">Conecte o seu workspace às ferramentas que já utiliza diariamente.</p>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="bg-white dark:bg-[#111114] p-6 rounded-3xl border border-gray-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between">
+                                    <div>
+                                        <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 dark:bg-zinc-800 flex items-center justify-center mb-4">
+                                            <Slack size={24} />
+                                        </div>
+                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Slack</h3>
+                                        <p className="text-sm text-gray-500 dark:text-zinc-400 mb-6 leading-relaxed">
+                                            Receba notificações de tarefas e mensagens diretamente nos seus canais do Slack.
+                                        </p>
+                                    </div>
+                                    <button onClick={() => playUISound('success')} className="ios-btn w-full py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800/80 dark:hover:bg-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-xl transition-colors">
+                                        Conectar
+                                    </button>
+                                </div>
+
+                                <div className="bg-white dark:bg-[#111114] p-6 rounded-3xl border border-gray-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between">
+                                    <div>
+                                        <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-blue-500 dark:bg-zinc-800 flex items-center justify-center mb-4">
+                                            <Trello size={24} />
+                                        </div>
+                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Trello</h3>
+                                        <p className="text-sm text-gray-500 dark:text-zinc-400 mb-6 leading-relaxed">
+                                            Importe os seus quadros e cartões antigos diretamente para o fluxo de tarefas.
+                                        </p>
+                                    </div>
+                                    <button onClick={() => playUISound('success')} className="ios-btn w-full py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800/80 dark:hover:bg-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-xl transition-colors">
+                                        Conectar
+                                    </button>
+                                </div>
+
+                                <div className="bg-white dark:bg-[#111114] p-6 rounded-3xl border border-gray-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-bl-xl">Ativo</div>
+                                    <div>
+                                        <div className="w-12 h-12 rounded-2xl bg-gray-900 text-white dark:bg-zinc-800 flex items-center justify-center mb-4">
+                                            <Github size={24} />
+                                        </div>
+                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">GitHub</h3>
+                                        <p className="text-sm text-gray-500 dark:text-zinc-400 mb-6 leading-relaxed">
+                                            Sincronize commits e pull requests com as tarefas de desenvolvimento.
+                                        </p>
+                                    </div>
+                                    <button onClick={() => playUISound('tap')} className="ios-btn w-full flex items-center justify-center gap-2 py-2.5 bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-500 border border-emerald-200 dark:border-emerald-500/20 text-sm font-bold rounded-xl transition-colors">
+                                        <Check size={16} /> Conectado
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>
