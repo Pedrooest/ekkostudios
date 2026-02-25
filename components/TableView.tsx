@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { List, LayoutGrid, Calendar as LucideCalendar, Search, Plus, X, User } from 'lucide-react';
+import { List, LayoutGrid, Calendar as LucideCalendar, Search, Plus, X, User, Users } from 'lucide-react';
 import { Card, Button, InputSelect, Badge, Stepper, DeletionBar } from '../Components';
 import { BottomSheet } from './BottomSheet';
 import { playUISound } from '../utils/uiSounds';
@@ -50,22 +50,34 @@ export function TableView({
                                 COLUNAS_FINANCAS.filter(col => !['Recorrência', 'Dia_Pagamento', 'Data_Início', 'Data_Fim'].includes(col))
                         ) : [];
 
-        if (tab === 'MATRIZ' || (activeClient && (tab === 'RDC' || tab === 'COBO'))) {
-            c = c.filter(col => col !== 'Cliente_ID');
+        if (['MATRIZ', 'RDC', 'COBO'].includes(tab)) {
+            c = c.filter(col => col !== 'Cliente' && col !== 'Cliente_ID');
         }
         return c;
     }, [tab, activeCategory, activeClient]);
 
-    if (tab === 'RDC' && !activeClient) {
+    const filteredData = useMemo(() => {
+        if (tab !== 'FINANCAS' || !activeCategory) return data;
+        const tipoMap: Record<string, string> = {
+            'entrada': 'Entrada',
+            'saida': 'Saída',
+            'despesa': 'Despesa',
+            'assinatura': 'Assinatura'
+        };
+        const targetTipo = tipoMap[activeCategory];
+        return data.filter((item: any) => item.Tipo === targetTipo);
+    }, [data, tab, activeCategory]);
+
+    if (['RDC', 'MATRIZ', 'COBO'].includes(tab) && !activeClient) {
         return (
-            <Card title={ROTULOS_TABELAS['RDC']}>
+            <Card title={ROTULOS_TABELAS[tab]}>
                 <div className="p-8 md:p-12 flex flex-col items-center justify-center text-center space-y-6 animate-fade">
                     <div className="w-20 h-20 bg-blue-600/10 rounded-full flex items-center justify-center text-blue-500 text-4xl shadow-[0_0_30px_rgba(37,99,235,0.2)]">
-                        <i className="fa-solid fa-bolt"></i>
+                        <Users size={40} />
                     </div>
                     <div className="space-y-2">
                         <h3 className="text-xl font-black text-app-text-strong uppercase tracking-widest">Selecione um Cliente</h3>
-                        <p className="text-xs font-bold text-app-text-muted uppercase tracking-widest">Para acessar a Validação RDC, escolha um cliente para focar a estratégia.</p>
+                        <p className="text-xs font-bold text-app-text-muted uppercase tracking-widest">Para acessar a {ROTULOS_TABELAS[tab]}, escolha um cliente para focar a estratégia.</p>
                     </div>
                     <div className="w-full max-w-sm relative">
                         <select
@@ -116,17 +128,6 @@ export function TableView({
         </div>
     );
 
-    const filteredData = useMemo(() => {
-        if (tab !== 'FINANCAS' || !activeCategory) return data;
-        const tipoMap: Record<string, string> = {
-            'entrada': 'Entrada',
-            'saida': 'Saída',
-            'despesa': 'Despesa',
-            'assinatura': 'Assinatura'
-        };
-        const targetTipo = tipoMap[activeCategory];
-        return data.filter((item: any) => item.Tipo === targetTipo);
-    }, [data, tab, activeCategory]);
 
     return (
         <Card
