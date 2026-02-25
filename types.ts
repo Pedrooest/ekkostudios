@@ -11,7 +11,7 @@ export interface Cliente {
   "Cor (HEX)": string;
   Status: 'Ativo' | 'Pausado' | 'Prospect';
   Fee: number;
-  __arquivado?: boolean;
+  __archived?: boolean;
 }
 
 export interface ItemCobo {
@@ -24,7 +24,7 @@ export interface ItemCobo {
   Zona: string;
   Intenção: string;
   Formato: string; // Tipo de Conteúdo
-  __arquivado?: boolean;
+  __archived?: boolean;
 }
 
 export interface ItemMatrizEstrategica {
@@ -36,7 +36,7 @@ export interface ItemMatrizEstrategica {
   "Papel estratégico": string;
   "Tipo de conteúdo": string;
   "Resultado esperado": string;
-  __arquivado?: boolean;
+  __archived?: boolean;
 }
 
 export interface ItemRdc {
@@ -50,7 +50,7 @@ export interface ItemRdc {
   "Competição (1–5)": number;
   "Score (R×D×C)": number;
   Decisão: string;
-  __arquivado?: boolean;
+  __archived?: boolean;
 }
 
 export interface ItemPlanejamento {
@@ -76,7 +76,7 @@ export interface ItemPlanejamento {
   CTA?: string;
   Fonte_Origem?: 'RDC' | 'Estratégia' | 'COBO' | 'Tarefa' | 'IA' | 'Manual' | 'Gemini';
   Origem_ID?: string;
-  __arquivado?: boolean;
+  __archived?: boolean;
 }
 
 export interface LancamentoFinancas {
@@ -94,7 +94,7 @@ export interface LancamentoFinancas {
   Data_Fim?: string;
   Dia_Pagamento?: number;
   Observações?: string;
-  __arquivado?: boolean;
+  __archived?: boolean;
 }
 
 export interface ItemChecklistTarefa {
@@ -108,7 +108,7 @@ export interface AnexoTarefa {
   nomeArquivo: string;
   tipoMime: string;
   tamanho: number;
-  dados: string; // Dados codificados em Base64
+  dados: string; // Datos codificados em Base64
   criadoEm: string;
 }
 
@@ -160,7 +160,7 @@ export interface Tarefa {
   Atividades: AtividadeTarefa[];
   Criado_Em: string;
   Atualizado_Em: string;
-  __arquivado?: boolean;
+  __archived?: boolean;
 }
 
 export interface Colaborador {

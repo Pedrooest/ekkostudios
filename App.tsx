@@ -774,7 +774,7 @@ export default function App() {
     }
   }, [currentWorkspace, currentUser, addNotification, clients, rdc, matriz, cobo, planejamento, financas, tasks, iaHistory]);
 
-  const handleAddRow = useCallback(async (tab: TipoTabela, initial: Partial<any> = {}) => {
+  const handleAddRow = useCallback(async (tab: TipoTabela, initial: Partial<any> = {}): Promise<string> => {
     // Permission Check
     const member = currentWorkspace?.membros_workspace?.find((m: any) => m.id_usuario === currentUser?.id);
     if (member && member.papel === 'viewer') {
@@ -886,7 +886,7 @@ export default function App() {
 
   const performArchive = useCallback((ids: string[], tab: TipoTabela | 'IA_HISTORY', archive: boolean = true) => {
     if (ids.length === 0) return;
-    const updateFn = (list: any[]) => list.map(i => ids.includes(i.id) ? { ...i, __arquivado: archive } : i);
+    const updateFn = (list: any[]) => list.map(i => ids.includes(i.id) ? { ...i, __archived: archive } : i);
 
     if (tab === 'CLIENTES') setClients(updateFn);
     if (tab === 'RDC') setRdc(updateFn);
@@ -901,13 +901,13 @@ export default function App() {
     if (currentWorkspace) {
       const tableName = getTableName(tab as string);
       if (tableName) {
-        ids.forEach(id => DatabaseService.updateItem(tableName, id, { __arquivado: archive }));
+        ids.forEach(id => DatabaseService.updateItem(tableName, id, { __archived: archive }));
       }
     }
   }, [currentWorkspace]);
 
-  const filterArchived = <T extends { __arquivado?: boolean }>(list: T[]): T[] => {
-    return list.filter(i => showArchived ? true : !i.__arquivado);
+  const filterArchived = <T extends { __archived?: boolean }>(list: T[]): T[] => {
+    return list.filter(i => showArchived ? true : !i.__archived);
   };
 
   const currentPlanejamento = useMemo(() => filterArchived(selectedClientIds.length > 0 ? planejamento.filter(item => selectedClientIds.includes(item.Cliente_ID)) : planejamento), [planejamento, selectedClientIds, showArchived]);
@@ -1297,7 +1297,7 @@ export default function App() {
         </header>
 
         {/* Action Controls (Mobile-friendly row) */}
-        {activeTab !== 'WHITEBOARD' && (
+        {activeTab !== 'WHITEBOARD' && activeTab !== 'PLANEJAMENTO' && (
           <div className="relative group/scroll">
             <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar px-4 sm:px-8 py-2 border-b border-app-border/40 lg:border-none no-scrollbar snap-x snap-mandatory">
               <button
@@ -1331,7 +1331,7 @@ export default function App() {
 
 
 
-        <div className={`flex-1 overflow-y-auto custom-scrollbar animate-fade bg-app-bg ${activeTab === 'WHITEBOARD' ? 'p-0 overflow-hidden' : 'p-3 md:p-6 lg:p-10 pb-[calc(100px+env(safe-area-inset-bottom))] lg:pb-10'}`}>
+        <div className={`flex-1 overflow-y-auto custom-scrollbar animate-fade bg-app-bg ${(activeTab === 'WHITEBOARD' || activeTab === 'PLANEJAMENTO') ? 'p-0 overflow-hidden' : 'p-3 md:p-6 lg:p-10 pb-[calc(100px+env(safe-area-inset-bottom))] lg:pb-10'}`}>
           {activeTab === 'DASHBOARD' && <DashboardView clients={clients} tasks={currentTasks} financas={currentFinancas} planejamento={currentPlanejamento} rdc={currentRdc} />}
           {activeTab === 'CLIENTES' && <TableView tab="CLIENTES" data={filterArchived(clients)} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('CLIENTES')} clients={clients} library={BibliotecaConteudo} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} />}
           {activeTab === 'RDC' && <TableView tab="RDC" data={currentRdc} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('RDC')} library={BibliotecaConteudo} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
@@ -1340,7 +1340,7 @@ export default function App() {
 
           {activeTab === 'COBO' && <TableView tab="COBO" data={currentCobo} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('COBO')} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} library={BibliotecaConteudo} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
 
-          {activeTab === 'PLANEJAMENTO' && <PlanningView data={currentPlanejamento} clients={clients} onUpdate={handleUpdate} onAdd={handleAddRow} rdc={rdc} matriz={matriz} cobo={cobo} tasks={tasks} iaHistory={iaHistory} setActiveTab={setActiveTab} performArchive={performArchive} performDelete={performDelete} library={BibliotecaConteudo} />}
+          {activeTab === 'PLANEJAMENTO' && <PlanningView data={currentPlanejamento} clients={clients} onUpdate={handleUpdate} onAdd={handleAddRow} rdc={currentRdc} matriz={matriz} cobo={cobo} tasks={tasks} iaHistory={iaHistory} setActiveTab={setActiveTab} performArchive={performArchive} performDelete={performDelete} library={BibliotecaConteudo} activeClientId={selectedClientIds.length === 1 ? selectedClientIds[0] : undefined} showArchived={showArchived} setShowArchived={setShowArchived} setIsClientFilterOpen={setIsClientFilterOpen} />}
           {activeTab === 'FINANCAS' && <FinancasView data={currentFinancas} onUpdate={async (tab, id, item) => { for (const key of Object.keys(item)) { if (key !== 'id') await handleUpdate(id, tab, key, item[key], true); } }} onDelete={performDelete} onArchive={performArchive} onAdd={(tab, initial) => handleAddRow(tab || 'FINANCAS', initial)} selection={selection} onSelect={setSelection} onClearSelection={() => setSelection([])} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} activeRegMode="lista" />}
           {activeTab === 'TAREFAS' && <TaskFlowView tasks={currentTasks} clients={clients} collaborators={collaborators} activeViewId={activeTaskViewId} setActiveViewId={setActiveTaskViewId} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('TAREFAS')} onSelectTask={setSelectedTaskId} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
           {activeTab === 'VH' && <VhManagementView clients={clients} collaborators={collaborators} setCollaborators={setCollaborators} onUpdate={handleUpdate} selection={selection} onSelect={toggleSelection} />}
