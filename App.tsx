@@ -536,28 +536,26 @@ export default function App() {
         setAuthLoading(false);
       });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // @ts-ignore
+      window.pushLog?.(`Auth State Changed: ${event}`);
       setCurrentUser(session?.user ?? null);
       if (session?.user) {
         const savedProfile = localStorage.getItem(`profile_${session.user.id}`);
         if (savedProfile) {
           setPerfilUsuario(JSON.parse(savedProfile));
         } else {
-          setPerfilUsuario({
+          const newProfile = {
             id: session.user.id,
             email: session.user.email ?? '',
             full_name: session.user.user_metadata.full_name || session.user.email?.split('@')[0] || 'Usuário',
             role: 'Especialista EKKO',
-            status: 'online'
-          });
-          // Secondary guard: Upsert profile to be absolutely sure it exists
-          supabase.from('profiles').upsert({
-            id: session.user.id,
-            email: session.user.email,
-            full_name: session.user.user_metadata.full_name || session.user.email?.split('@')[0],
-            role: 'Especialista',
-            status: 'online'
-          }).then(({ error }) => {
+            status: 'online' as 'online' | 'offline' | 'ocupado' | 'ausente'
+          };
+          setPerfilUsuario(newProfile);
+          localStorage.setItem(`profile_${session.user.id}`, JSON.stringify(newProfile));
+          // Async profile sync (detached from render cycle)
+          supabase.from('profiles').upsert(newProfile).then(({ error }) => {
             if (error) console.warn('Secondary profile sync failed:', error);
           });
         }
@@ -572,7 +570,11 @@ export default function App() {
       checkInvite(session);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      // @ts-ignore
+      window.pushLog?.('App.tsx Unmounting listener');
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
