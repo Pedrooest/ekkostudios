@@ -192,12 +192,7 @@ const getTableName = (tab: string): string | null => {
 
 import { PortalPopover } from './components/PortalPopover';
 
-// @ts-ignore
-window.pushLog?.('App.tsx Imports loaded successfully.');
-
 export default function App() {
-  // @ts-ignore
-  window.pushLog?.('App() Component mounting...');
 
   const [activeTab, setActiveTab] = useState<TipoTabela>('DASHBOARD');
   const [theme, setTheme] = useState<'dark' | 'light'>(() => (localStorage.getItem('theme') as 'dark' | 'light') || 'dark');
@@ -537,8 +532,6 @@ export default function App() {
       });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // @ts-ignore
-      window.pushLog?.(`Auth State Changed: ${event}`);
       setCurrentUser(session?.user ?? null);
       if (session?.user) {
         const savedProfile = localStorage.getItem(`profile_${session.user.id}`);
@@ -571,8 +564,6 @@ export default function App() {
     });
 
     return () => {
-      // @ts-ignore
-      window.pushLog?.('App.tsx Unmounting listener');
       subscription.unsubscribe();
     };
   }, []);

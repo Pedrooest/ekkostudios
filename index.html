@@ -21,29 +21,7 @@
         });
       }
     }
-    // GLOBAL FATAL ERROR CATCHER FOR VERCEL DEBUGS
-    const bootLogger = document.createElement('div');
-    bootLogger.id = 'ekko-boot-logger';
-    bootLogger.style = "position:fixed;top:0;left:0;right:0;max-height:30vh;overflow-y:auto;background:rgba(0,0,0,0.9);color:#0f0;padding:10px;z-index:999999;font-family:monospace;font-size:11px;pointer-events:none;";
-    bootLogger.innerHTML = "<b>[SYSTEM BOOT LOG]</b>";
-    document.addEventListener('DOMContentLoaded', () => document.body.appendChild(bootLogger));
 
-    window.pushLog = function (msg) {
-      if (document.getElementById('ekko-boot-logger')) {
-        document.getElementById('ekko-boot-logger').innerHTML += '<br/>> ' + msg;
-      } else {
-        bootLogger.innerHTML += '<br/>> ' + msg;
-      }
-    };
-    window.pushLog('HTML Parsed. Waiting for React to mount...');
-
-    window.onerror = function (msg, url, lineNo, columnNo, error) {
-      window.pushLog("<span style='color:red'>[FATAL] " + msg + " (" + lineNo + ")</span>");
-      return false;
-    };
-    window.addEventListener('unhandledrejection', function (event) {
-      window.pushLog("<span style='color:red'>[PROMISE] " + (event.reason ? event.reason.message || event.reason : 'Unknown') + "</span>");
-    });
   </script>
   <script>
     tailwind.config = {
