@@ -518,12 +518,17 @@ export default function App() {
       }
     };
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setCurrentUser(session?.user ?? null);
-      setAuthLoading(false);
-      // Check invite on initial load
-      if (session) checkInvite(session);
-    });
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        setCurrentUser(session?.user ?? null);
+        setAuthLoading(false);
+        // Check invite on initial load
+        if (session) checkInvite(session);
+      })
+      .catch((err) => {
+        console.error('Supabase getSession Error:', err);
+        setAuthLoading(false);
+      });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setCurrentUser(session?.user ?? null);
