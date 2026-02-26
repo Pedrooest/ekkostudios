@@ -4,7 +4,7 @@ import {
     Filter, Image as ImageIcon, Archive, Database,
     ChevronLeft, ChevronRight, FolderOpen, Copy, Trash2,
     ChevronDown, Download, Loader2, Moon, Sun,
-    Calendar as CalendarIcon, CalendarDays, CalendarRange, List
+    Calendar as CalendarIcon, LayoutGrid, Columns, List
 } from 'lucide-react';
 import { playUISound } from '../utils/uiSounds';
 import { getCalendarDays, MONTH_NAMES_BR, WEEKDAYS_BR_SHORT } from '../utils/calendarUtils';
@@ -47,6 +47,15 @@ export function PlanningView({
 
     const [sidebarView, setSidebarView] = useState<'edit' | 'banco' | null>(null);
     const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+    const [librarySearchTerm, setLibrarySearchTerm] = useState('');
+
+    const rdcLibrary = useMemo(() => {
+        return rdc.filter(item => {
+            const matchClient = !activeClientId || item.Cliente_ID === activeClientId;
+            const matchSearch = !librarySearchTerm || (item['Ideia de Conteúdo'] && item['Ideia de Conteúdo'].toLowerCase().includes(librarySearchTerm.toLowerCase()));
+            return matchClient && matchSearch;
+        });
+    }, [rdc, activeClientId, librarySearchTerm]);
 
     const selectedEvent = useMemo(() => data.find((e: any) => e.id === selectedEventId), [data, selectedEventId]);
 
@@ -295,14 +304,14 @@ export function PlanningView({
                                 className={`relative z-10 w-11 h-8 flex items-center justify-center rounded-xl transition-colors ios-btn ${viewMode === 'month' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300'}`}
                                 title="Mês"
                             >
-                                <CalendarDays size={18} strokeWidth={2.5} />
+                                <LayoutGrid size={18} strokeWidth={2.5} />
                             </button>
                             <button
                                 onClick={() => { playUISound('tap'); setViewMode('week'); }}
                                 className={`relative z-10 w-11 h-8 flex items-center justify-center rounded-xl transition-colors ios-btn ${viewMode === 'week' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300'}`}
                                 title="Semana"
                             >
-                                <CalendarRange size={18} strokeWidth={2.5} />
+                                <Columns size={18} strokeWidth={2.5} />
                             </button>
                             <button
                                 onClick={() => { playUISound('tap'); setViewMode('list'); }}
@@ -533,17 +542,68 @@ export function PlanningView({
                                     <input
                                         type="text"
                                         placeholder="BUSCAR IDEIAS APROVADAS..."
+                                        value={librarySearchTerm}
+                                        onChange={(e) => setLibrarySearchTerm(e.target.value)}
                                         className="w-full bg-white dark:bg-[#14141C] border border-gray-200 dark:border-zinc-800 text-xs font-black uppercase rounded-2xl pl-12 pr-6 py-4 focus:outline-none focus:border-blue-500 transition-all placeholder:text-gray-300 dark:placeholder:text-zinc-600"
                                     />
                                 </div>
                             </div>
 
-                            <div className="flex-1 flex flex-col items-center justify-center p-12 opacity-30">
-                                <div className="w-20 h-20 rounded-full bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 flex items-center justify-center text-gray-300 dark:text-zinc-700 mb-6">
-                                    <FolderOpen size={32} />
+                            {rdcLibrary.length === 0 ? (
+                                <div className="flex-1 flex flex-col items-center justify-center p-12 opacity-30">
+                                    <div className="w-20 h-20 rounded-full bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 flex items-center justify-center text-gray-300 dark:text-zinc-700 mb-6">
+                                        <FolderOpen size={32} />
+                                    </div>
+                                    <p className="text-[10px] font-black text-gray-400 dark:text-zinc-600 uppercase tracking-[0.3em]">NENHUMA IDEIA ENCONTRADA</p>
                                 </div>
-                                <p className="text-[10px] font-black text-gray-400 dark:text-zinc-600 uppercase tracking-[0.3em]">NENHUM ITEM ENCONTRADO</p>
-                            </div>
+                            ) : (
+                                <div className="flex-1 p-6 overflow-y-auto custom-scrollbar space-y-4">
+                                    {rdcLibrary.map(item => (
+                                        <div
+                                            key={item.id}
+                                            onClick={() => {
+                                                playUISound('tap');
+                                                const today = new Date().toISOString().split('T')[0];
+                                                const newId = onAdd('PLANEJAMENTO', {
+                                                    Data: today,
+                                                    Hora: '09:00',
+                                                    "Status do conteúdo": 'EM ESPERA',
+                                                    Conteúdo: item['Ideia de Conteúdo'],
+                                                    "Tipo de conteúdo": item['Tipo de conteúdo'] || 'Post',
+                                                    Cliente_ID: item.Cliente_ID || activeClientId || 'GERAL',
+                                                    Origem_ID: item.id,
+                                                    Fonte_Origem: 'RDC'
+                                                });
+                                                newId.then((id) => {
+                                                    if (id) {
+                                                        setSelectedEventId(id);
+                                                        setSidebarView('edit');
+                                                    }
+                                                });
+                                            }}
+                                            className="p-5 rounded-[1.25rem] bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 hover:shadow-xl transition-all cursor-pointer group hover:border-blue-500/50 transform hover:-translate-y-1"
+                                        >
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: clients.find(c => c.id === item.Cliente_ID)?.['Cor (HEX)'] || '#3B82F6' }}></div>
+                                                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest truncate">
+                                                    {clients.find(c => c.id === item.Cliente_ID)?.Nome || 'GERAL'}
+                                                </div>
+                                            </div>
+                                            <div className="text-[13px] font-black leading-snug text-[#0B1527] dark:text-white mb-4">
+                                                {item['Ideia de Conteúdo']}
+                                            </div>
+                                            <div className="flex items-center justify-between mt-2 pt-4 border-t border-gray-50 dark:border-zinc-800/50">
+                                                <span className="text-[9px] font-black px-3 py-1.5 rounded-md bg-gray-50 text-gray-500 dark:bg-zinc-800 dark:text-zinc-400 uppercase tracking-widest border border-gray-100 dark:border-zinc-700">
+                                                    {item['Tipo de conteúdo'] || 'IDEIA'}
+                                                </span>
+                                                <span className="flex items-center gap-1.5 text-[10px] font-black text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-widest bg-blue-50 dark:bg-blue-500/10 px-4 py-1.5 rounded-lg">
+                                                    <Plus size={12} strokeWidth={3} /> USAR
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

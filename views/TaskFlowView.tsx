@@ -1,13 +1,11 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import interactionPlugin from '@fullcalendar/interaction';
-import listPlugin from '@fullcalendar/list';
 import {
     List, LayoutGrid, Calendar as LucideCalendar, Search, Filter,
     ArrowUpDown, Plus, Clock, MessageSquare, Box, ExternalLink,
-    X, Trash2, Zap, LayoutDashboard, Image as ImageIcon, CheckCircle2, FileText, ShieldAlert, Eye, History as HistoryIcon, Loader2, User
+    X, Trash2, Zap, LayoutDashboard, Image as ImageIcon, CheckCircle2, FileText, ShieldAlert, Eye, History as HistoryIcon, Loader2, User,
+    Columns, CalendarDays, ChevronLeft, ChevronRight
 } from 'lucide-react';
+import { getCalendarDays, MONTH_NAMES_BR, WEEKDAYS_BR_SHORT } from '../utils/calendarUtils';
 import { Card, Button, DeletionBar } from '../Components';
 import { generateId } from '../utils/id';
 import {
@@ -45,6 +43,22 @@ export function TaskFlowView({
 
     const viewType = useMemo(() => DEFAULT_TASK_VIEWS.find(v => v.id === activeViewId)?.tipo || 'List', [activeViewId]);
 
+    const [currentDate, setCurrentDate] = useState(new Date());
+
+    const calendarDays = useMemo(() => {
+        return getCalendarDays(currentDate.getFullYear(), currentDate.getMonth());
+    }, [currentDate]);
+
+    const handleMonthNav = (dir: number) => {
+        const next = new Date(currentDate);
+        next.setMonth(next.getMonth() + dir);
+        setCurrentDate(next);
+    };
+
+    const getEventosDoDia = (dateStr: string) => {
+        return filteredTasks.filter((t: any) => t.Data_Entrega === dateStr);
+    };
+
     const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 1024);
@@ -76,8 +90,8 @@ export function TaskFlowView({
                             onClick={() => setActiveViewId(v.id)}
                             className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${activeViewId === v.id ? 'bg-app-surface text-app-text-strong shadow-lg border border-app-border' : 'text-app-text-muted hover:text-app-text-strong'}`}
                         >
-                            {v.type === 'List' ? <List size={14} /> : v.type === 'Board' ? <LayoutGrid size={14} /> : <LucideCalendar size={14} />}
-                            {v.name}
+                            {v.tipo === 'List' || (v as any).type === 'List' ? <List size={14} /> : v.tipo === 'Board' || (v as any).type === 'Board' ? <Columns size={14} /> : <CalendarDays size={14} />}
+                            {v.nome || (v as any).name}
                         </button>
                     ))}
                 </div>
@@ -250,60 +264,97 @@ export function TaskFlowView({
                 )}
 
                 {viewType === 'Calendar' && (
-                    <div className="h-full bg-app-surface/30 border border-app-border rounded-[32px] p-8 shadow-2xl overflow-hidden relative">
-                        <FullCalendar
-                            plugins={[dayGridPlugin, interactionPlugin, listPlugin]}
-                            initialView={isMobile ? "listWeek" : "dayGridMonth"}
-                            events={filteredTasks.filter(t => t.Data_Entrega).map(t => {
-                                const Cliente = clients.find((c: any) => c.id === t.Cliente_ID);
-                                return {
-                                    id: t.id,
-                                    title: t.Título,
-                                    start: t.Data_Entrega + (t.Hora_Entrega ? `T${t.Hora_Entrega}` : ''),
-                                    backgroundColor: Cliente?.['Cor (HEX)'] || '#3B82F6',
-                                    borderColor: 'transparent',
-                                    extendedProps: { ...t, clientName: Cliente?.Nome || 'Agência' }
-                                };
-                            })}
-                            height="100%"
-                            locale="pt-br"
-                            headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,listWeek' }}
-                            dayMaxEvents={3}
-                            eventClick={(info) => onSelectTask(info.event.id)}
-                            editable={true}
-                            eventDrop={(info) => {
-                                onUpdate(info.event.id, 'TAREFAS', 'Data_Entrega', info.event.startStr.split('T')[0]);
-                                if (info.event.startStr.includes('T')) {
-                                    onUpdate(info.event.id, 'TAREFAS', 'Hora_Entrega', info.event.startStr.split('T')[1].slice(0, 5));
-                                }
-                            }}
-                            eventContent={(eventInfo) => {
-                                const ep = eventInfo.event.extendedProps;
-                                const bgColor = eventInfo.event.backgroundColor || '#3B82F6';
-                                const isDone = ep.Status === 'done';
+                    <div className="h-full flex flex-col overflow-hidden relative">
+                        {/* CALENDAR HEADER */}
+                        <div className="flex items-center justify-between mb-4 shrink-0">
+                            <div className="flex items-center gap-4 bg-app-surface border border-app-border p-2 rounded-2xl shadow-sm">
+                                <button className="p-2 rounded-xl hover:bg-app-surface-2 text-app-text-muted hover:text-app-text-strong transition-colors" onClick={() => handleMonthNav(-1)}>
+                                    <ChevronLeft size={20} />
+                                </button>
+                                <h3 className="text-sm font-black text-app-text-strong min-w-[150px] text-center uppercase tracking-widest">
+                                    {MONTH_NAMES_BR[currentDate.getMonth()]} {currentDate.getFullYear()}
+                                </h3>
+                                <button className="p-2 rounded-xl hover:bg-app-surface-2 text-app-text-muted hover:text-app-text-strong transition-colors" onClick={() => handleMonthNav(1)}>
+                                    <ChevronRight size={20} />
+                                </button>
+                            </div>
+                            <button
+                                onClick={() => { setCurrentDate(new Date()); }}
+                                className="px-5 py-2.5 rounded-2xl bg-app-surface border border-app-border text-[10px] font-black text-app-text-muted tracking-widest uppercase hover:text-app-text-strong hover:bg-app-surface-2 shadow-sm transition-all"
+                            >
+                                HOJE
+                            </button>
+                        </div>
 
-                                return (
-                                    <div className={`p-2 rounded-xl border border-app-border bg-app-surface/90 hover:border-blue-500 cursor-pointer transition-all relative overflow-hidden group/event w-full h-full shadow-sm ${isDone ? 'opacity-50' : ''}`}>
-                                        <div className="absolute left-0 top-1 bottom-1 w-0.5 rounded-r-xl" style={{ backgroundColor: bgColor }} />
-
-                                        <div className="flex justify-between items-center mb-1 pl-1.5">
-                                            <span className="flex items-center gap-1 text-[9px] text-app-text-muted font-bold uppercase tracking-tight">
-                                                <Clock size={10} /> {ep.Hora_Entrega || '--:--'}
-                                            </span>
-                                        </div>
-
-                                        <div className="pl-1.5">
-                                            <p className={`text-[11px] font-bold leading-tight truncate uppercase ${isDone ? 'text-app-text-muted line-through' : 'text-app-text-strong'}`}>
-                                                {eventInfo.event.title}
-                                            </p>
-                                            <p className="text-[9px] font-black text-app-text-muted uppercase tracking-widest mt-1 truncate">
-                                                {ep.clientName}
-                                            </p>
-                                        </div>
+                        {/* CALENDAR GRID */}
+                        <div className="flex-1 bg-app-bg border border-app-border rounded-[2rem] overflow-hidden flex flex-col shadow-inner">
+                            <div className="grid grid-cols-7 border-b border-app-border bg-app-surface/50 shrink-0">
+                                {WEEKDAYS_BR_SHORT.map(dia => (
+                                    <div key={dia} className="py-4 text-center text-[10px] font-black text-app-text-muted uppercase tracking-[0.2em] border-r border-app-border last:border-0">
+                                        {dia}
                                     </div>
-                                );
-                            }}
-                        />
+                                ))}
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto custom-scrollbar">
+                                <div className="grid grid-cols-7 auto-rows-[minmax(200px,auto)] min-h-full">
+                                    {calendarDays.map((diaObj, idx) => {
+                                        const evts = getEventosDoDia(diaObj.dateStr);
+                                        const isToday = diaObj.dateStr === new Date().toISOString().split('T')[0];
+
+                                        return (
+                                            <div
+                                                key={idx}
+                                                className={`p-2 border-r border-b border-app-border transition-all relative flex flex-col ${diaObj.isNextMonth || diaObj.isPrevMonth ? 'bg-app-surface/20 opacity-40' :
+                                                    isToday ? 'bg-blue-500/5' : 'bg-transparent'
+                                                    } hover:bg-app-surface/50`}
+                                            >
+                                                <div className="flex justify-between items-start mb-2 px-1">
+                                                    <span className={`text-[11px] font-bold w-7 h-7 flex items-center justify-center rounded-xl ${isToday ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40' : 'text-app-text-strong font-black'}`}>
+                                                        {diaObj.day}
+                                                    </span>
+                                                    <button onClick={() => onAdd('TAREFAS', { Data_Entrega: diaObj.dateStr })} className="opacity-0 group-hover:opacity-100 p-1 text-app-text-muted hover:text-blue-500 transition-all">
+                                                        <Plus size={14} />
+                                                    </button>
+                                                </div>
+
+                                                <div className="flex-1 space-y-2 pb-1">
+                                                    {evts.map(Tarefa => {
+                                                        const Cliente = clients.find((c: any) => c.id === Tarefa.Cliente_ID);
+                                                        const prio = getPriorityInfo(Tarefa.Prioridade);
+                                                        const isDone = Tarefa.Status === 'done' || Tarefa.Status === 'concluido';
+
+                                                        return (
+                                                            <div
+                                                                key={Tarefa.id}
+                                                                onClick={() => onSelectTask(Tarefa.id)}
+                                                                className={`group relative p-3 rounded-2xl shadow-sm border border-app-border hover:shadow-xl hover:border-blue-500/40 cursor-pointer overflow-hidden transform hover:-translate-y-0.5 transition-all bg-app-surface ${isDone ? 'opacity-50' : ''}`}
+                                                            >
+                                                                <div className="absolute left-0 top-1 bottom-1 w-1 rounded-r opacity-80" style={{ backgroundColor: Cliente?.['Cor (HEX)'] || '#3B82F6' }} />
+
+                                                                <div className="pl-2 flex flex-col gap-1.5">
+                                                                    <div className="flex justify-between items-start">
+                                                                        <span className="text-[9px] font-black uppercase tracking-widest text-app-text-muted truncate">
+                                                                            {Cliente?.Nome || 'Agência'}
+                                                                        </span>
+                                                                        <div className="flex items-center gap-1.5 opacity-50 text-[9px] font-bold uppercase tracking-tight text-app-text-strong">
+                                                                            {Tarefa.Hora_Entrega && <><Clock size={10} /> {Tarefa.Hora_Entrega}</>}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className={`text-[11px] font-bold leading-tight uppercase ${isDone ? 'text-app-text-muted line-through' : 'text-app-text-strong'}`}>
+                                                                        {Tarefa.Título}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>
