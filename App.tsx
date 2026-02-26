@@ -192,7 +192,13 @@ const getTableName = (tab: string): string | null => {
 
 import { PortalPopover } from './components/PortalPopover';
 
+// @ts-ignore
+window.pushLog?.('App.tsx Imports loaded successfully.');
+
 export default function App() {
+  // @ts-ignore
+  window.pushLog?.('App() Component mounting...');
+
   const [activeTab, setActiveTab] = useState<TipoTabela>('DASHBOARD');
   const [theme, setTheme] = useState<'dark' | 'light'>(() => (localStorage.getItem('theme') as 'dark' | 'light') || 'dark');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 1024);
