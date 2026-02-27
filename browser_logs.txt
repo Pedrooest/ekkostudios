@@ -1,6 +1,1 @@
-[WARN] cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation
-[LOG] ActiveTab Changed [object Object]
-[VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o
-
---- ROOT HTML DUMP ---
-<div class="fixed inset-0 z-[1000] flex items-center justify-center bg-[#0B0F19] overflow-hidden"><div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 blur-[120px] rounded-full animate-pulse"></div><div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 blur-[120px] rounded-full animate-pulse"></div><div class="w-full max-w-md mx-4 sm:mx-0 p-6 sm:p-10 bg-[#111827]/40 backdrop-blur-2xl border border-white/10 rounded-[40px] shadow-2xl animate-fade relative overflow-hidden"><div class="text-center mb-10"><div class="flex justify-center mb-6"><img alt="EKKO" class="h-40 object-contain" src="/site-logo.png"></div><h2 class="text-2xl font-black text-white uppercase tracking-tighter mb-2">Bem-vindo de volta</h2><p class="text-sm font-bold text-gray-400 uppercase tracking-widest">Acesse o dashboard da EKKO Studios</p></div><form class="space-y-6"><div class="space-y-2"><label class="text-[10px] font-black uppercase text-gray-500 tracking-widest ml...
+PUPPETEER ERROR: net::ERR_CONNECTION_REFUSED at http://localhost:4173/

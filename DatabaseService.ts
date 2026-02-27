@@ -28,26 +28,8 @@ const MAPA_COLUNAS: Record<string, Record<string, string>> = {
     financas: {
         Lancamento_ID: 'Lançamento'
     },
-    cobo: {
-        Cliente_ID: 'Cliente'
-    },
-    matriz_estrategica: {
-        Cliente_ID: 'Cliente'
-    },
-    rdc: {
-        Cliente_ID: 'Cliente'
-    },
-    planejamento: {
-        Cliente_ID: 'Cliente'
-    },
     tasks: {
-        Cliente_ID: 'Cliente',
-        Checklist: 'Checklist',
-        Anexos: 'Anexos',
-        Comentarios: 'Comentarios',
-        Activities: 'Atividades',
-        created_at: 'Criado_Em',
-        updated_at: 'Atualizado_Em'
+        Activities: 'Atividades'
     }
 };
 
@@ -62,7 +44,9 @@ const mapToFrontend = (data: any, table: string) => {
     Object.entries(mapa).forEach(([dbKey, feKey]) => {
         if (dbKey in mapped) {
             mapped[feKey] = mapped[dbKey];
-            delete mapped[dbKey];
+            if (dbKey !== feKey) {
+                delete mapped[dbKey];
+            }
         }
     });
 
@@ -88,7 +72,9 @@ const mapToDB = (data: any, table: string) => {
     Object.entries(mapa).forEach(([dbKey, feKey]) => {
         if (feKey in mapped) {
             mapped[dbKey] = mapped[feKey];
-            delete mapped[feKey];
+            if (dbKey !== feKey) {
+                delete mapped[feKey];
+            }
         }
     });
     return mapped;
