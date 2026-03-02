@@ -27,7 +27,7 @@ import { SystematicModelingView } from './views/SystematicModelingView';
 import { OrganickIAView } from './views/OrganickIAView';
 import ChecklistsTab from './views/ChecklistsView';
 import { TaskFlowView, TaskDetailPanel } from './views/TaskFlowView';
-import { FinancasView } from './views/FinancasView';
+import FinancasTab from './views/FinancasView';
 import { VhManagementView } from './views/VhManagementView';
 import { PlanningView } from './views/PlanningView';
 import { TableView } from './components/TableView';
@@ -1346,7 +1346,7 @@ export default function App() {
           {activeTab === 'COBO' && <TableView tab="COBO" data={currentCobo} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('COBO')} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} library={BibliotecaConteudo} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
 
           {activeTab === 'PLANEJAMENTO' && <PlanningView data={currentPlanejamento} clients={clients} onUpdate={handleUpdate} onAdd={handleAddRow} rdc={currentRdc} matriz={matriz} cobo={cobo} tasks={tasks} iaHistory={iaHistory} setActiveTab={setActiveTab} performArchive={performArchive} performDelete={performDelete} library={BibliotecaConteudo} activeClientId={selectedClientIds.length === 1 ? selectedClientIds[0] : undefined} showArchived={showArchived} setShowArchived={setShowArchived} setIsClientFilterOpen={setIsClientFilterOpen} />}
-          {activeTab === 'FINANCAS' && <FinancasView data={currentFinancas} onUpdate={async (tab, id, item) => { for (const key of Object.keys(item)) { if (key !== 'id') await handleUpdate(id, tab, key, item[key], true); } }} onDelete={performDelete} onArchive={performArchive} onAdd={(tab, initial) => handleAddRow(tab || 'FINANCAS', initial)} selection={selection} onSelect={setSelection} onClearSelection={() => setSelection([])} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} activeRegMode="lista" />}
+          {activeTab === 'FINANCAS' && <FinancasTab />}
           {activeTab === 'TAREFAS' && <TaskFlowView tasks={currentTasks} clients={clients} collaborators={collaborators} activeViewId={activeTaskViewId} setActiveViewId={setActiveTaskViewId} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('TAREFAS')} onSelectTask={setSelectedTaskId} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
           {activeTab === 'CHECKLISTS' && <ChecklistsTab clients={clients} />}
           {activeTab === 'VH' && <VhManagementView clients={clients} collaborators={collaborators} setCollaborators={setCollaborators} onUpdate={handleUpdate} selection={selection} onSelect={toggleSelection} />}
