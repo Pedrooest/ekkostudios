@@ -122,6 +122,13 @@ const TAB_TEMPLATES: Record<TipoTabela, ModeloApresentacao> = {
     subtitulo: 'Gestão de membros e ativos do ecossistema.',
     proximoPasso: 'Garantir que todos os membros tenham acesso aos ativos.',
     chamadas: []
+  },
+  CHECKLISTS: {
+    aba: 'CHECKLISTS',
+    rotulo: 'Checklists de Gravação',
+    subtitulo: 'Controle de equipamentos e diárias de produção.',
+    proximoPasso: 'Garantir que todos os equipamentos estejam prontos.',
+    chamadas: []
   }
 };
 

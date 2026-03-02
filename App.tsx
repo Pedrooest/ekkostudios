@@ -25,6 +25,7 @@ import { AssistantAction } from './ai/types';
 import { DashboardView } from './views/DashboardView';
 import { SystematicModelingView } from './views/SystematicModelingView';
 import { OrganickIAView } from './views/OrganickIAView';
+import ChecklistsTab from './views/ChecklistsView';
 import { TaskFlowView, TaskDetailPanel } from './views/TaskFlowView';
 import { FinancasView } from './views/FinancasView';
 import { VhManagementView } from './views/VhManagementView';
@@ -197,7 +198,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TipoTabela>('DASHBOARD');
   const [theme, setTheme] = useState<'dark' | 'light'>(() => (localStorage.getItem('theme') as 'dark' | 'light') || 'dark');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 1024);
-  const [tabOrder, setTabOrder] = useState<TipoTabela[]>(['DASHBOARD', 'CLIENTES', 'ORGANICKIA', 'RDC', 'MATRIZ', 'COBO', 'PLANEJAMENTO', 'FINANCAS', 'TAREFAS', 'VH', 'WHITEBOARD']);
+  const [tabOrder, setTabOrder] = useState<TipoTabela[]>(['DASHBOARD', 'CLIENTES', 'ORGANICKIA', 'RDC', 'MATRIZ', 'COBO', 'PLANEJAMENTO', 'FINANCAS', 'TAREFAS', 'CHECKLISTS', 'VH', 'WHITEBOARD']);
 
   const [clients, setClients] = useState<Cliente[]>([]);
   const [cobo, setCobo] = useState<ItemCobo[]>([]);
@@ -626,7 +627,7 @@ export default function App() {
       const p = JSON.parse(saved);
       if (p.tabOrder) {
         // Merge saved order with new tabs to ensure missing ones appear
-        const defaultOrder: TipoTabela[] = ['DASHBOARD', 'CLIENTES', 'ORGANICKIA', 'RDC', 'MATRIZ', 'COBO', 'PLANEJAMENTO', 'FINANCAS', 'TAREFAS', 'VH', 'WHITEBOARD'];
+        const defaultOrder: TipoTabela[] = ['DASHBOARD', 'CLIENTES', 'ORGANICKIA', 'RDC', 'MATRIZ', 'COBO', 'PLANEJAMENTO', 'FINANCAS', 'TAREFAS', 'CHECKLISTS', 'VH', 'WHITEBOARD'];
         const uniqueTabs = new Set([...p.tabOrder, ...defaultOrder]);
         setTabOrder(Array.from(uniqueTabs));
       }
@@ -1347,6 +1348,7 @@ export default function App() {
           {activeTab === 'PLANEJAMENTO' && <PlanningView data={currentPlanejamento} clients={clients} onUpdate={handleUpdate} onAdd={handleAddRow} rdc={currentRdc} matriz={matriz} cobo={cobo} tasks={tasks} iaHistory={iaHistory} setActiveTab={setActiveTab} performArchive={performArchive} performDelete={performDelete} library={BibliotecaConteudo} activeClientId={selectedClientIds.length === 1 ? selectedClientIds[0] : undefined} showArchived={showArchived} setShowArchived={setShowArchived} setIsClientFilterOpen={setIsClientFilterOpen} />}
           {activeTab === 'FINANCAS' && <FinancasView data={currentFinancas} onUpdate={async (tab, id, item) => { for (const key of Object.keys(item)) { if (key !== 'id') await handleUpdate(id, tab, key, item[key], true); } }} onDelete={performDelete} onArchive={performArchive} onAdd={(tab, initial) => handleAddRow(tab || 'FINANCAS', initial)} selection={selection} onSelect={setSelection} onClearSelection={() => setSelection([])} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} activeRegMode="lista" />}
           {activeTab === 'TAREFAS' && <TaskFlowView tasks={currentTasks} clients={clients} collaborators={collaborators} activeViewId={activeTaskViewId} setActiveViewId={setActiveTaskViewId} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('TAREFAS')} onSelectTask={setSelectedTaskId} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
+          {activeTab === 'CHECKLISTS' && <ChecklistsTab />}
           {activeTab === 'VH' && <VhManagementView clients={clients} collaborators={collaborators} setCollaborators={setCollaborators} onUpdate={handleUpdate} selection={selection} onSelect={toggleSelection} />}
           {activeTab === 'ORGANICKIA' && <OrganickIAView
             clients={clients}
@@ -1650,6 +1652,6 @@ export default function App() {
 }
 
 function getIcon(tab: TipoTabela) {
-  const icons: any = { DASHBOARD: 'fa-table-columns', CLIENTES: 'fa-address-card', ORGANICKIA: 'fa-robot', RDC: 'fa-bolt', MATRIZ: 'fa-chess-rook', COBO: 'fa-tower-cell', PLANEJAMENTO: 'fa-calendar-days', FINANCAS: 'fa-coins', TAREFAS: 'fa-list-check', VH: 'fa-hourglass', WHITEBOARD: 'fa-object-group' };
+  const icons: any = { DASHBOARD: 'fa-table-columns', CLIENTES: 'fa-address-card', ORGANICKIA: 'fa-robot', RDC: 'fa-bolt', MATRIZ: 'fa-chess-rook', COBO: 'fa-tower-cell', PLANEJAMENTO: 'fa-calendar-days', FINANCAS: 'fa-coins', TAREFAS: 'fa-list-check', CHECKLISTS: 'fa-clipboard-check', VH: 'fa-hourglass', WHITEBOARD: 'fa-object-group' };
   return icons[tab] || 'fa-folder';
 }

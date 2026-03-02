@@ -127,7 +127,8 @@ export const ROTULOS_TABELAS: Record<TipoTabela, string> = {
   ORGANICKIA: 'ORGANICKIA',
   WHITEBOARD: 'Quadro Branco',
   IA_HISTORY: 'Histórico IA',
-  WORKSPACE: 'Workspace'
+  WORKSPACE: 'Workspace',
+  CHECKLISTS: 'Checklists'
 };
 
 export const DIAS_SEMANA_BR = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
