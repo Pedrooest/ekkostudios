@@ -251,17 +251,17 @@ export default function ChecklistsTab({ clients }: ChecklistsTabProps) {
                         </button>
                     </div>
 
-                    {/* Barra de Pesquisa */}
-                    <div className="relative mb-8 max-w-md">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <Search className="text-gray-400" size={18} />
-                        </div>
+                    {/* =========================================
+    BARRA DE PESQUISA (Ajuste Definitivo)
+    ========================================= */}
+                    <div className="flex items-center bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-xl px-4 py-1.5 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500/50 transition-all mb-8 max-w-md">
+                        <Search className="text-gray-400 shrink-0" size={18} />
                         <input
                             type="text"
                             placeholder="Buscar cliente ou título..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="block w-full bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-medium rounded-xl pl-12 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 shadow-sm transition-shadow"
+                            className="w-full bg-transparent border-0 focus:ring-0 outline-none text-gray-900 dark:text-white text-sm font-medium py-2 pl-3 placeholder-gray-400 dark:placeholder-zinc-500"
                         />
                     </div>
 
