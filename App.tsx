@@ -1302,7 +1302,7 @@ export default function App() {
         </header>
 
         {/* Action Controls (Mobile-friendly row) */}
-        {activeTab !== 'WHITEBOARD' && activeTab !== 'PLANEJAMENTO' && (
+        {activeTab !== 'WHITEBOARD' && activeTab !== 'PLANEJAMENTO' && activeTab !== 'CHECKLISTS' && (
           <div className="relative group/scroll">
             <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar px-4 sm:px-8 py-2 border-b border-app-border/40 lg:border-none no-scrollbar snap-x snap-mandatory">
               <button

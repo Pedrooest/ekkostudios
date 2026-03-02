@@ -259,7 +259,8 @@ export default function ChecklistsTab({ clients }: ChecklistsTabProps) {
                             placeholder="Buscar cliente ou título..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-medium rounded-xl pl-12 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 shadow-sm transition-shadow"
+                            className="w-full bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-medium rounded-xl pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 shadow-sm transition-shadow"
+                            style={{ paddingLeft: '3.2rem' }}
                         />
                     </div>
 
