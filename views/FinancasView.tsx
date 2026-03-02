@@ -37,8 +37,9 @@ export default function FinancasTab() {
     const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Estados do Modal de Criação
+    // Estados do Modal de Criação / Edição
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         tipo: 'entrada',
         categoria: '',
@@ -83,6 +84,7 @@ export default function FinancasTab() {
     // ==========================================
     const handleOpenModal = (tipoPreDefinido = 'entrada') => {
         tryPlaySound('open');
+        setEditingId(null);
         setFormData({
             tipo: tipoPreDefinido,
             categoria: '',
@@ -96,19 +98,42 @@ export default function FinancasTab() {
         setIsModalOpen(true);
     };
 
+    const handleEdit = (tx: any) => {
+        tryPlaySound('open');
+        setEditingId(tx.id);
+        setFormData({
+            tipo: tx.tipo,
+            categoria: tx.categoria,
+            descricao: tx.descricao,
+            valor: tx.valor.toString(),
+            data: tx.data.split('T')[0],
+            status: tx.status,
+            frequencia: tx.frequencia
+        });
+        setIsModalOpen(true);
+    };
+
     const handleSaveTransaction = (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.valor || !formData.descricao || !formData.categoria) return;
 
         tryPlaySound('success');
-        const newTransaction = {
-            id: `FIN-${Math.floor(Math.random() * 10000)}`,
-            ...formData,
-            valor: parseFloat(formData.valor)
-        };
 
-        setTransactions([newTransaction, ...transactions]);
+        if (editingId) {
+            setTransactions(transactions.map(t =>
+                t.id === editingId ? { ...t, ...formData, valor: parseFloat(formData.valor) } : t
+            ));
+        } else {
+            const newTransaction = {
+                id: `FIN-${Math.floor(Math.random() * 10000)}`,
+                ...formData,
+                valor: parseFloat(formData.valor)
+            };
+            setTransactions([newTransaction, ...transactions]);
+        }
+
         setIsModalOpen(false);
+        setEditingId(null);
     };
 
     const handleDelete = (id: string) => {
@@ -430,7 +455,7 @@ export default function FinancasTab() {
 
                                         <td className="px-6 py-4 text-center">
                                             <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button className="p-1.5 text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors">
+                                                <button onClick={() => handleEdit(tx)} className="p-1.5 text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors">
                                                     <Edit3 size={16} />
                                                 </button>
                                                 <button onClick={() => handleDelete(tx.id)} className="p-1.5 text-gray-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors">
@@ -467,9 +492,9 @@ export default function FinancasTab() {
 
                         <div className="px-6 py-5 border-b border-gray-200 dark:border-zinc-800 flex justify-between items-center bg-gray-50/50 dark:bg-[#0a0a0c]/50">
                             <h2 className="text-lg font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
-                                <DollarSign className="text-indigo-500" /> Registrar Lançamento
+                                <DollarSign className="text-indigo-500" /> {editingId ? 'Editar Lançamento' : 'Registrar Lançamento'}
                             </h2>
-                            <button onClick={() => { tryPlaySound('close'); setIsModalOpen(false); }} className="p-1.5 text-gray-400 hover:text-rose-500 rounded-full hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors ios-btn">
+                            <button onClick={() => { tryPlaySound('close'); setIsModalOpen(false); setEditingId(null); }} className="p-1.5 text-gray-400 hover:text-rose-500 rounded-full hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors ios-btn">
                                 <X size={20} />
                             </button>
                         </div>
@@ -596,11 +621,11 @@ export default function FinancasTab() {
                             </div>
 
                             <div className="pt-4 border-t border-gray-100 dark:border-zinc-800 flex justify-end gap-3 mt-4">
-                                <button type="button" onClick={() => { tryPlaySound('close'); setIsModalOpen(false); }} className="px-5 py-2.5 text-sm font-bold text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition-colors ios-btn">
+                                <button type="button" onClick={() => { tryPlaySound('close'); setIsModalOpen(false); setEditingId(null); }} className="px-5 py-2.5 text-sm font-bold text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition-colors ios-btn">
                                     Cancelar
                                 </button>
                                 <button type="submit" className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all ios-btn">
-                                    Salvar Lançamento
+                                    {editingId ? 'Salvar Alterações' : 'Salvar Lançamento'}
                                 </button>
                             </div>
 
