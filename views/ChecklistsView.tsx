@@ -474,10 +474,10 @@ export default function ChecklistsTab({ clients }: ChecklistsTabProps) {
           MODAL: CRIAR NOVA GRAVAÇÃO
           ========================================= */}
             {isNewShootModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center pt-8 px-4 sm:p-6 lg:p-6">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 lg:p-12">
                     <div className="absolute inset-0 bg-gray-900/60 dark:bg-black/80 backdrop-blur-sm animate-in fade-in" onClick={() => setIsNewShootModalOpen(false)}></div>
 
-                    <div className="relative w-full h-full max-h-[96vh] max-w-4xl bg-white dark:bg-[#111114] border border-gray-100 dark:border-zinc-800/30 rounded-[2.5rem] shadow-2xl shadow-black/10 dark:shadow-black/50 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+                    <div className="relative w-full max-w-lg bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-[2rem] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
 
                         <div className="flex-shrink-0 px-8 py-6 border-b border-gray-100 dark:border-zinc-800/50 flex justify-between items-center bg-gray-50/50 dark:bg-[#0a0a0c]/50">
                             <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-3">
@@ -491,97 +491,93 @@ export default function ChecklistsTab({ clients }: ChecklistsTabProps) {
                             </button>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
+                        <div className="p-6 space-y-4">
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Cliente</label>
-                                    <select
-                                        autoFocus
-                                        value={newShootData.client}
-                                        onChange={(e) => setNewShootData({ ...newShootData, client: e.target.value })}
-                                        className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none"
-                                    >
-                                        <option value="" disabled hidden>Selecione um cliente...</option>
-                                        {clients.map(c => (
-                                            <option key={c.id} value={c.Nome}>{c.Nome}</option>
-                                        ))}
-                                    </select>
-                                </div>
+                            <div>
+                                <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Cliente</label>
+                                <select
+                                    autoFocus
+                                    value={newShootData.client}
+                                    onChange={(e) => setNewShootData({ ...newShootData, client: e.target.value })}
+                                    className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none"
+                                >
+                                    <option value="" disabled hidden>Selecione um cliente...</option>
+                                    {clients.map(c => (
+                                        <option key={c.id} value={c.Nome}>{c.Nome}</option>
+                                    ))}
+                                </select>
+                            </div>
 
+                            <div>
+                                <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Título / Objetivo</label>
+                                <input
+                                    type="text"
+                                    value={newShootData.title}
+                                    onChange={(e) => setNewShootData({ ...newShootData, title: e.target.value })}
+                                    placeholder="Ex: Gravação Institucional..."
+                                    className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Título / Objetivo</label>
+                                    <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Data</label>
                                     <input
-                                        type="text"
-                                        value={newShootData.title}
-                                        onChange={(e) => setNewShootData({ ...newShootData, title: e.target.value })}
-                                        placeholder="Ex: Gravação Institucional..."
+                                        type="date"
+                                        value={newShootData.date}
+                                        onChange={(e) => setNewShootData({ ...newShootData, date: e.target.value })}
                                         className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                                     />
                                 </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Data</label>
-                                        <input
-                                            type="date"
-                                            value={newShootData.date}
-                                            onChange={(e) => setNewShootData({ ...newShootData, date: e.target.value })}
-                                            className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Horário</label>
-                                        <input
-                                            type="time"
-                                            value={newShootData.time}
-                                            onChange={(e) => setNewShootData({ ...newShootData, time: e.target.value })}
-                                            className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                                        />
-                                    </div>
-                                </div>
-
                                 <div>
-                                    <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Endereço / Local</label>
+                                    <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Horário</label>
                                     <input
-                                        type="text"
-                                        value={newShootData.location}
-                                        onChange={(e) => setNewShootData({ ...newShootData, location: e.target.value })}
-                                        placeholder="Rua, número, cidade..."
+                                        type="time"
+                                        value={newShootData.time}
+                                        onChange={(e) => setNewShootData({ ...newShootData, time: e.target.value })}
                                         className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                                     />
                                 </div>
                             </div>
 
+                            <div>
+                                <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Endereço / Local</label>
+                                <input
+                                    type="text"
+                                    value={newShootData.location}
+                                    onChange={(e) => setNewShootData({ ...newShootData, location: e.target.value })}
+                                    placeholder="Rua, número, cidade..."
+                                    className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Observações Iniciais</label>
+                                <textarea
+                                    rows={2}
+                                    value={newShootData.notes}
+                                    onChange={(e) => setNewShootData({ ...newShootData, notes: e.target.value })}
+                                    placeholder="Instruções de portaria, contatos..."
+                                    className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-100 dark:border-zinc-800/50 text-gray-900 dark:text-white text-sm font-medium rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none transition-all"
+                                />
+                            </div>
+
                         </div>
 
-                        <div>
-                            <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Observações Iniciais</label>
-                            <textarea
-                                rows={4}
-                                value={newShootData.notes}
-                                onChange={(e) => setNewShootData({ ...newShootData, notes: e.target.value })}
-                                placeholder="Instruções de portaria, contatos..."
-                                className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-100 dark:border-zinc-800/50 text-gray-900 dark:text-white text-sm font-medium rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none transition-all"
-                            />
+                        <div className="px-6 py-5 border-t border-gray-100 dark:border-zinc-800/50 flex justify-between items-center bg-gray-50/50 dark:bg-[#0a0a0c]/50">
+                            <span className="text-[10px] text-gray-400 dark:text-zinc-500 font-bold uppercase tracking-widest flex items-center gap-1">
+                                <CheckCircle2 size={12} /> Checklist padrão será gerado
+                            </span>
+                            <div className="flex gap-3">
+                                <button onClick={() => { tryPlaySound('close'); setIsNewShootModalOpen(false); }} className="px-5 py-2.5 text-sm font-bold text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition-colors ios-btn">
+                                    Cancelar
+                                </button>
+                                <button onClick={handleCreateShoot} disabled={!newShootData.client || !newShootData.date} className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all ios-btn">
+                                    Criar Diária
+                                </button>
+                            </div>
                         </div>
-
                     </div>
-
-                    <div className="flex-shrink-0 pt-5 border-t border-gray-100 dark:border-zinc-800/50 flex justify-between items-center p-8 bg-gray-50/50 dark:bg-[#0a0a0c]/50">
-                        <span className="text-[10px] text-gray-400 dark:text-zinc-500 font-bold uppercase tracking-widest flex items-center gap-1">
-                            <CheckCircle2 size={12} /> Checklist padrão será gerado
-                        </span>
-                        <div className="flex gap-3">
-                            <button onClick={() => { tryPlaySound('close'); setIsNewShootModalOpen(false); }} className="px-5 py-2.5 text-sm font-bold text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition-colors ios-btn">
-                                Cancelar
-                            </button>
-                            <button onClick={handleCreateShoot} disabled={!newShootData.client || !newShootData.date} className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all ios-btn">
-                                Criar Diária
-                            </button>
-                        </div>
-                    </div>
-
                 </div>
             )}
 
