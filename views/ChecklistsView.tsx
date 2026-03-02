@@ -252,8 +252,8 @@ export default function ChecklistsTab({ clients }: ChecklistsTabProps) {
                     </div>
 
                     {/* =========================================
-    BARRA DE PESQUISA (Ajuste Definitivo)
-    ========================================= */}
+              BARRA DE PESQUISA (Anti-Sobreposição com Flexbox)
+              ========================================= */}
                     <div className="flex items-center bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-xl px-4 py-1.5 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500/50 transition-all mb-8 max-w-md">
                         <Search className="text-gray-400 shrink-0" size={18} />
                         <input
