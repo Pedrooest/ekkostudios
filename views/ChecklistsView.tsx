@@ -226,11 +226,11 @@ export default function ChecklistsTab({ clients }: ChecklistsTabProps) {
             {/* =========================================
           ÁREA PRINCIPAL (LISTA DE GRAVAÇÕES)
           ========================================= */}
-            <div className={`flex-1 overflow-y-auto p-6 lg:p-8 transition-all duration-300 ${activeShootId ? 'mr-0 lg:mr-[450px]' : ''} custom-scrollbar`}>
+            <div className={`flex-1 overflow-y-auto px-6 pt-6 pb-24 lg:px-10 lg:pt-8 lg:pb-12 transition-all duration-300 ${activeShootId ? 'mr-0 lg:mr-[450px]' : ''} custom-scrollbar`}>
 
                 <div className="max-w-6xl mx-auto">
 
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-5 gap-4">
                         <div>
                             <h2 className="text-3xl font-black text-[#0B1527] dark:text-white tracking-tight flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
@@ -252,7 +252,7 @@ export default function ChecklistsTab({ clients }: ChecklistsTabProps) {
                     </div>
 
                     {/* Barra de Pesquisa */}
-                    <div className="relative mb-8 max-w-md">
+                    <div className="relative mb-5 max-w-md">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                         <input
                             type="text"
