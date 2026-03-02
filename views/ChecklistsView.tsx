@@ -56,6 +56,8 @@ const DEFAULT_CHECKLIST = [
     }
 ];
 
+import { Cliente } from '../types';
+
 // ==========================================
 // DADOS MOCK INICIAIS
 // ==========================================
@@ -86,7 +88,11 @@ const INITIAL_SHOOTS = [
     }
 ];
 
-export default function ChecklistsTab() {
+interface ChecklistsTabProps {
+    clients: Cliente[];
+}
+
+export default function ChecklistsTab({ clients }: ChecklistsTabProps) {
     const [shoots, setShoots] = useState(INITIAL_SHOOTS);
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -485,13 +491,17 @@ export default function ChecklistsTab() {
 
                             <div>
                                 <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Cliente</label>
-                                <input
-                                    type="text" autoFocus
+                                <select
+                                    autoFocus
                                     value={newShootData.client}
                                     onChange={(e) => setNewShootData({ ...newShootData, client: e.target.value })}
-                                    placeholder="Ex: Forno a Lenha..."
-                                    className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                                />
+                                    className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none"
+                                >
+                                    <option value="" disabled hidden>Selecione um cliente...</option>
+                                    {clients.map(c => (
+                                        <option key={c.id} value={c.Nome}>{c.Nome}</option>
+                                    ))}
+                                </select>
                             </div>
 
                             <div>
