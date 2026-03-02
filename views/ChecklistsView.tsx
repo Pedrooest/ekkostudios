@@ -476,9 +476,9 @@ export default function ChecklistsTab({ clients }: ChecklistsTabProps) {
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-gray-900/60 dark:bg-black/80 backdrop-blur-sm animate-in fade-in" onClick={() => setIsNewShootModalOpen(false)}></div>
 
-                    <div className="relative w-full max-w-lg bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-[2rem] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+                    <div className="relative w-full max-w-2xl bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-[2rem] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
 
-                        <div className="px-6 py-5 border-b border-gray-200 dark:border-zinc-800 flex justify-between items-center bg-gray-50/50 dark:bg-[#0a0a0c]/50">
+                        <div className="px-8 py-6 border-b border-gray-200 dark:border-zinc-800 flex justify-between items-center bg-gray-50/50 dark:bg-[#0a0a0c]/50">
                             <h2 className="text-lg font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
                                 <Video className="text-indigo-500" /> Agendar Gravação
                             </h2>
@@ -487,50 +487,63 @@ export default function ChecklistsTab({ clients }: ChecklistsTabProps) {
                             </button>
                         </div>
 
-                        <div className="p-6 space-y-4">
+                        <div className="p-8 space-y-6">
 
-                            <div>
-                                <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Cliente</label>
-                                <select
-                                    autoFocus
-                                    value={newShootData.client}
-                                    onChange={(e) => setNewShootData({ ...newShootData, client: e.target.value })}
-                                    className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none"
-                                >
-                                    <option value="" disabled hidden>Selecione um cliente...</option>
-                                    {clients.map(c => (
-                                        <option key={c.id} value={c.Nome}>{c.Nome}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Título / Objetivo</label>
-                                <input
-                                    type="text"
-                                    value={newShootData.title}
-                                    onChange={(e) => setNewShootData({ ...newShootData, title: e.target.value })}
-                                    placeholder="Ex: Gravação Institucional..."
-                                    className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Data</label>
+                                    <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Cliente</label>
+                                    <select
+                                        autoFocus
+                                        value={newShootData.client}
+                                        onChange={(e) => setNewShootData({ ...newShootData, client: e.target.value })}
+                                        className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none"
+                                    >
+                                        <option value="" disabled hidden>Selecione um cliente...</option>
+                                        {clients.map(c => (
+                                            <option key={c.id} value={c.Nome}>{c.Nome}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Título / Objetivo</label>
                                     <input
-                                        type="date"
-                                        value={newShootData.date}
-                                        onChange={(e) => setNewShootData({ ...newShootData, date: e.target.value })}
+                                        type="text"
+                                        value={newShootData.title}
+                                        onChange={(e) => setNewShootData({ ...newShootData, title: e.target.value })}
+                                        placeholder="Ex: Gravação Institucional..."
                                         className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                                     />
                                 </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Data</label>
+                                        <input
+                                            type="date"
+                                            value={newShootData.date}
+                                            onChange={(e) => setNewShootData({ ...newShootData, date: e.target.value })}
+                                            className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Horário</label>
+                                        <input
+                                            type="time"
+                                            value={newShootData.time}
+                                            onChange={(e) => setNewShootData({ ...newShootData, time: e.target.value })}
+                                            className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                                        />
+                                    </div>
+                                </div>
+
                                 <div>
-                                    <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Horário</label>
+                                    <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Endereço / Local</label>
                                     <input
-                                        type="time"
-                                        value={newShootData.time}
-                                        onChange={(e) => setNewShootData({ ...newShootData, time: e.target.value })}
+                                        type="text"
+                                        value={newShootData.location}
+                                        onChange={(e) => setNewShootData({ ...newShootData, location: e.target.value })}
+                                        placeholder="Rua, número, cidade..."
                                         className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                                     />
                                 </div>
@@ -560,7 +573,7 @@ export default function ChecklistsTab({ clients }: ChecklistsTabProps) {
 
                         </div>
 
-                        <div className="pt-4 border-t border-gray-100 dark:border-zinc-800 flex justify-between items-center p-6 bg-gray-50/50 dark:bg-[#0a0a0c]/50 mt-2">
+                        <div className="pt-5 border-t border-gray-100 dark:border-zinc-800 flex justify-between items-center p-8 bg-gray-50/50 dark:bg-[#0a0a0c]/50 mt-4">
                             <span className="text-[10px] text-gray-400 dark:text-zinc-500 font-bold uppercase tracking-widest flex items-center gap-1">
                                 <CheckCircle2 size={12} /> Checklist padrão será gerado
                             </span>
