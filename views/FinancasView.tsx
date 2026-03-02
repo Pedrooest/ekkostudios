@@ -354,19 +354,25 @@ export default function FinancasTab({ data, onUpdate, onDelete, onAdd }: Financa
                 {/* =========================================
             LEMBRETES DE PAGAMENTOS RECORRENTES
             ========================================= */}
-                {mappedTransactions.some(t => t.frequencia !== 'unica' && t.tipo !== 'entrada') && (
-                    <div className="mb-8 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm p-6">
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-gray-700 dark:text-zinc-300 flex items-center gap-2">
-                                <CalendarClock size={18} className="text-indigo-500" /> Lembretes de Vencimento
-                            </h3>
-                            <span className="text-[10px] font-bold text-gray-500 bg-gray-100 dark:bg-zinc-800 px-3 py-1 rounded-full uppercase tracking-widest">
-                                Gerado Automaticamente
-                            </span>
-                        </div>
+                <div className="mb-8 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-sm font-bold uppercase tracking-widest text-gray-700 dark:text-zinc-300 flex items-center gap-2">
+                            <CalendarClock size={18} className="text-indigo-500" /> Lembretes de Vencimento
+                        </h3>
+                        <span className="text-[10px] font-bold text-gray-500 bg-gray-100 dark:bg-zinc-800 px-3 py-1 rounded-full uppercase tracking-widest">
+                            Gerado Automaticamente
+                        </span>
+                    </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {mappedTransactions
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {mappedTransactions.filter(t => t.status === 'pendente' && (t.frequencia === 'mensal' || t.frequencia === 'anual')).slice(0, 3).length === 0 ? (
+                            <div className="col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-4 p-8 border-2 border-dashed border-gray-200 dark:border-zinc-800 rounded-xl flex flex-col items-center justify-center text-center">
+                                <CalendarClock size={32} className="text-gray-300 dark:text-zinc-600 mb-3" />
+                                <p className="text-sm font-bold text-gray-500 dark:text-zinc-400">Nenhum vencimento pendente.</p>
+                                <p className="text-xs text-gray-400 dark:text-zinc-500 mt-1">Lançamentos mensais ou anuais pendentes aparecerão aqui.</p>
+                            </div>
+                        ) : (
+                            mappedTransactions
                                 .filter(t => t.status === 'pendente' && (t.frequencia === 'mensal' || t.frequencia === 'anual'))
                                 .slice(0, 3) // Limit to 3 reminders
                                 .map(tx => (
@@ -389,10 +395,10 @@ export default function FinancasTab({ data, onUpdate, onDelete, onAdd }: Financa
                                             </div>
                                         </div>
                                     </div>
-                                ))}
-                        </div>
+                                ))
+                        )}
                     </div>
-                )}
+                </div>
 
                 {/* =========================================
             HISTÓRICO DE LANÇAMENTOS
