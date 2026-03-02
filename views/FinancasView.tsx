@@ -26,15 +26,16 @@ const CATEGORIAS: Record<string, string[]> = {
     assinatura: ['Ferramentas IA', 'Hospedagem', 'Bancos de Imagem', 'Outros']
 };
 
-const INITIAL_TRANSACTIONS = [
-    { id: 'FIN-101', data: '2026-02-24', tipo: 'entrada', categoria: 'Gestão de Tráfego', descricao: 'Fee Mensal - Forno a Lenha', valor: 8500, status: 'pago', frequencia: 'mensal' },
-    { id: 'FIN-102', data: '2026-02-23', tipo: 'saida', categoria: 'Impostos', descricao: 'DAS Simples Nacional', valor: 450, status: 'pago', frequencia: 'mensal' },
-    { id: 'FIN-103', data: '2026-02-22', tipo: 'assinatura', categoria: 'Ferramentas IA', descricao: 'Midjourney PRO', valor: 150, status: 'pago', frequencia: 'mensal' },
-    { id: 'FIN-104', data: '2026-02-28', tipo: 'entrada', categoria: 'Consultoria', descricao: 'Sessão de Mentoria', valor: 1200, status: 'pendente', frequencia: 'unica' },
-];
+import { LancamentoFinancas, TipoTabela } from '../types';
 
-export default function FinancasTab() {
-    const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
+interface FinancasTabProps {
+    data: LancamentoFinancas[];
+    onUpdate: (tab: TipoTabela, id: string, item: any) => void;
+    onDelete: (ids: string[], tab: TipoTabela) => void;
+    onAdd: (tab: TipoTabela, initial: Partial<LancamentoFinancas>) => void;
+}
+
+export default function FinancasTab({ data, onUpdate, onDelete, onAdd }: FinancasTabProps) {
     const [searchQuery, setSearchQuery] = useState('');
 
     // Estados do Modal de Criação / Edição
@@ -50,10 +51,22 @@ export default function FinancasTab() {
         frequencia: 'unica' // 'unica', 'mensal', 'anual'
     });
 
+    // Mapeamento interno de Supabase -> UI para compatibilidade com o layout existente
+    const mappedTransactions = data?.map(d => ({
+        id: d.id,
+        tipo: d.Tipo?.toLowerCase().replace('saída', 'saida').replace('despesa', 'saida') || 'saida',
+        categoria: d.Categoria || 'Geral',
+        descricao: d.Descrição || 'Lançamento',
+        valor: d.Valor || 0,
+        data: d.Data ? d.Data.split('T')[0] : new Date().toISOString().split('T')[0],
+        status: d.Status?.toLowerCase() || 'pendente',
+        frequencia: d.Recorrência?.toLowerCase().replace('única', 'unica') || 'unica'
+    })) || [];
+
     // ==========================================
     // CÁLCULOS DO DASHBOARD
     // ==========================================
-    const totais = transactions.reduce((acc, curr) => {
+    const totais = mappedTransactions.reduce((acc, curr) => {
         if (curr.status === 'pago') {
             if (curr.tipo === 'entrada') acc.entradas += curr.valor;
             if (curr.tipo === 'saida') acc.saidas += curr.valor;
@@ -119,17 +132,29 @@ export default function FinancasTab() {
 
         tryPlaySound('success');
 
+        const sbTipo = formData.tipo === 'entrada' ? 'Entrada' : formData.tipo === 'assinatura' ? 'Assinatura' : 'Saída';
+        const sbRecorrencia = formData.frequencia === 'unica' ? 'Única' : formData.frequencia === 'mensal' ? 'Mensal' : 'Única';
+
         if (editingId) {
-            setTransactions(transactions.map(t =>
-                t.id === editingId ? { ...t, ...formData, valor: parseFloat(formData.valor) } : t
-            ));
+            onUpdate('FINANCAS', editingId, {
+                Tipo: sbTipo,
+                Categoria: formData.categoria,
+                Descrição: formData.descricao,
+                Valor: parseFloat(formData.valor),
+                Data: formData.data,
+                Status: formData.status,
+                Recorrência: sbRecorrencia
+            });
         } else {
-            const newTransaction = {
-                id: `FIN-${Math.floor(Math.random() * 10000)}`,
-                ...formData,
-                valor: parseFloat(formData.valor)
-            };
-            setTransactions([newTransaction, ...transactions]);
+            onAdd('FINANCAS', {
+                Tipo: sbTipo as any,
+                Categoria: formData.categoria,
+                Descrição: formData.descricao,
+                Valor: parseFloat(formData.valor),
+                Data: formData.data,
+                Status: formData.status as any,
+                Recorrência: sbRecorrencia as any
+            });
         }
 
         setIsModalOpen(false);
@@ -138,11 +163,11 @@ export default function FinancasTab() {
 
     const handleDelete = (id: string) => {
         tryPlaySound('close');
-        setTransactions(transactions.filter(t => t.id !== id));
+        onDelete([id], 'FINANCAS');
     };
 
     // Filtro
-    const filteredTransactions = transactions.filter(t =>
+    const filteredTransactions = mappedTransactions.filter(t =>
         t.descricao.toLowerCase().includes(searchQuery.toLowerCase()) ||
         t.categoria.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -329,7 +354,7 @@ export default function FinancasTab() {
                 {/* =========================================
             LEMBRETES DE PAGAMENTOS RECORRENTES
             ========================================= */}
-                {transactions.some(t => t.frequencia !== 'unica' && t.tipo !== 'entrada') && (
+                {mappedTransactions.some(t => t.frequencia !== 'unica' && t.tipo !== 'entrada') && (
                     <div className="mb-8 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm p-6">
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-sm font-bold uppercase tracking-widest text-gray-700 dark:text-zinc-300 flex items-center gap-2">
@@ -341,8 +366,9 @@ export default function FinancasTab() {
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {transactions
-                                .filter(t => t.frequencia !== 'unica' && t.tipo !== 'entrada')
+                            {mappedTransactions
+                                .filter(t => t.status === 'pendente' && (t.frequencia === 'mensal' || t.frequencia === 'anual'))
+                                .slice(0, 3) // Limit to 3 reminders
                                 .map(tx => (
                                     <div key={`rec-${tx.id}`} className="p-4 rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-[#151518] flex flex-col relative overflow-hidden group hover:border-indigo-300 dark:hover:border-zinc-600 transition-colors">
                                         {/* Barra lateral de cor */}
