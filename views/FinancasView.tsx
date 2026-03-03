@@ -170,7 +170,7 @@ export default function FinancasTab({ data = [], onAdd, onUpdate, onDelete, clie
             {/* =========================================
           CABEÇALHO
           ========================================= */}
-            < div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 max-w-[1600px] mx-auto" >
+            < div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 w-full" >
                 <div>
                     <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Finanças</h2>
                     <p className="text-xs text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-widest mt-1">
@@ -186,7 +186,7 @@ export default function FinancasTab({ data = [], onAdd, onUpdate, onDelete, clie
                 </button>
             </div >
 
-            <div className="max-w-[1600px] mx-auto">
+            <div className="w-full">
                 {/* =========================================
             CARDS DE RESUMO
             ========================================= */}
