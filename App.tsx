@@ -29,7 +29,7 @@ import ChecklistsTab from './views/ChecklistsView';
 import { TaskFlowView, TaskDetailPanel } from './views/TaskFlowView';
 import FinancasTab from './views/FinancasView';
 import { VhManagementView } from './views/VhManagementView';
-import { PlanningView } from './views/PlanningView';
+import PlanejamentoTab from './views/PlanejamentoTab';
 import { TableView } from './components/TableView';
 import { generateId } from './utils/id';
 import {
@@ -1345,7 +1345,7 @@ export default function App() {
 
           {activeTab === 'COBO' && <TableView tab="COBO" data={currentCobo} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('COBO')} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} library={BibliotecaConteudo} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
 
-          {activeTab === 'PLANEJAMENTO' && <PlanningView data={currentPlanejamento} clients={clients} onUpdate={handleUpdate} onAdd={handleAddRow} rdc={currentRdc} matriz={matriz} cobo={cobo} tasks={tasks} iaHistory={iaHistory} setActiveTab={setActiveTab} performArchive={performArchive} performDelete={performDelete} library={BibliotecaConteudo} activeClientId={selectedClientIds.length === 1 ? selectedClientIds[0] : undefined} showArchived={showArchived} setShowArchived={setShowArchived} setIsClientFilterOpen={setIsClientFilterOpen} />}
+          {activeTab === 'PLANEJAMENTO' && <PlanejamentoTab />}
           {activeTab === 'FINANCAS' && <FinancasTab data={currentFinancas} onAdd={handleAddRow} onUpdate={handleUpdate} onDelete={performDelete} clients={clients} />}
           {activeTab === 'TAREFAS' && <TaskFlowView tasks={currentTasks} clients={clients} collaborators={collaborators} activeViewId={activeTaskViewId} setActiveViewId={setActiveTaskViewId} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('TAREFAS')} onSelectTask={setSelectedTaskId} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
           {activeTab === 'CHECKLISTS' && <ChecklistsTab clients={clients} />}
