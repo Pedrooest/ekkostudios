@@ -1,23 +1,54 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     Download, Plus, Search, Clock, User, Check, X,
     Filter, Image as ImageIcon, Archive, Database,
-    ChevronLeft, ChevronRight, FolderOpen,
-    ChevronDown, Moon, Sun
+    ChevronLeft, ChevronRight, FolderOpen, Copy, Trash2,
+    ChevronDown, Moon, Sun, Loader2, LayoutGrid, Columns, List
 } from 'lucide-react';
+import { playUISound } from '../utils/uiSounds';
+import { getCalendarDays, MONTH_NAMES_BR, WEEKDAYS_BR_SHORT } from '../utils/calendarUtils';
 
 // ==========================================
 // FUNÇÕES AUXILIARES DE SOM
 // ==========================================
+// We now import playUISound directly, but keeping a wrapper for consistency if needed.
 const tryPlaySound = (type: any) => {
-    if (typeof window !== 'undefined' && (window as any).playUISound) (window as any).playUISound(type);
+    if (typeof playUISound === 'function') {
+        playUISound(type);
+    } else if (typeof window !== 'undefined' && (window as any).playUISound) {
+        (window as any).playUISound(type);
+    }
 };
 
-export default function PlanejamentoTab() {
+interface PlanejamentoTabProps {
+    data: any[];
+    clients: any[];
+    onUpdate: (id: string, table: any, field: string, value: any) => void;
+    onAdd: (table: any, initialData?: any) => Promise<string>;
+    rdc: any[];
+    matriz: any[];
+    cobo: any[];
+    tasks: any[];
+    iaHistory: any[];
+    setActiveTab: (tab: any) => void;
+    performArchive: (ids: string[], table: any, archived: boolean) => void;
+    performDelete: (ids: string[], table: any) => void;
+    library?: any;
+    activeClientId?: string;
+    showArchived?: boolean;
+    setShowArchived?: (val: boolean) => void;
+    setIsClientFilterOpen?: (val: boolean) => void;
+}
+
+export default function PlanejamentoTab({
+    data = [], clients = [], onUpdate, onAdd, rdc = [], matriz, cobo,
+    tasks, iaHistory, setActiveTab, performArchive, performDelete, library,
+    activeClientId, showArchived, setShowArchived, setIsClientFilterOpen
+}: PlanejamentoTabProps) {
     const [isDarkMode, setIsDarkMode] = useState(false);
-    const [activeTab, setActiveTab] = useState('ALL');
-    const [currentMonth, setCurrentMonth] = useState('Fevereiro 2026');
-    const [viewMode, setViewMode] = useState('month');
+    const [activeTab, setActiveTabLocal] = useState('ALL');
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const [viewMode, setViewMode] = useState<'month' | 'week' | 'list'>('month');
 
     const [globalClientFilter, setGlobalClientFilter] = useState('Todos Clientes');
     const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
@@ -26,55 +57,110 @@ export default function PlanejamentoTab() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [exportSelectedClient, setExportSelectedClient] = useState('Todos');
 
-    const [sidebarView, setSidebarView] = useState<string | null>(null);
-    const [editingEvent, setEditingEvent] = useState<any>(null);
+    const [sidebarView, setSidebarView] = useState<'edit' | 'banco' | null>(null);
+    const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
-    const [eventos, setEventos] = useState([
-        { id: 1, day: 3, time: '10:00', title: 'Reels: Bastidores da Produção', client: 'Forno a Lenha Bakery', color: 'amber', status: 'PUBLICADO', rede: 'Instagram', obs: '' },
-        { id: 2, day: 5, time: '14:30', title: 'Carrossel: Dicas de Design UI para 2026', client: 'Agência Ekko', color: 'indigo', status: 'PRODUÇÃO', rede: 'LinkedIn', obs: 'Focar nas tendências de 2026.' },
-        { id: 3, day: 12, time: '18:00', title: 'Post Único: Promoção de Inverno com Oferta Especial', client: 'Boutique XYZ', color: 'rose', status: 'AGUARDANDO APROVAÇÃO', rede: 'Instagram', obs: '' },
-        { id: 4, day: 15, time: '09:00', title: 'Story: Enquete Interativa', client: 'Tech Solutions Hub', color: 'emerald', status: 'EM ESPERA', rede: 'Instagram', obs: '' },
-        { id: 5, day: 22, time: '12:00', title: 'Vídeo YouTube: Tutorial Completo de Figma', client: 'Agência Ekko', color: 'indigo', status: 'CONCLUÍDO', rede: 'YouTube', obs: '' },
-        { id: 6, day: 24, time: '17:00', title: 'LinkedIn: Artigo sobre Liderança Moderna', client: 'Tech Solutions Hub', color: 'emerald', status: 'PRODUÇÃO', rede: 'LinkedIn', obs: '' },
-        { id: 7, day: 25, time: '11:00', title: 'Post: Sorteio de Aniversário Oficial da Marca', client: 'Forno a Lenha Bakery', color: 'amber', status: 'AGUARDANDO APROVAÇÃO', rede: 'Instagram', obs: 'Lembrar de colocar regras.' },
-    ]);
+    const [librarySearchTerm, setLibrarySearchTerm] = useState('');
 
-    const clientList = ['Todos Clientes', ...new Set(eventos.map(e => e.client))];
-    const diasSemana = ['DOM.', 'SEG.', 'TER.', 'QUA.', 'QUI.', 'SEX.', 'SÁB.'];
+    // ----------------------------------------------------------------------
+    // MEMOIZED DATA
+    // ----------------------------------------------------------------------
+    const selectedEvent = useMemo(() => data.find((e: any) => e.id === selectedEventId), [data, selectedEventId]);
 
-    const diasMes = Array.from({ length: 35 }, (_, i) => {
-        const dayNum = i + 1;
-        if (dayNum > 28) return { day: dayNum - 28, isNextMonth: true };
-        return { day: dayNum, isNextMonth: false };
-    });
+    const clientList = useMemo(() => {
+        // Return active clients and their IDs
+        return clients.filter(c => !c.Arquivado);
+    }, [clients]);
 
-    const displayedDays = viewMode === 'month' ? diasMes : diasMes.slice(21, 28);
-    const exportDays = viewMode === 'month' ? diasMes.slice(0, 28) : displayedDays;
-
-    const getEventosDoDia = (day: any, isNextMonth: boolean) => {
-        if (isNextMonth) return [];
-        return eventos.filter(e => {
-            const matchDay = e.day === day;
-            const matchClient = globalClientFilter === 'Todos Clientes' || e.client === globalClientFilter;
-            const matchStatus = activeTab === 'ALL' || e.status === activeTab;
-            return matchDay && matchClient && matchStatus;
+    const filteredData = useMemo(() => {
+        return data.filter((e: any) => {
+            const matchStatus = activeTab === 'ALL' || e['Status do conteúdo'] === activeTab;
+            const matchClient = (globalClientFilter === 'Todos Clientes' && (!activeClientId || e.Cliente_ID === activeClientId)) ||
+                // If global filter is set to a specific client name, try to match it.
+                (globalClientFilter !== 'Todos Clientes' && clients.find(c => c.Nome === globalClientFilter)?.id === e.Cliente_ID);
+            return matchStatus && matchClient && (!e.Arquivado || showArchived);
         });
+    }, [data, activeTab, activeClientId, globalClientFilter, showArchived, clients]);
+
+    const rdcLibrary = useMemo(() => {
+        return rdc.filter(item => {
+            const targetClientId = globalClientFilter !== 'Todos Clientes'
+                ? clients.find(c => c.Nome === globalClientFilter)?.id
+                : activeClientId;
+
+            const matchClient = !targetClientId || item.Cliente_ID === targetClientId;
+            const matchSearch = !librarySearchTerm || (item['Ideia de Conteúdo'] && item['Ideia de Conteúdo'].toLowerCase().includes(librarySearchTerm.toLowerCase()));
+            return matchClient && matchSearch && !item.Arquivado;
+        });
+    }, [rdc, activeClientId, librarySearchTerm, globalClientFilter, clients]);
+
+    // ----------------------------------------------------------------------
+    // CALENDAR CALCS
+    // ----------------------------------------------------------------------
+    const calendarDays = useMemo(() => {
+        const days = getCalendarDays(currentDate.getFullYear(), currentDate.getMonth());
+        if (viewMode === 'month') return days;
+
+        const todayStr = currentDate.toISOString().split('T')[0];
+        const dayIdx = days.findIndex(d => d.dateStr === todayStr);
+        // fallback if today is not in the current month view but we are in week view
+        let startIdx = 0;
+        if (dayIdx !== -1) {
+            startIdx = Math.max(0, Math.floor(dayIdx / 7) * 7);
+        } else {
+            // If viewing a month without "today", just show its first week
+            startIdx = 0;
+        }
+        return days.slice(startIdx, startIdx + 7);
+    }, [currentDate, viewMode]);
+
+    const getEventosDoDia = (dateStr: string) => {
+        return filteredData.filter((evt: any) => evt.Data === dateStr);
     };
 
-    const colorStyles: any = {
-        indigo: 'bg-[#EEF2FF] border-[#C7D2FE] text-[#4338CA] dark:bg-indigo-500/10 dark:border-indigo-500/30 dark:text-indigo-400',
-        emerald: 'bg-[#ECFDF5] border-[#A7F3D0] text-[#047857] dark:bg-emerald-500/10 dark:border-emerald-500/30 dark:text-emerald-400',
-        rose: 'bg-[#FFF1F2] border-[#FECDD3] text-[#BE123C] dark:bg-rose-500/10 dark:border-rose-500/30 dark:text-rose-400',
-        amber: 'bg-[#FFFBEB] border-[#FDE68A] text-[#B45309] dark:bg-amber-500/10 dark:border-amber-500/30 dark:text-amber-400',
+    const currentMonthName = `${MONTH_NAMES_BR[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+
+    const handleMonthNav = (dir: number) => {
+        tryPlaySound('tap');
+        const next = new Date(currentDate);
+        if (viewMode === 'month') {
+            next.setMonth(next.getMonth() + dir);
+        } else {
+            next.setDate(next.getDate() + (7 * dir));
+        }
+        setCurrentDate(next);
     };
 
-    const exportColorStyles: any = {
-        indigo: 'bg-[#EEF2FF] border-[#C7D2FE] text-[#4338CA]',
-        emerald: 'bg-[#ECFDF5] border-[#A7F3D0] text-[#047857]',
-        rose: 'bg-[#FFF1F2] border-[#FECDD3] text-[#BE123C]',
-        amber: 'bg-[#FFFBEB] border-[#FDE68A] text-[#B45309]',
+
+    // ----------------------------------------------------------------------
+    // STYLES
+    // ----------------------------------------------------------------------
+    const hexToRGBA = (hex: string, alpha: number) => {
+        if (!hex || !hex.startsWith('#')) return `rgba(59, 130, 246, ${alpha})`; // fallback azul
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     };
 
+    const getCardStyles = (clientId: string) => {
+        const client = clients.find(c => c.id === clientId);
+        const hex = client?.['Cor (HEX)'] || '#3B82F6';
+        return {
+            bg: hexToRGBA(hex, 0.08),
+            border: hexToRGBA(hex, 0.2),
+            text: hex,
+            hex
+        };
+    };
+
+    const getClientColor = (clientId: string) => {
+        return getCardStyles(clientId).hex;
+    };
+
+    // ----------------------------------------------------------------------
+    // HANDLERS
+    // ----------------------------------------------------------------------
     const handleOpenExport = () => {
         tryPlaySound('open');
         setExportSelectedClient(globalClientFilter === 'Todos Clientes' ? 'Todos' : globalClientFilter);
@@ -84,20 +170,66 @@ export default function PlanejamentoTab() {
     const handleRealDownload = async () => {
         tryPlaySound('tap');
         setIsGenerating(true);
-        setTimeout(() => {
+
+        try {
+            const element = document.getElementById('export-canvas');
+            if (!element) throw new Error("Canvas não encontrado");
+
+            if (!(window as any).html2canvas) {
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+            }
+
+            await new Promise(r => setTimeout(r, 400));
+
+            const canvas = await (window as any).html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                logging: false,
+                width: element.scrollWidth,
+                height: element.scrollHeight,
+                windowWidth: element.scrollWidth,
+                windowHeight: element.scrollHeight,
+            });
+
+            canvas.toBlob((blob: Blob | null) => {
+                if (!blob) throw new Error("Erro ao gerar o arquivo de imagem.");
+
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+
+                const safeClientName = exportSelectedClient.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                link.download = `Planejamento_${safeClientName}_${MONTH_NAMES_BR[currentDate.getMonth()]}_${currentDate.getFullYear()}.png`;
+                link.href = url;
+
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                window.URL.revokeObjectURL(url);
+
+                tryPlaySound('success');
+                setTimeout(() => setIsExportModalOpen(false), 500);
+            }, 'image/png', 1.0);
+
+        } catch (error) {
+            console.error("Erro ao exportar a imagem:", error);
+            alert("Ocorreu um erro ao gerar a imagem. Por favor, tente novamente.");
+        } finally {
             setIsGenerating(false);
-            tryPlaySound('success');
-            setIsExportModalOpen(false);
-        }, 1500);
+        }
     };
 
-    const openEditSidebar = (evento: any = null) => {
+    const openEditSidebar = (id: string | null = null) => {
         tryPlaySound('open');
-        if (evento) {
-            setEditingEvent(evento);
-        } else {
-            setEditingEvent({ id: Date.now(), day: 25, time: '09:00', title: '', client: '', color: 'indigo', status: 'EM ESPERA', rede: '', obs: '' });
-        }
+        setSelectedEventId(id);
         setSidebarView('edit');
     };
 
@@ -109,59 +241,104 @@ export default function PlanejamentoTab() {
     const closeSidebar = () => {
         tryPlaySound('close');
         setSidebarView(null);
-        setEditingEvent(null);
+        setSelectedEventId(null);
     };
 
-    const handleSaveEvent = () => {
+    const handleAddContent = async () => {
         tryPlaySound('success');
-        if (eventos.find(e => e.id === editingEvent.id)) {
-            setEventos(eventos.map(e => e.id === editingEvent.id ? editingEvent : e));
-        } else {
-            setEventos([...eventos, editingEvent]);
+        const today = new Date().toISOString().split('T')[0];
+        const targetClientId = globalClientFilter !== 'Todos Clientes'
+            ? clients.find(c => c.Nome === globalClientFilter)?.id
+            : (activeClientId || 'GERAL');
+
+        const newId = await onAdd('PLANEJAMENTO', {
+            Data: today,
+            Hora: '09:00',
+            "Status do conteúdo": 'EM ESPERA',
+            Conteúdo: 'NOVO CONTEÚDO',
+            Cliente_ID: targetClientId
+        });
+        if (newId) {
+            setSelectedEventId(newId);
+            setSidebarView('edit');
         }
-        closeSidebar();
+    };
+
+    const handleDuplicateEvent = async () => {
+        if (!selectedEvent) return;
+        tryPlaySound('success');
+        const { id, created_at, ...rest } = selectedEvent;
+        const newId = await onAdd('PLANEJAMENTO', {
+            ...rest,
+            Conteúdo: `${rest.Conteúdo} (Cópia)`
+        });
+        if (newId) {
+            setSelectedEventId(newId);
+        }
     };
 
     const handleDeleteEvent = () => {
+        if (!selectedEventId) return;
         tryPlaySound('close');
-        setEventos(eventos.filter(e => e.id !== editingEvent.id));
+        performDelete([selectedEventId], 'PLANEJAMENTO');
         closeSidebar();
+    };
+
+    // Helper render for client header
+    const renderClientHeader = () => {
+        if (globalClientFilter !== 'Todos Clientes') return globalClientFilter;
+        if (activeClientId) {
+            const found = clients.find(c => c.id === activeClientId);
+            if (found) return found.Nome;
+        }
+        return 'Todos Clientes';
     };
 
     return (
         <div className={`${isDarkMode ? 'dark' : ''} h-screen overflow-hidden flex flex-col`}>
             <div className="flex-1 overflow-y-auto p-6 lg:p-8 font-sans w-full bg-[#F8FAFC] dark:bg-[#0a0a0c] transition-colors relative">
 
-                <div className="flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-4 text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest relative z-10">
+                {/* TOP ACTION BAR */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+                    <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest relative z-10 w-full sm:w-auto">
                         <div className="relative">
                             <button
                                 onClick={() => setIsClientDropdownOpen(!isClientDropdownOpen)}
-                                className="flex items-center gap-2 hover:text-gray-800 dark:hover:text-white transition-colors ios-btn"
+                                className="flex items-center gap-2 hover:text-gray-800 dark:hover:text-white transition-colors ios-btn border border-gray-200 dark:border-zinc-800 px-3 py-1.5 rounded-xl bg-white dark:bg-zinc-900"
                             >
-                                <Filter size={16} /> {globalClientFilter} <ChevronDown size={14} />
+                                <Filter size={16} /> {renderClientHeader()} <ChevronDown size={14} />
                             </button>
                             {isClientDropdownOpen && (
-                                <div className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl py-1 z-50">
+                                <div className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl py-1 z-50 max-h-60 overflow-y-auto custom-scrollbar">
+                                    <button
+                                        onClick={() => { tryPlaySound('tap'); setGlobalClientFilter('Todos Clientes'); setIsClientDropdownOpen(false); }}
+                                        className="w-full text-left px-4 py-2 text-sm font-bold text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                                    >
+                                        Todos Clientes
+                                    </button>
                                     {clientList.map(c => (
                                         <button
-                                            key={c}
-                                            onClick={() => { tryPlaySound('tap'); setGlobalClientFilter(c as any); setIsClientDropdownOpen(false); }}
-                                            className="w-full text-left px-4 py-2 text-sm font-bold text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                                            key={c.id}
+                                            onClick={() => { tryPlaySound('tap'); setGlobalClientFilter(c.Nome); setIsClientDropdownOpen(false); }}
+                                            className="w-full justify-between flex items-center px-4 py-2 text-sm font-bold text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
                                         >
-                                            {c}
+                                            <span>{c.Nome}</span>
+                                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: c['Cor (HEX)'] || '#3B82F6' }}></div>
                                         </button>
                                     ))}
                                 </div>
                             )}
                         </div>
 
-                        <button className="flex items-center gap-2 hover:text-gray-800 dark:hover:text-white transition-colors ios-btn ml-2" onClick={() => tryPlaySound('tap')}>
-                            <Archive size={16} /> ARQUIVADOS
+                        <button
+                            className={`flex items-center gap-2 transition-colors ios-btn ${showArchived ? 'text-blue-600' : 'hover:text-gray-800 dark:hover:text-white'}`}
+                            onClick={() => { tryPlaySound('tap'); setShowArchived?.(!showArchived); }}
+                        >
+                            <Archive size={16} /> {showArchived ? 'OCULTAR ARQ.' : 'ARQUIVADOS'}
                         </button>
                         <button
                             onClick={handleOpenExport}
-                            className="flex items-center gap-2 px-4 py-1.5 bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 text-gray-800 dark:text-white rounded-full shadow-sm hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all ios-btn ml-2"
+                            className="flex items-center gap-2 px-4 py-1.5 bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 text-gray-800 dark:text-white rounded-full shadow-sm hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all ios-btn"
                         >
                             <Download size={14} /> EXPORTAR
                         </button>
@@ -169,12 +346,13 @@ export default function PlanejamentoTab() {
 
                     <button
                         onClick={() => { tryPlaySound('tap'); setIsDarkMode(!isDarkMode); }}
-                        className="p-2 bg-gray-200 dark:bg-zinc-800 rounded-full text-gray-700 dark:text-zinc-300 ios-btn"
+                        className="p-2 bg-gray-200 dark:bg-zinc-800 rounded-full text-gray-700 dark:text-zinc-300 ios-btn shrink-0"
                     >
                         {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
                     </button>
                 </div>
 
+                {/* HEADER & TABS */}
                 <div className="flex flex-col xl:flex-row xl:items-end justify-between mb-8 gap-6 max-w-[1400px]">
                     <div>
                         <div className="flex items-center gap-3 mb-6">
@@ -188,7 +366,7 @@ export default function PlanejamentoTab() {
                             {['ALL', 'EM ESPERA', 'AGUARDANDO APROVAÇÃO', 'PRODUÇÃO', 'PUBLICADO', 'CONCLUÍDO'].map((tab) => (
                                 <button
                                     key={tab}
-                                    onClick={() => { tryPlaySound('tap'); setActiveTab(tab); }}
+                                    onClick={() => { tryPlaySound('tap'); setActiveTabLocal(tab); }}
                                     className={`text-[11px] font-black uppercase tracking-widest transition-all ios-btn ${activeTab === tab
                                             ? 'bg-blue-600 text-white px-5 py-2 rounded-full shadow-md'
                                             : 'text-gray-500 dark:text-zinc-400 hover:text-gray-800 dark:hover:text-white px-2 py-2'
@@ -200,89 +378,115 @@ export default function PlanejamentoTab() {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex flex-wrap items-center gap-3 shrink-0">
                         <button onClick={openBancoSidebar} className="flex items-center gap-2 px-6 py-3 bg-[#9CA3AF] dark:bg-zinc-700 hover:bg-gray-500 dark:hover:bg-zinc-600 text-white rounded-full text-xs font-bold uppercase tracking-wider transition-all ios-btn">
                             <Database size={16} /> BANCO DE CONTEÚDO
                         </button>
-                        <button onClick={() => openEditSidebar(null)} className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-xs font-bold uppercase tracking-wider shadow-[0_4px_14px_rgba(59,130,246,0.4)] transition-all ios-btn">
+                        <button onClick={() => handleAddContent()} className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-xs font-bold uppercase tracking-wider shadow-[0_4px_14px_rgba(59,130,246,0.4)] transition-all ios-btn">
                             <Plus size={16} strokeWidth={3} /> NOVO CONTEÚDO
                         </button>
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between mb-4 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 p-3 px-5 rounded-2xl shadow-sm max-w-[1400px]">
-                    <div className="flex items-center gap-4">
-                        <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 transition-colors ios-btn" onClick={() => tryPlaySound('tap')}>
+                {/* CALENDAR CONTROLS */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 p-3 px-5 rounded-2xl shadow-sm max-w-[1400px]">
+                    <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-start">
+                        <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 transition-colors ios-btn" onClick={() => handleMonthNav(-1)}>
                             <ChevronLeft size={20} />
                         </button>
                         <h3 className="text-lg font-black text-[#0B1527] dark:text-white min-w-[150px] text-center uppercase tracking-tight">
-                            {viewMode === 'month' ? currentMonth : '22 a 28 de Fev'}
+                            {viewMode === 'month' ? currentMonthName : 'Vista Semanal'}
                         </h3>
-                        <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 transition-colors ios-btn" onClick={() => tryPlaySound('tap')}>
+                        <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 transition-colors ios-btn" onClick={() => handleMonthNav(1)}>
                             <ChevronRight size={20} />
                         </button>
                     </div>
 
-                    <div className="flex bg-[#F8FAFC] dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-1 rounded-lg">
+                    <div className="flex bg-[#F8FAFC] dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-1 rounded-2xl items-center relative overflow-hidden shadow-sm">
+                        <div
+                            className="absolute top-1 bottom-1 w-10 bg-white dark:bg-zinc-800 rounded-xl shadow-sm transition-transform duration-300 ease-in-out"
+                            style={{ transform: `translateX(${viewMode === 'month' ? 4 : viewMode === 'week' ? 48 : 92}px)` }}
+                        />
                         <button
                             onClick={() => { tryPlaySound('tap'); setViewMode('month'); }}
-                            className={`px-5 py-1.5 rounded-md text-xs font-bold transition-colors ${viewMode === 'month' ? 'bg-white dark:bg-zinc-800 text-[#0B1527] dark:text-white shadow-sm border border-gray-100 dark:border-zinc-700' : 'text-gray-500 dark:text-zinc-500 hover:text-[#0B1527] dark:hover:text-white'}`}
+                            className={`relative z-10 w-11 h-8 flex items-center justify-center rounded-xl transition-colors ios-btn ${viewMode === 'month' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300'}`}
+                            title="Mês"
                         >
-                            Mês
+                            <LayoutGrid size={18} strokeWidth={2.5} />
                         </button>
                         <button
                             onClick={() => { tryPlaySound('tap'); setViewMode('week'); }}
-                            className={`px-5 py-1.5 rounded-md text-xs font-bold transition-colors ${viewMode === 'week' ? 'bg-white dark:bg-zinc-800 text-[#0B1527] dark:text-white shadow-sm border border-gray-100 dark:border-zinc-700' : 'text-gray-500 dark:text-zinc-500 hover:text-[#0B1527] dark:hover:text-white'}`}
+                            className={`relative z-10 w-11 h-8 flex items-center justify-center rounded-xl transition-colors ios-btn ${viewMode === 'week' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300'}`}
+                            title="Semana"
                         >
-                            Semana
+                            <Columns size={18} strokeWidth={2.5} />
+                        </button>
+                        {/* Note: we omit 'list' view rendering logic here since list hasn't been defined in the calendar grid yet, but the state/button exists */}
+                        <button
+                            onClick={() => { tryPlaySound('tap'); setViewMode('list'); }}
+                            className={`relative z-10 w-11 h-8 flex items-center justify-center rounded-xl transition-colors ios-btn ${viewMode === 'list' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300'}`}
+                            title="Lista"
+                        >
+                            <List size={18} strokeWidth={2.5} />
                         </button>
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-[2rem] shadow-sm overflow-hidden flex flex-col max-w-[1400px]">
+                {/* CALENDAR GRID */}
+                <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-[2.5rem] shadow-xl overflow-hidden flex flex-col max-w-[1400px]">
                     <div className="grid grid-cols-7 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#111114]">
-                        {diasSemana.map(dia => (
-                            <div key={dia} className="py-5 text-center text-[11px] font-black text-[#0B1527] dark:text-zinc-300 uppercase tracking-widest border-r border-gray-200 dark:border-zinc-800 last:border-0">
-                                {dia}
+                        {WEEKDAYS_BR_SHORT.map(dia => (
+                            <div key={dia} className="py-5 text-center text-[10px] sm:text-[11px] font-black text-[#0B1527] dark:text-zinc-400 uppercase tracking-widest sm:tracking-[0.2em] border-r border-gray-200 dark:border-zinc-800 last:border-0 truncate">
+                                <span className="hidden sm:inline">{dia}</span>
+                                <span className="sm:hidden">{dia.substring(0, 3)}</span>
                             </div>
                         ))}
                     </div>
 
                     <div className={`grid grid-cols-7 bg-[#F8FAFC] dark:bg-[#0a0a0c] ${viewMode === 'month' ? 'auto-rows-[minmax(140px,auto)]' : 'auto-rows-[minmax(350px,auto)]'}`}>
-                        {displayedDays.map((diaObj, idx) => {
-                            const evts = getEventosDoDia(diaObj.day, diaObj.isNextMonth);
-                            const isToday = diaObj.day === 25 && !diaObj.isNextMonth;
+                        {calendarDays.map((diaObj, idx) => {
+                            const evts = getEventosDoDia(diaObj.dateStr);
+                            const isToday = diaObj.dateStr === new Date().toISOString().split('T')[0];
 
                             return (
                                 <div
                                     key={idx}
-                                    className={`p-2 border-r border-b border-gray-200 dark:border-zinc-800 transition-colors relative group ${diaObj.isNextMonth ? 'bg-gray-50/50 dark:bg-zinc-900/30 opacity-50' :
-                                            isToday ? 'bg-[#EBF1FF] dark:bg-indigo-900/10' : 'bg-white dark:bg-[#111114] hover:bg-gray-50 dark:hover:bg-zinc-900/50'
+                                    className={`p-1 sm:p-2 border-r border-b border-gray-200 dark:border-zinc-800 transition-colors relative flex flex-col ${diaObj.isNextMonth || diaObj.isPrevMonth ? 'bg-gray-50/50 dark:bg-zinc-900/30 opacity-40' :
+                                            isToday ? 'bg-blue-600/5 dark:bg-indigo-900/10' : 'bg-white dark:bg-[#111114] hover:bg-gray-50 dark:hover:bg-zinc-900/50'
                                         }`}
                                 >
-                                    <div className="text-xs font-bold mb-3 flex justify-center mt-1">
-                                        <span className={`w-8 h-6 flex items-center justify-center rounded-md ${isToday ? 'bg-blue-600 text-white dark:bg-indigo-600 font-black' : 'text-[#0B1527] dark:text-zinc-400'}`}>
+                                    <div className="text-xs font-bold mb-2 flex justify-start mt-1">
+                                        <span className={`w-6 h-6 sm:w-8 sm:h-6 flex items-center justify-center text-[10px] sm:text-xs rounded-md ${isToday ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40 font-black' : 'text-[#0B1527] dark:text-zinc-400 font-bold'}`}>
                                             {diaObj.day}
                                         </span>
                                     </div>
-                                    <div className="space-y-2">
-                                        {evts.map(evento => (
-                                            <div
-                                                key={evento.id}
-                                                onClick={() => openEditSidebar(evento)}
-                                                className={`p-2 rounded-lg border text-left cursor-pointer transition-transform hover:scale-[1.02] ios-btn ${colorStyles[evento.color]}`}
-                                            >
-                                                <div className="flex items-center gap-1 text-[9px] font-black uppercase mb-1 opacity-80">
-                                                    <Clock size={10} strokeWidth={3} /> {evento.time}
+
+                                    <div className="space-y-1.5 sm:space-y-2 flex-1">
+                                        {evts.map(evento => {
+                                            const style = getCardStyles(evento.Cliente_ID);
+                                            return (
+                                                <div
+                                                    key={evento.id}
+                                                    onClick={() => openEditSidebar(evento.id)}
+                                                    className={`p-1.5 sm:p-2.5 rounded-lg border text-left cursor-pointer transition-transform hover:-translate-y-0.5 ios-btn overflow-hidden`}
+                                                    style={{
+                                                        backgroundColor: style.bg,
+                                                        borderColor: style.border
+                                                    }}
+                                                >
+                                                    <div className="flex items-center gap-1 text-[8px] sm:text-[9px] font-black uppercase mb-1" style={{ color: style.text }}>
+                                                        <Clock size={10} strokeWidth={3} className="shrink-0" /> <span className="truncate">{evento.Hora || '09:00'}</span>
+                                                    </div>
+                                                    <div className="text-[10px] sm:text-[11px] font-bold leading-tight mb-2 line-clamp-2 text-[#0B1527] dark:text-white">
+                                                        {evento.Conteúdo}
+                                                    </div>
+                                                    <div className="flex items-center gap-1 text-[8px] sm:text-[9px] font-bold uppercase tracking-wider opacity-90 truncate w-full" style={{ color: style.text }}>
+                                                        <User size={10} strokeWidth={2.5} className="shrink-0" />
+                                                        <span className="truncate">{clients.find(c => c.id === evento.Cliente_ID)?.Nome || 'GERAL'}</span>
+                                                    </div>
                                                 </div>
-                                                <div className="text-[11px] font-bold leading-tight mb-2 line-clamp-2 text-[#0B1527] dark:text-white">
-                                                    {evento.title}
-                                                </div>
-                                                <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider opacity-90">
-                                                    <User size={10} strokeWidth={2.5} /> {evento.client}
-                                                </div>
-                                            </div>
-                                        ))}
+                                            )
+                                        })}
                                     </div>
                                 </div>
                             );
@@ -291,89 +495,258 @@ export default function PlanejamentoTab() {
                 </div>
 
                 {sidebarView && (
-                    <div className="fixed inset-0 bg-gray-900/50 dark:bg-black/70 backdrop-blur-sm z-[90] transition-opacity animate-in fade-in" onClick={closeSidebar}></div>
+                    <div className="fixed inset-0 bg-gray-900/60 dark:bg-black/80 backdrop-blur-sm z-[90] transition-opacity animate-in fade-in" onClick={closeSidebar}></div>
                 )}
 
                 {/* SIDEBAR: EDIÇÃO DE CONTEÚDO */}
-                <div className={`fixed inset-y-0 right-0 w-full sm:w-[450px] bg-[#F8FAFC] dark:bg-[#111114] border-l border-gray-200 dark:border-zinc-800 shadow-2xl z-[100] transform transition-transform duration-300 ease-in-out flex flex-col ${sidebarView === 'edit' ? 'translate-x-0' : 'translate-x-full'}`}>
-                    <div className="px-6 py-5 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#0a0a0c] flex justify-between items-center shrink-0">
-                        <h3 className="text-xs font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest">Conteúdo do Planejamento</h3>
-                        <button onClick={closeSidebar} className="p-2 text-gray-400 hover:text-gray-800 dark:hover:text-white rounded-lg transition-colors bg-gray-100 dark:bg-zinc-900 ios-btn"><X size={16} /></button>
-                    </div>
-                    <div className="p-6 flex-1 overflow-y-auto custom-scrollbar space-y-6">
-                        <div>
-                            <textarea
-                                rows={2} value={editingEvent?.title || ''} onChange={(e) => setEditingEvent({ ...editingEvent, title: e.target.value })} placeholder="NOVO CONTEÚDO"
-                                className="w-full bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-xl p-4 text-2xl font-black text-[#0B1527] dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none shadow-sm"
-                            />
+                {sidebarView === 'edit' && (
+                    <div className="fixed inset-y-0 right-0 w-full sm:w-[450px] bg-[#F8FAFC] dark:bg-[#111114] border-l border-gray-200 dark:border-zinc-800 shadow-2xl z-[100] flex flex-col transform animate-in slide-in-from-right duration-300">
+                        <div className="px-6 py-5 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#0a0a0c] flex justify-between items-center shrink-0">
+                            <h3 className="text-xs font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest">Detalhes do Planejamento</h3>
+                            <button onClick={closeSidebar} className="p-2 text-gray-400 hover:text-gray-800 dark:hover:text-white rounded-lg transition-colors bg-gray-100 dark:bg-zinc-900 ios-btn"><X size={16} /></button>
                         </div>
-                        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-5 space-y-5 shadow-sm">
-                            <div className="grid grid-cols-2 gap-4">
+
+                        <div className="p-6 flex-1 overflow-y-auto custom-scrollbar space-y-6">
+                            <div>
+                                <textarea
+                                    rows={2}
+                                    value={selectedEvent?.Conteúdo || ''}
+                                    onChange={(e) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Conteúdo', e.target.value)}
+                                    placeholder="NOVO CONTEÚDO"
+                                    className="w-full bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-xl p-4 text-2xl font-black text-[#0B1527] dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none shadow-sm"
+                                />
+                            </div>
+
+                            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-5 space-y-5 shadow-sm">
+                                <div className="grid grid-cols-2 gap-4">
+                                    {/* CLIENTE WITH DATALIST FOR MANUAL EDITS */}
+                                    <div className="relative flex flex-col">
+                                        <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5">Cliente</label>
+                                        <div className="relative">
+                                            <input
+                                                list={`clients-list-${selectedEvent?.id || 'new'}`}
+                                                value={clients.find(c => c.id === selectedEvent?.Cliente_ID)?.Nome || selectedEvent?.Cliente_ID || ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    const matchedClient = clients.find(c => c.Nome.toLowerCase() === val.toLowerCase());
+                                                    if (selectedEvent) {
+                                                        // Make ID the val if valid client, otherwise store the raw text directly in Cliente_ID
+                                                        // The app usually expects ID here, so if they type something custom, it might break UI coloring logic later.
+                                                        // If we must let them write freely, we write the raw string to Cliente_ID. Card color fallbacks cover it.
+                                                        onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Cliente_ID', matchedClient ? matchedClient.id : val);
+                                                    }
+                                                }}
+                                                placeholder="Selecione ou digite..."
+                                                className="w-full bg-transparent border-b border-gray-300 dark:border-zinc-700 text-sm font-bold text-gray-800 dark:text-white pb-2 focus:outline-none focus:border-blue-500 uppercase pr-6"
+                                            />
+                                            <ChevronDown size={14} className="absolute right-0 bottom-3 text-gray-400 pointer-events-none" />
+                                            <datalist id={`clients-list-${selectedEvent?.id || 'new'}`}>
+                                                {clients.map(c => <option key={c.id} value={c.Nome} />)}
+                                            </datalist>
+                                        </div>
+                                    </div>
+
+                                    {/* IDEIA WITH DATALIST */}
+                                    <div className="relative flex flex-col">
+                                        <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5">Ideia (Formato)</label>
+                                        <div className="relative">
+                                            <input
+                                                list="ideias-list"
+                                                value={selectedEvent?.["Tipo de conteúdo"] || ''}
+                                                onChange={(e) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Tipo de conteúdo', e.target.value)}
+                                                placeholder="Selecione ou digite..."
+                                                className="w-full bg-transparent border-b border-gray-300 dark:border-zinc-700 text-sm font-bold text-gray-800 dark:text-white pb-2 focus:outline-none focus:border-blue-500 uppercase pr-6"
+                                            />
+                                            <ChevronDown size={14} className="absolute right-0 bottom-3 text-gray-400 pointer-events-none" />
+                                            {/* We populate datalist with types extracted from RDC + defaults */}
+                                            <datalist id="ideias-list">
+                                                <option value="Reels Viral" />
+                                                <option value="Carrossel Edu." />
+                                                <option value="Post Único" />
+                                                <option value="Story Interativo" />
+                                                {Array.from(new Set(rdc.map(r => r['Tipo de conteúdo']).filter(Boolean))).map(t => (
+                                                    <option key={t as string} value={t as string} />
+                                                ))}
+                                            </datalist>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Data</label>
+                                        <input
+                                            type="date"
+                                            value={selectedEvent?.Data || ''}
+                                            onChange={(e) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Data', e.target.value)}
+                                            className="w-full bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm font-bold text-gray-800 dark:text-white focus:outline-none focus:border-blue-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Hora</label>
+                                        <input
+                                            type="time"
+                                            value={selectedEvent?.Hora || '09:00'}
+                                            onChange={(e) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Hora', e.target.value)}
+                                            className="w-full bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm font-bold text-gray-800 dark:text-white focus:outline-none focus:border-blue-500"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                {/* REDE SOCIAL WITH DATALIST */}
                                 <div className="relative">
-                                    <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Selecione...</label>
-                                    <select className="w-full bg-transparent border-b border-gray-300 dark:border-zinc-700 text-sm font-bold text-gray-800 dark:text-white pb-2 focus:outline-none appearance-none cursor-pointer"><option>Forno a Lenha</option><option>Agência Ekko</option></select>
-                                    <ChevronDown size={14} className="absolute right-0 bottom-3 text-gray-400 pointer-events-none" />
+                                    <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block ml-1">Rede Social</label>
+                                    <div className="relative">
+                                        <input
+                                            list="redes-list"
+                                            value={selectedEvent?.Rede_Social || ''}
+                                            onChange={(e) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Rede_Social', e.target.value)}
+                                            placeholder="Selecione ou digite..."
+                                            className="w-full bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 text-sm font-black text-gray-800 dark:text-white rounded-xl px-4 py-3.5 focus:outline-none focus:border-blue-500 shadow-sm uppercase pr-10"
+                                        />
+                                        <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                        <datalist id="redes-list">
+                                            <option value="INSTAGRAM" />
+                                            <option value="LINKEDIN" />
+                                            <option value="YOUTUBE" />
+                                            <option value="TIKTOK" />
+                                            <option value="PINTEREST" />
+                                            <option value="X/TWITTER" />
+                                            <option value="FACEBOOK" />
+                                            <option value="BLOG" />
+                                        </datalist>
+                                    </div>
                                 </div>
+
                                 <div className="relative">
-                                    <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Ideia</label>
-                                    <select className="w-full bg-transparent border-b border-gray-300 dark:border-zinc-700 text-sm font-bold text-gray-800 dark:text-white pb-2 focus:outline-none appearance-none cursor-pointer"><option>Reels Viral</option><option>Carrossel Edu.</option></select>
-                                    <ChevronDown size={14} className="absolute right-0 bottom-3 text-gray-400 pointer-events-none" />
+                                    <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block ml-1">Status</label>
+                                    <select
+                                        value={selectedEvent?.["Status do conteúdo"] || 'EM ESPERA'}
+                                        onChange={(e) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Status do conteúdo', e.target.value)}
+                                        className="w-full bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 text-sm font-black text-gray-800 dark:text-white rounded-xl px-4 py-3.5 focus:outline-none focus:border-blue-500 shadow-sm appearance-none cursor-pointer uppercase"
+                                    >
+                                        <option value="EM ESPERA">-- EM ESPERA --</option>
+                                        <option value="PRODUÇÃO">PRODUÇÃO</option>
+                                        <option value="AGUARDANDO APROVAÇÃO">AGUARDANDO APROVAÇÃO</option>
+                                        <option value="PUBLICADO">PUBLICADO</option>
+                                        <option value="CONCLUÍDO">CONCLUÍDO</option>
+                                    </select>
+                                    <ChevronDown size={16} className="absolute right-4 top-[70%] -translate-y-1/2 text-gray-400 pointer-events-none" />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Data</label>
-                                    <input type="date" defaultValue="2026-02-25" className="w-full bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm font-bold text-gray-800 dark:text-white focus:outline-none focus:border-blue-500" />
-                                </div>
-                                <div>
-                                    <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Hora</label>
-                                    <input type="time" value={editingEvent?.time || '09:00'} onChange={(e) => setEditingEvent({ ...editingEvent, time: e.target.value })} className="w-full bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm font-bold text-gray-800 dark:text-white focus:outline-none focus:border-blue-500" />
-                                </div>
+
+                            <div>
+                                <label className="text-[11px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-2 block ml-1">Observações Táticas</label>
+                                <textarea
+                                    rows={4}
+                                    value={selectedEvent?.Observações || ''}
+                                    onChange={(e) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Observações', e.target.value)}
+                                    className="w-full bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-xl p-3 text-sm font-medium text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 shadow-sm resize-none xl:mb-20"
+                                    placeholder="Adicione notas, links de referências, etc..."
+                                />
                             </div>
                         </div>
-                        <div className="space-y-4">
-                            <div className="relative">
-                                <select className="w-full bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 text-sm font-black text-gray-800 dark:text-white rounded-xl px-4 py-3.5 focus:outline-none appearance-none cursor-pointer shadow-sm"><option>INSTAGRAM</option><option>LINKEDIN</option></select>
-                                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+
+                        <div className="p-6 bg-white dark:bg-[#0a0a0c] border-t border-gray-200 dark:border-zinc-800 shrink-0">
+                            <div className="flex gap-3 mb-4">
+                                <button onClick={handleDuplicateEvent} className="flex-1 py-2.5 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-xs font-black uppercase rounded-xl ios-btn text-gray-800 dark:text-zinc-200">Duplicar</button>
+                                <button onClick={() => selectedEvent && performArchive([selectedEvent.id], 'PLANEJAMENTO', true)} className="flex-1 py-2.5 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-xs font-black uppercase rounded-xl ios-btn text-gray-800 dark:text-zinc-200">Arquivar</button>
+                                <button onClick={handleDeleteEvent} className="flex-1 py-2.5 bg-white dark:bg-zinc-900 border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 text-xs font-black uppercase rounded-xl ios-btn hover:bg-rose-50 dark:hover:bg-rose-900/20">Excluir</button>
                             </div>
-                            <div className="relative">
-                                <select value={editingEvent?.status || 'EM ESPERA'} onChange={(e) => setEditingEvent({ ...editingEvent, status: e.target.value })} className="w-full bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 text-sm font-black text-gray-800 dark:text-white rounded-xl px-4 py-3.5 focus:outline-none appearance-none cursor-pointer shadow-sm">
-                                    <option value="EM ESPERA">-- EM ESPERA --</option><option value="PRODUÇÃO">PRODUÇÃO</option><option value="AGUARDANDO APROVAÇÃO">AGUARDANDO APROVAÇÃO</option>
-                                </select>
-                                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                            </div>
-                        </div>
-                        <div>
-                            <label className="text-[11px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-2 block">Observações Táticas</label>
-                            <textarea rows={4} value={editingEvent?.obs || ''} onChange={(e) => setEditingEvent({ ...editingEvent, obs: e.target.value })} className="w-full bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-xl p-3 text-sm font-medium text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 shadow-sm" />
+                            <button onClick={closeSidebar} className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-black uppercase tracking-wider rounded-xl shadow-lg transition-all ios-btn flex items-center justify-center gap-2">
+                                <Check size={18} /> Salvar Conteúdo
+                            </button>
                         </div>
                     </div>
-                    <div className="p-6 bg-white dark:bg-[#0a0a0c] border-t border-gray-200 dark:border-zinc-800 shrink-0">
-                        <div className="flex gap-3 mb-4">
-                            <button className="flex-1 py-2.5 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-xs font-black uppercase rounded-xl ios-btn text-gray-800 dark:text-zinc-200">Duplicar</button>
-                            <button className="flex-1 py-2.5 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-xs font-black uppercase rounded-xl ios-btn text-gray-800 dark:text-zinc-200">Arquivar</button>
-                            <button onClick={handleDeleteEvent} className="flex-1 py-2.5 bg-white dark:bg-zinc-900 border border-rose-200 dark:border-rose-900/50 text-rose-600 text-xs font-black uppercase rounded-xl ios-btn">Excluir</button>
-                        </div>
-                        <button onClick={handleSaveEvent} className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-black uppercase tracking-wider rounded-xl shadow-lg transition-all ios-btn flex items-center justify-center gap-2">
-                            <Check size={18} /> Salvar Conteúdo
-                        </button>
-                    </div>
-                </div>
+                )}
 
                 {/* SIDEBAR: BANCO DE CONTEÚDOS */}
-                <div className={`fixed inset-y-0 right-0 w-full sm:w-[450px] bg-white dark:bg-[#111114] border-l border-gray-200 dark:border-zinc-800 shadow-2xl z-[100] transform transition-transform duration-300 ease-in-out flex flex-col ${sidebarView === 'banco' ? 'translate-x-0' : 'translate-x-full'}`}>
-                    <div className="px-6 py-5 border-b border-gray-200 dark:border-zinc-800 flex justify-between items-center shrink-0">
-                        <h2 className="text-sm font-black text-[#0B1527] dark:text-white uppercase tracking-widest flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 flex items-center justify-center"><FolderOpen size={16} strokeWidth={2.5} /></div>
-                            Banco de Conteúdos
-                        </h2>
-                        <button onClick={closeSidebar} className="p-2 text-gray-400 hover:text-gray-800 dark:hover:text-white rounded-lg transition-colors ios-btn"><X size={20} /></button>
+                {sidebarView === 'banco' && (
+                    <div className="fixed inset-y-0 right-0 w-full sm:w-[500px] bg-white dark:bg-[#111114] border-l border-gray-200 dark:border-zinc-800 shadow-2xl z-[100] flex flex-col transform animate-in slide-in-from-right duration-300">
+                        <div className="px-6 py-5 border-b border-gray-200 dark:border-zinc-800 flex justify-between items-center shrink-0 bg-gray-50/50 dark:bg-zinc-900/30">
+                            <h2 className="text-sm font-black text-[#0B1527] dark:text-white uppercase tracking-widest flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 flex items-center justify-center shadow-inner"><FolderOpen size={16} strokeWidth={2.5} /></div>
+                                Banco de Conteúdos
+                            </h2>
+                            <button onClick={closeSidebar} className="p-2 text-gray-400 hover:text-gray-800 dark:hover:text-white rounded-lg transition-colors ios-btn"><X size={20} /></button>
+                        </div>
+
+                        <div className="p-6 border-b border-gray-100 dark:border-zinc-800/50 shrink-0">
+                            <div className="relative">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                                <input
+                                    type="text"
+                                    placeholder="BUSCAR IDEIAS..."
+                                    value={librarySearchTerm}
+                                    onChange={(e) => setLibrarySearchTerm(e.target.value)}
+                                    className="w-full bg-white dark:bg-[#14141C] border border-gray-200 dark:border-zinc-800 text-xs font-black uppercase rounded-2xl pl-12 pr-6 py-4 focus:outline-none focus:border-blue-500 transition-all placeholder:text-gray-300 dark:placeholder:text-zinc-600"
+                                />
+                            </div>
+                        </div>
+
+                        {rdcLibrary.length === 0 ? (
+                            <div className="flex-1 flex flex-col items-center justify-center p-12 opacity-50">
+                                <div className="w-16 h-16 rounded-full bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 flex items-center justify-center text-gray-300 dark:text-zinc-600 mb-4"><FolderOpen size={24} /></div>
+                                <p className="text-xs font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest text-center">
+                                    Nenhum Item Encontrado no Banco de Ideias (RDC) para o filtro atual.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="flex-1 p-6 overflow-y-auto custom-scrollbar space-y-4">
+                                {rdcLibrary.map(item => (
+                                    <div
+                                        key={item.id}
+                                        onClick={() => {
+                                            playUISound('tap');
+                                            const today = new Date().toISOString().split('T')[0];
+                                            const targetClientId = globalClientFilter !== 'Todos Clientes'
+                                                ? clients.find(c => c.Nome === globalClientFilter)?.id
+                                                : (item.Cliente_ID || activeClientId || 'GERAL');
+
+                                            const newIdPromise = onAdd('PLANEJAMENTO', {
+                                                Data: today,
+                                                Hora: '09:00',
+                                                "Status do conteúdo": 'EM ESPERA',
+                                                Conteúdo: item['Ideia de Conteúdo'],
+                                                "Tipo de conteúdo": item['Tipo de conteúdo'] || 'Post Único',
+                                                Cliente_ID: targetClientId,
+                                                Origem_ID: item.id,
+                                                Fonte_Origem: 'RDC'
+                                            });
+                                            newIdPromise.then((id) => {
+                                                if (id) {
+                                                    setSelectedEventId(id);
+                                                    setSidebarView('edit');
+                                                }
+                                            });
+                                        }}
+                                        className="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 hover:shadow-xl transition-all cursor-pointer group hover:border-blue-500/50 transform hover:-translate-y-1"
+                                    >
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: clients.find(c => c.id === item.Cliente_ID)?.['Cor (HEX)'] || '#3B82F6' }}></div>
+                                            <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest truncate">
+                                                {clients.find(c => c.id === item.Cliente_ID)?.Nome || 'GERAL'}
+                                            </div>
+                                        </div>
+                                        <div className="text-sm font-black leading-snug text-[#0B1527] dark:text-white mb-4 line-clamp-3">
+                                            {item['Ideia de Conteúdo']}
+                                        </div>
+                                        <div className="flex items-center justify-between mt-2 pt-4 border-t border-gray-50 dark:border-zinc-800/50">
+                                            <span className="text-[9px] font-black px-3 py-1.5 rounded-md bg-gray-50 text-gray-500 dark:bg-zinc-800 dark:text-zinc-400 uppercase tracking-widest border border-gray-100 dark:border-zinc-700">
+                                                {item['Tipo de conteúdo'] || 'IDEIA'}
+                                            </span>
+                                            <span className="flex items-center gap-1.5 text-[10px] font-black text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-widest bg-blue-50 dark:bg-blue-500/10 px-4 py-1.5 rounded-lg">
+                                                <Plus size={12} strokeWidth={3} /> USAR
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
-                    <div className="flex-1 flex flex-col items-center justify-center p-6 opacity-60">
-                        <div className="w-16 h-16 rounded-full bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 flex items-center justify-center text-gray-300 dark:text-zinc-600 mb-4"><FolderOpen size={24} /></div>
-                        <p className="text-sm font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest">Nenhum Item Encontrado</p>
-                    </div>
-                </div>
+                )}
             </div>
 
             {/* =========================================
@@ -383,103 +756,140 @@ export default function PlanejamentoTab() {
                 <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 lg:p-8">
                     <div className="absolute inset-0 bg-gray-900/80 dark:bg-black/80 backdrop-blur-sm animate-in fade-in" onClick={() => !isGenerating && setIsExportModalOpen(false)}></div>
 
-                    <div className="relative w-full max-w-6xl max-h-[95vh] bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+                    <div className="relative w-full max-w-[1300px] h-full max-h-[95vh] bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto">
 
-                        <div className="px-6 py-4 bg-white dark:bg-[#111114] border-b border-gray-200 dark:border-zinc-800 flex justify-between items-center shrink-0">
-                            <div>
-                                <h2 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
-                                    <ImageIcon className="text-blue-600" /> Pré-visualização da Exportação
-                                </h2>
+                        <div className="px-6 lg:px-10 py-6 bg-white dark:bg-[#111114] border-b border-gray-200 dark:border-zinc-800 flex justify-between items-center shrink-0">
+                            <div className="flex items-center gap-4 text-lg font-black text-gray-900 dark:text-white">
+                                <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                                    <ImageIcon size={24} />
+                                </div>
+                                <div>
+                                    <div className="uppercase tracking-tight">EXPORTAR PLANEJAMENTO</div>
+                                    <div className="text-[10px] text-gray-500 uppercase tracking-widest mt-1 tracking-[0.2em]">{currentMonthName}</div>
+                                </div>
                             </div>
-                            <button onClick={() => setIsExportModalOpen(false)} disabled={isGenerating} className="p-2 text-gray-400 hover:text-rose-500 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 ios-btn"><X size={20} /></button>
-                        </div>
-
-                        <div className="px-6 lg:px-10 pt-6 flex items-center justify-between shrink-0">
-                            <div className="flex items-center gap-3">
-                                <label className="text-sm font-bold text-gray-700 dark:text-zinc-300">Exportar calendário de:</label>
+                            <div className="flex items-center gap-4">
                                 <select
                                     value={exportSelectedClient} onChange={(e) => { tryPlaySound('tap'); setExportSelectedClient(e.target.value); }}
-                                    className="bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-sm font-bold text-gray-900 dark:text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50 cursor-pointer shadow-sm min-w-[200px]"
+                                    className="bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 text-xs font-bold text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 cursor-pointer shadow-sm min-w-[200px] uppercase tracking-widest"
                                 >
-                                    {clientList.map(c => <option key={c} value={c}>{c}</option>)}
+                                    <option value="Todos">Visão Geral (Todos)</option>
+                                    {clientList.map(c => <option key={c.id} value={c.Nome}>{c.Nome}</option>)}
                                 </select>
+                                <button onClick={() => setIsExportModalOpen(false)} disabled={isGenerating} className="p-3 text-gray-400 hover:text-rose-500 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-800 ios-btn transition-colors"><X size={20} /></button>
                             </div>
                         </div>
 
-                        <div className="p-6 lg:p-10 overflow-auto flex-1 flex justify-start lg:justify-center custom-scrollbar bg-gray-200/50 dark:bg-black/20">
-                            <div id="export-canvas" className="w-[1920px] min-h-[1080px] h-fit bg-white shrink-0 flex flex-col relative shadow-sm">
-                                <div className="px-16 py-14 flex justify-between items-start shrink-0 bg-white">
-                                    <div className="flex items-center gap-6">
-                                        <div className="w-3 h-20 bg-blue-600 rounded-full"></div>
-                                        <div className="flex flex-col">
-                                            <h1 className="text-[64px] font-black tracking-tighter text-[#0B1527] italic leading-none mb-4">
-                                                PLANEJAMENTO
-                                            </h1>
-                                            <div className="flex items-center gap-4 text-base font-bold text-gray-500 uppercase tracking-widest">
-                                                <span>Calendário de Conteúdo</span>
-                                                <span className="text-gray-300">/</span>
-                                                <span>{viewMode === 'month' ? currentMonth : '22 a 28 de Fev'}</span>
-                                                <span className="text-gray-300">|</span>
-                                                <span className="text-blue-600">{exportSelectedClient === 'Todos' ? 'Visão Geral' : `Cliente: ${exportSelectedClient}`}</span>
-                                            </div>
+                        <div className="p-6 lg:p-10 overflow-auto flex-1 flex justify-start lg:justify-center custom-scrollbar bg-gray-200/50 dark:bg-black/40">
+                            <div id="export-canvas" className="w-[1240px] min-h-[800px] h-fit bg-white shrink-0 flex flex-col relative shadow-2xl transform origin-top scale-100 sm:scale-100 rounded-[3rem] p-12 lg:p-16">
+                                {/* Export content matches user's preferred previous design but wired to real data */}
+                                <div className="flex justify-between items-end mb-16 border-b-2 border-gray-100 pb-12">
+                                    <div>
+                                        <div className="flex items-center gap-4 mb-4">
+                                            <div className="w-3 h-12 bg-blue-600 rounded-full"></div>
+                                            <h1 className="text-5xl font-black tracking-tighter uppercase italic leading-none border-gray-100 text-[#0B1527]">PLANEJAMENTO</h1>
+                                        </div>
+                                        <div className="flex items-center gap-6">
+                                            <p className="text-[12px] font-black text-gray-400 uppercase tracking-[0.3em]">
+                                                CALENDÁRIO DE CONTEÚDO <span className="text-blue-600 mx-2">/</span> {currentMonthName}
+                                            </p>
+                                            <div className="h-4 w-[1px] bg-gray-200"></div>
+                                            <p className="text-[12px] font-black text-blue-600 uppercase tracking-[0.3em]">
+                                                CLIENTE: {exportSelectedClient === 'Todos' ? 'VISÃO GERAL' : exportSelectedClient}
+                                            </p>
                                         </div>
                                     </div>
-                                    <div className="flex flex-col items-end gap-4 pt-2">
-                                        <img src="/ekko-logo-ai.svg" alt="Agência Ekko" className="h-12 object-contain" />
-                                        <span className="px-5 py-2 border border-gray-200 text-gray-500 text-xs font-black uppercase tracking-widest rounded-full">
-                                            Studios Inteligentes
-                                        </span>
+                                    <div className="flex flex-col items-end gap-2">
+                                        <div className="text-3xl font-black italic tracking-tighter text-[#0B1527]">EKKO<span className="text-blue-600">.</span></div>
+                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">STUDIOS INTELIGENTES</span>
                                     </div>
                                 </div>
 
-                                <div className="flex-1 px-16 pb-16 flex flex-col">
-                                    <div className="flex-1 border border-gray-200 rounded-[2rem] flex flex-col overflow-hidden bg-gray-200">
-                                        <div className="grid grid-cols-7 bg-white border-b border-gray-200 shrink-0">
-                                            {diasSemana.map(dia => (
-                                                <div key={dia} className="py-6 text-center text-sm font-black text-gray-500 uppercase tracking-widest">
-                                                    {dia}
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <div className={`grid grid-cols-7 flex-1 gap-px bg-gray-200 ${viewMode === 'week' ? 'grid-rows-1' : 'auto-rows-[minmax(180px,auto)]'}`}>
-                                            {exportDays.map((diaObj, idx) => {
-                                                const evts = getEventosDoDia(diaObj.day, false).filter(e => exportSelectedClient === 'Todos' || e.client === exportSelectedClient);
-                                                return (
-                                                    <div key={idx} className={`p-4 flex flex-col bg-white h-full ${diaObj.isNextMonth ? 'opacity-40 bg-gray-50/50' : ''}`}>
-                                                        <div className={`text-lg font-black text-right mb-4 ${evts.length > 0 ? 'text-[#0B1527]' : 'text-gray-300'}`}>
-                                                            {diaObj.day}
-                                                        </div>
-                                                        <div className="space-y-3 flex-1">
-                                                            {evts.map(evento => (
-                                                                <div key={evento.id} className={`p-3.5 rounded-xl border flex flex-col gap-2 shadow-sm ${exportColorStyles[evento.color]}`}>
-                                                                    <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest opacity-80">
-                                                                        <Clock size={14} strokeWidth={3} /> {evento.time}
-                                                                    </div>
-                                                                    <div className="text-[15px] font-black leading-tight text-[#0B1527] break-words line-clamp-3">
-                                                                        {evento.title}
-                                                                    </div>
-                                                                    <div className="mt-1 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider opacity-90 bg-white/80 px-3 py-1.5 rounded-lg text-[#0B1527] w-full overflow-hidden">
-                                                                        <User size={12} strokeWidth={2.5} className="shrink-0" />
-                                                                        <span className="truncate w-full text-left">{evento.client}</span>
+                                <div className="flex-1 flex flex-col">
+                                    <div className="grid grid-cols-7 border border-gray-100 rounded-[2rem] overflow-hidden bg-gray-50/30">
+                                        {WEEKDAYS_BR_SHORT.map(dia => (
+                                            <div key={dia} className="py-6 text-center text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] border-r border-gray-100 last:border-0 bg-white">
+                                                {dia}
+                                            </div>
+                                        ))}
+
+                                        {/* Export only first 28 days for clean 4 week export of the month */}
+                                        {calendarDays.slice(0, 28).map((diaObj, idx) => {
+                                            const evts = getEventosDoDia(diaObj.dateStr).filter(e =>
+                                                exportSelectedClient === 'Todos' ||
+                                                clients.find(c => c.id === e.Cliente_ID)?.Nome === exportSelectedClient
+                                            );
+
+                                            return (
+                                                <div key={idx} className={`bg-white border-r border-t border-gray-100 p-4 min-h-[200px] flex flex-col last:border-r-0 ${diaObj.isNextMonth || diaObj.isPrevMonth ? 'opacity-40 bg-gray-50/50' : ''}`}>
+                                                    <div className={`text-sm font-black text-right mb-4 ${evts.length > 0 ? 'text-[#0B1527]' : 'text-gray-300'}`}>
+                                                        {diaObj.day}
+                                                    </div>
+                                                    <div className="space-y-3 flex-1">
+                                                        {evts.map(evt => {
+                                                            const style = getCardStyles(evt.Cliente_ID);
+                                                            return (
+                                                                <div key={evt.id} className="p-3.5 rounded-2xl border shadow-sm flex flex-col relative overflow-hidden"
+                                                                    style={{ backgroundColor: style.bg, borderColor: style.border }}
+                                                                >
+                                                                    <div className="space-y-1.5">
+                                                                        <div className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5" style={{ color: style.text }}>
+                                                                            <Clock size={12} strokeWidth={3} /> {evt.Hora || '09:00'}
+                                                                        </div>
+                                                                        <div className="text-[12px] font-black text-[#0B1527] leading-snug break-words tracking-tighter">
+                                                                            {evt.Conteúdo}
+                                                                        </div>
+                                                                        <div className="text-[9px] font-black uppercase tracking-widest mt-1 bg-white/50 px-2.5 py-1.5 rounded-lg w-full flex items-center gap-1.5 overflow-hidden"
+                                                                            style={{ color: style.text }}>
+                                                                            <User size={10} strokeWidth={3} className="shrink-0" />
+                                                                            <span className="truncate">{clients.find(c => c.id === evt.Cliente_ID)?.Nome || 'GERAL'}</span>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
-                                                            ))}
-                                                        </div>
+                                                            );
+                                                        })}
                                                     </div>
-                                                )
-                                            })}
-                                        </div>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
+
+                                <div className="mt-12 flex items-center justify-between border-t border-gray-100 pt-10 px-4">
+                                    <div className="flex flex-wrap gap-8 items-center">
+                                        {exportSelectedClient === 'Todos' ? (
+                                            clientList.slice(0, 6).map(c => (
+                                                <div key={c.id} className="flex items-center gap-3">
+                                                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: c['Cor (HEX)'] || '#3B82F6' }}></div>
+                                                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest truncate max-w-[120px]">{c.Nome}</span>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="flex items-center gap-3 bg-blue-50 px-5 py-2.5 rounded-full border border-blue-100/50">
+                                                <div className="w-3 h-3 rounded-full bg-blue-600"></div>
+                                                <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">RELATÓRIO EXCLUSIVO: {exportSelectedClient}</span>
+                                            </div>
+                                        )}
+                                        {exportSelectedClient === 'Todos' && clientList.length > 6 && (
+                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">+{clientList.length - 6} OUTROS</span>
+                                        )}
+                                    </div>
+                                    <div className="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] shrink-0">EKKO STUDIOS • {(new Date()).getFullYear()}</div>
+                                </div>
+
                             </div>
                         </div>
 
-                        <div className="px-6 py-4 bg-white dark:bg-[#111114] border-t border-gray-200 dark:border-zinc-800 flex justify-between items-center shrink-0">
-                            <p className="text-xs font-medium text-gray-500 dark:text-zinc-400">Resolução de Saída: Automática (PNG Alta Qualidade)</p>
-                            <div className="flex gap-3">
-                                <button onClick={() => setIsExportModalOpen(false)} disabled={isGenerating} className="px-5 py-2.5 text-sm font-bold text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition-colors disabled:opacity-50 ios-btn">Cancelar</button>
-                                <button onClick={handleRealDownload} disabled={isGenerating} className="flex items-center gap-2 px-8 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl text-sm font-bold shadow-[0_4px_14px_rgba(59,130,246,0.3)] transition-all ios-btn w-56 justify-center">
-                                    {isGenerating ? <span className="flex items-center gap-2 animate-pulse"><Clock size={16} className="animate-spin" /> Salvando PNG...</span> : <span className="flex items-center gap-2"><Download size={16} /> Baixar Imagem Segura</span>}
+                        <div className="px-6 lg:px-10 py-6 bg-white dark:bg-[#111114] border-t border-gray-200 dark:border-zinc-800 flex justify-between items-center shrink-0">
+                            <div className="hidden sm:flex items-center gap-6">
+                                <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest">
+                                    <span className="w-2 h-2 rounded-full bg-green-500"></span> ALTA RESOLUÇÃO (PNG)
+                                </div>
+                            </div>
+                            <div className="flex gap-3 w-full sm:w-auto justify-end">
+                                <button onClick={() => setIsExportModalOpen(false)} disabled={isGenerating} className="px-6 py-3.5 text-[11px] font-black tracking-widest uppercase text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-2xl transition-colors disabled:opacity-50 ios-btn">CANCELAR</button>
+                                <button onClick={handleRealDownload} disabled={isGenerating} className="flex items-center gap-3 px-8 py-3.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-2xl text-[11px] tracking-widest uppercase font-black shadow-[0_4px_14px_rgba(59,130,246,0.3)] transition-all ios-btn sm:w-64 border border-blue-500/20 justify-center">
+                                    {isGenerating ? <span className="flex items-center gap-2 animate-pulse"><Loader2 size={16} className="animate-spin" /> SALVANDO...</span> : <span className="flex items-center gap-2"><Download size={16} /> BAIXAR IMAGEM</span>}
                                 </button>
                             </div>
                         </div>
