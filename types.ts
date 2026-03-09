@@ -226,7 +226,7 @@ export type BibliotecaConteudo = Record<string, string[]>;
 
 export type ModoVisaoTarefa = 'sidebar' | 'modal' | 'fullscreen';
 
-export type TipoTabela = 'DASHBOARD' | 'CLIENTES' | 'RDC' | 'MATRIZ' | 'COBO' | 'PLANEJAMENTO' | 'FINANCAS' | 'TAREFAS' | 'VH' | 'ORGANICKIA' | 'WHITEBOARD' | 'IA_HISTORY' | 'WORKSPACE' | 'CHECKLISTS';
+export type TipoTabela = 'DASHBOARD' | 'CLIENTES' | 'RDC' | 'MATRIZ' | 'COBO' | 'PLANEJAMENTO' | 'APROVACAO' | 'FINANCAS' | 'TAREFAS' | 'VH' | 'ORGANICKIA' | 'WHITEBOARD' | 'IA_HISTORY' | 'WORKSPACE' | 'CHECKLISTS';
 
 export interface ConfiguracaoApresentacao {
   nomeAgencia: string;
