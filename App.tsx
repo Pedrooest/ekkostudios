@@ -243,6 +243,8 @@ export default function App() {
   const mobileExportButtonRef = useRef<HTMLButtonElement>(null);
 
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [deleteModalState, setDeleteModalState] = useState<{ isOpen: boolean, ids: string[], tab: TipoTabela | 'IA_HISTORY' | null }>({ isOpen: false, ids: [], tab: null });
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState("");
 
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isSettingsFullscreenOpen, setIsSettingsFullscreenOpen] = useState(false);
@@ -872,8 +874,14 @@ export default function App() {
       return;
     }
     if (ids.length === 0) return;
-    const confirmStr = window.prompt(`ATENÇÃO: Deseja EXCLUIR DEFINITIVAMENTE estes ${ids.length} item(s)? Digite "EXCLUIR" para confirmar:`);
-    if (confirmStr?.toUpperCase() !== 'EXCLUIR') return;
+    setDeleteModalState({ isOpen: true, ids, tab });
+    setDeleteConfirmationText("");
+  }, [currentWorkspace, currentUser]);
+
+  const executeDelete = useCallback(() => {
+    const { ids, tab } = deleteModalState;
+    if (!tab || ids.length === 0) return;
+    if (deleteConfirmationText.toUpperCase() !== 'EXCLUIR') return;
 
     if (tab === 'CLIENTES') setClients(prev => prev.filter(c => !ids.includes(c.id)));
     if (tab === 'RDC') setRdc(prev => prev.filter(r => !ids.includes(r.id)));
@@ -891,11 +899,11 @@ export default function App() {
       if (tableName) {
         ids.forEach(id => DatabaseService.deleteItem(tableName, id));
         addNotification('error', 'Item removido', `${ids.length} item(s) excluído(s).`);
-
       }
     }
-
-  }, [currentWorkspace]);
+    
+    setDeleteModalState({ isOpen: false, ids: [], tab: null });
+  }, [currentWorkspace, deleteModalState, deleteConfirmationText, addNotification]);
 
   const performArchive = useCallback((ids: string[], tab: TipoTabela | 'IA_HISTORY', archive: boolean = true) => {
     if (ids.length === 0) return;
@@ -1632,6 +1640,55 @@ export default function App() {
           <SlideRenderer config={getExportConfig()} elementId="export-slide-renderer" />
         )
       }
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalState.isOpen && (
+        <div className="fixed inset-0 z-[999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 min-h-screen animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#0f1930] w-full max-w-md rounded-3xl shadow-2xl border border-gray-200 dark:border-white/10 overflow-hidden transform transition-all">
+            <div className="p-8">
+              <div className="w-14 h-14 rounded-full bg-red-100 dark:bg-red-500/10 flex items-center justify-center mb-6 text-red-600 dark:text-red-400 border border-red-500/20">
+                <Trash2 size={28} />
+              </div>
+              <h3 className="text-2xl font-black tracking-tight text-gray-900 dark:text-white mb-2">
+                Confirmar Exclusão
+              </h3>
+              <p className="text-gray-500 dark:text-[#a3aac4] text-sm mb-6 leading-relaxed">
+                Você tem certeza que deseja deletar <strong>{deleteModalState.ids.length}</strong> item(s)?<br/>Essa ação é permanente e não pode ser desfeita.
+              </p>
+              
+              <div className="mb-8">
+                <label className="block text-[10px] font-black text-gray-700 dark:text-[#dee5ff] uppercase tracking-widest mb-3">
+                  Digite "EXCLUIR" para confirmar
+                </label>
+                <input
+                  type="text"
+                  value={deleteConfirmationText}
+                  onChange={(e) => setDeleteConfirmationText(e.target.value)}
+                  placeholder="EXCLUIR"
+                  className="w-full bg-gray-50 dark:bg-[#091328] border border-gray-200 dark:border-white/10 rounded-2xl px-5 py-4 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all font-bold tracking-widest text-center"
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex gap-4 w-full">
+                <button
+                  onClick={() => setDeleteModalState({ isOpen: false, ids: [], tab: null })}
+                  className="flex-1 px-4 py-4 rounded-2xl font-black tracking-widest text-xs uppercase text-gray-700 dark:text-[#dee5ff] bg-gray-100 dark:bg-[#192540] hover:bg-gray-200 dark:hover:bg-[#1f2b49] transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={executeDelete}
+                  disabled={deleteConfirmationText.toUpperCase() !== 'EXCLUIR'}
+                  className="flex-1 px-4 py-4 rounded-2xl font-black tracking-widest text-xs uppercase text-white bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  Excluir
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Toast notificacoes */}
       <div className="fixed top-4 right-4 z-[200] flex flex-col items-end gap-2 pointer-events-none">
