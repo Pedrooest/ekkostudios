@@ -259,7 +259,7 @@ export const DatabaseService = {
     },
 
     async fetchAllWorkspaceData(workspaceId: string) {
-        const [clients, cobo, matriz, rdc, planning, financas, tasks, collaborators] = await Promise.all([
+        const [clients, cobo, matriz, rdc, planning, financas, tasks, collaborators, checklists] = await Promise.all([
             this.fetchData('clients', workspaceId),
             this.fetchData('cobo', workspaceId),
             this.fetchData('matriz_estrategica', workspaceId),
@@ -267,9 +267,10 @@ export const DatabaseService = {
             this.fetchData('planejamento', workspaceId),
             this.fetchData('financas', workspaceId),
             this.fetchData('tasks', workspaceId),
-            this.fetchData('collaborators', workspaceId)
+            this.fetchData('collaborators', workspaceId),
+            this.fetchData('checklists', workspaceId)
         ]);
 
-        return { clients, cobo, matriz, rdc, planning, financas, tasks, collaborators };
+        return { clients, cobo, matriz, rdc, planning, financas, tasks, collaborators, checklists };
     }
 };

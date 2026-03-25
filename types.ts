@@ -14,6 +14,20 @@ export interface Cliente {
   __archived?: boolean;
 }
 
+
+export interface ChecklistShoot {
+  id: string;
+  client: string;
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  notes: string;
+  status: 'pending' | 'ready' | 'done';
+  checklist: any[];
+  __archived?: boolean;
+}
+
 export interface ItemCobo {
   id: string;
   Cliente_ID: string;

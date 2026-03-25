@@ -41,7 +41,7 @@ import {
   Cliente, ItemCobo, ItemMatrizEstrategica, ItemRdc, ItemPlanejamento,
   LancamentoFinancas, Tarefa, TipoTabela, ModoVisaoTarefa,
   VhConfig, BibliotecaConteudo, Colaborador, ItemChecklistTarefa, ConfiguracaoApresentacao, AnexoTarefa, AtividadeTarefa, NotificacaoApp, PerfilUsuario, DadosModelagemSistematica,
-  Workspace, MembroWorkspace
+  Workspace, MembroWorkspace, ChecklistShoot
 } from './types';
 import { DatabaseService } from './DatabaseService';
 import { WorkspaceSelector } from './WorkspaceSelector';
@@ -185,6 +185,7 @@ const getTableName = (tab: string): string | null => {
     case 'PLANEJAMENTO': return 'planejamento';
     case 'FINANCAS': return 'financas';
     case 'TAREFAS': return 'tasks';
+    case 'CHECKLISTS': return 'checklists';
     case 'VH': return 'collaborators';
     default: return null;
   }
@@ -208,6 +209,7 @@ export default function App() {
   const [rdc, setRdc] = useState<ItemRdc[]>([]);
   const [financas, setFinancas] = useState<LancamentoFinancas[]>([]);
   const [tasks, setTasks] = useState<Tarefa[]>([]);
+  const [checklists, setChecklists] = useState<ChecklistShoot[]>([]);
   const [systematicModeling, setSystematicModeling] = useState<DadosModelagemSistematica>({});
 
   const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
@@ -317,6 +319,7 @@ export default function App() {
       setPlanejamento(prev => mergeItems(prev, data.planning as ItemPlanejamento[]));
       setFinancas(prev => mergeItems(prev, data.financas as LancamentoFinancas[]));
       setTasks(prev => mergeItems(prev, data.tasks as Tarefa[]));
+      setChecklists(prev => mergeItems(prev, data.checklists as ChecklistShoot[]));
       setCollaborators(prev => mergeItems(prev, data.collaborators as Colaborador[]));
     }
   }, []);
@@ -757,6 +760,7 @@ export default function App() {
     else if (tab === 'PLANEJAMENTO') setPlanejamento(updateFn);
     else if (tab === 'FINANCAS') setFinancas(updateFn);
     else if (tab === 'TAREFAS') setTasks(updateFn);
+    else if (tab === 'CHECKLISTS') setChecklists(updateFn as any);
     else if (tab === 'COBO') setCobo(updateFn);
     else if (tab === 'MATRIZ') setMatriz(updateFn);
     else if (tab === 'IA_HISTORY') setIaHistory(updateFn);
@@ -827,6 +831,7 @@ export default function App() {
       else if (tab === 'FINANCAS') setFinancas(prev => [...prev, newItem]);
       else if (tab === 'PLANEJAMENTO') setPlanejamento(prev => [...prev, newItem]);
       else if (tab === 'TAREFAS') setTasks(prev => [...prev, newItem]);
+      else if (tab === 'CHECKLISTS') setChecklists(prev => [...prev, newItem]);
       else if (tab === 'COBO') setCobo(prev => [...prev, newItem]);
       else if (tab === 'MATRIZ') setMatriz(prev => [...prev, newItem]);
       else if (tab === 'RDC') setRdc(prev => [...prev, newItem]);
@@ -843,6 +848,7 @@ export default function App() {
           else if (tab === 'FINANCAS') setFinancas(filterFn);
           else if (tab === 'PLANEJAMENTO') setPlanejamento(filterFn);
           else if (tab === 'TAREFAS') setTasks(filterFn);
+          else if (tab === 'CHECKLISTS') setChecklists(filterFn as any);
           else if (tab === 'COBO') setCobo(filterFn);
           else if (tab === 'MATRIZ') setMatriz(filterFn);
           else if (tab === 'RDC') setRdc(filterFn);
@@ -876,6 +882,7 @@ export default function App() {
     if (tab === 'PLANEJAMENTO') setPlanejamento(prev => prev.filter(p => !ids.includes(p.id)));
     if (tab === 'FINANCAS') setFinancas(prev => prev.filter(f => !ids.includes(f.id)));
     if (tab === 'TAREFAS') setTasks(prev => prev.filter(t => !ids.includes(t.id)));
+    if (tab === 'CHECKLISTS') setChecklists(prev => prev.filter(c => !ids.includes(c.id)));
     if (tab === 'IA_HISTORY') setIaHistory(prev => prev.filter(h => !ids.includes(h.id)));
     setSelection([]);
 
@@ -901,6 +908,7 @@ export default function App() {
     if (tab === 'PLANEJAMENTO') setPlanejamento(updateFn);
     if (tab === 'FINANCAS') setFinancas(updateFn);
     if (tab === 'TAREFAS') setTasks(updateFn);
+    if (tab === 'CHECKLISTS') setChecklists(updateFn as any);
     if (tab === 'IA_HISTORY') setIaHistory(updateFn);
     setSelection([]);
 
@@ -920,6 +928,7 @@ export default function App() {
   const currentRdc = useMemo(() => filterArchived(selectedClientIds.length > 0 ? rdc.filter(item => selectedClientIds.includes(item.Cliente_ID)) : rdc), [rdc, selectedClientIds, showArchived]);
   const currentTasks = useMemo(() => filterArchived(selectedClientIds.length > 0 ? tasks.filter(item => selectedClientIds.includes(item.Cliente_ID)) : tasks), [tasks, selectedClientIds, showArchived]);
   const currentFinancas = useMemo(() => filterArchived(selectedClientIds.length > 0 ? financas.filter(item => selectedClientIds.includes(item.Cliente_ID)) : financas), [financas, selectedClientIds, showArchived]);
+  const currentChecklists = useMemo(() => filterArchived(checklists), [checklists, showArchived]);
   const currentCobo = useMemo(() => filterArchived(selectedClientIds.length > 0 ? cobo.filter(item => selectedClientIds.includes(item.Cliente_ID)) : cobo), [cobo, selectedClientIds, showArchived]);
   const currentMatriz = useMemo(() => filterArchived(selectedClientIds.length > 0 ? matriz.filter(item => selectedClientIds.includes(item.Cliente_ID)) : matriz), [matriz, selectedClientIds, showArchived]);
   const currentClient = useMemo(() => selectedClientIds.length > 0 ? clients.find(c => c.id === selectedClientIds[0]) : null, [clients, selectedClientIds]);
@@ -1350,7 +1359,7 @@ export default function App() {
           {activeTab === 'APROVACAO' && <AprovacaoTab />}
           {activeTab === 'FINANCAS' && <FinancasTab data={currentFinancas} onAdd={handleAddRow} onUpdate={handleUpdate} onDelete={performDelete} clients={clients} />}
           {activeTab === 'TAREFAS' && <TaskFlowView tasks={currentTasks} clients={clients} collaborators={collaborators} activeViewId={activeTaskViewId} setActiveViewId={setActiveTaskViewId} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('TAREFAS')} onSelectTask={setSelectedTaskId} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
-          {activeTab === 'CHECKLISTS' && <ChecklistsTab clients={clients} />}
+          {activeTab === 'CHECKLISTS' && <ChecklistsTab data={currentChecklists} onAdd={handleAddRow} onUpdate={handleUpdate} onDelete={performDelete} clients={clients} />}
           {activeTab === 'VH' && <VhManagementView clients={clients} collaborators={collaborators} setCollaborators={setCollaborators} onUpdate={handleUpdate} selection={selection} onSelect={toggleSelection} />}
           {activeTab === 'ORGANICKIA' && <OrganickIAView
             clients={clients}

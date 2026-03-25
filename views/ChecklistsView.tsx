@@ -56,44 +56,17 @@ const DEFAULT_CHECKLIST = [
     }
 ];
 
-import { Cliente } from '../types';
-
-// ==========================================
-// DADOS MOCK INICIAIS
-// ==========================================
-const INITIAL_SHOOTS = [
-    {
-        id: 'shoot_1',
-        client: 'Forno a Lenha Bakery',
-        title: 'Gravação Reels (Produção)',
-        date: '2026-02-28',
-        time: '08:00',
-        location: 'Rua das Flores, 123 - Centro',
-        notes: 'Chegar 15min antes. Falar com a gerente Maria.',
-        status: 'pending', // pending, ready, done
-        checklist: JSON.parse(JSON.stringify(DEFAULT_CHECKLIST))
-    },
-    {
-        id: 'shoot_2',
-        client: 'Tech Solutions Hub',
-        title: 'Entrevista Podcast CEO',
-        date: '2026-03-02',
-        time: '14:30',
-        location: 'Av. Paulista, 1000 - Sala 5B',
-        notes: 'Levar iluminação extra (bastões RGB).',
-        status: 'ready',
-        checklist: JSON.parse(JSON.stringify(DEFAULT_CHECKLIST)).map((c: any) => ({
-            ...c, items: c.items.map((i: any) => ({ ...i, checked: true }))
-        }))
-    }
-];
+import { Cliente, ChecklistShoot, TipoTabela } from '../types';
 
 interface ChecklistsTabProps {
     clients: Cliente[];
+    data: ChecklistShoot[];
+    onAdd: (tab: TipoTabela, initial?: Partial<any>) => Promise<string>;
+    onUpdate: (id: string, tab: TipoTabela, field: string, value: any, skipLog?: boolean) => Promise<void>;
+    onDelete: (ids: string[], tab: TipoTabela) => void;
 }
 
-export default function ChecklistsTab({ clients }: ChecklistsTabProps) {
-    const [shoots, setShoots] = useState(INITIAL_SHOOTS);
+export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete }: ChecklistsTabProps) {
     const [searchQuery, setSearchQuery] = useState('');
 
     // Controle de Interface
@@ -108,30 +81,31 @@ export default function ChecklistsTab({ clients }: ChecklistsTabProps) {
     // Estado para gerenciar os inputs de novos itens do checklist
     const [newItemTexts, setNewItemTexts] = useState<Record<string, string>>({});
 
-    const activeShoot = shoots.find(s => s.id === activeShootId);
+    const activeShoot = data.find(s => s.id === activeShootId);
 
     // ==========================================
     // FUNÇÕES DE LÓGICA
     // ==========================================
-    const handleCreateShoot = () => {
+    const handleCreateShoot = async () => {
         if (!newShootData.client || !newShootData.date) return;
         tryPlaySound('success');
 
         const newShoot = {
-            id: `shoot_${Date.now()}`,
             ...newShootData,
             status: 'pending',
             checklist: JSON.parse(JSON.stringify(DEFAULT_CHECKLIST))
         };
 
-        setShoots([newShoot, ...shoots]);
-        setIsNewShootModalOpen(false);
-        setNewShootData({ client: '', title: '', date: '', time: '', location: '', notes: '' });
+        const id = await onAdd('CHECKLISTS', newShoot);
+        if (id) {
+            setIsNewShootModalOpen(false);
+            setNewShootData({ client: '', title: '', date: '', time: '', location: '', notes: '' });
+        }
     };
 
     const handleDeleteShoot = (id: string) => {
         tryPlaySound('close');
-        setShoots(shoots.filter(s => s.id !== id));
+        onDelete([id], 'CHECKLISTS');
         if (activeShootId === id) setActiveShootId(null);
     };
 
@@ -151,19 +125,20 @@ export default function ChecklistsTab({ clients }: ChecklistsTabProps) {
 
     const toggleChecklistItem = (shootId: string, categoryId: string, itemId: string) => {
         tryPlaySound('tap');
-        setShoots(currentShoots => currentShoots.map(shoot => {
-            if (shoot.id !== shootId) return shoot;
+        const shoot = data.find(s => s.id === shootId);
+        if (!shoot) return;
 
-            const newChecklist = shoot.checklist.map((cat: any) => {
-                if (cat.id !== categoryId) return cat;
-                return {
-                    ...cat,
-                    items: cat.items.map((item: any) => item.id === itemId ? { ...item, checked: !item.checked } : item)
-                };
-            });
+        const newChecklist = shoot.checklist.map((cat: any) => {
+            if (cat.id !== categoryId) return cat;
+            return {
+                ...cat,
+                items: cat.items.map((item: any) => item.id === itemId ? { ...item, checked: !item.checked } : item)
+            };
+        });
 
-            return updateShootStatus({ ...shoot, checklist: newChecklist });
-        }));
+        const updatedShoot = updateShootStatus({ ...shoot, checklist: newChecklist });
+        onUpdate(shootId, 'CHECKLISTS', 'checklist', updatedShoot.checklist, true);
+        onUpdate(shootId, 'CHECKLISTS', 'status', updatedShoot.status, true);
     };
 
     const handleAddItem = (shootId: string, categoryId: string) => {
@@ -171,19 +146,20 @@ export default function ChecklistsTab({ clients }: ChecklistsTabProps) {
         if (!text || !text.trim()) return;
 
         tryPlaySound('tap');
-        setShoots(currentShoots => currentShoots.map(shoot => {
-            if (shoot.id !== shootId) return shoot;
+        const shoot = data.find(s => s.id === shootId);
+        if (!shoot) return;
 
-            const newChecklist = shoot.checklist.map((cat: any) => {
-                if (cat.id !== categoryId) return cat;
-                return {
-                    ...cat,
-                    items: [...cat.items, { id: `item_${Date.now()}`, text: text.trim(), checked: false }]
-                };
-            });
+        const newChecklist = shoot.checklist.map((cat: any) => {
+            if (cat.id !== categoryId) return cat;
+            return {
+                ...cat,
+                items: [...cat.items, { id: `item_${Date.now()}`, text: text.trim(), checked: false }]
+            };
+        });
 
-            return updateShootStatus({ ...shoot, checklist: newChecklist });
-        }));
+        const updatedShoot = updateShootStatus({ ...shoot, checklist: newChecklist });
+        onUpdate(shootId, 'CHECKLISTS', 'checklist', updatedShoot.checklist, true);
+        onUpdate(shootId, 'CHECKLISTS', 'status', updatedShoot.status, true);
 
         // Limpa o input após adicionar
         setNewItemTexts(prev => ({ ...prev, [categoryId]: '' }));
@@ -191,19 +167,20 @@ export default function ChecklistsTab({ clients }: ChecklistsTabProps) {
 
     const handleRemoveItem = (shootId: string, categoryId: string, itemId: string) => {
         tryPlaySound('close');
-        setShoots(currentShoots => currentShoots.map(shoot => {
-            if (shoot.id !== shootId) return shoot;
+        const shoot = data.find(s => s.id === shootId);
+        if (!shoot) return;
 
-            const newChecklist = shoot.checklist.map((cat: any) => {
-                if (cat.id !== categoryId) return cat;
-                return {
-                    ...cat,
-                    items: cat.items.filter((item: any) => item.id !== itemId)
-                };
-            });
+        const newChecklist = shoot.checklist.map((cat: any) => {
+            if (cat.id !== categoryId) return cat;
+            return {
+                ...cat,
+                items: cat.items.filter((item: any) => item.id !== itemId)
+            };
+        });
 
-            return updateShootStatus({ ...shoot, checklist: newChecklist });
-        }));
+        const updatedShoot = updateShootStatus({ ...shoot, checklist: newChecklist });
+        onUpdate(shootId, 'CHECKLISTS', 'checklist', updatedShoot.checklist, true);
+        onUpdate(shootId, 'CHECKLISTS', 'status', updatedShoot.status, true);
     };
 
     const calculateProgress = (checklist: any) => {
@@ -215,9 +192,9 @@ export default function ChecklistsTab({ clients }: ChecklistsTabProps) {
     };
 
     // Filtragem
-    const filteredShoots = shoots.filter(s =>
-        s.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.title.toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredShoots = data.filter(s =>
+        s.client?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.title?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     return (
