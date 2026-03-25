@@ -16,7 +16,7 @@ import {
   Plus, X, User, Target, Lightbulb, Radio, FolderOpen,
   Box, Eye, EyeOff, Search, LayoutGrid, List, Filter, ArrowUpDown, Archive, Briefcase, TrendingUp, TrendingDown, Receipt, CreditCard, Wallet, Activity, DollarSign, ArrowRight, LayoutDashboard, AlertTriangle, Calculator, Info, Users, CheckSquare, MoreVertical, Database,
   Menu, Sun, Moon, Download, Bell, BellOff, Layers, FileSpreadsheet, FileVideo, Palette, Info as InfoIcon, X as XIcon, Check as CheckIcon,
-  Bot, Castle, Antenna, CalendarDays, Coins, ListTodo, Presentation, Hourglass, ArrowLeft, ChevronRight as ChevronRightIcon
+  Bot, Castle, Antenna, CalendarDays, Coins, ListTodo, Presentation, Hourglass, ArrowLeft, ChevronRight as ChevronRightIcon, WifiOff
 } from 'lucide-react';
 import { AssistantDrawer } from './AssistantDrawer';
 import { AssistantAction } from './ai/types';
@@ -252,6 +252,7 @@ export default function App() {
   const [isNewWorkspaceModalOpen, setIsNewWorkspaceModalOpen] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 1024);
@@ -669,6 +670,41 @@ export default function App() {
     setNotificacoes(prev => [newNotif, ...prev].slice(0, 50));
   }, []);
 
+  useEffect(() => {
+    const handleOnline = async () => {
+      setIsOffline(false);
+      try {
+          const queueStr = localStorage.getItem('ekko_offline_queue');
+          if (!queueStr) return;
+          const queue = JSON.parse(queueStr);
+          if (queue.length > 0) {
+             addNotification('info', 'Sincronizando', `Conexão restabelecida. Sincronizando ${queue.length} alterações...`);
+             for (const item of queue) {
+                 if (item.action === 'UPDATE' || item.action === 'CREATE') {
+                     await DatabaseService.syncItem(item.tableName, item.data, item.workspaceId);
+                 } else if (item.action === 'DELETE') {
+                     await DatabaseService.deleteItem(item.tableName, item.id);
+                 } else if (item.action === 'ARCHIVE') {
+                     await DatabaseService.updateItem(item.tableName, item.id, item.data);
+                 }
+             }
+             localStorage.removeItem('ekko_offline_queue');
+             addNotification('success', 'Sincronizado', 'Todas as alterações pendentes foram salvas no Supabase!');
+          }
+      } catch (e) {
+          console.error("Sync error", e);
+      }
+    };
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+       window.removeEventListener('online', handleOnline);
+       window.removeEventListener('offline', handleOffline);
+    };
+  }, [addNotification]);
+
 
   const handleUpdate = useCallback(async (id: string, tab: TipoTabela, field: string, value: any, skipLog: boolean = false) => {
     // Permission Check
@@ -772,6 +808,13 @@ export default function App() {
     if (currentWorkspace) {
       const tableName = getTableName(tab);
       if (tableName) {
+        if (!navigator.onLine) {
+           const queue = JSON.parse(localStorage.getItem('ekko_offline_queue') || '[]');
+           queue.push({ action: 'UPDATE', tableName, data: updated, workspaceId: currentWorkspace.id });
+           localStorage.setItem('ekko_offline_queue', JSON.stringify(queue));
+           return;
+        }
+
         console.log(`[EKKO-SYNC] UPDATE_TRIGGERED | Table: ${tableName} | ID: ${id}`);
         const error = await DatabaseService.syncItem(tableName, updated, currentWorkspace.id);
 
@@ -850,6 +893,17 @@ export default function App() {
 
       const tableName = getTableName(tab);
       if (tableName && currentWorkspace) {
+        if (!navigator.onLine) {
+           const queue = JSON.parse(localStorage.getItem('ekko_offline_queue') || '[]');
+           queue.push({ action: 'CREATE', tableName, data: newItem, workspaceId: currentWorkspace.id });
+           localStorage.setItem('ekko_offline_queue', JSON.stringify(queue));
+           
+           if (tab === 'CLIENTES') addNotification('info', 'Salvo Offline', 'Cliente adicionado localmente.');
+           else if (tab === 'TAREFAS') addNotification('info', 'Salvo Offline', 'A tarefa foi criada localmente.');
+           else addNotification('info', 'Salvo Offline', `Novo item salvo offline.`);
+           return id;
+        }
+
         const error = await DatabaseService.syncItem(tableName, newItem, currentWorkspace.id);
 
         if (error) {
@@ -907,8 +961,15 @@ export default function App() {
     if (currentWorkspace) {
       const tableName = getTableName(tab as string);
       if (tableName) {
-        ids.forEach(id => DatabaseService.deleteItem(tableName, id));
-        addNotification('error', 'Item removido', `${ids.length} item(s) excluído(s).`);
+        if (!navigator.onLine) {
+           const queue = JSON.parse(localStorage.getItem('ekko_offline_queue') || '[]');
+           ids.forEach(id => queue.push({ action: 'DELETE', tableName, id }));
+           localStorage.setItem('ekko_offline_queue', JSON.stringify(queue));
+           addNotification('info', 'Offline', `${ids.length} item(s) deletado(s) localmente.`);
+        } else {
+           ids.forEach(id => DatabaseService.deleteItem(tableName, id));
+           addNotification('error', 'Item removido', `${ids.length} item(s) excluído(s).`);
+        }
       }
     }
     
@@ -933,7 +994,13 @@ export default function App() {
     if (currentWorkspace) {
       const tableName = getTableName(tab as string);
       if (tableName) {
-        ids.forEach(id => DatabaseService.updateItem(tableName, id, { __archived: archive }));
+        if (!navigator.onLine) {
+           const queue = JSON.parse(localStorage.getItem('ekko_offline_queue') || '[]');
+           ids.forEach(id => queue.push({ action: 'ARCHIVE', tableName, id, data: { __archived: archive } }));
+           localStorage.setItem('ekko_offline_queue', JSON.stringify(queue));
+        } else {
+           ids.forEach(id => DatabaseService.updateItem(tableName, id, { __archived: archive }));
+        }
       }
     }
   }, [currentWorkspace]);
@@ -1157,8 +1224,13 @@ export default function App() {
   return (
     <div
       onMouseDown={() => initAudio()}
-      className="flex h-[100dvh] bg-app-bg text-app-text font-sans overflow-hidden transition-colors duration-300"
+      className="flex h-[100dvh] bg-app-bg text-app-text font-sans overflow-hidden transition-colors duration-300 relative"
     >
+      {isOffline && (
+        <div className="absolute top-0 left-0 w-full z-[99999] bg-orange-500 text-white text-[10px] font-black uppercase tracking-widest py-1.5 text-center shadow-md animate-fade-down flex items-center justify-center gap-2">
+          <WifiOff size={14} /> Você está offline — alterações serão sincronizadas quando a conexão voltar
+        </div>
+      )}
 
       {!sidebarCollapsed && (
         <div className="fixed inset-0 bg-black/50 z-[2000] lg:hidden backdrop-blur-sm animate-fade" onClick={() => setSidebarCollapsed(true)}></div>

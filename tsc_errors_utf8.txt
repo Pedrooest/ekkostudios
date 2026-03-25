@@ -1,0 +1,5 @@
+﻿views/TaskFlowView.tsx(287,38): error TS2322: Type 'DropAnimationSideEffects' is not assignable to type 'DropAnimation'.
+  Type 'DropAnimationSideEffects' is not assignable to type 'DropAnimationFunction'.
+    Type 'void | CleanupFunction' is not assignable to type 'void | Promise<void>'.
+      Type 'CleanupFunction' is not assignable to type 'void | Promise<void>'.
+views/TaskFlowView.tsx(287,87): error TS2353: Object literal may only specify known properties, and 'duration' does not exist in type 'DefaultDropAnimationSideEffectsOptions'.

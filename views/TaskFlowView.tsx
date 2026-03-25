@@ -1,5 +1,11 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
+    DndContext, closestCenter, KeyboardSensor, PointerSensor,
+    useSensor, useSensors, DragOverlay, defaultDropAnimationSideEffects, useDroppable
+} from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import {
     List, LayoutGrid, Calendar as LucideCalendar, Search, Filter,
     ArrowUpDown, Plus, Clock, MessageSquare, Box, ExternalLink,
     X, Trash2, Zap, LayoutDashboard, Image as ImageIcon, CheckCircle2, FileText, ShieldAlert, Eye, History as HistoryIcon, Loader2, User,
@@ -33,6 +39,75 @@ interface TaskFlowViewProps {
     onClearSelection: () => void;
 }
 
+function DroppableColumn({ id, children }: { id: string, children: React.ReactNode }) {
+    const { setNodeRef, isOver } = useDroppable({
+        id: id,
+        data: { type: 'Column', status: id }
+    });
+    return (
+        <div ref={setNodeRef} className={`flex-1 overflow-y-auto space-y-3 custom-scrollbar pr-2 pb-2 transition-colors ${isOver ? 'bg-blue-500/5 rounded-2xl p-2 border border-dashed border-blue-500/30 ring-2 ring-blue-500/20' : ''}`}>
+            {children}
+        </div>
+    );
+}
+
+function SortableTaskCard({ Tarefa, clients, getPriorityInfo, onSelectTask, selection, statusCor }: any) {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+        id: Tarefa.id,
+        data: { type: 'Task', task: Tarefa }
+    });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.3 : 1,
+    };
+
+    const Cliente = clients.find((c: any) => c.id === Tarefa.Cliente_ID);
+    const prio = getPriorityInfo(Tarefa.Prioridade);
+
+    return (
+        <div
+            ref={setNodeRef} style={style} {...attributes} {...listeners}
+            onClick={() => onSelectTask(Tarefa.id)}
+            className={`bg-app-surface border border-app-border p-4 rounded-2xl shadow-sm hover:shadow-xl hover:border-blue-500/30 transition-all group flex flex-col gap-3 relative overflow-hidden cursor-grab active:cursor-grabbing ${selection.includes(Tarefa.id) ? 'ring-2 ring-blue-500/50 bg-blue-500/5' : ''} ${isDragging ? 'ring-2 ring-blue-500 z-50 shadow-2xl scale-105' : ''}`}
+        >
+            <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: statusCor }} />
+            <div className="flex justify-between items-start pointer-events-none">
+                <span className="text-[9px] font-black uppercase tracking-widest text-app-text-muted truncate max-w-[180px]">
+                    {Cliente?.Nome || 'Agência'}
+                </span>
+                <div className={`p-1 rounded flex items-center justify-center ${prio.color}`}><i className={`fa-solid ${prio.icon} text-[10px]`}></i></div>
+            </div>
+            <h4 className="text-sm font-bold text-app-text-strong leading-snug group-hover:text-blue-500 transition-colors uppercase tracking-tight pointer-events-none">{Tarefa.Título}</h4>
+            <div className="flex items-center justify-between mt-1 pt-3 border-t border-app-border/50 pointer-events-none">
+                <div className="flex items-center gap-3 text-[10px] font-bold text-app-text-muted uppercase tracking-tight">
+                    <span className="flex items-center gap-1.5"><Clock size={12} /> {Tarefa.Data_Entrega || '--/--'}</span>
+                    {Tarefa.Comentarios && Tarefa.Comentarios.length > 0 && <span className="flex items-center gap-1.5"><MessageSquare size={12} /> {Tarefa.Comentarios.length}</span>}
+                </div>
+                <div className="w-6 h-6 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center text-[10px] font-black border border-blue-500/20 group-hover:ring-4 group-hover:ring-blue-500/10 transition-all">
+                    {Tarefa.Responsável?.slice(0, 1).toUpperCase() || '?'}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function TaskCardOverlay({ Tarefa, clients, getPriorityInfo, statusCor }: any) {
+    const Cliente = clients.find((c: any) => c.id === Tarefa.Cliente_ID);
+    const prio = getPriorityInfo(Tarefa.Prioridade);
+    return (
+        <div className={`bg-app-surface border border-blue-500 p-4 rounded-2xl shadow-2xl flex flex-col gap-3 relative overflow-hidden rotate-2 cursor-grabbing ring-4 ring-blue-500/20 opacity-90 scale-105`}>
+            <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: statusCor }} />
+            <div className="flex justify-between items-start">
+                <span className="text-[9px] font-black uppercase tracking-widest text-app-text-muted truncate max-w-[180px]">{Cliente?.Nome || 'Agência'}</span>
+                <div className={`p-1 rounded flex items-center justify-center ${prio.color}`}><i className={`fa-solid ${prio.icon} text-[10px]`}></i></div>
+            </div>
+            <h4 className="text-sm font-bold text-app-text-strong leading-snug uppercase tracking-tight">{Tarefa.Título}</h4>
+        </div>
+    );
+}
+
 export function TaskFlowView({
     tasks, clients, collaborators, activeViewId, setActiveViewId,
     onUpdate, onDelete, onArchive, onAdd, onSelectTask,
@@ -57,6 +132,40 @@ export function TaskFlowView({
 
     const getEventosDoDia = (dateStr: string) => {
         return filteredTasks.filter((t: any) => t.Data_Entrega === dateStr);
+    };
+
+    const [activeDragTask, setActiveDragTask] = useState<any>(null);
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+        useSensor(KeyboardSensor)
+    );
+
+    const handleDragStart = (event: any) => {
+        const { active } = event;
+        const task = filteredTasks.find((t: any) => t.id === active.id);
+        if (task) setActiveDragTask(task);
+    };
+
+    const handleDragEnd = (event: any) => {
+        const { active, over } = event;
+        setActiveDragTask(null);
+        if (!over) return;
+
+        const activeId = active.id;
+        const activeTask = filteredTasks.find((t: any) => t.id === activeId);
+        if (!activeTask) return;
+
+        let newStatus = activeTask.Status;
+        if (over.data.current?.type === 'Column') {
+            newStatus = over.data.current.status;
+        } else if (over.data.current?.type === 'Task') {
+            const overTask = over.data.current.task;
+            if (overTask) newStatus = overTask.Status;
+        }
+
+        if (activeTask.Status !== newStatus) {
+            onUpdate(activeId, 'TAREFAS', 'Status', newStatus);
+        }
     };
 
     const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
@@ -134,73 +243,58 @@ export function TaskFlowView({
             <div className="flex-1 overflow-hidden p-6 bg-app-bg/50 rounded-b-[32px]">
 
                 {viewType === 'Board' && (
-                    <div className="flex gap-6 h-full overflow-x-auto pb-4 custom-scrollbar-horizontal">
-                        {DEFAULT_TASK_STATUSES.map(status => (
-                            <div key={status.id} className="w-[320px] flex flex-col max-h-full shrink-0">
-                                {/* Column Header */}
-                                <div className="flex items-center justify-between mb-4 px-1">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: status.cor }} />
-                                        <h3 className="text-[11px] font-black text-app-text-strong uppercase tracking-[0.2em]">{status.rotulo}</h3>
-                                        <span className="text-[10px] font-black text-app-text-muted bg-app-surface-2 px-2 py-0.5 rounded-full">
-                                            {filteredTasks.filter(t => t.Status === status.id).length}
-                                        </span>
+                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+                        <div className="flex gap-6 h-full overflow-x-auto pb-4 custom-scrollbar-horizontal">
+                            {DEFAULT_TASK_STATUSES.map(status => {
+                                const columnTasks = filteredTasks.filter(t => t.Status === status.id);
+                                return (
+                                <div key={status.id} className="w-[320px] flex flex-col max-h-full shrink-0 relative">
+                                    <div className="flex items-center justify-between mb-4 px-1">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: status.cor }} />
+                                            <h3 className="text-[11px] font-black text-app-text-strong uppercase tracking-[0.2em]">{status.rotulo}</h3>
+                                            <span className="text-[10px] font-black text-app-text-muted bg-app-surface-2 px-2 py-0.5 rounded-full">
+                                                {columnTasks.length}
+                                            </span>
+                                        </div>
+                                        <button onClick={() => onAdd('TAREFAS', { Status: status.id })} className="text-app-text-muted hover:text-blue-500 transition-colors"><Plus size={16} /></button>
                                     </div>
-                                    <button onClick={() => onAdd('TAREFAS', { Status: status.id })} className="text-app-text-muted hover:text-blue-500 transition-colors"><Plus size={16} /></button>
+
+                                    <DroppableColumn id={status.id}>
+                                        <SortableContext items={columnTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+                                            {columnTasks.map(Tarefa => (
+                                                <SortableTaskCard 
+                                                    key={Tarefa.id} 
+                                                    Tarefa={Tarefa} 
+                                                    clients={clients} 
+                                                    getPriorityInfo={getPriorityInfo} 
+                                                    onSelectTask={onSelectTask} 
+                                                    selection={selection} 
+                                                    statusCor={status.cor} 
+                                                />
+                                            ))}
+                                        </SortableContext>
+                                        <button
+                                            onClick={() => onAdd('TAREFAS', { Status: status.id })}
+                                            className="w-full mt-2 py-2.5 flex items-center justify-center gap-2 text-[10px] font-black text-app-text-muted hover:text-app-text-strong hover:bg-app-surface-2 rounded-xl border border-dashed border-app-border hover:border-app-border-strong transition-all uppercase tracking-widest"
+                                        >
+                                            <Plus size={14} /> Adicionar
+                                        </button>
+                                    </DroppableColumn>
                                 </div>
-
-                                {/* Column Tasks Area */}
-                                <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar pr-2 pb-2">
-                                    {filteredTasks.filter(t => t.Status === status.id).map(Tarefa => {
-                                        const Cliente = clients.find((c: any) => c.id === Tarefa.Cliente_ID);
-                                        const prio = getPriorityInfo(Tarefa.Prioridade);
-
-                                        return (
-                                            <div
-                                                key={Tarefa.id} onClick={() => onSelectTask(Tarefa.id)}
-                                                className={`bg-app-surface border border-app-border p-4 rounded-2xl shadow-sm hover:shadow-xl hover:border-blue-500/30 cursor-pointer transition-all group flex flex-col gap-3 relative overflow-hidden ${selection.includes(Tarefa.id) ? 'ring-2 ring-blue-500/50 bg-blue-500/5' : ''}`}
-                                            >
-                                                <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: status.cor }} />
-
-                                                {/* Top row: Cliente Tag & Priority */}
-                                                <div className="flex justify-between items-start">
-                                                    <span className="text-[9px] font-black uppercase tracking-widest text-app-text-muted truncate max-w-[180px]">
-                                                        {Cliente?.Nome || 'Agência'}
-                                                    </span>
-                                                    <div className={`p-1 rounded flex items-center justify-center ${prio.color}`}>
-                                                        <i className={`fa-solid ${prio.icon} text-[10px]`}></i>
-                                                    </div>
-                                                </div>
-
-                                                {/* Title */}
-                                                <h4 className="text-sm font-bold text-app-text-strong leading-snug group-hover:text-blue-500 transition-colors uppercase tracking-tight">
-                                                    {Tarefa.Título}
-                                                </h4>
-
-                                                {/* Bottom Row: Date, Comments, Assignee */}
-                                                <div className="flex items-center justify-between mt-1 pt-3 border-t border-app-border/50">
-                                                    <div className="flex items-center gap-3 text-[10px] font-bold text-app-text-muted uppercase tracking-tight">
-                                                        <span className="flex items-center gap-1.5"><Clock size={12} /> {Tarefa.Data_Entrega || '--/--'}</span>
-                                                        {Tarefa.Comentarios && Tarefa.Comentarios.length > 0 && <span className="flex items-center gap-1.5"><MessageSquare size={12} /> {Tarefa.Comentarios.length}</span>}
-                                                    </div>
-                                                    <div className="w-6 h-6 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center text-[10px] font-black border border-blue-500/20 group-hover:ring-4 group-hover:ring-blue-500/10 transition-all">
-                                                        {Tarefa.Responsável?.slice(0, 1).toUpperCase() || '?'}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-
-                                    <button
-                                        onClick={() => onAdd('TAREFAS', { Status: status.id })}
-                                        className="w-full py-2.5 flex items-center justify-center gap-2 text-[10px] font-black text-app-text-muted hover:text-app-text-strong hover:bg-app-surface-2 rounded-xl border border-dashed border-app-border hover:border-app-border-strong transition-all uppercase tracking-widest"
-                                    >
-                                        <Plus size={14} /> Adicionar
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                            )})}
+                        </div>
+                        <DragOverlay>
+                            {activeDragTask ? (
+                                <TaskCardOverlay 
+                                    Tarefa={activeDragTask} 
+                                    clients={clients} 
+                                    getPriorityInfo={getPriorityInfo} 
+                                    statusCor={DEFAULT_TASK_STATUSES.find(s => s.id === activeDragTask.Status)?.cor} 
+                                />
+                            ) : null}
+                        </DragOverlay>
+                    </DndContext>
                 )}
 
                 {viewType === 'List' && (
