@@ -756,6 +756,7 @@ export default function App() {
 
     // Optimistic Update
     const updateFn = (list: any[]) => list.map(i => i.id === id ? updated : i);
+    const revertFn = (list: any[]) => list.map(i => i.id === id ? originalItem : i);
 
     if (tab === 'CLIENTES') setClients(updateFn);
     else if (tab === 'RDC') setRdc(updateFn);
@@ -777,7 +778,16 @@ export default function App() {
         if (error) {
           console.error(`[EKKO-SYNC] UPDATE_FAILURE | Table: ${tableName} | ID: ${id}`, error);
           addNotification('error', 'Falha ao salvar', `Erro: ${error.message || JSON.stringify(error) || 'Não foi possível sincronizar as alterações.'}`);
-          // Revert optimistic update? For now, we leave it as complex to revert.
+          // Reverte o snapshot anterior caso o backend falhe
+          if (tab === 'CLIENTES') setClients(revertFn);
+          else if (tab === 'RDC') setRdc(revertFn);
+          else if (tab === 'PLANEJAMENTO') setPlanejamento(revertFn);
+          else if (tab === 'FINANCAS') setFinancas(revertFn);
+          else if (tab === 'TAREFAS') setTasks(revertFn);
+          else if (tab === 'CHECKLISTS') setChecklists(revertFn as any);
+          else if (tab === 'COBO') setCobo(revertFn);
+          else if (tab === 'MATRIZ') setMatriz(revertFn);
+          else if (tab === 'IA_HISTORY') setIaHistory(revertFn);
         } else if (!skipLog) {
           // Success notification (optional, maybe too noisy)
           // addNotification('success', 'Alterações salvas', `O campo ${field} foi atualizado.`);
