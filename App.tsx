@@ -32,6 +32,7 @@ import FinancasTab from './views/FinancasView';
 import { VhManagementView } from './views/VhManagementView';
 import PlanejamentoTab from './views/PlanejamentoTab';
 import AprovacaoTab from './views/AprovacaoTab';
+import { CoboView } from './views/CoboView';
 import { TableView } from './components/TableView';
 import { generateId } from './utils/id';
 import {
@@ -1225,7 +1226,7 @@ export default function App() {
   return (
     <div
       onMouseDown={() => initAudio()}
-      className="flex h-[100dvh] bg-app-bg text-app-text font-sans overflow-hidden transition-colors duration-300 relative"
+      className="flex h-[100dvh] bg-app-bg text-app-text font-sans overflow-hidden transition-colors duration-300 relative overflow-x-hidden"
     >
       {isOffline && (
         <div className="absolute top-0 left-0 w-full z-[99999] bg-orange-500 text-white text-[10px] font-black uppercase tracking-widest py-1.5 text-center shadow-md animate-fade-down flex items-center justify-center gap-2">
@@ -1444,7 +1445,21 @@ export default function App() {
           {activeTab === 'MATRIZ' && <TableView tab="MATRIZ" data={currentMatriz} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('MATRIZ')} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} library={BibliotecaConteudo} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
 
 
-          {activeTab === 'COBO' && <TableView tab="COBO" data={currentCobo} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('COBO')} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} library={BibliotecaConteudo} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
+          {activeTab === 'COBO' && (
+            <CoboView
+              data={currentCobo}
+              onUpdate={handleUpdate}
+              onDelete={performDelete}
+              onArchive={performArchive}
+              onAdd={() => handleAddRow('COBO')}
+              clients={clients}
+              activeClient={clients.find((c: any) => c.id === selectedClientIds[0]) || null}
+              onSelectClient={(id: any) => setSelectedClientIds([id])}
+              selection={selection}
+              onSelect={toggleSelection}
+              onClearSelection={() => setSelection([])}
+            />
+          )}
 
           {activeTab === 'PLANEJAMENTO' && <PlanejamentoTab data={currentPlanejamento} clients={clients} onUpdate={handleUpdate} onAdd={handleAddRow} rdc={currentRdc} matriz={matriz} cobo={cobo} tasks={currentTasks} iaHistory={iaHistory} setActiveTab={setActiveTab} performArchive={performArchive} performDelete={performDelete} library={BibliotecaConteudo} activeClientId={selectedClientIds.length === 1 ? selectedClientIds[0] : undefined} showArchived={showArchived} setShowArchived={setShowArchived} setIsClientFilterOpen={setIsClientFilterOpen} />}
           {activeTab === 'APROVACAO' && <AprovacaoTab />}

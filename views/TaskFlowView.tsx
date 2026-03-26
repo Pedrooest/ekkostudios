@@ -76,7 +76,7 @@ function SortableTaskCard({ Tarefa, clients, getPriorityInfo, onSelectTask, sele
         >
             <div className="absolute top-0 left-0 w-[3px] h-full opacity-60" style={{ backgroundColor: statusCor }} />
             <div className="flex justify-between items-start pointer-events-none gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md truncate max-w-[140px]" style={{ color: clientColorCss, backgroundColor: `${clientColorCss}15` }}>
+                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md truncate max-w-[120px]" style={{ color: clientColorCss, backgroundColor: `${clientColorCss}15` }}>
                     {Cliente?.Nome || 'Agência'}
                 </span>
                 <div className={`px-2 py-0.5 rounded flex items-center gap-1.5 ${prio.color}`} title={Tarefa.Prioridade}>
@@ -107,7 +107,7 @@ function TaskCardOverlay({ Tarefa, clients, getPriorityInfo, statusCor }: any) {
         <div className={`bg-app-surface border border-blue-500 p-4 rounded-2xl shadow-2xl flex flex-col gap-3 relative overflow-hidden rotate-3 cursor-grabbing ring-4 ring-blue-500/20 opacity-95 scale-105 min-w-[300px]`}>
             <div className="absolute top-0 left-0 w-[4px] h-full" style={{ backgroundColor: statusCor }} />
             <div className="flex justify-between items-start gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md truncate max-w-[140px]" style={{ color: clientColorCss, backgroundColor: `${clientColorCss}15` }}>{Cliente?.Nome || 'Agência'}</span>
+                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md truncate max-w-[120px]" style={{ color: clientColorCss, backgroundColor: `${clientColorCss}15` }}>{Cliente?.Nome || 'Agência'}</span>
                 <div className={`px-2 py-0.5 rounded flex items-center gap-1.5 ${prio.color}`}><i className={`fa-solid ${prio.icon} text-[8px]`}></i></div>
             </div>
             <h4 className="text-[13px] font-bold text-app-text-strong leading-snug uppercase tracking-tight mt-1 truncate">{Tarefa.Título}</h4>

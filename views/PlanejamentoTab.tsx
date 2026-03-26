@@ -512,7 +512,7 @@ export default function PlanejamentoTab({
                                                         className={`p-1.5 rounded-lg border-0 ${redeStyle.bg} ${redeStyle.text} text-left cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98] ios-btn overflow-hidden flex items-center gap-1.5 shadow-sm`}
                                                     >
                                                         <Icon size={12} strokeWidth={3} className="shrink-0" />
-                                                        <div className="text-[9px] font-black leading-tight truncate flex-1 min-w-0">
+                                                        <div className="text-[9px] font-black leading-tight truncate flex-1 min-w-0 overflow-hidden">
                                                             {evento.Hora && <span className="mr-1 opacity-70 shrink-0">{evento.Hora}</span>}
                                                             <span className="truncate">{evento.Conteúdo}</span>
                                                         </div>
@@ -704,9 +704,10 @@ export default function PlanejamentoTab({
                     </div>
                 )}
 
-                {sidebarView && (
-                    <div className="fixed inset-0 bg-gray-900/60 dark:bg-black/80 backdrop-blur-sm z-[90] transition-opacity animate-in fade-in" onClick={closeSidebar}></div>
-                )}
+                        {/* MODAL VIEW / SIDEBAR OVERLAY */}
+                        {sidebarView && (
+                            <div className="fixed inset-0 bg-gray-900/60 dark:bg-black/80 backdrop-blur-sm z-[90] transition-opacity animate-in fade-in" onClick={closeSidebar}></div>
+                        )}
 
                 {/* SIDEBAR: EDIÇÃO DE CONTEÚDO */}
                 {sidebarView === 'edit' && (

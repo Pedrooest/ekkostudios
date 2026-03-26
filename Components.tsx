@@ -45,7 +45,7 @@ export const Card: React.FC<{ children: React.ReactNode; title?: string; extra?:
   <div className={`bg-app-surface rounded-xl border border-app-border overflow-hidden mb-6 shadow-sm ${className}`}>
     {(title || extra) && (
       <div className="px-5 py-3 md:px-8 md:py-5 border-b border-app-border flex items-center justify-between bg-app-surface-2">
-        <h3 className="font-bold text-app-text-strong text-[10px] md:text-xs uppercase tracking-widest">{title}</h3>
+        <h3 className="font-bold text-app-text-strong text-[10px] md:text-xs uppercase tracking-widest truncate min-w-0 pr-2">{title}</h3>
         {extra}
       </div>
     )}
@@ -56,7 +56,7 @@ export const Card: React.FC<{ children: React.ReactNode; title?: string; extra?:
 );
 
 // Added style prop to Badge component to support dynamic inline styles from App.tsx
-export const Badge: React.FC<{ children: React.ReactNode; color?: "blue" | "green" | "red" | "orange" | "slate" | "indigo" | "emerald" | "rose"; className?: string; style?: React.CSSProperties }> = ({ children, color = 'blue', className = '', style }) => {
+export const Badge: React.FC<{ children: React.ReactNode; color?: "blue" | "green" | "red" | "orange" | "slate" | "indigo" | "emerald" | "rose" | "amber"; className?: string; style?: React.CSSProperties }> = ({ children, color = 'blue', className = '', style }) => {
   const colors: any = {
     blue: 'border-app-border text-app-text-muted',
     green: 'border-emerald-500/30 text-emerald-600',
@@ -64,6 +64,7 @@ export const Badge: React.FC<{ children: React.ReactNode; color?: "blue" | "gree
     red: 'border-rose-500/30 text-rose-600',
     rose: 'border-rose-500/30 text-rose-600',
     orange: 'border-amber-500/30 text-amber-600',
+    amber: 'border-amber-500/30 text-amber-600',
     indigo: 'border-indigo-500/30 text-indigo-600',
     slate: 'border-app-border text-app-text-muted'
   };
@@ -222,6 +223,17 @@ export const InputSelect: React.FC<{
 
   // Normalize options
   const normalizedOptions = options.map(o => typeof o === 'object' ? o : { value: o, label: o });
+  
+  // Filter options if editable and user has typed something
+  const filteredOptions = React.useMemo(() => {
+    if (!editable || !value) return normalizedOptions;
+    const search = String(value).toLowerCase();
+    return normalizedOptions.filter(o => 
+      String(o.label).toLowerCase().includes(search) || 
+      String(o.value).toLowerCase().includes(search)
+    );
+  }, [normalizedOptions, value, editable]);
+
   const currentLabel = normalizedOptions.find(o => String(o.value) === String(value))?.label || value || placeholder;
 
   // Handle desktop popover toggle
@@ -233,20 +245,26 @@ export const InputSelect: React.FC<{
   // Content for both Mobile (Sheet) and Desktop (Popover)
   const OptionList = () => (
     <div className="flex flex-col max-h-[300px] overflow-y-auto overflow-x-hidden custom-scrollbar bg-app-surface scroll-smooth">
-      {normalizedOptions.map((opt) => (
-        <button
-          key={opt.value}
-          onClick={() => {
-            playUISound('tap');
-            onChange(String(opt.value));
-            setIsOpen(false);
-          }}
-          className={`ios-btn px-4 py-3 text-left text-xs font-bold border-b border-app-border last:border-0 hover:bg-app-surface-2 transition-colors flex items-center justify-between gap-4 group ${String(value) === String(opt.value) ? 'bg-blue-600/5 text-blue-500' : 'text-app-text-muted hover:text-app-text-strong'}`}
-        >
-          <span className="whitespace-nowrap">{opt.label}</span>
-          {String(value) === String(opt.value) && <i className="fa-solid fa-check text-blue-500"></i>}
-        </button>
-      ))}
+      {filteredOptions.length > 0 ? (
+        filteredOptions.map((opt) => (
+          <button
+            key={opt.value}
+            onClick={() => {
+              playUISound('tap');
+              onChange(String(opt.value));
+              setIsOpen(false);
+            }}
+            className={`ios-btn px-4 py-3 text-left text-xs font-bold border-b border-app-border last:border-0 hover:bg-app-surface-2 transition-colors flex items-center justify-between gap-4 group ${String(value) === String(opt.value) ? 'bg-blue-600/5 text-blue-500' : 'text-app-text-muted hover:text-app-text-strong'}`}
+          >
+            <span className="whitespace-nowrap">{opt.label}</span>
+            {String(value) === String(opt.value) && <i className="fa-solid fa-check text-blue-500"></i>}
+          </button>
+        ))
+      ) : (
+        <div className="px-4 py-3 text-[10px] font-bold text-app-text-muted uppercase tracking-widest text-center">
+          Nenhuma sugestão
+        </div>
+      )}
     </div>
   );
 

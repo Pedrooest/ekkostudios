@@ -49,7 +49,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-8 px-6 md:px-10 border-b border-app-border bg-app-surface/50 backdrop-blur-md shrink-0">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tighter text-app-text-strong">Clientes</h1>
+            <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tighter text-app-text-strong truncate min-w-0 flex-1">Clientes</h1>
             <Badge color="blue" className="!bg-blue-500/10 !text-blue-500 !border-blue-500/20">{activeCount} Ativos</Badge>
           </div>
           <p className="text-app-text-muted text-xs font-medium uppercase tracking-widest mt-2 block">Gestão Estratégica de Contas</p>

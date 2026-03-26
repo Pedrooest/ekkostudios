@@ -293,7 +293,7 @@ export default function FinancasTab({ data = [], onAdd, onUpdate, onDelete, clie
                                     <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-500">
                                         <CalendarClock size={20} />
                                     </div>
-                                    <div>
+                                    <div className="min-w-0 flex-1">
                                         <p className="text-xs font-black uppercase truncate max-w-[120px]">{r.descricao}</p>
                                         <p className="text-[9px] font-bold text-gray-400">DIA {r.data.split('-')[2]}</p>
                                     </div>
