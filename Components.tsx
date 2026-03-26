@@ -435,18 +435,31 @@ import { TipoTabela } from './types';
 import { ROTULOS_TABELAS } from './constants';
 
 export const ReorderTabsModal: React.FC<{ tabOrder: TipoTabela[]; setTabOrder: (order: TipoTabela[]) => void; onClose: () => void }> = ({ tabOrder, onClose }) => {
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-10 pointer-events-auto text-left">
-      <div className="w-full max-w-lg bg-app-surface-2 border border-app-border rounded-2xl shadow-2xl p-8 flex flex-col">
-        <h3 className="text-xl font-bold uppercase text-app-text-strong mb-6">Ordem das Abas</h3>
-        <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-2 mb-8">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-10 pointer-events-auto text-left transition-all" onClick={onClose}>
+      <div className="w-full max-w-lg bg-app-surface-2 border border-app-border rounded-2xl shadow-2xl p-8 flex flex-col relative" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold uppercase text-app-text-strong">Ordem das Abas</h3>
+          <button onClick={() => { playUISound('tap'); onClose(); }} className="ios-btn text-app-text-muted hover:text-app-text-strong transition-colors">
+            <i className="fa-solid fa-xmark text-xl"></i>
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-2 mb-8 max-h-[50vh]">
           {tabOrder.map((tab) => (
             <div key={tab} className="flex items-center gap-4 p-4 rounded-xl border border-app-border bg-app-surface">
               <span className="text-xs font-black uppercase text-app-text-strong">{ROTULOS_TABELAS[tab]}</span>
             </div>
           ))}
         </div>
-        <Button onClick={onClose} className="w-full h-12 !bg-[#3B82F6]">Fechar</Button>
+        <Button onClick={onClose} className="w-full h-12 !bg-[#3B82F6]">Salvar e Fechar</Button>
       </div>
     </div>
   );
