@@ -280,12 +280,12 @@ export const InputSelect: React.FC<{
   return (
     <div className="flex flex-col gap-2 w-full">
       {label && (
-        <label className="text-[10px] font-black text-app-text-muted uppercase tracking-[0.2em] ml-1">
+        <label className="text-[12px] font-medium text-app-text-muted uppercase tracking-wider ml-1 mb-0.5">
           {label}
         </label>
       )}
       
-      <div className={`relative flex items-center bg-app-surface border border-app-border rounded-xl transition-all focus-within:border-blue-500/50 focus-within:ring-4 focus-within:ring-blue-500/10 group ${className}`}>
+      <div className={`relative flex items-center bg-app-surface border border-app-border rounded-[10px] h-[44px] transition-all focus-within:border-blue-500 focus-within:ring-[3px] focus-within:ring-blue-500/10 group ${className}`}>
         {Icon && (
           <div className="pl-4 text-app-text-muted group-focus-within:text-blue-500 transition-colors shrink-0">
             {typeof Icon === 'string' ? <i className={`fa-solid ${Icon} text-xs`}></i> : <Icon size={14} />}
@@ -301,7 +301,7 @@ export const InputSelect: React.FC<{
               onChange={(e) => onChange(e.target.value)}
               onFocus={() => setIsOpen(true)}
               placeholder={placeholder}
-              className="w-full pl-3 pr-10 py-3 bg-transparent border-none text-app-text-strong text-xs font-bold outline-none placeholder:text-app-text-muted/40 uppercase"
+              className="w-full pl-3 pr-10 h-full bg-transparent border-none text-app-text-strong text-sm font-medium outline-none placeholder:text-app-text-muted/40"
             />
             <button
               type="button"
@@ -316,13 +316,13 @@ export const InputSelect: React.FC<{
             type="button"
             ref={triggerRef as React.RefObject<HTMLButtonElement>}
             onClick={toggleOpen}
-            className="ios-btn flex items-center justify-between gap-2 pl-3 pr-4 py-3 bg-transparent border-none text-app-text-strong text-xs font-bold outline-none transition-all w-full text-left uppercase"
+            className="ios-btn flex items-center justify-between gap-2 pl-3 pr-4 h-full bg-transparent border-none text-app-text-strong text-sm font-medium outline-none transition-all w-full text-left"
           >
             <div className="truncate flex-1">
               {currentColor ? (
-                <Badge color={currentColor as any} className="!py-0.5 !px-2">{currentLabel}</Badge>
+                <Badge color={currentColor as any} className="!py-0 !px-1.5 !text-[10px] !rounded-md">{currentLabel}</Badge>
               ) : (
-                currentLabel
+                <span className="truncate">{currentLabel}</span>
               )}
             </div>
             <i className={`fa-solid fa-chevron-down text-[9px] opacity-50 transition-transform ${isOpen ? 'rotate-180' : ''}`}></i>

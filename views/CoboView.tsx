@@ -326,44 +326,48 @@ export function CoboView({
 
       {/* Modal / BottomSheet de Edição */}
       {editingItem && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setEditingItem(null)}>
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px] animate-in fade-in duration-200" onClick={() => setEditingItem(null)}>
           <div 
-            className="w-full max-w-[600px] bg-app-surface-2 rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden animate-in slide-in-from-bottom-8 duration-300"
+            className="w-full max-w-[560px] bg-white dark:bg-zinc-900 rounded-[16px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header Modal */}
-            <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/5 backdrop-blur-xl">
+            <div className="px-8 pt-8 pb-6 flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
-                  <Edit2 size={24} />
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-[16px] flex items-center justify-center text-white shadow-lg shadow-blue-500/20 shrink-0">
+                  <Edit2 size={20} strokeWidth={2.5} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black text-app-text-strong uppercase tracking-tight">Editar COBO</h3>
-                  <p className="text-[10px] font-bold text-app-text-muted uppercase tracking-widest mt-0.5">Refinando a estratégia de canal</p>
+                  <h3 className="text-[20px] font-semibold text-app-text-strong tracking-tight">Editar COBO</h3>
+                  <p className="text-[13px] text-zinc-500 dark:text-zinc-400 mt-0.5">Refinando a estratégia de canal</p>
                 </div>
               </div>
               <button 
                 onClick={() => setEditingItem(null)} 
-                className="w-10 h-10 rounded-full hover:bg-white/10 flex items-center justify-center text-app-text-muted transition-colors ios-btn"
+                className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 flex items-center justify-center text-zinc-500 transition-colors ios-btn"
               >
-                <X size={20} />
+                <X size={16} />
               </button>
             </div>
 
+            <div className="px-8">
+              <hr className="border-zinc-100 dark:border-zinc-800" />
+            </div>
+
             {/* Content Modal */}
-            <div className="p-8 max-h-[70dvh] overflow-y-auto custom-scrollbar space-y-8">
+            <div className="p-8 max-h-[65dvh] overflow-y-auto custom-scrollbar space-y-8">
               
               {/* Seção 1: DISTRIBUIÇÃO */}
-              <div className="space-y-6">
-                <div className="flex items-center gap-3 pb-2 border-b border-white/5">
-                  <Globe size={16} className="text-blue-500" />
-                  <h4 className="text-[11px] font-black text-app-text-strong uppercase tracking-[0.2em]">Distribuição</h4>
+              <div className="space-y-4">
+                <div className="flex items-center gap-2.5">
+                  <Globe size={14} className="text-blue-500" />
+                  <h4 className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.15em]">Distribuição</h4>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <InputSelect
                     label="Canal"
                     icon={Globe}
-                    placeholder="Ex: Instagram, TikTok..."
+                    placeholder="Ex: Instagram"
                     value={editingItem.Canal}
                     options={OPCOES_CANAL_COBO}
                     onChange={(val) => setEditingItem({ ...editingItem, Canal: val })}
@@ -372,7 +376,7 @@ export function CoboView({
                   <InputSelect
                     label="Frequência"
                     icon={Clock}
-                    placeholder="Ex: 3x por semana..."
+                    placeholder="Ex: 3x semana"
                     value={editingItem.Frequência}
                     options={OPCOES_FREQUENCIA_COBO}
                     onChange={(val) => setEditingItem({ ...editingItem, Frequência: val })}
@@ -381,17 +385,21 @@ export function CoboView({
                 </div>
               </div>
 
+              <div className="py-2">
+                <hr className="border-zinc-100 dark:border-zinc-800" />
+              </div>
+
               {/* Seção 2: AUDIÊNCIA */}
-              <div className="space-y-6">
-                <div className="flex items-center gap-3 pb-2 border-b border-white/5">
-                  <Users size={16} className="text-indigo-500" />
-                  <h4 className="text-[11px] font-black text-app-text-strong uppercase tracking-[0.2em]">Audiência</h4>
+              <div className="space-y-4">
+                <div className="flex items-center gap-2.5">
+                  <Users size={14} className="text-emerald-500" />
+                  <h4 className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.15em]">Audiência</h4>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <InputSelect
                     label="Público-Alvo"
                     icon={Target}
-                    placeholder="Descreva o público..."
+                    placeholder="Descreva o público"
                     value={editingItem.Público}
                     options={OPCOES_PUBLICO_COBO}
                     onChange={(val) => setEditingItem({ ...editingItem, Público: val })}
@@ -400,7 +408,7 @@ export function CoboView({
                   <InputSelect
                     label="Voz da Marca"
                     icon={Mic2}
-                    placeholder="Tom de voz..."
+                    placeholder="Tom de voz"
                     value={editingItem.Voz}
                     options={OPCOES_VOZ_COBO}
                     onChange={(val) => setEditingItem({ ...editingItem, Voz: val })}
@@ -409,17 +417,21 @@ export function CoboView({
                 </div>
               </div>
 
+              <div className="py-2">
+                <hr className="border-zinc-100 dark:border-zinc-800" />
+              </div>
+
               {/* Seção 3: CONTEÚDO ESTRATÉGICO */}
-              <div className="space-y-6">
-                <div className="flex items-center gap-3 pb-2 border-b border-white/5">
-                  <Layout size={16} className="text-orange-500" />
-                  <h4 className="text-[11px] font-black text-app-text-strong uppercase tracking-[0.2em]">Conteúdo Estratégico</h4>
+              <div className="space-y-4">
+                <div className="flex items-center gap-2.5">
+                  <Layout size={14} className="text-orange-500" />
+                  <h4 className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.15em]">Conteúdo Estratégico</h4>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <InputSelect
                     label="Zona"
                     icon={Zap}
-                    placeholder="Selecione a zona..."
+                    placeholder="Zona"
                     value={editingItem.Zona}
                     options={[
                       { value: 'Primária', label: 'Quente', color: 'orange' },
@@ -435,7 +447,7 @@ export function CoboView({
                   <InputSelect
                     label="Intenção"
                     icon={Target}
-                    placeholder="Objetivo..."
+                    placeholder="Objetivo"
                     value={editingItem.Intenção}
                     options={OPCOES_INTENCAO_COBO}
                     onChange={(val) => setEditingItem({ ...editingItem, Intenção: val })}
@@ -444,7 +456,7 @@ export function CoboView({
                   <InputSelect
                     label="Formato"
                     icon={Layout}
-                    placeholder="Formato..."
+                    placeholder="Formato"
                     value={editingItem.Formato}
                     options={OPCOES_FORMATO_COBO}
                     onChange={(val) => setEditingItem({ ...editingItem, Formato: val })}
@@ -454,19 +466,23 @@ export function CoboView({
               </div>
             </div>
 
+            <div className="px-8">
+              <hr className="border-zinc-100 dark:border-zinc-800" />
+            </div>
+
             {/* Footer Modal */}
-            <div className="p-8 border-t border-white/5 bg-white/5 backdrop-blur-xl flex gap-4">
+            <div className="p-8 flex items-center justify-end gap-3">
               <button 
-                className="flex-1 h-12 rounded-2xl border border-app-border text-app-text-muted hover:text-app-text-strong hover:bg-white/5 transition-all font-bold text-xs uppercase tracking-widest ios-btn"
+                className="px-6 h-[44px] rounded-[10px] border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all font-semibold text-sm ios-btn"
                 onClick={() => setEditingItem(null)}
               >
                 Cancelar
               </button>
               <button 
-                className="flex-1 h-12 rounded-2xl bg-blue-600 text-white hover:bg-blue-700 shadow-xl shadow-blue-500/20 transition-all font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 ios-btn"
+                className="px-6 h-[44px] rounded-[10px] bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-500/10 transition-all font-semibold text-sm flex items-center justify-center gap-2 ios-btn"
                 onClick={handleSave}
               >
-                <CheckCircle2 size={18} />
+                <CheckCircle2 size={16} />
                 Salvar Alterações
               </button>
             </div>
