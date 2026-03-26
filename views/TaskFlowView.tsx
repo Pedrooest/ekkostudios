@@ -9,7 +9,7 @@ import {
     List, LayoutGrid, Calendar as LucideCalendar, Search, Filter,
     ArrowUpDown, Plus, Clock, MessageSquare, Box, ExternalLink,
     X, Trash2, Zap, LayoutDashboard, Image as ImageIcon, CheckCircle2, FileText, ShieldAlert, Eye, History as HistoryIcon, Loader2, User,
-    Columns, CalendarDays, ChevronLeft, ChevronRight
+    Columns, CalendarDays, ChevronLeft, ChevronRight, CheckSquare, ArrowUp, ArrowDown
 } from 'lucide-react';
 import { getCalendarDays, MONTH_NAMES_BR, WEEKDAYS_BR_SHORT } from '../utils/calendarUtils';
 import { Card, Button, DeletionBar } from '../Components';
@@ -60,32 +60,38 @@ function SortableTaskCard({ Tarefa, clients, getPriorityInfo, onSelectTask, sele
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
-        opacity: isDragging ? 0.3 : 1,
+        opacity: isDragging ? 0.4 : 1,
     };
 
     const Cliente = clients.find((c: any) => c.id === Tarefa.Cliente_ID);
+    const clientColorCss = Cliente?.['Cor (HEX)'] || '#3B82F6';
     const prio = getPriorityInfo(Tarefa.Prioridade);
+    const isOverdue = Tarefa.Data_Entrega && new Date(Tarefa.Data_Entrega) < new Date(new Date().setHours(0,0,0,0));
 
     return (
         <div
             ref={setNodeRef} style={style} {...attributes} {...listeners}
             onClick={() => onSelectTask(Tarefa.id)}
-            className={`bg-app-surface border border-app-border p-4 rounded-2xl shadow-sm hover:shadow-xl hover:border-blue-500/30 transition-all group flex flex-col gap-3 relative overflow-hidden cursor-grab active:cursor-grabbing ${selection.includes(Tarefa.id) ? 'ring-2 ring-blue-500/50 bg-blue-500/5' : ''} ${isDragging ? 'ring-2 ring-blue-500 z-50 shadow-2xl scale-105' : ''}`}
+            className={`bg-app-surface border border-app-border p-4 rounded-2xl shadow-sm hover:shadow-xl transition-all group flex flex-col gap-3 relative overflow-hidden cursor-grab active:cursor-grabbing ${selection.includes(Tarefa.id) ? 'ring-2 ring-blue-500/50 bg-blue-500/5' : ''} ${isDragging ? 'ring-2 ring-blue-500 z-50 shadow-2xl scale-105' : ''}`}
         >
-            <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: statusCor }} />
-            <div className="flex justify-between items-start pointer-events-none">
-                <span className="text-[9px] font-black uppercase tracking-widest text-app-text-muted truncate max-w-[180px]">
+            <div className="absolute top-0 left-0 w-[3px] h-full opacity-60" style={{ backgroundColor: statusCor }} />
+            <div className="flex justify-between items-start pointer-events-none gap-2">
+                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md truncate max-w-[140px]" style={{ color: clientColorCss, backgroundColor: `${clientColorCss}15` }}>
                     {Cliente?.Nome || 'Agência'}
                 </span>
-                <div className={`p-1 rounded flex items-center justify-center ${prio.color}`}><i className={`fa-solid ${prio.icon} text-[10px]`}></i></div>
-            </div>
-            <h4 className="text-sm font-bold text-app-text-strong leading-snug group-hover:text-blue-500 transition-colors uppercase tracking-tight pointer-events-none">{Tarefa.Título}</h4>
-            <div className="flex items-center justify-between mt-1 pt-3 border-t border-app-border/50 pointer-events-none">
-                <div className="flex items-center gap-3 text-[10px] font-bold text-app-text-muted uppercase tracking-tight">
-                    <span className="flex items-center gap-1.5"><Clock size={12} /> {Tarefa.Data_Entrega || '--/--'}</span>
-                    {Tarefa.Comentarios && Tarefa.Comentarios.length > 0 && <span className="flex items-center gap-1.5"><MessageSquare size={12} /> {Tarefa.Comentarios.length}</span>}
+                <div className={`px-2 py-0.5 rounded flex items-center gap-1.5 ${prio.color}`} title={Tarefa.Prioridade}>
+                    <i className={`fa-solid ${prio.icon} text-[8px]`}></i>
                 </div>
-                <div className="w-6 h-6 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center text-[10px] font-black border border-blue-500/20 group-hover:ring-4 group-hover:ring-blue-500/10 transition-all">
+            </div>
+            
+            <h4 className="text-[13px] font-bold text-app-text-strong leading-snug group-hover:text-blue-500 transition-colors uppercase tracking-tight pointer-events-none mt-1">{Tarefa.Título}</h4>
+            
+            <div className="flex items-center justify-between mt-2 pt-3 border-t border-app-border/50 pointer-events-none">
+                <div className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-tight ${isOverdue ? 'text-rose-500' : 'text-app-text-muted'}`}>
+                    {Tarefa.Data_Entrega ? <span className="flex items-center gap-1.5"><Clock size={12} /> {Tarefa.Data_Entrega}</span> : <span className="flex items-center gap-1.5 opacity-40"><Clock size={12} /> S/ Data</span>}
+                    {Tarefa.Checklist && Tarefa.Checklist.length > 0 && <span className="flex items-center gap-1 text-app-text-muted opacity-80 ml-1"><CheckCircle2 size={10} /> {Tarefa.Checklist.filter((i:any)=>i.concluido).length}/{Tarefa.Checklist.length}</span>}
+                </div>
+                <div className="w-6 h-6 rounded-full bg-app-surface-2 text-app-text-strong flex items-center justify-center text-[10px] font-black border border-app-border group-hover:ring-2 group-hover:ring-app-border-strong transition-all shrink-0" title={Tarefa.Responsável}>
                     {Tarefa.Responsável?.slice(0, 1).toUpperCase() || '?'}
                 </div>
             </div>
@@ -95,15 +101,16 @@ function SortableTaskCard({ Tarefa, clients, getPriorityInfo, onSelectTask, sele
 
 function TaskCardOverlay({ Tarefa, clients, getPriorityInfo, statusCor }: any) {
     const Cliente = clients.find((c: any) => c.id === Tarefa.Cliente_ID);
+    const clientColorCss = Cliente?.['Cor (HEX)'] || '#3B82F6';
     const prio = getPriorityInfo(Tarefa.Prioridade);
     return (
-        <div className={`bg-app-surface border border-blue-500 p-4 rounded-2xl shadow-2xl flex flex-col gap-3 relative overflow-hidden rotate-2 cursor-grabbing ring-4 ring-blue-500/20 opacity-90 scale-105`}>
-            <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: statusCor }} />
-            <div className="flex justify-between items-start">
-                <span className="text-[9px] font-black uppercase tracking-widest text-app-text-muted truncate max-w-[180px]">{Cliente?.Nome || 'Agência'}</span>
-                <div className={`p-1 rounded flex items-center justify-center ${prio.color}`}><i className={`fa-solid ${prio.icon} text-[10px]`}></i></div>
+        <div className={`bg-app-surface border border-blue-500 p-4 rounded-2xl shadow-2xl flex flex-col gap-3 relative overflow-hidden rotate-3 cursor-grabbing ring-4 ring-blue-500/20 opacity-95 scale-105 min-w-[300px]`}>
+            <div className="absolute top-0 left-0 w-[4px] h-full" style={{ backgroundColor: statusCor }} />
+            <div className="flex justify-between items-start gap-2">
+                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md truncate max-w-[140px]" style={{ color: clientColorCss, backgroundColor: `${clientColorCss}15` }}>{Cliente?.Nome || 'Agência'}</span>
+                <div className={`px-2 py-0.5 rounded flex items-center gap-1.5 ${prio.color}`}><i className={`fa-solid ${prio.icon} text-[8px]`}></i></div>
             </div>
-            <h4 className="text-sm font-bold text-app-text-strong leading-snug uppercase tracking-tight">{Tarefa.Título}</h4>
+            <h4 className="text-[13px] font-bold text-app-text-strong leading-snug uppercase tracking-tight mt-1">{Tarefa.Título}</h4>
         </div>
     );
 }
@@ -114,7 +121,25 @@ export function TaskFlowView({
     selection, onSelect, onClearSelection
 }: TaskFlowViewProps) {
     const [globalSearch, setGlobalSearch] = useState('');
-    const filteredTasks = useMemo(() => tasks.filter((t: any) => (!globalSearch || t.Título.toLowerCase().includes(globalSearch.toLowerCase())) && t.Status !== 'arquivado'), [tasks, globalSearch]);
+    const [sortField, setSortField] = useState<string>('Data_Entrega');
+    const [sortDesc, setSortDesc] = useState<boolean>(false);
+
+    const filteredTasks = useMemo(() => {
+        let ft = tasks.filter((t: any) => (!globalSearch || t.Título.toLowerCase().includes(globalSearch.toLowerCase()) || clients.find((c:any)=>c.id === t.Cliente_ID)?.Nome?.toLowerCase().includes(globalSearch.toLowerCase())) && t.Status !== 'arquivado');
+        
+        ft.sort((a: any, b: any) => {
+            let valA = a[sortField] || '';
+            let valB = b[sortField] || '';
+            if(sortField === 'Cliente') {
+                valA = clients.find((c:any) => c.id === a.Cliente_ID)?.Nome || '';
+                valB = clients.find((c:any) => c.id === b.Cliente_ID)?.Nome || '';
+            }
+            if(valA < valB) return sortDesc ? 1 : -1;
+            if(valA > valB) return sortDesc ? -1 : 1;
+            return 0;
+        });
+        return ft;
+    }, [tasks, globalSearch, sortField, sortDesc, clients]);
 
     const viewType = useMemo(() => DEFAULT_TASK_VIEWS.find(v => v.id === activeViewId)?.tipo || 'List', [activeViewId]);
 
@@ -187,52 +212,55 @@ export function TaskFlowView({
     };
 
     return (
-        <div className="flex flex-col h-full pointer-events-auto text-left">
-            {/* TOP BAR */}
-            <div className="px-6 py-4 border-b border-app-border flex flex-col sm:flex-row justify-between items-center gap-4 bg-app-surface-2/50 backdrop-blur-md rounded-t-[32px] shrink-0">
-
-                {/* View Toggles */}
-                <div className="flex bg-app-bg border border-app-border rounded-lg p-1">
-                    {DEFAULT_TASK_VIEWS.map((v: any) => (
-                        <button
-                            key={v.id}
-                            onClick={() => setActiveViewId(v.id)}
-                            className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${activeViewId === v.id ? 'bg-app-surface text-app-text-strong shadow-lg border border-app-border' : 'text-app-text-muted hover:text-app-text-strong'}`}
-                        >
-                            {v.tipo === 'List' || (v as any).type === 'List' ? <List size={14} /> : v.tipo === 'Board' || (v as any).type === 'Board' ? <Columns size={14} /> : <CalendarDays size={14} />}
-                            {v.nome || (v as any).name}
-                        </button>
-                    ))}
+        <div className="flex flex-col h-full pointer-events-auto text-left relative bg-app-bg">
+            {/* TOP BAR SAAS HEADER */}
+            <div className="px-6 py-5 border-b border-app-border flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-app-surface/50 backdrop-blur shrink-0 z-10 w-full">
+                <div className="flex items-center gap-4">
+                    <h1 className="text-xl font-black text-app-text-strong uppercase tracking-[0.15em] flex items-center gap-3">
+                        <CheckSquare className="text-blue-500" size={24} /> Tarefas
+                    </h1>
+                    <div className="hidden md:flex gap-1.5 bg-app-surface-2 p-1 rounded-xl">
+                        {DEFAULT_TASK_STATUSES.slice(0,3).map(s => (
+                            <div key={s.id} className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[9px] font-bold text-app-text-muted border border-app-border" title={s.rotulo}>
+                                <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.cor }} />
+                                {filteredTasks.filter(t=>t.Status === s.id).length}
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-4 w-full sm:w-auto">
+                <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 custom-scrollbar-horizontal shrink-0">
+                    {/* View Toggles */}
+                    <div className="flex bg-app-bg border border-app-border rounded-xl p-1 shrink-0">
+                        {DEFAULT_TASK_VIEWS.map((v: any) => (
+                            <button
+                                key={v.id}
+                                onClick={() => setActiveViewId(v.id)}
+                                className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeViewId === v.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40 border-transparent' : 'text-app-text-muted hover:text-app-text-strong border-transparent'}`}
+                            >
+                                {v.tipo === 'List' || (v as any).type === 'List' ? <List size={14} /> : v.tipo === 'Board' || (v as any).type === 'Board' ? <Columns size={14} /> : <CalendarDays size={14} />}
+                                {v.nome || (v as any).name}
+                            </button>
+                        ))}
+                    </div>
+
                     {/* Search */}
-                    <div className="relative w-full sm:w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-app-text-muted" size={16} />
+                    <div className="relative w-40 shrink-0">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-app-text-muted" size={14} />
                         <input
                             type="text"
                             value={globalSearch}
                             onChange={e => setGlobalSearch(e.target.value)}
-                            placeholder="Filtro global..."
-                            className="w-full h-10 !bg-app-bg !border-app-border !text-app-text-strong !placeholder-app-text-muted !rounded-xl !pl-10 text-[11px] font-bold uppercase tracking-widest"
+                            placeholder="Buscar..."
+                            className="w-full h-9 bg-app-surface border border-app-border text-app-text-strong rounded-xl pl-9 text-[11px] font-bold uppercase tracking-widest outline-none focus:border-blue-500/50 transition-all placeholder-app-text-muted/50"
                         />
                     </div>
 
-                    <div className="flex gap-2">
-                        <button className="flex items-center gap-2 px-4 py-2 bg-app-surface border border-app-border rounded-xl text-[10px] font-black uppercase text-app-text-muted hover:text-app-text-strong transition-all">
-                            <Filter size={14} /> Filtros
-                        </button>
-                        <button className="flex items-center gap-2 px-4 py-2 bg-app-surface border border-app-border rounded-xl text-[10px] font-black uppercase text-app-text-muted hover:text-app-text-strong transition-all">
-                            <ArrowUpDown size={14} /> Ordenar
-                        </button>
-                    </div>
-
-                    {/* Deletion Bar integration */}
                     <DeletionBar count={selection.length} onDelete={() => onDelete(selection, 'TAREFAS')} onArchive={() => onArchive(selection, 'TAREFAS', true)} onClear={onClearSelection} />
-                    {/* New Tarefa Button */}
+                    
                     <button
                         onClick={() => onAdd('TAREFAS')}
-                        className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 transition-all whitespace-nowrap"
+                        className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-500/20 whitespace-nowrap shrink-0"
                     >
                         <Plus size={16} /> Nova Tarefa
                     </button>
@@ -298,62 +326,97 @@ export function TaskFlowView({
                 )}
 
                 {viewType === 'List' && (
-                    <div className="h-full overflow-y-auto custom-scrollbar pb-32 space-y-6">
-                        {DEFAULT_TASK_STATUSES.map(status => {
-                            const statusTasks = filteredTasks.filter(t => t.Status === status.id);
-                            if (statusTasks.length === 0) return null;
-
-                            return (
-                                <div key={status.id} className="space-y-3">
-                                    <div className="flex items-center gap-3 px-2">
-                                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: status.cor }} />
-                                        <h3 className="text-[11px] font-black text-app-text-strong uppercase tracking-[0.2em]">{status.rotulo}</h3>
-                                        <span className="text-[10px] font-black text-app-text-muted bg-app-surface-2 px-2 py-0.5 rounded-full">{statusTasks.length}</span>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 gap-2">
-                                        {statusTasks.map(Tarefa => {
-                                            const Cliente = clients.find((c: any) => c.id === Tarefa.Cliente_ID);
-                                            const prio = getPriorityInfo(Tarefa.Prioridade);
-                                            return (
-                                                <div
-                                                    key={Tarefa.id}
-                                                    onClick={() => onSelectTask(Tarefa.id)}
-                                                    className={`flex items-center gap-6 p-4 bg-app-surface border border-app-border rounded-2xl hover:border-blue-500/50 cursor-pointer transition-all group ${selection.includes(Tarefa.id) ? 'ring-2 ring-blue-500/50 bg-blue-500/5' : ''}`}
-                                                >
-                                                    <div className="flex items-center justify-center w-5 h-5 rounded border border-app-border group-hover:border-blue-500/50 bg-app-bg transition-all" onClick={e => { e.stopPropagation(); onSelect(Tarefa.id); }}>
-                                                        <input type="checkbox" checked={selection.includes(Tarefa.id)} readOnly className="w-3 h-3 text-blue-500 rounded focus:ring-0 bg-transparent border-none" />
-                                                    </div>
-
-                                                    <div className="flex-1 min-w-0">
-                                                        <span className="text-[9px] font-black text-app-text-muted uppercase tracking-widest block mb-1 leading-none">{Cliente?.Nome || 'Agência'}</span>
-                                                        <h5 className="text-sm font-bold text-app-text-strong uppercase truncate group-hover:text-blue-500 transition-colors">{Tarefa.Título}</h5>
-                                                    </div>
-
-                                                    <div className="flex items-center gap-10 shrink-0">
-                                                        <div className="flex items-center gap-2 w-28">
-                                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${prio.color}`}>
-                                                                <i className={`fa-solid ${prio.icon} text-[10px]`}></i>
-                                                            </div>
-                                                            <span className="text-[10px] font-black uppercase text-app-text-muted tracking-tight">{Tarefa.Prioridade}</span>
-                                                        </div>
-
-                                                        <div className="flex items-center gap-3 w-32 border-l border-app-border/50 pl-6">
-                                                            <Clock size={12} className="text-app-text-muted" />
-                                                            <span className="text-[10px] font-black uppercase text-app-text-muted tracking-tight">{Tarefa.Data_Entrega || '--/--'}</span>
-                                                        </div>
-
-                                                        <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center text-[10px] font-black border border-blue-500/20">
-                                                            {Tarefa.Responsável?.slice(0, 1).toUpperCase() || '?'}
-                                                        </div>
-                                                    </div>
+                    <div className="h-full overflow-hidden flex flex-col bg-app-surface border border-app-border rounded-2xl shadow-sm relative">
+                        {/* Table Header Wrapper to keep it fixed */}
+                        <div className="overflow-hidden border-b border-app-border bg-app-surface-2/50 backdrop-blur shrink-0 pr-[8px]">
+                            <table className="w-full text-left border-collapse table-fixed">
+                                <thead>
+                                    <tr>
+                                        <th className="w-12 p-3 text-center">
+                                            <input type="checkbox" className="w-3 h-3 text-blue-500 rounded focus:ring-0 bg-transparent border-app-border" checked={selection.length === filteredTasks.length && filteredTasks.length > 0} onChange={() => selection.length === filteredTasks.length ? onClearSelection() : filteredTasks.forEach(t => !selection.includes(t.id) && onSelect(t.id))} />
+                                        </th>
+                                        {[
+                                            { id: 'Título', label: 'Nome da Tarefa', width: 'flex-1 min-w-[200px]' },
+                                            { id: 'Cliente', label: 'Cliente', width: 'w-[150px]' },
+                                            { id: 'Status', label: 'Status', width: 'w-[120px]' },
+                                            { id: 'Prioridade', label: 'Prioridade', width: 'w-[120px]' },
+                                            { id: 'Data_Entrega', label: 'Entrega', width: 'w-[100px]' },
+                                            { id: 'Responsável', label: 'Resp.', width: 'w-[80px]' }
+                                        ].map(col => (
+                                            <th key={col.id} className={`p-3 text-[10px] font-black text-app-text-muted hover:text-app-text-strong uppercase tracking-widest cursor-pointer select-none transition-colors ${col.width}`} 
+                                                onClick={() => { if(sortField===col.id) setSortDesc(!sortDesc); else { setSortField(col.id); setSortDesc(false); } }}>
+                                                <div className="flex items-center gap-2">
+                                                    {col.label}
+                                                    {sortField === col.id && (sortDesc ? <ArrowDown size={12} className="text-blue-500" /> : <ArrowUp size={12} className="text-blue-500" />)}
                                                 </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            );
-                        })}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                        
+                        {/* Table Body Scrollable */}
+                        <div className="flex-1 overflow-y-auto custom-scrollbar bg-app-bg pb-32">
+                            <table className="w-full text-left border-collapse table-fixed">
+                                <tbody>
+                                    {filteredTasks.map(Tarefa => {
+                                        const Cliente = clients.find((c: any) => c.id === Tarefa.Cliente_ID);
+                                        const clientColorCss = Cliente?.['Cor (HEX)'] || '#3B82F6';
+                                        const prio = getPriorityInfo(Tarefa.Prioridade);
+                                        const isOverdue = Tarefa.Data_Entrega && new Date(Tarefa.Data_Entrega) < new Date(new Date().setHours(0,0,0,0));
+                                        const statusObj = DEFAULT_TASK_STATUSES.find(s=>s.id === Tarefa.Status);
+                                        
+                                        return (
+                                            <tr
+                                                key={Tarefa.id}
+                                                onClick={() => onSelectTask(Tarefa.id)}
+                                                className={`group border-b border-app-border/50 hover:bg-app-surface transition-colors cursor-pointer ${selection.includes(Tarefa.id) ? 'bg-blue-500/5' : 'even:bg-app-surface/20'}`}
+                                            >
+                                                <td className="w-12 p-3 text-center" onClick={e => { e.stopPropagation(); onSelect(Tarefa.id); }}>
+                                                    <input type="checkbox" checked={selection.includes(Tarefa.id)} readOnly className="w-3 h-3 text-blue-500 rounded focus:ring-0 bg-transparent border-app-border group-hover:border-blue-500/50 transition-colors" />
+                                                </td>
+                                                <td className="flex-1 min-w-[200px] p-3 truncate">
+                                                    <span className="text-[12px] font-bold text-app-text-strong uppercase tracking-tight group-hover:text-blue-500 transition-colors">{Tarefa.Título}</span>
+                                                </td>
+                                                <td className="w-[150px] p-3 truncate">
+                                                    <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md" style={{ color: clientColorCss, backgroundColor: `${clientColorCss}15` }}>
+                                                        {Cliente?.Nome || 'Agência'}
+                                                    </span>
+                                                </td>
+                                                <td className="w-[120px] p-3">
+                                                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-app-text-strong uppercase tracking-tight">
+                                                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusObj?.cor || '#666' }} />
+                                                        {statusObj?.rotulo || Tarefa.Status}
+                                                    </div>
+                                                </td>
+                                                <td className="w-[120px] p-3">
+                                                    <div className={`px-2 py-0.5 rounded flex items-center gap-1.5 w-max ${prio.color}`} title={Tarefa.Prioridade}>
+                                                        <i className={`fa-solid ${prio.icon} text-[8px]`}></i>
+                                                        <span className="text-[9px] font-bold uppercase tracking-widest">{Tarefa.Prioridade}</span>
+                                                    </div>
+                                                </td>
+                                                <td className={`w-[100px] p-3 text-[10px] font-bold uppercase tracking-tight ${isOverdue ? 'text-rose-500' : 'text-app-text-muted'}`}>
+                                                    {Tarefa.Data_Entrega || '--/--'}
+                                                </td>
+                                                <td className="w-[80px] p-3">
+                                                    <div className="w-6 h-6 rounded-full bg-app-surface-2 text-app-text-strong flex items-center justify-center text-[10px] font-black border border-app-border group-hover:ring-2 group-hover:ring-app-border-strong transition-all shrink-0" title={Tarefa.Responsável}>
+                                                        {Tarefa.Responsável?.slice(0, 1).toUpperCase() || '?'}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                    {filteredTasks.length === 0 && (
+                                        <tr>
+                                            <td colSpan={7} className="p-8 text-center text-[11px] font-black uppercase tracking-widest text-app-text-muted border-none">
+                                                NENHUMA TAREFA ENCONTRADA
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 )}
 
@@ -490,6 +553,12 @@ export function TaskDetailPanel({
     const [lightboxImage, setLightboxImage] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    useEffect(() => {
+        if (viewMode !== 'sidebar') {
+            setViewMode('sidebar');
+        }
+    }, [viewMode, setViewMode]);
+
     if (!t) return null;
 
     const updateChecklist = (items: ItemChecklistTarefa[]) => onUpdate(t.id, 'TAREFAS', 'Checklist', items);
@@ -563,88 +632,81 @@ export function TaskDetailPanel({
     };
 
     const Cliente = clients.find((c: any) => c.id === t.Cliente_ID);
+    const clientColorCss = Cliente?.['Cor (HEX)'] || '#3B82F6';
 
     return (
-        <div className="flex flex-col h-full bg-app-surface text-left overflow-hidden">
+        <div className="flex flex-col h-full bg-app-surface-2 text-left overflow-hidden">
             {/* PANEL HEADER */}
-            <div className="h-20 px-8 border-b border-app-border flex items-center justify-between bg-app-surface-2/30">
-                <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
-                        <Box size={20} />
+            <div className="px-6 py-4 border-b border-app-border flex flex-col gap-2 shrink-0 bg-app-surface/50 backdrop-blur z-10 w-full">
+                <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md truncate max-w-[200px]" style={{ color: clientColorCss, backgroundColor: `${clientColorCss}15` }}>
+                            {Cliente?.Nome || 'Agência'}
+                        </span>
+                        <span className="text-[10px] font-bold text-app-text-muted">#{t.Task_ID}</span>
                     </div>
-                    <div>
-                        <div className="text-[10px] font-black text-app-text-muted uppercase tracking-[0.2em] mb-0.5 leading-none">
-                            {Cliente?.Nome || 'Agência'} • {t.Task_ID}
+
+                    <div className="flex items-center gap-2">
+                        <div className="flex bg-app-bg p-1 rounded-lg border border-app-border">
+                            <button onClick={() => setViewMode('sidebar')} className={`p-1.5 rounded transition-all ${viewMode === 'sidebar' ? 'bg-app-surface text-blue-500 shadow-sm' : 'text-app-text-muted hover:text-app-text-strong'}`}><LayoutGrid size={12} /></button>
+                            <button onClick={() => setViewMode('modal')} className={`p-1.5 rounded transition-all ${viewMode === 'modal' ? 'bg-app-surface text-blue-500 shadow-sm' : 'text-app-text-muted hover:text-app-text-strong'}`}><ExternalLink size={12} /></button>
                         </div>
-                        <h3 className="text-sm font-black text-app-text-strong uppercase tracking-tight">Detalhes de Tarefa</h3>
+                        <button onClick={onClose} className="w-8 h-8 rounded-lg bg-app-bg border border-app-border flex items-center justify-center text-app-text-muted hover:text-app-text-strong hover:bg-app-surface-2 transition-all">
+                            <X size={16} />
+                        </button>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                    {/* View Modes */}
-                    <div className="flex bg-app-bg p-1 rounded-lg border border-app-border mr-2 hidden md:flex">
-                        <button onClick={() => setViewMode('sidebar')} className={`p-1.5 rounded transition-all ${viewMode === 'sidebar' ? 'bg-app-surface text-blue-500 shadow-sm' : 'text-app-text-muted hover:text-app-text-strong'}`}><LayoutGrid size={14} /></button>
-                        <button onClick={() => setViewMode('modal')} className={`p-1.5 rounded transition-all ${viewMode === 'modal' ? 'bg-app-surface text-blue-500 shadow-sm' : 'text-app-text-muted hover:text-app-text-strong'}`}><ExternalLink size={14} /></button>
-                    </div>
-                    <button onClick={onClose} className="w-10 h-10 rounded-xl bg-app-bg border border-app-border flex items-center justify-center text-app-text-muted hover:text-app-text-strong hover:border-app-border-strong transition-all">
-                        <X size={20} />
-                    </button>
-                </div>
+                <input
+                    className="w-full text-xl font-black text-app-text-strong bg-transparent border-none p-0 mt-1 focus:ring-0 uppercase tracking-tight placeholder-app-text-muted/30"
+                    value={t.Título}
+                    onChange={e => onUpdate(t.id, 'TAREFAS', 'Título', e.target.value, true)}
+                    onBlur={e => onUpdate(t.id, 'TAREFAS', 'Título', e.target.value)}
+                    placeholder="TÍTULO DA TAREFA"
+                />
             </div>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-10">
-                {/* Tarefa TITLE */}
-                <section>
-                    <label className="text-[10px] font-black text-app-text-muted uppercase tracking-[0.2em] block mb-3 ml-1">Título</label>
-                    <input
-                        className="w-full text-2xl font-black text-app-text-strong bg-transparent border-none p-0 focus:ring-0 uppercase tracking-tight placeholder-app-text-muted/30"
-                        value={t.Título}
-                        onChange={e => onUpdate(t.id, 'TAREFAS', 'Título', e.target.value, true)}
-                        onBlur={e => onUpdate(t.id, 'TAREFAS', 'Título', e.target.value)}
-                        placeholder="NOME DA TAREFA"
-                    />
-                </section>
-
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8 bg-app-bg">
                 {/* METRICS GRID */}
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-app-bg/50 border border-app-border rounded-2xl p-4 flex flex-col gap-1 hover:border-blue-500/30 transition-colors">
+                <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-app-surface border border-app-border rounded-xl p-3 flex flex-col gap-1.5 hover:border-blue-500/30 transition-colors group">
                         <label className="text-[9px] font-black text-app-text-muted uppercase tracking-[0.1em] flex items-center gap-1.5">
                             <HistoryIcon size={10} className="text-blue-500" /> Status
                         </label>
                         <select
                             value={t.Status}
                             onChange={e => onUpdate(t.id, 'TAREFAS', 'Status', e.target.value)}
-                            className="bg-transparent border-none text-[11px] font-bold text-app-text-strong uppercase focus:ring-0 p-0 cursor-pointer"
+                            className="bg-app-bg border border-app-border rounded-lg text-[10px] font-bold text-app-text-strong uppercase focus:ring-1 focus:ring-blue-500 p-1.5 cursor-pointer outline-none transition-all group-hover:bg-app-surface-2"
                         >
                             {DEFAULT_TASK_STATUSES.map(s => <option key={s.id} value={s.id}>{s.rotulo}</option>)}
                         </select>
                     </div>
-                    <div className="bg-app-bg/50 border border-app-border rounded-2xl p-4 flex flex-col gap-1 hover:border-rose-500/30 transition-colors">
+                    <div className="bg-app-surface border border-app-border rounded-xl p-3 flex flex-col gap-1.5 hover:border-rose-500/30 transition-colors group">
                         <label className="text-[9px] font-black text-app-text-muted uppercase tracking-[0.1em] flex items-center gap-1.5">
                             <ShieldAlert size={10} className="text-rose-500" /> Prioridade
                         </label>
                         <select
                             value={t.Prioridade}
                             onChange={e => onUpdate(t.id, 'TAREFAS', 'Prioridade', e.target.value)}
-                            className="bg-transparent border-none text-[11px] font-bold text-app-text-strong uppercase focus:ring-0 p-0 cursor-pointer"
+                            className="bg-app-bg border border-app-border rounded-lg text-[10px] font-bold text-app-text-strong uppercase focus:ring-1 focus:ring-rose-500 p-1.5 cursor-pointer outline-none transition-all group-hover:bg-app-surface-2"
                         >
                             {PRIORIDADE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                         </select>
                     </div>
-                    <div className="bg-app-bg/50 border border-app-border rounded-2xl p-4 flex flex-col gap-1 hover:border-emerald-500/30 transition-colors">
+                    <div className="bg-app-surface border border-app-border rounded-xl p-3 flex flex-col gap-1.5 hover:border-emerald-500/30 transition-colors group">
                         <label className="text-[9px] font-black text-app-text-muted uppercase tracking-[0.1em] flex items-center gap-1.5">
                             <User size={10} className="text-emerald-500" /> Responsável
                         </label>
                         <select
                             value={t.Responsável}
                             onChange={e => onUpdate(t.id, 'TAREFAS', 'Responsável', e.target.value)}
-                            className="bg-transparent border-none text-[11px] font-bold text-app-text-strong uppercase focus:ring-0 p-0 cursor-pointer"
+                            className="bg-app-bg border border-app-border rounded-lg text-[10px] font-bold text-app-text-strong uppercase focus:ring-1 focus:ring-emerald-500 p-1.5 cursor-pointer outline-none transition-all group-hover:bg-app-surface-2"
                         >
                             <option value="">Sem Resp.</option>
                             {collaborators.map((c: any) => <option key={c.id} value={c.Nome}>{c.Nome}</option>)}
                         </select>
                     </div>
-                    <div className="bg-app-bg/50 border border-app-border rounded-2xl p-4 flex flex-col gap-1 hover:border-indigo-500/30 transition-colors">
+                    <div className="bg-app-surface border border-app-border rounded-xl p-3 flex flex-col gap-1.5 hover:border-indigo-500/30 transition-colors group">
                         <label className="text-[9px] font-black text-app-text-muted uppercase tracking-[0.1em] flex items-center gap-1.5">
                             <Clock size={10} className="text-indigo-500" /> Entrega
                         </label>
@@ -652,7 +714,7 @@ export function TaskDetailPanel({
                             type="date"
                             value={t.Data_Entrega || ''}
                             onChange={e => onUpdate(t.id, 'TAREFAS', 'Data_Entrega', e.target.value)}
-                            className="bg-transparent border-none text-[11px] font-bold text-app-text-strong uppercase focus:ring-0 p-0 cursor-pointer"
+                            className="bg-app-bg border border-app-border rounded-lg text-[10px] font-bold text-app-text-strong uppercase focus:ring-1 focus:ring-indigo-500 p-1.5 cursor-pointer outline-none transition-all group-hover:bg-app-surface-2"
                         />
                     </div>
                 </div>

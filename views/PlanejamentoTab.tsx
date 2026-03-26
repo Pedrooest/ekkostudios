@@ -7,6 +7,18 @@ import {
 } from 'lucide-react';
 import { playUISound } from '../utils/uiSounds';
 import { getCalendarDays, MONTH_NAMES_BR, WEEKDAYS_BR_SHORT } from '../utils/calendarUtils';
+import { 
+    Instagram, 
+    Youtube, 
+    Video, 
+    Linkedin, 
+    MessageSquare, 
+    MoreHorizontal,
+    Calendar as CalendarIcon,
+    AlertCircle,
+    CheckCircle2,
+    PlayCircle
+} from 'lucide-react';
 
 // ==========================================
 // FUNÇÕES AUXILIARES DE SOM
@@ -48,7 +60,8 @@ export default function PlanejamentoTab({
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [activeTab, setActiveTabLocal] = useState('ALL');
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [viewMode, setViewMode] = useState<'month' | 'week' | 'list'>('month');
+    const [viewMode, setViewMode] = useState<'calendar' | 'list' | 'kanban'>('calendar');
+    const [calendarSubMode, setCalendarSubMode] = useState<'month' | 'week'>('month');
 
     const [globalClientFilter, setGlobalClientFilter] = useState('Todos Clientes');
     const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
@@ -99,7 +112,7 @@ export default function PlanejamentoTab({
     // ----------------------------------------------------------------------
     const calendarDays = useMemo(() => {
         const days = getCalendarDays(currentDate.getFullYear(), currentDate.getMonth());
-        if (viewMode === 'month') return days;
+        if (calendarSubMode === 'month') return days;
 
         const todayStr = currentDate.toISOString().split('T')[0];
         const dayIdx = days.findIndex(d => d.dateStr === todayStr);
@@ -112,7 +125,7 @@ export default function PlanejamentoTab({
             startIdx = 0;
         }
         return days.slice(startIdx, startIdx + 7);
-    }, [currentDate, viewMode]);
+    }, [currentDate, calendarSubMode]);
 
     const getEventosDoDia = (dateStr: string) => {
         return filteredData.filter((evt: any) => evt.Data === dateStr);
@@ -123,7 +136,7 @@ export default function PlanejamentoTab({
     const handleMonthNav = (dir: number) => {
         tryPlaySound('tap');
         const next = new Date(currentDate);
-        if (viewMode === 'month') {
+        if (calendarSubMode === 'month') {
             next.setMonth(next.getMonth() + dir);
         } else {
             next.setDate(next.getDate() + (7 * dir));
@@ -156,6 +169,21 @@ export default function PlanejamentoTab({
 
     const getClientColor = (clientId: string) => {
         return getCardStyles(clientId).hex;
+    };
+
+    const REDE_SOCIAL_COLORS: Record<string, { bg: string, text: string, icon: any }> = {
+        'INSTAGRAM': { bg: 'bg-pink-50 dark:bg-pink-500/10', text: 'text-pink-600 dark:text-pink-400', icon: Instagram },
+        'YOUTUBE': { bg: 'bg-red-50 dark:bg-red-500/10', text: 'text-red-600 dark:text-red-400', icon: Youtube },
+        'TIKTOK': { bg: 'bg-zinc-100 dark:bg-zinc-800', text: 'text-zinc-900 dark:text-zinc-100', icon: Video },
+        'LINKEDIN': { bg: 'bg-blue-50 dark:bg-blue-500/10', text: 'text-blue-600 dark:text-blue-400', icon: Linkedin },
+        'FACEBOOK': { bg: 'bg-indigo-50 dark:bg-indigo-500/10', text: 'text-indigo-600 dark:text-indigo-400', icon: MessageSquare },
+        'TWITTER': { bg: 'bg-sky-50 dark:bg-sky-500/10', text: 'text-sky-600 dark:text-sky-400', icon: MoreHorizontal },
+        'X/TWITTER': { bg: 'bg-sky-50 dark:bg-sky-500/10', text: 'text-sky-600 dark:text-sky-400', icon: MoreHorizontal },
+        'PINTEREST': { bg: 'bg-rose-50 dark:bg-rose-500/10', text: 'text-rose-600 dark:text-rose-400', icon: MoreHorizontal },
+    };
+
+    const getRedeStyle = (rede: string) => {
+        return REDE_SOCIAL_COLORS[rede?.toUpperCase()] || { bg: 'bg-gray-50 dark:bg-zinc-800', text: 'text-gray-600 dark:text-zinc-400', icon: MessageSquare };
     };
 
     // ----------------------------------------------------------------------
@@ -388,111 +416,293 @@ export default function PlanejamentoTab({
                     </div>
                 </div>
 
-                {/* CALENDAR CONTROLS */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 p-3 px-5 rounded-2xl shadow-sm max-w-[1400px]">
-                    <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-start">
-                        <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 transition-colors ios-btn" onClick={() => handleMonthNav(-1)}>
-                            <ChevronLeft size={20} />
+                {/* VIEW SELECTOR & CALENDAR CONTROLS */}
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 p-3 px-5 rounded-3xl shadow-sm max-w-[1400px]">
+                    <div className="flex bg-[#F8FAFC] dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-1 rounded-2xl items-center relative shadow-inner">
+                        <button
+                            onClick={() => { tryPlaySound('tap'); setViewMode('calendar'); }}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${viewMode === 'calendar' ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300'}`}
+                        >
+                            <CalendarIcon size={14} strokeWidth={2.5} /> Calendário
                         </button>
-                        <h3 className="text-lg font-black text-[#0B1527] dark:text-white min-w-[150px] text-center uppercase tracking-tight">
-                            {viewMode === 'month' ? currentMonthName : 'Vista Semanal'}
-                        </h3>
-                        <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 transition-colors ios-btn" onClick={() => handleMonthNav(1)}>
-                            <ChevronRight size={20} />
+                        <button
+                            onClick={() => { tryPlaySound('tap'); setViewMode('list'); }}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${viewMode === 'list' ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300'}`}
+                        >
+                            <List size={14} strokeWidth={2.5} /> Lista
+                        </button>
+                        <button
+                            onClick={() => { tryPlaySound('tap'); setViewMode('kanban'); }}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${viewMode === 'kanban' ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300'}`}
+                        >
+                            <LayoutGrid size={14} strokeWidth={2.5} /> Kanban
                         </button>
                     </div>
 
-                    <div className="flex bg-[#F8FAFC] dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-1 rounded-2xl items-center relative overflow-hidden shadow-sm">
-                        <div
-                            className="absolute top-1 bottom-1 w-10 bg-white dark:bg-zinc-800 rounded-xl shadow-sm transition-transform duration-300 ease-in-out"
-                            style={{ transform: `translateX(${viewMode === 'month' ? 4 : viewMode === 'week' ? 48 : 92}px)` }}
-                        />
-                        <button
-                            onClick={() => { tryPlaySound('tap'); setViewMode('month'); }}
-                            className={`relative z-10 w-11 h-8 flex items-center justify-center rounded-xl transition-colors ios-btn ${viewMode === 'month' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300'}`}
-                            title="Mês"
-                        >
-                            <LayoutGrid size={18} strokeWidth={2.5} />
-                        </button>
-                        <button
-                            onClick={() => { tryPlaySound('tap'); setViewMode('week'); }}
-                            className={`relative z-10 w-11 h-8 flex items-center justify-center rounded-xl transition-colors ios-btn ${viewMode === 'week' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300'}`}
-                            title="Semana"
-                        >
-                            <Columns size={18} strokeWidth={2.5} />
-                        </button>
-                        {/* Note: we omit 'list' view rendering logic here since list hasn't been defined in the calendar grid yet, but the state/button exists */}
-                        <button
-                            onClick={() => { tryPlaySound('tap'); setViewMode('list'); }}
-                            className={`relative z-10 w-11 h-8 flex items-center justify-center rounded-xl transition-colors ios-btn ${viewMode === 'list' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300'}`}
-                            title="Lista"
-                        >
-                            <List size={18} strokeWidth={2.5} />
-                        </button>
-                    </div>
+                    {viewMode === 'calendar' && (
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2 border-r border-gray-200 dark:border-zinc-800 pr-4 mr-2">
+                                <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 transition-colors ios-btn" onClick={() => handleMonthNav(-1)}>
+                                    <ChevronLeft size={18} />
+                                </button>
+                                <h3 className="text-sm font-black text-[#0B1527] dark:text-white min-w-[120px] text-center uppercase tracking-tight">
+                                    {calendarSubMode === 'month' ? currentMonthName : 'Semana'}
+                                </h3>
+                                <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 transition-colors ios-btn" onClick={() => handleMonthNav(1)}>
+                                    <ChevronRight size={18} />
+                                </button>
+                            </div>
+                            
+                            <div className="flex bg-gray-100 dark:bg-zinc-900 rounded-xl p-1">
+                                <button
+                                    onClick={() => setCalendarSubMode('month')}
+                                    className={`px-3 py-1.5 text-[10px] font-black uppercase rounded-lg transition-all ${calendarSubMode === 'month' ? 'bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm' : 'text-gray-400'}`}
+                                >
+                                    Mês
+                                </button>
+                                <button
+                                    onClick={() => setCalendarSubMode('week')}
+                                    className={`px-3 py-1.5 text-[10px] font-black uppercase rounded-lg transition-all ${calendarSubMode === 'week' ? 'bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm' : 'text-gray-400'}`}
+                                >
+                                    Semana
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* CALENDAR GRID */}
-                <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-[2.5rem] shadow-xl overflow-hidden flex flex-col max-w-[1400px]">
-                    <div className="grid grid-cols-7 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#111114]">
-                        {WEEKDAYS_BR_SHORT.map(dia => (
-                            <div key={dia} className="py-5 text-center text-[10px] sm:text-[11px] font-black text-[#0B1527] dark:text-zinc-400 uppercase tracking-widest sm:tracking-[0.2em] border-r border-gray-200 dark:border-zinc-800 last:border-0 truncate">
-                                <span className="hidden sm:inline">{dia}</span>
-                                <span className="sm:hidden">{dia.substring(0, 3)}</span>
-                            </div>
-                        ))}
+                {viewMode === 'calendar' && (
+                    <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-[2.5rem] shadow-xl overflow-hidden flex flex-col max-w-[1400px]">
+                        <div className="grid grid-cols-7 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#111114]">
+                            {WEEKDAYS_BR_SHORT.map(dia => (
+                                <div key={dia} className="py-5 text-center text-[10px] sm:text-[11px] font-black text-[#0B1527] dark:text-zinc-400 uppercase tracking-widest sm:tracking-[0.2em] border-r border-gray-200 dark:border-zinc-800 last:border-0 truncate">
+                                    <span className="hidden sm:inline">{dia}</span>
+                                    <span className="sm:hidden">{dia.substring(0, 3)}</span>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className={`grid grid-cols-7 bg-[#F8FAFC] dark:bg-[#0a0a0c] ${calendarSubMode === 'month' ? 'auto-rows-[minmax(140px,auto)]' : 'auto-rows-[minmax(350px,auto)]'}`}>
+                            {calendarDays.map((diaObj, idx) => {
+                                const evts = getEventosDoDia(diaObj.dateStr);
+                                const isToday = diaObj.dateStr === new Date().toISOString().split('T')[0];
+
+                                return (
+                                    <div
+                                        key={idx}
+                                        className={`p-1 sm:p-2 border-r border-b border-gray-200 dark:border-zinc-800 transition-colors relative flex flex-col ${diaObj.isNextMonth || diaObj.isPrevMonth ? 'bg-gray-50/50 dark:bg-zinc-900/30 opacity-40' :
+                                                isToday ? 'bg-blue-600/5 dark:bg-indigo-900/10' : 'bg-white dark:bg-[#111114] hover:bg-gray-50 dark:hover:bg-zinc-900/50'
+                                            }`}
+                                    >
+                                        <div className="text-xs font-bold mb-2 flex justify-start mt-1">
+                                            <span className={`w-6 h-6 sm:w-8 sm:h-6 flex items-center justify-center text-[10px] sm:text-xs rounded-md ${isToday ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40 font-black' : 'text-[#0B1527] dark:text-zinc-400 font-bold'}`}>
+                                                {diaObj.day}
+                                            </span>
+                                        </div>
+
+                                        <div className="space-y-1 flex-1">
+                                            {evts.map(evento => {
+                                                const redeStyle = getRedeStyle(evento.Rede_Social);
+                                                const Icon = redeStyle.icon;
+                                                return (
+                                                    <div
+                                                        key={evento.id}
+                                                        onClick={() => openEditSidebar(evento.id)}
+                                                        className={`p-1.5 rounded-lg border-0 ${redeStyle.bg} ${redeStyle.text} text-left cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98] ios-btn overflow-hidden flex items-center gap-1.5 shadow-sm`}
+                                                    >
+                                                        <Icon size={12} strokeWidth={3} className="shrink-0" />
+                                                        <div className="text-[9px] font-black leading-tight truncate">
+                                                            {evento.Hora && <span className="mr-1 opacity-70">{evento.Hora}</span>}
+                                                            {evento.Conteúdo}
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
+                )}
 
-                    <div className={`grid grid-cols-7 bg-[#F8FAFC] dark:bg-[#0a0a0c] ${viewMode === 'month' ? 'auto-rows-[minmax(140px,auto)]' : 'auto-rows-[minmax(350px,auto)]'}`}>
-                        {calendarDays.map((diaObj, idx) => {
-                            const evts = getEventosDoDia(diaObj.dateStr);
-                            const isToday = diaObj.dateStr === new Date().toISOString().split('T')[0];
+                {/* LIST VIEW */}
+                {viewMode === 'list' && (
+                    <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-3xl shadow-xl overflow-hidden max-w-[1400px]">
+                        <div className="overflow-x-auto custom-scrollbar">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="border-b border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900/30">
+                                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Data / Hora</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Cliente</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Conteúdo</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Rede</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Formato</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Status</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] text-right">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-50 dark:divide-zinc-800/50 text-gray-600 dark:text-zinc-400">
+                                    {filteredData.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={7} className="px-6 py-12 text-center text-xs font-bold text-gray-400 uppercase tracking-widest opacity-50">
+                                                Nenhum conteúdo encontrado para os filtros atuais.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        [...filteredData].sort((a,b) => new Date(a.Data).getTime() - new Date(b.Data).getTime()).map(post => {
+                                            const rede = getRedeStyle(post.Rede_Social);
+                                            const RedeIcon = rede.icon;
+                                            const client = clients.find(c => c.id === post.Cliente_ID);
+                                            
+                                            // Status styles mapping
+                                            const statusMap: Record<string, string> = {
+                                                'PUBLICADO': 'bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400',
+                                                'CONCLUÍDO': 'bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400',
+                                                'AGUARDANDO APROVAÇÃO': 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400',
+                                                'PRODUÇÃO': 'bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400',
+                                                'EM ESPERA': 'bg-gray-100 text-gray-500 dark:bg-zinc-800 dark:text-zinc-500'
+                                            };
+                                            const statusStyle = statusMap[post["Status do conteúdo"]] || statusMap['EM ESPERA'];
 
+                                            return (
+                                                <tr key={post.id} className="hover:bg-gray-50 dark:hover:bg-zinc-900/40 transition-colors group cursor-pointer" onClick={() => openEditSidebar(post.id)}>
+                                                    <td className="px-6 py-3.5">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">
+                                                                {post.Data ? new Date(post.Data + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '--'}
+                                                            </span>
+                                                            <span className="text-[10px] font-bold text-gray-400 flex items-center gap-1 mt-0.5">
+                                                                <Clock size={10} /> {post.Hora || '09:00'}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-3.5">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: client?.['Cor (HEX)'] || '#3B82F6' }}></div>
+                                                            <span className="text-xs font-bold text-gray-700 dark:text-zinc-300 uppercase truncate max-w-[120px]">
+                                                                {client?.Nome || 'Geral'}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-3.5 max-w-[300px]">
+                                                        <p className="text-xs font-bold text-gray-900 dark:text-zinc-100 line-clamp-1 leading-relaxed">
+                                                            {post.Conteúdo}
+                                                        </p>
+                                                    </td>
+                                                    <td className="px-6 py-3.5">
+                                                        <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${rede.bg} ${rede.text} border-0 shadow-sm`}>
+                                                            <RedeIcon size={12} strokeWidth={3} />
+                                                            <span className="text-[9px] font-black uppercase tracking-wider">{post.Rede_Social || 'OUTRA'}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-3.5">
+                                                        <span className="text-[10px] font-bold text-gray-500 dark:text-zinc-500 uppercase tracking-widest px-2 py-1 bg-gray-100 dark:bg-zinc-800 rounded-md truncate max-w-[100px]">
+                                                            {post["Tipo de conteúdo"] || 'Feed'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-3.5">
+                                                        <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${statusStyle}`}>
+                                                            {post["Status do conteúdo"] === 'AGUARDANDO APROVAÇÃO' && <AlertCircle size={10} />}
+                                                            {post["Status do conteúdo"] === 'PUBLICADO' && <CheckCircle2 size={10} />}
+                                                            {post["Status do conteúdo"] === 'PRODUÇÃO' && <PlayCircle size={10} />}
+                                                            {post["Status do conteúdo"]}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-3.5 text-right">
+                                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <button onClick={(e) => { e.stopPropagation(); openEditSidebar(post.id); }} className="p-1.5 hover:bg-white dark:hover:bg-zinc-800 rounded-lg text-gray-400 hover:text-blue-600 transition-colors">
+                                                                <Database size={14} />
+                                                            </button>
+                                                            <button onClick={(e) => { e.stopPropagation(); performDelete([post.id], 'PLANEJAMENTO'); }} className="p-1.5 hover:bg-white dark:hover:bg-zinc-800 rounded-lg text-gray-400 hover:text-rose-600 transition-colors">
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
+                {/* KANBAN VIEW */}
+                {viewMode === 'kanban' && (
+                    <div className="flex gap-6 overflow-x-auto custom-scrollbar pb-8 max-w-[1400px] h-[calc(100vh-280px)]">
+                        {[
+                            { id: 'PENDENTE', label: 'Pendente', color: 'gray', statuses: ['EM ESPERA'] },
+                            { id: 'PRODUÇÃO', label: 'Em Produção', color: 'blue', statuses: ['PRODUÇÃO'] },
+                            { id: 'APROVADO', label: 'Aprovado', color: 'amber', statuses: ['AGUARDANDO APROVAÇÃO'] },
+                            { id: 'PUBLICADO', label: 'Publicado', color: 'green', statuses: ['PUBLICADO', 'CONCLUÍDO'] },
+                        ].map(col => {
+                            const colEvents = filteredData.filter(e => col.statuses.includes(e["Status do conteúdo"]));
+                            
                             return (
-                                <div
-                                    key={idx}
-                                    className={`p-1 sm:p-2 border-r border-b border-gray-200 dark:border-zinc-800 transition-colors relative flex flex-col ${diaObj.isNextMonth || diaObj.isPrevMonth ? 'bg-gray-50/50 dark:bg-zinc-900/30 opacity-40' :
-                                            isToday ? 'bg-blue-600/5 dark:bg-indigo-900/10' : 'bg-white dark:bg-[#111114] hover:bg-gray-50 dark:hover:bg-zinc-900/50'
-                                        }`}
-                                >
-                                    <div className="text-xs font-bold mb-2 flex justify-start mt-1">
-                                        <span className={`w-6 h-6 sm:w-8 sm:h-6 flex items-center justify-center text-[10px] sm:text-xs rounded-md ${isToday ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40 font-black' : 'text-[#0B1527] dark:text-zinc-400 font-bold'}`}>
-                                            {diaObj.day}
-                                        </span>
+                                <div key={col.id} className="flex-shrink-0 w-80 flex flex-col h-full bg-gray-50/50 dark:bg-zinc-900/30 rounded-3xl border border-gray-100 dark:border-zinc-800">
+                                    {/* Header Coluna */}
+                                    <div className="p-5 flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-2.5 h-2.5 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.1)] ${
+                                                col.color === 'gray' ? 'bg-gray-400' :
+                                                col.color === 'blue' ? 'bg-blue-500' :
+                                                col.color === 'amber' ? 'bg-amber-500' :
+                                                'bg-green-500'
+                                            }`}></div>
+                                            <h3 className="text-xs font-black text-gray-800 dark:text-zinc-200 uppercase tracking-widest">{col.label}</h3>
+                                            <span className="text-[10px] font-bold text-gray-400 bg-white dark:bg-zinc-800 px-2 py-0.5 rounded-md border border-gray-100 dark:border-zinc-700">{colEvents.length}</span>
+                                        </div>
                                     </div>
 
-                                    <div className="space-y-1.5 sm:space-y-2 flex-1">
-                                        {evts.map(evento => {
-                                            const style = getCardStyles(evento.Cliente_ID);
+                                    {/* Lista de Cards */}
+                                    <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3">
+                                        {colEvents.map(post => {
+                                            const rede = getRedeStyle(post.Rede_Social);
+                                            const client = clients.find(c => c.id === post.Cliente_ID);
+                                            
                                             return (
                                                 <div
-                                                    key={evento.id}
-                                                    onClick={() => openEditSidebar(evento.id)}
-                                                    className={`p-1.5 sm:p-2.5 rounded-lg border text-left cursor-pointer transition-transform hover:-translate-y-0.5 ios-btn overflow-hidden`}
-                                                    style={{
-                                                        backgroundColor: style.bg,
-                                                        borderColor: style.border
-                                                    }}
+                                                    key={post.id}
+                                                    onClick={() => openEditSidebar(post.id)}
+                                                    className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-blue-500/50 transition-all cursor-pointer group"
                                                 >
-                                                    <div className="flex items-center gap-1 text-[8px] sm:text-[9px] font-black uppercase mb-1" style={{ color: style.text }}>
-                                                        <Clock size={10} strokeWidth={3} className="shrink-0" /> <span className="truncate">{evento.Hora || '09:00'}</span>
+                                                    <div className="flex items-center justify-between mb-3">
+                                                        <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider ${rede.bg} ${rede.text}`}>
+                                                            <rede.icon size={10} strokeWidth={3} /> {post.Rede_Social || 'OUTRA'}
+                                                        </div>
+                                                        <div className="flex items-center gap-1 text-[9px] font-bold text-gray-400">
+                                                            <Clock size={10} /> {post.Hora || '09:00'}
+                                                        </div>
                                                     </div>
-                                                    <div className="text-[10px] sm:text-[11px] font-bold leading-tight mb-2 line-clamp-2 text-[#0B1527] dark:text-white">
-                                                        {evento.Conteúdo}
-                                                    </div>
-                                                    <div className="flex items-center gap-1 text-[8px] sm:text-[9px] font-bold uppercase tracking-wider opacity-90 truncate w-full" style={{ color: style.text }}>
-                                                        <User size={10} strokeWidth={2.5} className="shrink-0" />
-                                                        <span className="truncate">{clients.find(c => c.id === evento.Cliente_ID)?.Nome || 'GERAL'}</span>
+
+                                                    <p className="text-xs font-black text-gray-900 dark:text-white leading-relaxed mb-4 line-clamp-3">
+                                                        {post.Conteúdo}
+                                                    </p>
+
+                                                    <div className="flex items-center justify-between pt-4 border-t border-gray-50 dark:border-zinc-800/50">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: client?.['Cor (HEX)'] || '#3B82F6' }}></div>
+                                                            <span className="text-[9px] font-bold text-gray-500 uppercase truncate max-w-[100px]">{client?.Nome || 'Geral'}</span>
+                                                        </div>
+                                                        <span className="text-[9px] font-bold text-gray-400 uppercase bg-gray-50 dark:bg-zinc-800 px-2 py-0.5 rounded-md">{post["Tipo de conteúdo"] || 'Feed'}</span>
                                                     </div>
                                                 </div>
                                             )
                                         })}
+                                        {colEvents.length === 0 && (
+                                            <div className="h-24 border-2 border-dashed border-gray-200 dark:border-zinc-800 rounded-2xl flex items-center justify-center opacity-40">
+                                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Vazio</span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
-                            );
+                            )
                         })}
                     </div>
-                </div>
+                )}
 
                 {sidebarView && (
                     <div className="fixed inset-0 bg-gray-900/60 dark:bg-black/80 backdrop-blur-sm z-[90] transition-opacity animate-in fade-in" onClick={closeSidebar}></div>
@@ -519,9 +729,11 @@ export default function PlanejamentoTab({
 
                             <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-5 space-y-5 shadow-sm">
                                 <div className="grid grid-cols-2 gap-4">
-                                    {/* CLIENTE WITH DATALIST FOR MANUAL EDITS */}
-                                    <div className="relative flex flex-col">
-                                        <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5">Cliente</label>
+                                    {/* CLIENTE */}
+                                    <div className="flex flex-col">
+                                        <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                            <User size={10} strokeWidth={3} /> Cliente
+                                        </label>
                                         <div className="relative">
                                             <input
                                                 list={`clients-list-${selectedEvent?.id || 'new'}`}
@@ -530,79 +742,63 @@ export default function PlanejamentoTab({
                                                     const val = e.target.value;
                                                     const matchedClient = clients.find(c => c.Nome.toLowerCase() === val.toLowerCase());
                                                     if (selectedEvent) {
-                                                        // Make ID the val if valid client, otherwise store the raw text directly in Cliente_ID
-                                                        // The app usually expects ID here, so if they type something custom, it might break UI coloring logic later.
-                                                        // If we must let them write freely, we write the raw string to Cliente_ID. Card color fallbacks cover it.
                                                         onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Cliente_ID', matchedClient ? matchedClient.id : val);
                                                     }
                                                 }}
-                                                placeholder="Selecione ou digite..."
-                                                className="w-full bg-transparent border-b border-gray-300 dark:border-zinc-700 text-sm font-bold text-gray-800 dark:text-white pb-2 focus:outline-none focus:border-blue-500 uppercase pr-6"
+                                                placeholder="Selecione..."
+                                                className="w-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl px-3 py-2 text-xs font-bold text-gray-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 uppercase ios-btn"
                                             />
-                                            <ChevronDown size={14} className="absolute right-0 bottom-3 text-gray-400 pointer-events-none" />
+                                            <ChevronDown size={14} className="absolute right-3 top-2.5 text-gray-400 pointer-events-none" />
                                             <datalist id={`clients-list-${selectedEvent?.id || 'new'}`}>
                                                 {clients.map(c => <option key={c.id} value={c.Nome} />)}
                                             </datalist>
                                         </div>
                                     </div>
 
-                                    {/* IDEIA WITH DATALIST */}
-                                    <div className="relative flex flex-col">
-                                        <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5">Ideia (Formato)</label>
-                                        <div className="relative">
-                                            <input
-                                                list="ideias-list"
-                                                value={selectedEvent?.["Tipo de conteúdo"] || ''}
-                                                onChange={(e) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Tipo de conteúdo', e.target.value)}
-                                                placeholder="Selecione ou digite..."
-                                                className="w-full bg-transparent border-b border-gray-300 dark:border-zinc-700 text-sm font-bold text-gray-800 dark:text-white pb-2 focus:outline-none focus:border-blue-500 uppercase pr-6"
-                                            />
-                                            <ChevronDown size={14} className="absolute right-0 bottom-3 text-gray-400 pointer-events-none" />
-                                            {/* We populate datalist with types extracted from RDC + defaults */}
-                                            <datalist id="ideias-list">
-                                                <option value="Reels Viral" />
-                                                <option value="Carrossel Edu." />
-                                                <option value="Post Único" />
-                                                <option value="Story Interativo" />
-                                                {Array.from(new Set(rdc.map(r => r['Tipo de conteúdo']).filter(Boolean))).map(t => (
-                                                    <option key={t as string} value={t as string} />
-                                                ))}
-                                            </datalist>
-                                        </div>
+                                    {/* REDE SOCIAL */}
+                                    <div className="flex flex-col">
+                                        <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                            <MessageSquare size={10} strokeWidth={3} /> Rede
+                                        </label>
+                                        <select
+                                            value={selectedEvent?.Rede_Social || ''}
+                                            onChange={(e) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Rede_Social', e.target.value)}
+                                            className="w-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl px-3 py-2 text-xs font-bold text-gray-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 uppercase ios-btn"
+                                        >
+                                            <option value="INSTAGRAM">Instagram</option>
+                                            <option value="YOUTUBE">YouTube</option>
+                                            <option value="TIKTOK">TikTok</option>
+                                            <option value="LINKEDIN">LinkedIn</option>
+                                            <option value="FACEBOOK">Facebook</option>
+                                            <option value="PINTEREST">Pinterest</option>
+                                            <option value="X/TWITTER">X / Twitter</option>
+                                            <option value="BLOG">Blog</option>
+                                            <option value="OUTRA">Outra</option>
+                                        </select>
                                     </div>
-                                </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Data</label>
+                                    {/* DATA */}
+                                    <div className="flex flex-col">
+                                        <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                            <CalendarIcon size={10} strokeWidth={3} /> Publicação
+                                        </label>
                                         <input
                                             type="date"
                                             value={selectedEvent?.Data || ''}
                                             onChange={(e) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Data', e.target.value)}
-                                            className="w-full bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm font-bold text-gray-800 dark:text-white focus:outline-none focus:border-blue-500"
+                                            className="w-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl px-3 py-2 text-xs font-bold text-gray-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 ios-btn"
                                         />
                                     </div>
-                                    <div>
-                                        <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Hora</label>
+
+                                    {/* HORA */}
+                                    <div className="flex flex-col">
+                                        <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                            <Clock size={10} strokeWidth={3} /> Horário
+                                        </label>
                                         <input
                                             type="time"
                                             value={selectedEvent?.Hora || '09:00'}
                                             onChange={(e) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Hora', e.target.value)}
-                                            className="w-full bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm font-bold text-gray-800 dark:text-white focus:outline-none focus:border-blue-500"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                {/* REDE SOCIAL WITH DATALIST */}
-                                <div className="relative">
-                                    <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block ml-1">Rede Social</label>
-                                    <div className="relative">
-                                        <input
-                                            list="redes-list"
-                                            value={selectedEvent?.Rede_Social || ''}
-                                            onChange={(e) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Rede_Social', e.target.value)}
                                             placeholder="Selecione ou digite..."
                                             className="w-full bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 text-sm font-black text-gray-800 dark:text-white rounded-xl px-4 py-3.5 focus:outline-none focus:border-blue-500 shadow-sm uppercase pr-10"
                                         />

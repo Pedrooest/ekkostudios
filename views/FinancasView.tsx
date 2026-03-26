@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
     ArrowUpCircle, ArrowDownCircle, Wallet, CreditCard,
-    Search, Plus, MoreHorizontal, Calendar, X,
+    Search, Plus, MoreHorizontal, Calendar, X, ArrowUpRight, ArrowDownRight,
     CheckCircle2, DollarSign, BarChart3, Filter, Trash2, Edit3, Clock,
     PieChart, ChevronDown, Repeat, CalendarClock
 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 // ==========================================
 // FUNÇÕES AUXILIARES DE SOM E FORMATAÇÃO
@@ -39,8 +40,14 @@ export default function FinancasTab({ data = [], onAdd, onUpdate, onDelete, clie
         valor: '',
         data: new Date().toISOString().split('T')[0],
         status: 'pago',
-        frequencia: 'unica' // 'unica', 'mensal', 'anual'
+        frequencia: 'unica', // 'unica', 'mensal', 'anual'
+        clienteId: ''
     });
+
+    // Estados de Filtro
+    const [filterPeriod, setFilterPeriod] = useState('all');
+    const [filterTipo, setFilterTipo] = useState('all');
+    const [filterCliente, setFilterCliente] = useState('all');
 
     // Remove accents and ensure standard lowercase format
     const formatType = (tipo: string) => {
@@ -60,6 +67,7 @@ export default function FinancasTab({ data = [], onAdd, onUpdate, onDelete, clie
             data: t.Data || '',
             status: t.Status || 'pago',
             frequencia: t.Recorrência?.toLowerCase() === 'mensal' ? 'mensal' : t.Recorrência?.toLowerCase() === 'anual' ? 'anual' : 'unica',
+            clienteId: t.Cliente_ID || '',
             raw: t
         }));
     }, [data]);
@@ -72,9 +80,11 @@ export default function FinancasTab({ data = [], onAdd, onUpdate, onDelete, clie
             if (curr.tipo === 'entrada') acc.entradas += curr.valor;
             if (curr.tipo === 'saida') acc.saidas += curr.valor;
             if (curr.tipo === 'assinatura') acc.assinaturas += curr.valor;
+        } else if (curr.status === 'pendente' && curr.tipo === 'entrada') {
+            acc.aReceber += curr.valor;
         }
         return acc;
-    }, { entradas: 0, saidas: 0, despesas: 0, assinaturas: 0 });
+    }, { entradas: 0, saidas: 0, despesas: 0, assinaturas: 0, aReceber: 0 });
 
     totais.despesas = totais.saidas + totais.assinaturas;
     const saldoFinal = totais.entradas - totais.despesas;
@@ -85,13 +95,23 @@ export default function FinancasTab({ data = [], onAdd, onUpdate, onDelete, clie
     const proLaboreLucas = lucroParaDistribuir * 0.30;
     const caixaAgencia = lucroParaDistribuir * 0.40;
 
-    // Lógica do Gráfico de Barras
-    const chartMax = Math.max(totais.entradas, totais.saidas, totais.despesas, totais.assinaturas, saldoFinal, 1000);
+    // Agrupamento de Gráfico de Barras Mensal
+    const monthlyData = React.useMemo(() => {
+        const groups: Record<string, { month: string, entradas: number, saidas: number }> = {};
+        transactions.forEach(t => {
+            if (!t.data || t.status !== 'pago') return;
+            const date = new Date(t.data);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            const monthLabel = date.toLocaleString('pt-BR', { month: 'short', year: 'numeric' }).toUpperCase();
+            
+            if (!groups[monthKey]) groups[monthKey] = { month: monthLabel, entradas: 0, saidas: 0 };
+            
+            if (t.tipo === 'entrada') groups[monthKey].entradas += t.valor;
+            else groups[monthKey].saidas += t.valor;
+        });
 
-    const getBarHeight = (value: number) => {
-        if (value === 0) return '5%';
-        return `${Math.max((value / chartMax) * 100, 5)}%`;
-    };
+        return Object.keys(groups).sort().map(k => groups[k]);
+    }, [transactions]);
 
     // ==========================================
     // AÇÕES
@@ -107,7 +127,8 @@ export default function FinancasTab({ data = [], onAdd, onUpdate, onDelete, clie
             data: new Date().toISOString().split('T')[0],
             status: 'pago',
             // Assinaturas costumam ser mensais por predefinição
-            frequencia: tipoPreDefinido === 'assinatura' ? 'mensal' : 'unica'
+            frequencia: tipoPreDefinido === 'assinatura' ? 'mensal' : 'unica',
+            clienteId: ''
         });
         setIsModalOpen(true);
     };
@@ -122,7 +143,8 @@ export default function FinancasTab({ data = [], onAdd, onUpdate, onDelete, clie
             valor: tx.valor.toString(),
             data: tx.data.split('T')[0],
             status: tx.status,
-            frequencia: tx.frequencia
+            frequencia: tx.frequencia,
+            clienteId: tx.clienteId || ''
         });
         setIsModalOpen(true);
     };
@@ -140,7 +162,8 @@ export default function FinancasTab({ data = [], onAdd, onUpdate, onDelete, clie
             Valor: parseFloat(formData.valor),
             Data: formData.data,
             Status: formData.status,
-            Recorrência: formData.frequencia === 'unica' ? 'Única' : formData.frequencia === 'mensal' ? 'Mensal' : 'Anual'
+            Recorrência: formData.frequencia === 'unica' ? 'Única' : formData.frequencia === 'mensal' ? 'Mensal' : 'Anual',
+            Cliente_ID: formData.clienteId || null
         };
 
         if (editingId) {
@@ -158,11 +181,26 @@ export default function FinancasTab({ data = [], onAdd, onUpdate, onDelete, clie
         if (onDelete) onDelete([id], 'FINANCAS');
     };
 
-    // Filtro
-    const filteredTransactions = transactions.filter(t =>
-        t.descricao.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.categoria.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredTransactions = transactions.filter(t => {
+        const matchSearch = t.descricao.toLowerCase().includes(searchQuery.toLowerCase()) || t.categoria.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchTipo = filterTipo === 'all' || t.tipo === filterTipo || (filterTipo === 'saida' && t.tipo === 'assinatura');
+        const matchCliente = filterCliente === 'all' || t.clienteId === filterCliente;
+        
+        let matchPeriod = true;
+        if (filterPeriod !== 'all' && t.data) {
+            const now = new Date();
+            const txDate = new Date(t.data);
+            if (filterPeriod === 'month') {
+                matchPeriod = txDate.getMonth() === now.getMonth() && txDate.getFullYear() === now.getFullYear();
+            } else if (filterPeriod === 'lastMonth') {
+                const lastMonth = now.getMonth() === 0 ? 11 : now.getMonth() - 1;
+                const year = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+                matchPeriod = txDate.getMonth() === lastMonth && txDate.getFullYear() === year;
+            }
+        }
+
+        return matchSearch && matchTipo && matchCliente && matchPeriod;
+    });
 
     return (
         <div className="p-6 lg:p-8 font-sans bg-gray-50 dark:bg-[#0a0a0c] min-h-screen text-gray-900 dark:text-zinc-200 overflow-y-auto custom-scrollbar" >
@@ -170,21 +208,14 @@ export default function FinancasTab({ data = [], onAdd, onUpdate, onDelete, clie
             {/* =========================================
           CABEÇALHO
           ========================================= */}
-            < div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 w-full" >
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 w-full">
                 <div>
                     <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Finanças</h2>
                     <p className="text-xs text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-widest mt-1">
                         Gestão de Caixa e Lançamentos
                     </p>
                 </div>
-
-                <button
-                    onClick={() => handleOpenModal('entrada')}
-                    className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/25 transition-all active:scale-95 ios-btn"
-                >
-                    <Plus size={18} /> Novo Lançamento
-                </button>
-            </div >
+            </div>
 
             <div className="w-full">
                 {/* =========================================
@@ -193,62 +224,57 @@ export default function FinancasTab({ data = [], onAdd, onUpdate, onDelete, clie
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 
                     {/* Card Entradas */}
-                    <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+                    <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 p-6 rounded-3xl shadow-sm flex flex-col justify-between group hover:border-emerald-500/50 transition-colors">
                         <div className="flex justify-between items-start mb-4">
                             <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-500 flex items-center gap-2">
-                                <ArrowUpCircle size={16} /> Entradas
+                                <ArrowUpCircle size={16} /> Receita Total
                             </span>
+                            <span className="text-[10px] font-black text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md flex items-center gap-1"><ArrowUpRight size={12}/> 12.5%</span>
                         </div>
                         <div className="flex items-end justify-between">
-                            <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{formatBRL(totais.entradas)}</span>
-                            <button onClick={() => handleOpenModal('entrada')} className="ios-btn p-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-600 rounded-xl transition-colors" title="Nova Entrada">
-                                <Plus size={18} strokeWidth={3} />
-                            </button>
+                            <span className="text-2xl font-black text-gray-900 dark:text-white">{formatBRL(totais.entradas)}</span>
                         </div>
                     </div>
 
                     {/* Card Saídas */}
-                    <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+                    <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 p-6 rounded-3xl shadow-sm flex flex-col justify-between group hover:border-rose-500/50 transition-colors">
                         <div className="flex justify-between items-start mb-4">
                             <span className="text-[11px] font-bold uppercase tracking-widest text-rose-500 flex items-center gap-2">
-                                <ArrowDownCircle size={16} /> Saídas Gerais
+                                <ArrowDownCircle size={16} /> Despesas
                             </span>
+                            <span className="text-[10px] font-black text-rose-500 bg-rose-50 dark:bg-rose-500/10 px-2 py-0.5 rounded-md flex items-center gap-1"><ArrowUpRight size={12}/> 4.2%</span>
                         </div>
                         <div className="flex items-end justify-between">
-                            <span className="text-2xl font-black text-rose-600 dark:text-rose-400">{formatBRL(totais.saidas)}</span>
-                            <button onClick={() => handleOpenModal('saida')} className="ios-btn p-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 text-rose-600 rounded-xl transition-colors" title="Nova Saída">
-                                <Plus size={18} strokeWidth={3} />
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Card Assinaturas */}
-                    <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 p-6 rounded-2xl shadow-sm flex flex-col justify-between">
-                        <div className="flex justify-between items-start mb-4">
-                            <span className="text-[11px] font-bold uppercase tracking-widest text-purple-500 flex items-center gap-2">
-                                <CreditCard size={16} /> Assinaturas
-                            </span>
-                        </div>
-                        <div className="flex items-end justify-between">
-                            <span className="text-2xl font-black text-purple-600 dark:text-purple-400">{formatBRL(totais.assinaturas)}</span>
-                            <button onClick={() => handleOpenModal('assinatura')} className="ios-btn p-2 bg-purple-50 hover:bg-purple-100 dark:bg-purple-500/10 dark:hover:bg-purple-500/20 text-purple-600 rounded-xl transition-colors" title="Nova Assinatura">
-                                <Plus size={18} strokeWidth={3} />
-                            </button>
+                            <span className="text-2xl font-black text-gray-900 dark:text-white">{formatBRL(totais.despesas)}</span>
                         </div>
                     </div>
 
                     {/* Card Saldo */}
-                    <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-2xl shadow-lg shadow-indigo-500/20 text-white relative overflow-hidden flex flex-col justify-between">
-                        <div className="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-4">
-                            <Wallet size={120} />
+                    <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 p-6 rounded-3xl shadow-sm flex flex-col justify-between group hover:border-indigo-500/50 transition-colors relative overflow-hidden">
+                        <div className="absolute right-0 bottom-0 opacity-5 transform translate-x-4 translate-y-4">
+                            <Wallet size={80} />
                         </div>
-                        <div className="relative z-10 flex justify-between items-start mb-4">
-                            <span className="text-[11px] font-bold uppercase tracking-widest text-indigo-100 flex items-center gap-2">
-                                <Wallet size={16} /> Saldo Final
+                        <div className="flex justify-between items-start mb-4 relative z-10">
+                            <span className="text-[11px] font-bold uppercase tracking-widest text-indigo-500 flex items-center gap-2">
+                                <Wallet size={16} /> Saldo Atual
                             </span>
+                            <span className="text-[10px] font-black text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 rounded-md flex items-center gap-1"><ArrowUpRight size={12}/> 8.9%</span>
                         </div>
-                        <div className="relative z-10 flex items-end justify-between">
-                            <span className="text-3xl font-black">{formatBRL(saldoFinal)}</span>
+                        <div className="flex items-end justify-between relative z-10">
+                            <span className="text-2xl font-black text-gray-900 dark:text-white">{formatBRL(saldoFinal)}</span>
+                        </div>
+                    </div>
+
+                    {/* Card A Receber */}
+                    <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 p-6 rounded-3xl shadow-sm flex flex-col justify-between group hover:border-amber-500/50 transition-colors">
+                        <div className="flex justify-between items-start mb-4">
+                            <span className="text-[11px] font-bold uppercase tracking-widest text-amber-500 flex items-center gap-2">
+                                <Clock size={16} /> A Receber
+                            </span>
+                            <span className="text-[10px] font-black text-gray-400 bg-gray-50 dark:bg-zinc-800 px-2 py-0.5 rounded-md">PENDENTES</span>
+                        </div>
+                        <div className="flex items-end justify-between">
+                            <span className="text-2xl font-black text-gray-900 dark:text-white">{formatBRL(totais.aReceber)}</span>
                         </div>
                     </div>
                 </div>
@@ -258,54 +284,32 @@ export default function FinancasTab({ data = [], onAdd, onUpdate, onDelete, clie
             ========================================= */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
 
-                    <div className="lg:col-span-2 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 p-6 rounded-2xl shadow-sm flex flex-col">
+                    <div className="lg:col-span-2 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 p-6 rounded-3xl shadow-sm flex flex-col">
                         <div className="flex items-center justify-between mb-8">
                             <div className="flex items-center gap-2">
                                 <BarChart3 size={18} className="text-indigo-500" />
-                                <h3 className="text-sm font-bold uppercase tracking-widest text-gray-700 dark:text-zinc-300">Fluxo de Caixa Operacional</h3>
+                                <h3 className="text-sm font-bold uppercase tracking-widest text-gray-700 dark:text-zinc-300">Fluxo de Caixa Mensal</h3>
                             </div>
                         </div>
 
-                        <div className="flex-1 flex items-end justify-around gap-2 mt-auto h-56 pb-2">
-                            <div className="flex flex-col items-center w-full max-w-[80px] h-full justify-end group cursor-pointer">
-                                <span className="text-[10px] font-bold text-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity mb-2">{formatBRL(totais.entradas)}</span>
-                                <div className="w-16 w-full flex-1 bg-gray-100 dark:bg-zinc-800/80 rounded-2xl p-1.5 flex items-end">
-                                    <div className="w-full bg-emerald-400 dark:bg-emerald-500 rounded-xl transition-all duration-1000 ease-out" style={{ height: getBarHeight(totais.entradas) }}></div>
-                                </div>
-                                <span className="text-[10px] font-bold text-gray-500 dark:text-zinc-500 mt-3 uppercase tracking-wider">Entradas</span>
-                            </div>
-
-                            <div className="flex flex-col items-center w-full max-w-[80px] h-full justify-end group cursor-pointer">
-                                <span className="text-[10px] font-bold text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity mb-2">{formatBRL(totais.saidas)}</span>
-                                <div className="w-16 w-full flex-1 bg-gray-100 dark:bg-zinc-800/80 rounded-2xl p-1.5 flex items-end">
-                                    <div className="w-full bg-rose-400 dark:bg-rose-500 rounded-xl transition-all duration-1000 ease-out delay-75" style={{ height: getBarHeight(totais.saidas) }}></div>
-                                </div>
-                                <span className="text-[10px] font-bold text-gray-500 dark:text-zinc-500 mt-3 uppercase tracking-wider">Saídas</span>
-                            </div>
-
-                            <div className="flex flex-col items-center w-full max-w-[80px] h-full justify-end group cursor-pointer">
-                                <span className="text-[10px] font-bold text-orange-500 opacity-0 group-hover:opacity-100 transition-opacity mb-2">{formatBRL(totais.despesas)}</span>
-                                <div className="w-16 w-full flex-1 bg-gray-100 dark:bg-zinc-800/80 rounded-2xl p-1.5 flex items-end">
-                                    <div className="w-full bg-orange-400 dark:bg-orange-500 rounded-xl transition-all duration-1000 ease-out delay-150" style={{ height: getBarHeight(totais.despesas) }}></div>
-                                </div>
-                                <span className="text-[10px] font-bold text-gray-500 dark:text-zinc-500 mt-3 uppercase tracking-wider">Despesas</span>
-                            </div>
-
-                            <div className="flex flex-col items-center w-full max-w-[80px] h-full justify-end group cursor-pointer">
-                                <span className="text-[10px] font-bold text-purple-500 opacity-0 group-hover:opacity-100 transition-opacity mb-2">{formatBRL(totais.assinaturas)}</span>
-                                <div className="w-16 w-full flex-1 bg-gray-100 dark:bg-zinc-800/80 rounded-2xl p-1.5 flex items-end">
-                                    <div className="w-full bg-purple-400 dark:bg-purple-500 rounded-xl transition-all duration-1000 ease-out delay-200" style={{ height: getBarHeight(totais.assinaturas) }}></div>
-                                </div>
-                                <span className="text-[10px] font-bold text-gray-500 dark:text-zinc-500 mt-3 uppercase tracking-wider">Assinaturas</span>
-                            </div>
-
-                            <div className="flex flex-col items-center w-full max-w-[80px] h-full justify-end group cursor-pointer">
-                                <span className="text-[10px] font-bold text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity mb-2">{formatBRL(saldoFinal)}</span>
-                                <div className="w-16 w-full flex-1 bg-gray-100 dark:bg-zinc-800/80 rounded-2xl p-1.5 flex items-end">
-                                    <div className="w-full bg-indigo-500 dark:bg-indigo-600 rounded-xl transition-all duration-1000 ease-out delay-300" style={{ height: getBarHeight(saldoFinal) }}></div>
-                                </div>
-                                <span className="text-[10px] font-bold text-gray-500 dark:text-zinc-500 mt-3 uppercase tracking-wider">Saldo</span>
-                            </div>
+                        <div className="flex-1 w-full h-[250px] min-h-[250px]">
+                            {monthlyData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={monthlyData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                                        <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: '#888' }} />
+                                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#888' }} tickFormatter={(val) => `R$ ${val / 1000}k`} />
+                                        <Tooltip 
+                                            cursor={{ fill: 'transparent' }}
+                                            contentStyle={{ backgroundColor: '#111114', border: '1px solid #27272a', borderRadius: '12px', color: '#fff' }}
+                                            formatter={(value: number) => [formatBRL(value), '']}
+                                        />
+                                        <Bar dataKey="entradas" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                                        <Bar dataKey="saidas" fill="#f43f5e" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="h-full flex items-center justify-center text-xs font-bold text-gray-400 uppercase tracking-widest">Sem dados suficientes</div>
+                            )}
                         </div>
                     </div>
 
@@ -390,20 +394,57 @@ export default function FinancasTab({ data = [], onAdd, onUpdate, onDelete, clie
             ========================================= */}
                 <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden flex flex-col">
 
-                    <div className="p-5 border-b border-gray-200 dark:border-zinc-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50/50 dark:bg-zinc-900/30">
+                    <div className="p-5 border-b border-gray-200 dark:border-zinc-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50/50 dark:bg-zinc-900/30">
                         <h3 className="text-sm font-bold uppercase tracking-widest text-gray-700 dark:text-zinc-300 flex items-center gap-2">
                             <Calendar size={16} className="text-indigo-500" /> Histórico Completo
                         </h3>
 
-                        <div className="relative w-full sm:w-72">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                            <input
-                                type="text"
-                                placeholder="Buscar lançamento..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-sm font-medium rounded-xl pl-9 pr-4 py-2 focus:outline-none focus:border-indigo-500 transition-colors"
-                            />
+                        <div className="flex flex-col lg:flex-row items-center gap-3 w-full md:w-auto">
+                            {/* Filter Periodo */}
+                            <select
+                                value={filterPeriod}
+                                onChange={(e) => setFilterPeriod(e.target.value)}
+                                className="bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-xs font-bold uppercase tracking-wider rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500 w-full sm:w-auto text-gray-700 dark:text-zinc-300"
+                            >
+                                <option value="all">Todo o Período</option>
+                                <option value="month">Este Mês</option>
+                                <option value="lastMonth">Mês Passado</option>
+                            </select>
+
+                            {/* Filter Tipo */}
+                            <select
+                                value={filterTipo}
+                                onChange={(e) => setFilterTipo(e.target.value)}
+                                className="bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-xs font-bold uppercase tracking-wider rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500 w-full sm:w-auto text-gray-700 dark:text-zinc-300"
+                            >
+                                <option value="all">Tipos (Entrada/Saída)</option>
+                                <option value="entrada">Apenas Entradas</option>
+                                <option value="saida">Apenas Saídas</option>
+                            </select>
+
+                            {/* Filter Cliente */}
+                            <select
+                                value={filterCliente}
+                                onChange={(e) => setFilterCliente(e.target.value)}
+                                className="bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-xs font-bold uppercase tracking-wider rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500 w-full lg:w-48 text-gray-700 dark:text-zinc-300 truncate"
+                            >
+                                <option value="all">Todos os Clientes</option>
+                                {clients?.map((c: any) => (
+                                    <option key={c.id} value={c.id}>{c.Nome || c.Nome_Fantasia}</option>
+                                ))}
+                            </select>
+
+                            {/* Search */}
+                            <div className="relative w-full lg:w-64">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                                <input
+                                    type="text"
+                                    placeholder="Buscar lançamento..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-xs font-medium rounded-xl pl-9 pr-4 py-2.5 focus:outline-none focus:border-indigo-500 transition-colors"
+                                />
+                            </div>
                         </div>
                     </div>
 
@@ -420,69 +461,86 @@ export default function FinancasTab({ data = [], onAdd, onUpdate, onDelete, clie
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/60">
-                                {filteredTransactions.map((tx) => (
-                                    <tr key={tx.id} className="hover:bg-gray-50 dark:hover:bg-zinc-900/40 transition-colors group">
+                                {filteredTransactions.map((tx) => {
+                                    const txClient = clients?.find((c: any) => c.id === tx.clienteId);
+                                    
+                                    return (
+                                        <tr key={tx.id} className="hover:bg-gray-50 dark:hover:bg-zinc-900/40 even:bg-gray-50/30 dark:even:bg-zinc-900/10 transition-colors group">
+                                            
+                                            {/* DATA */}
+                                            <td className="px-6 py-4 w-[120px]">
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs font-bold text-gray-900 dark:text-white">{new Date(tx.data).toLocaleDateString('pt-BR')}</span>
+                                                </div>
+                                            </td>
 
-                                        <td className="px-6 py-4">
-                                            <div className="flex flex-col">
-                                                <span className="text-sm font-bold text-gray-900 dark:text-white">{new Date(tx.data).toLocaleDateString('pt-BR')}</span>
-                                                <span className="text-[10px] text-gray-500 font-mono mt-0.5">{tx.id}</span>
-                                            </div>
-                                        </td>
-
-                                        <td className="px-6 py-4">
-                                            <div className="flex flex-col items-start gap-1.5">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-sm font-medium text-gray-800 dark:text-zinc-200">{tx.descricao}</span>
-                                                    {/* BADGE DE RECORRÊNCIA NA TABELA */}
-                                                    {tx.frequencia !== 'unica' && (
-                                                        <span className="flex items-center gap-1 text-[9px] font-black text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 px-1.5 py-0.5 rounded uppercase tracking-wider">
-                                                            <Repeat size={10} /> {tx.frequencia}
-                                                        </span>
+                                            {/* DESCRIÇÃO E CLIENTE */}
+                                            <td className="px-6 py-4">
+                                                <div className="flex flex-col gap-1.5">
+                                                    <span className="text-sm font-bold text-gray-900 dark:text-white truncate max-w-[300px]" title={tx.descricao}>{tx.descricao}</span>
+                                                    {txClient ? (
+                                                        <div className="flex items-center gap-1.5 w-fit bg-gray-100 dark:bg-zinc-800 pr-2 rounded-full overflow-hidden border border-gray-200 dark:border-zinc-700">
+                                                            <div className="w-5 h-5 flex flex-shrink-0 items-center justify-center text-[9px] font-black text-white" style={{ backgroundColor: txClient.Cor || '#6366f1' }}>
+                                                                {(txClient.Nome || txClient.Nome_Fantasia || 'C').charAt(0).toUpperCase()}
+                                                            </div>
+                                                            <span className="text-[10px] font-bold text-gray-600 dark:text-zinc-300 truncate max-w-[120px]">
+                                                                {txClient.Nome || txClient.Nome_Fantasia}
+                                                            </span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-[10px] font-medium text-gray-400 dark:text-zinc-500 italic">Sem cliente</span>
                                                     )}
                                                 </div>
-                                                <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400">
+                                            </td>
+
+                                            {/* CATEGORIA/BADGE */}
+                                            <td className="px-6 py-4">
+                                                <span className="inline-flex items-center px-2 py-1 rounded bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-300 text-[10px] font-bold uppercase tracking-widest truncate max-w-[120px]" title={tx.categoria}>
                                                     {tx.categoria}
                                                 </span>
-                                            </div>
-                                        </td>
+                                            </td>
 
-                                        <td className="px-6 py-4">
-                                            <div className={`inline-flex items-center justify-center p-1.5 rounded-lg ${tx.tipo === 'entrada' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' :
-                                                tx.tipo === 'assinatura' ? 'bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400' :
-                                                    'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400'
-                                                }`}>
-                                                {tx.tipo === 'entrada' ? <ArrowUpCircle size={16} /> : tx.tipo === 'assinatura' ? <CreditCard size={16} /> : <ArrowDownCircle size={16} />}
-                                            </div>
-                                        </td>
+                                            {/* TIPO */}
+                                            <td className="px-6 py-4">
+                                                <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest ${tx.tipo === 'entrada' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' :
+                                                    tx.tipo === 'assinatura' ? 'bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400' :
+                                                        'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400'
+                                                    }`}>
+                                                    {tx.tipo === 'entrada' ? <ArrowUpCircle size={14} /> : tx.tipo === 'assinatura' ? <CreditCard size={14} /> : <ArrowDownCircle size={14} />}
+                                                    {tx.tipo}
+                                                </div>
+                                            </td>
 
-                                        <td className="px-6 py-4 text-right">
-                                            <span className={`text-sm font-black font-mono ${tx.tipo === 'entrada' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-900 dark:text-white'}`}>
-                                                {tx.tipo === 'entrada' ? '+' : '-'} {formatBRL(tx.valor)}
-                                            </span>
-                                        </td>
+                                            {/* VALOR */}
+                                            <td className="px-6 py-4 text-right">
+                                                <span className={`text-sm font-black font-mono ${tx.tipo === 'entrada' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-900 dark:text-white'}`}>
+                                                    {tx.tipo === 'entrada' ? '+' : '-'} {formatBRL(tx.valor)}
+                                                </span>
+                                            </td>
 
-                                        <td className="px-6 py-4 text-center">
-                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${tx.status === 'pago' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'
-                                                }`}>
-                                                {tx.status === 'pago' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
-                                                {tx.status}
-                                            </span>
-                                        </td>
+                                            {/* STATUS */}
+                                            <td className="px-6 py-4 text-center">
+                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${tx.status === 'pago' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'
+                                                    }`}>
+                                                    {tx.status === 'pago' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
+                                                    {tx.status}
+                                                </span>
+                                            </td>
 
-                                        <td className="px-6 py-4 text-center">
-                                            <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button onClick={() => handleEdit(tx)} className="p-1.5 text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors">
-                                                    <Edit3 size={16} />
-                                                </button>
-                                                <button onClick={() => handleDelete(tx.id)} className="p-1.5 text-gray-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors">
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        </td>
-
-                                    </tr>
-                                ))}
+                                            {/* AÇÕES */}
+                                            <td className="px-6 py-4 text-center">
+                                                <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button onClick={() => handleEdit(tx)} className="p-1.5 text-gray-400 hover:text-indigo-600 rounded hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors">
+                                                        <Edit3 size={16} />
+                                                    </button>
+                                                    <button onClick={() => handleDelete(tx.id)} className="p-1.5 text-gray-400 hover:text-rose-600 rounded hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
 
                                 {filteredTransactions.length === 0 && (
                                     <tr>
@@ -602,37 +660,56 @@ export default function FinancasTab({ data = [], onAdd, onUpdate, onDelete, clie
                                     </div>
 
                                     <div className="space-y-4">
-                                        {/* SELECT DE FREQUÊNCIA (NOVO) */}
+                                        {/* SELECT DE CLIENTE */}
                                         <div>
-                                            <label className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-1.5 block flex items-center gap-1">
-                                                <Repeat size={12} /> Recorrência
-                                            </label>
+                                            <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Vincular Cliente (Opcional)</label>
                                             <div className="relative">
                                                 <select
-                                                    value={formData.frequencia}
-                                                    onChange={(e) => setFormData({ ...formData, frequencia: e.target.value })}
-                                                    className="w-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-400 text-sm font-bold rounded-xl pl-4 pr-10 py-3 focus:outline-none cursor-pointer appearance-none"
-                                                >
-                                                    <option value="unica">Pagamento Único</option>
-                                                    <option value="mensal">Mensal (Todo mês)</option>
-                                                    <option value="anual">Anual (Todo ano)</option>
-                                                </select>
-                                                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-indigo-400 pointer-events-none" />
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Status de Pagamento</label>
-                                            <div className="relative">
-                                                <select
-                                                    value={formData.status}
-                                                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                                                    value={formData.clienteId}
+                                                    onChange={(e) => setFormData({ ...formData, clienteId: e.target.value })}
                                                     className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 text-sm font-bold rounded-xl pl-4 pr-10 py-3 focus:outline-none cursor-pointer appearance-none"
                                                 >
-                                                    <option value="pago">Efetivado / Pago</option>
-                                                    <option value="pendente">Pendente / Agendado</option>
+                                                    <option value="">Nenhum</option>
+                                                    {clients?.map((c: any) => (
+                                                        <option key={c.id} value={c.id}>{c.Nome || c.Nome_Fantasia}</option>
+                                                    ))}
                                                 </select>
                                                 <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                            </div>
+                                        </div>
+                                        {/* SELECT DE FREQUÊNCIA E STATUS */}
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-1.5 block flex items-center gap-1">
+                                                    <Repeat size={12} /> Recorrência
+                                                </label>
+                                                <div className="relative">
+                                                    <select
+                                                        value={formData.frequencia}
+                                                        onChange={(e) => setFormData({ ...formData, frequencia: e.target.value })}
+                                                        className="w-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-400 text-sm font-bold rounded-xl pl-3 pr-8 py-3 focus:outline-none cursor-pointer appearance-none"
+                                                    >
+                                                        <option value="unica">Único</option>
+                                                        <option value="mensal">Mensal</option>
+                                                        <option value="anual">Anual</option>
+                                                    </select>
+                                                    <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-400 pointer-events-none" />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">Status</label>
+                                                <div className="relative">
+                                                    <select
+                                                        value={formData.status}
+                                                        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                                                        className="w-full bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 text-sm font-bold rounded-xl pl-3 pr-8 py-3 focus:outline-none cursor-pointer appearance-none"
+                                                    >
+                                                        <option value="pago">Efetuado</option>
+                                                        <option value="pendente">Pendente</option>
+                                                    </select>
+                                                    <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -652,6 +729,16 @@ export default function FinancasTab({ data = [], onAdd, onUpdate, onDelete, clie
                     </div>
                 )
             }
+
+            {/* =========================================
+            FAB (FLOATING ACTION BUTTON)
+            ========================================= */}
+            <button
+                onClick={() => handleOpenModal('entrada')}
+                className="fixed bottom-6 right-6 lg:bottom-10 lg:right-10 z-[80] w-14 h-14 md:w-16 md:h-16 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-2xl flex items-center justify-center transition-transform hover:scale-105 active:scale-95 group"
+            >
+                <Plus size={28} className="group-hover:rotate-90 transition-transform duration-300" strokeWidth={2.5} />
+            </button>
 
         </div >
     );
