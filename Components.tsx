@@ -56,16 +56,19 @@ export const Card: React.FC<{ children: React.ReactNode; title?: string; extra?:
 );
 
 // Added style prop to Badge component to support dynamic inline styles from App.tsx
-export const Badge: React.FC<{ children: React.ReactNode; color?: string; className?: string; style?: React.CSSProperties }> = ({ children, color = 'blue', className = '', style }) => {
+export const Badge: React.FC<{ children: React.ReactNode; color?: "blue" | "green" | "red" | "orange" | "slate" | "indigo" | "emerald" | "rose"; className?: string; style?: React.CSSProperties }> = ({ children, color = 'blue', className = '', style }) => {
   const colors: any = {
     blue: 'border-app-border text-app-text-muted',
     green: 'border-emerald-500/30 text-emerald-600',
+    emerald: 'border-emerald-500/30 text-emerald-600',
     red: 'border-rose-500/30 text-rose-600',
+    rose: 'border-rose-500/30 text-rose-600',
     orange: 'border-amber-500/30 text-amber-600',
+    indigo: 'border-indigo-500/30 text-indigo-600',
     slate: 'border-app-border text-app-text-muted'
   };
   return (
-    <span style={style} className={`px-2.5 py-1 rounded-md text-[9px] uppercase tracking-widest font-bold border ${colors[color] || colors.blue} ${className}`}>
+    <span style={style} className={`px-2.5 py-1 rounded-md text-[9px] uppercase tracking-widest font-bold border truncate max-w-full ${colors[color] || colors.blue} ${className}`}>
       {children}
     </span>
   );
@@ -376,9 +379,33 @@ export const DeletionBar: React.FC<{ count: number; onDelete: () => void; onArch
   );
 };
 
-export const StatCard: React.FC<{ label: string; value: string | number; icon?: string; color?: "emerald" | "rose" | "blue" | "orange" | "slate"; onClick?: (e: React.MouseEvent) => void; active?: boolean }> = ({ label, value, icon, color = "blue", onClick, active }) => {
-  const colors: any = { emerald: "text-emerald-500", rose: "text-rose-500", blue: "text-[#3B82F6]", orange: "text-orange-500", slate: "text-slate-400" };
-  const borderColors: any = { emerald: "border-emerald-500/30 bg-emerald-500/5", rose: "border-rose-500/30 bg-rose-500/5", blue: "border-[#3B82F6]/30 bg-[#3B82F6]/5", orange: "border-orange-500/30 bg-orange-500/5", slate: "border-slate-400/30 bg-slate-400/5" };
+export const StatCard: React.FC<{ 
+  label: string; 
+  value: string | number; 
+  icon?: any; 
+  color?: "emerald" | "rose" | "blue" | "orange" | "slate" | "indigo" | "amber"; 
+  trend?: { value: number; isUp: boolean };
+  onClick?: (e: React.MouseEvent) => void; 
+  active?: boolean 
+}> = ({ label, value, icon: Icon, color = "blue", trend, onClick, active }) => {
+  const colors: any = { 
+    emerald: "text-emerald-500", 
+    rose: "text-rose-500", 
+    blue: "text-[#3B82F6]", 
+    orange: "text-orange-500", 
+    amber: "text-amber-500",
+    indigo: "text-indigo-500",
+    slate: "text-slate-400" 
+  };
+  const borderColors: any = { 
+    emerald: "border-emerald-500/30 bg-emerald-500/5", 
+    rose: "border-rose-500/30 bg-rose-500/5", 
+    blue: "border-[#3B82F6]/30 bg-[#3B82F6]/5", 
+    orange: "border-orange-500/30 bg-orange-500/5", 
+    amber: "border-amber-500/30 bg-amber-500/5",
+    indigo: "border-indigo-500/30 bg-indigo-500/5",
+    slate: "border-slate-400/30 bg-slate-400/5" 
+  };
 
   return (
     <div
@@ -390,11 +417,27 @@ export const StatCard: React.FC<{ label: string; value: string | number; icon?: 
       }}
       className={`ios-btn p-4 md:p-6 rounded-2xl md:rounded-3xl border ${active ? borderColors[color] : 'bg-app-surface border-app-border'} flex flex-col gap-3 md:gap-4 transition-all ${onClick ? 'cursor-pointer hover:border-[#3B82F6]/20' : ''} shadow-xl group w-full`}
     >
-      <div className="flex justify-between items-start">
-        <span className={`text-[9px] font-black tracking-[0.2em] transition-colors uppercase flex-1 ${active ? 'text-app-text-strong' : 'text-app-text-muted group-hover:text-app-text-strong'}`}>{label}</span>
-        {icon && <i className={`fa-solid ${icon} transition-colors shrink-0 ml-2 ${active ? colors[color] : 'text-[#334155] group-hover:text-[#3B82F6]'}`}></i>}
+      <div className="flex justify-between items-start min-w-0">
+        <span className={`text-[9px] font-black tracking-[0.2em] transition-colors uppercase flex-1 truncate ${active ? 'text-app-text-strong' : 'text-app-text-muted group-hover:text-app-text-strong'}`}>{label}</span>
+        {Icon && (
+          typeof Icon === 'string' ? (
+            <i className={`fa-solid ${Icon} transition-colors shrink-0 ml-2 ${active ? colors[color] : 'text-[#334155] group-hover:text-[#3B82F6]'}`}></i>
+          ) : (
+            <div className={`transition-colors shrink-0 ml-2 ${active ? colors[color] : 'text-[#334155] group-hover:text-[#3B82F6]'}`}>
+              <Icon size={16} />
+            </div>
+          )
+        )}
       </div>
-      <p className={`text-2xl md:text-3xl font-black tracking-tighter leading-none break-all ${colors[color]}`}>{value}</p>
+      <div>
+        <p className={`text-2xl md:text-3xl font-black tracking-tighter leading-none truncate ${colors[color]}`}>{value}</p>
+        {trend && (
+          <div className={`flex items-center gap-1 mt-2 text-[10px] font-bold ${trend.isUp ? 'text-emerald-500' : 'text-rose-500'}`}>
+            <span>{trend.isUp ? '↑' : '↓'} {trend.value}%</span>
+            <span className="text-app-text-muted font-medium ml-1">Variação</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

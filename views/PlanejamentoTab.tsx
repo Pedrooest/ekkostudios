@@ -512,9 +512,9 @@ export default function PlanejamentoTab({
                                                         className={`p-1.5 rounded-lg border-0 ${redeStyle.bg} ${redeStyle.text} text-left cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98] ios-btn overflow-hidden flex items-center gap-1.5 shadow-sm`}
                                                     >
                                                         <Icon size={12} strokeWidth={3} className="shrink-0" />
-                                                        <div className="text-[9px] font-black leading-tight truncate">
-                                                            {evento.Hora && <span className="mr-1 opacity-70">{evento.Hora}</span>}
-                                                            {evento.Conteúdo}
+                                                        <div className="text-[9px] font-black leading-tight truncate flex-1 min-w-0">
+                                                            {evento.Hora && <span className="mr-1 opacity-70 shrink-0">{evento.Hora}</span>}
+                                                            <span className="truncate">{evento.Conteúdo}</span>
                                                         </div>
                                                     </div>
                                                 )
@@ -579,9 +579,9 @@ export default function PlanejamentoTab({
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-3.5">
-                                                        <div className="flex items-center gap-2">
+                                                        <div className="flex items-center gap-2 min-w-0">
                                                             <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: client?.['Cor (HEX)'] || '#3B82F6' }}></div>
-                                                            <span className="text-xs font-bold text-gray-700 dark:text-zinc-300 uppercase truncate max-w-[120px]">
+                                                            <span className="text-xs font-bold text-gray-700 dark:text-zinc-300 uppercase truncate min-w-0">
                                                                 {client?.Nome || 'Geral'}
                                                             </span>
                                                         </div>
@@ -682,10 +682,10 @@ export default function PlanejamentoTab({
                                                         {post.Conteúdo}
                                                     </p>
 
-                                                    <div className="flex items-center justify-between pt-4 border-t border-gray-50 dark:border-zinc-800/50">
-                                                        <div className="flex items-center gap-2">
+                                                    <div className="flex items-center justify-between pt-4 border-t border-gray-50 dark:border-zinc-800/50 min-w-0">
+                                                        <div className="flex items-center gap-2 min-w-0">
                                                             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: client?.['Cor (HEX)'] || '#3B82F6' }}></div>
-                                                            <span className="text-[9px] font-bold text-gray-500 uppercase truncate max-w-[100px]">{client?.Nome || 'Geral'}</span>
+                                                            <span className="text-[9px] font-bold text-gray-500 uppercase truncate min-w-0">{client?.Nome || 'Geral'}</span>
                                                         </div>
                                                         <span className="text-[9px] font-bold text-gray-400 uppercase bg-gray-50 dark:bg-zinc-800 px-2 py-0.5 rounded-md">{post["Tipo de conteúdo"] || 'Feed'}</span>
                                                     </div>

@@ -84,7 +84,7 @@ function SortableTaskCard({ Tarefa, clients, getPriorityInfo, onSelectTask, sele
                 </div>
             </div>
             
-            <h4 className="text-[13px] font-bold text-app-text-strong leading-snug group-hover:text-blue-500 transition-colors uppercase tracking-tight pointer-events-none mt-1">{Tarefa.Título}</h4>
+            <h4 className="text-[13px] font-bold text-app-text-strong leading-snug group-hover:text-blue-500 transition-colors uppercase tracking-tight pointer-events-none mt-1 truncate" title={Tarefa.Título}>{Tarefa.Título}</h4>
             
             <div className="flex items-center justify-between mt-2 pt-3 border-t border-app-border/50 pointer-events-none">
                 <div className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-tight ${isOverdue ? 'text-rose-500' : 'text-app-text-muted'}`}>
@@ -110,7 +110,7 @@ function TaskCardOverlay({ Tarefa, clients, getPriorityInfo, statusCor }: any) {
                 <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md truncate max-w-[140px]" style={{ color: clientColorCss, backgroundColor: `${clientColorCss}15` }}>{Cliente?.Nome || 'Agência'}</span>
                 <div className={`px-2 py-0.5 rounded flex items-center gap-1.5 ${prio.color}`}><i className={`fa-solid ${prio.icon} text-[8px]`}></i></div>
             </div>
-            <h4 className="text-[13px] font-bold text-app-text-strong leading-snug uppercase tracking-tight mt-1">{Tarefa.Título}</h4>
+            <h4 className="text-[13px] font-bold text-app-text-strong leading-snug uppercase tracking-tight mt-1 truncate">{Tarefa.Título}</h4>
         </div>
     );
 }
@@ -376,8 +376,8 @@ export function TaskFlowView({
                                                 <td className="w-12 p-3 text-center" onClick={e => { e.stopPropagation(); onSelect(Tarefa.id); }}>
                                                     <input type="checkbox" checked={selection.includes(Tarefa.id)} readOnly className="w-3 h-3 text-blue-500 rounded focus:ring-0 bg-transparent border-app-border group-hover:border-blue-500/50 transition-colors" />
                                                 </td>
-                                                <td className="flex-1 min-w-[200px] p-3 truncate">
-                                                    <span className="text-[12px] font-bold text-app-text-strong uppercase tracking-tight group-hover:text-blue-500 transition-colors">{Tarefa.Título}</span>
+                                                <td className="flex-1 min-w-0 p-3">
+                                                    <span className="text-[12px] font-bold text-app-text-strong uppercase tracking-tight group-hover:text-blue-500 transition-colors block truncate" title={Tarefa.Título}>{Tarefa.Título}</span>
                                                 </td>
                                                 <td className="w-[150px] p-3 truncate">
                                                     <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md" style={{ color: clientColorCss, backgroundColor: `${clientColorCss}15` }}>

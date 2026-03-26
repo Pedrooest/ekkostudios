@@ -178,8 +178,8 @@ export function TableView({
                                 }
                                 return (
                                     <th key={c} style={widthStyle} className="px-4 py-5 font-black text-[#64748B] uppercase tracking-[0.15em] bg-app-surface-2 border-b border-app-border min-w-[120px] whitespace-nowrap">
-                                        <div className="flex items-center gap-2">
-                                            {c}
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <span className="truncate">{c}</span>
                                         </div>
                                     </th>
                                 );
@@ -338,7 +338,7 @@ function TableRow({ row, tab, cols, onUpdate, clients, library, onOpenColorPicke
                     else if (col === 'Decisão') widthStyle = { width: '180px' };
                 }
                 return (
-                    <td key={col} className="px-4 py-4 align-middle" style={widthStyle}>
+                    <td key={col} className="px-4 py-4 align-middle min-w-0" style={widthStyle}>
                         {renderCell(tab, row, col, onUpdate, clients, library, onOpenColorPicker)}
                     </td>
                 );

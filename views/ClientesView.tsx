@@ -130,14 +130,16 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                   {/* Body */}
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start mb-1">
-                      <h3 className="font-black text-sm text-app-text-strong truncate pr-2">{client.Nome || 'Sem Nome'}</h3>
+                      <h3 className="font-black text-sm text-app-text-strong truncate pr-2 min-w-0 flex-1">{client.Nome || 'Sem Nome'}</h3>
                       <div className={`w-2 h-2 rounded-full mt-1 shrink-0 ${isAtivo ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-slate-500'}`}></div>
                     </div>
-                    {client.Nicho && (
-                      <span className="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border border-app-border text-app-text-muted truncate max-w-full">
-                        {client.Nicho}
-                      </span>
-                    )}
+                    <div className="flex flex-wrap gap-1 mt-1 min-w-0">
+                      {client.Nicho && (
+                        <span className="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border border-app-border text-app-text-muted truncate min-w-0">
+                          {client.Nicho}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Quick Socials */}
