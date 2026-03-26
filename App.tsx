@@ -23,6 +23,7 @@ import { AssistantAction } from './ai/types';
 
 // Extracted Views
 import { DashboardView } from './views/DashboardView';
+import { ClientesView } from './views/ClientesView';
 import { SystematicModelingView } from './views/SystematicModelingView';
 import { OrganickIAView } from './views/OrganickIAView';
 import ChecklistsTab from './views/ChecklistsView';
@@ -1436,9 +1437,9 @@ export default function App() {
 
 
 
-        <div className={`flex-1 overflow-y-auto custom-scrollbar animate-fade bg-app-bg ${(activeTab === 'WHITEBOARD' || activeTab === 'PLANEJAMENTO' || activeTab === 'APROVACAO' || activeTab === 'CHECKLISTS') ? 'p-0 overflow-hidden' : 'p-3 md:p-6 lg:p-10 pb-[calc(100px+env(safe-area-inset-bottom))] lg:pb-10'}`}>
+        <div className={`flex-1 overflow-y-auto custom-scrollbar animate-fade bg-app-bg ${(activeTab === 'WHITEBOARD' || activeTab === 'CLIENTES' || activeTab === 'PLANEJAMENTO' || activeTab === 'APROVACAO' || activeTab === 'CHECKLISTS') ? 'p-0 overflow-hidden' : 'p-3 md:p-6 lg:p-10 pb-[calc(100px+env(safe-area-inset-bottom))] lg:pb-10'}`}>
           {activeTab === 'DASHBOARD' && <DashboardView clients={clients} tasks={currentTasks} financas={currentFinancas} planejamento={currentPlanejamento} rdc={currentRdc} />}
-          {activeTab === 'CLIENTES' && <TableView tab="CLIENTES" data={filterArchived(clients)} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('CLIENTES')} clients={clients} library={BibliotecaConteudo} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} />}
+          {activeTab === 'CLIENTES' && <ClientesView clients={filterArchived(clients)} onUpdate={handleUpdate} onDelete={performDelete} onAdd={() => handleAddRow('CLIENTES')} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} />}
           {activeTab === 'RDC' && <TableView tab="RDC" data={currentRdc} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('RDC')} library={BibliotecaConteudo} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
           {activeTab === 'MATRIZ' && <TableView tab="MATRIZ" data={currentMatriz} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('MATRIZ')} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} library={BibliotecaConteudo} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
 
