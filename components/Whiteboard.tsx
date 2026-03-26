@@ -3,7 +3,8 @@ import { DatabaseService } from '../DatabaseService';
 import { WhiteboardElement, WhiteboardConnection } from '../types';
 import {
     MousePointer2, Image as ImageIcon, Trash2, ZoomIn, ZoomOut, Maximize,
-    Type, StickyNote, Link2, Plus, GripHorizontal, ArrowUpRight
+    Type, StickyNote, Link2, Plus, GripHorizontal, ArrowUpRight,
+    Hand, PenTool, Eraser, CheckSquare, Folder, Square, FileText, ChevronRight
 } from 'lucide-react';
 
 const COLORS = [
@@ -29,10 +30,22 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
+    // Breadcrumbs (Nested Boards)
+    const [activeBoard, setActiveBoard] = useState<{ id: string, name: string }[]>([{ id: 'root', name: 'Board principal' }]);
+    const currentBoardId = activeBoard[activeBoard.length - 1].id;
+
+    // View Filters
+    const visibleElements = elements.filter(e => (e.parentId || 'root') === currentBoardId);
+    const visibleConnections = connections.filter(c => (c.parentId || 'root') === currentBoardId);
+
     // Canvas State
     const [camera, setCamera] = useState({ x: 0, y: 0, z: 1 });
     const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
-    const [activeTool, setActiveTool] = useState<'cursor' | 'connect'>('cursor');
+    
+    // Tools
+    type ToolType = 'cursor' | 'pan' | 'connect' | 'pen' | 'eraser';
+    const [activeTool, setActiveTool] = useState<ToolType>('cursor');
+    const [penSettings, setPenSettings] = useState({ color: '#6366f1', thickness: 3 });
 
     // Interaction State
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -44,11 +57,12 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
     const [isResizing, setIsResizing] = useState<string | null>(null);
     const [resizeInfo, setResizeInfo] = useState<{ startX: number, startY: number, initialW: number, initialH: number } | null>(null);
 
-    // Connection State
+    // Connection & Pen State
     const [connectingFrom, setConnectingFrom] = useState<string | null>(null);
     const [tempArrowEnd, setTempArrowEnd] = useState<{ x: number, y: number } | null>(null);
     const [hoveredElementId, setHoveredElementId] = useState<string | null>(null);
     const [pendingImagePos, setPendingImagePos] = useState<{ x: number, y: number } | null>(null);
+    const [currentDrawPath, setCurrentDrawPath] = useState<string | null>(null);
 
     // Play UI Sound
     const tryPlaySound = useCallback((type: 'tap' | 'close' | 'success') => {
@@ -72,9 +86,6 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
                 if (board) {
                     setElements(board.elements || []);
                     setConnections(board.connections || []);
-                } else {
-                    setElements([]);
-                    setConnections([]);
                 }
             } catch (error) {
                 console.error("Failed to load whiteboard", error);
@@ -86,7 +97,7 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
         return () => window.removeEventListener('resize', handleResize);
     }, [workspaceId]);
 
-    // 2. Auto-save Engine (Debounce)
+    // 2. Auto-save Engine
     useEffect(() => {
         if (isLoading || !workspaceId) return;
         
@@ -120,7 +131,6 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
     const handleWheel = useCallback((e: WheelEvent) => {
         e.preventDefault();
         if (e.ctrlKey || e.metaKey) {
-            // Zoom
             const zoomSensitivity = 0.001;
             const delta = -e.deltaY * zoomSensitivity;
             const mouseX = e.clientX;
@@ -133,7 +143,6 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
                 return { x: newX, y: newY, z: newZ };
             });
         } else {
-            // Pan
             setCamera(c => ({ x: c.x - e.deltaX, y: c.y - e.deltaY, z: c.z }));
         }
     }, []);
@@ -146,20 +155,9 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
         }
     }, [handleWheel]);
 
-    const resetCamera = () => {
-        tryPlaySound('tap');
-        setCamera({ x: 0, y: 0, z: 1 });
-    };
-
-    const zoomIn = () => {
-        tryPlaySound('tap');
-        setCamera(c => ({ ...c, z: Math.min(c.z + 0.2, 3) }));
-    };
-
-    const zoomOut = () => {
-        tryPlaySound('tap');
-        setCamera(c => ({ ...c, z: Math.max(c.z - 0.2, 0.1) }));
-    };
+    const resetCamera = () => { tryPlaySound('tap'); setCamera({ x: 0, y: 0, z: 1 }); };
+    const zoomIn = () => { tryPlaySound('tap'); setCamera(c => ({ ...c, z: Math.min(c.z + 0.2, 3) })); };
+    const zoomOut = () => { tryPlaySound('tap'); setCamera(c => ({ ...c, z: Math.max(c.z - 0.2, 0.1) })); };
 
     // =====================================
     // CREATION
@@ -179,6 +177,7 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
 
         let newEl: WhiteboardElement = {
             id: generateId(),
+            parentId: currentBoardId,
             type,
             x: cx,
             y: cy,
@@ -191,21 +190,42 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
         if (type === 'postit') {
             newEl.color = COLORS[0];
             newEl.content = 'Nova nota';
-        } else if (type === 'card') {
+        } else if (type === 'card' || type === 'image') {
+            newEl.type = 'card';
             newEl.w = 300;
-            newEl.h = 'auto' as any; // CSS hack
+            newEl.h = 'auto' as any;
             newEl.title = 'Novo Cartão';
             newEl.content = 'Escreva aqui...';
-            newEl.color = 'bg-white text-gray-900 border-gray-200';
+            newEl.color = 'bg-white text-gray-900 border border-gray-200';
         } else if (type === 'text') {
-            newEl.w = 'auto' as any;
+            newEl.w = 300;
             newEl.h = 'auto' as any;
             newEl.content = 'Texto livre';
+        } else if (type === 'task') {
+            newEl.w = 300;
+            newEl.h = 'auto' as any;
+            newEl.title = 'Tarefas';
+            newEl.tasks = [{ id: generateId(), text: 'Atividade 1', done: false }];
+        } else if (type === 'folder') {
+            newEl.w = 200;
+            newEl.h = 100;
+            newEl.title = 'Nova Pasta';
+        } else if (type === 'frame') {
+            newEl.w = 600;
+            newEl.h = 400;
+            newEl.title = 'Nova Seção';
+        } else if (type === 'document') {
+            newEl.w = 400;
+            newEl.h = 300;
+            newEl.htmlContent = 'Comece a digitar aqui...';
         }
 
         setElements(prev => [...prev, newEl]);
-        setSelectedIds([newEl.id]);
-        setActiveTool('cursor');
+        
+        if (type !== 'drawing') {
+            setSelectedIds([newEl.id]);
+            if (activeTool !== 'pen') setActiveTool('cursor');
+        }
     };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -213,9 +233,9 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
         if (file) {
             const reader = new FileReader();
             reader.onload = (ev) => {
-                const x = pendingImagePos?.x || 100;
-                const y = pendingImagePos?.y || 100;
-                createElement('card', x, y, { imageSrc: ev.target?.result as string });
+                const x = pendingImagePos?.x || undefined;
+                const y = pendingImagePos?.y || undefined;
+                createElement('image', x, y, { imageSrc: ev.target?.result as string });
                 setPendingImagePos(null);
             };
             reader.readAsDataURL(file);
@@ -225,57 +245,68 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
 
     const addLink = () => {
         const url = prompt('Cole aqui o Link (URL):');
-        if (url) {
-            createElement('link', undefined, undefined, { url, title: 'Web Link', content: url });
-        }
+        if (url) createElement('link', undefined, undefined, { url, title: 'Web Link', content: url });
     };
 
     // =====================================
-    // POINTER EVENTS (Canvas & Nodes)
+    // POINTER EVENTS
     // =====================================
     const handlePointerDown = (e: React.PointerEvent, elementId: string | null = null) => {
-        // Prevent pan if interacting with UI overlay
         if ((e.target as HTMLElement).closest('.no-drag')) return;
 
         const { x, y } = getLocalCoordinates(e.clientX, e.clientY);
 
-        // Connection Mode Click
-        if (activeTool === 'connect') {
-            if (elementId) {
-                e.preventDefault(); e.stopPropagation();
-                (e.target as HTMLElement).setPointerCapture(e.pointerId);
-                setConnectingFrom(elementId);
-                setTempArrowEnd({ x, y });
-                tryPlaySound('tap');
-            }
-            return;
-        }
-
-        // Panning Background
-        if (!elementId || e.button === 1 || (e.button === 0 && e.altKey)) {
+        if (activeTool === 'pan' || (!elementId && e.button === 0 && activeTool === 'cursor') || e.button === 1 || (e.button === 0 && e.altKey)) {
             setSelectedIds([]);
             setIsPanning(true);
             (e.target as HTMLElement).setPointerCapture(e.pointerId);
             return;
         }
 
-        // Dragging Element
-        e.preventDefault(); e.stopPropagation();
-        (e.target as HTMLElement).setPointerCapture(e.pointerId);
-        
-        if (!selectedIds.includes(elementId)) {
-            const newSelection = e.shiftKey ? [...selectedIds, elementId] : [elementId];
-            setSelectedIds(newSelection);
+        if (activeTool === 'connect' && elementId) {
+            e.preventDefault(); e.stopPropagation();
+            (e.target as HTMLElement).setPointerCapture(e.pointerId);
+            setConnectingFrom(elementId);
+            setTempArrowEnd({ x, y });
             tryPlaySound('tap');
+            return;
         }
 
-        setIsDragging(true);
-        const selectedEls = elements.filter(el => selectedIds.includes(el.id) || el.id === elementId);
-        setDragInfo({
-            startX: x,
-            startY: y,
-            initialElements: selectedEls.map(el => ({ id: el.id, initialX: el.x, initialY: el.y }))
-        });
+        if (activeTool === 'pen' && !elementId) {
+            setCurrentDrawPath(`M ${x} ${y}`);
+            (e.target as HTMLElement).setPointerCapture(e.pointerId);
+            return;
+        }
+
+        // Eraser Mode
+        if (activeTool === 'eraser' && elementId) {
+            const el = elements.find(el => el.id === elementId);
+            if (el?.type === 'drawing') {
+                deleteElement(elementId);
+                tryPlaySound('close');
+            }
+            return;
+        }
+
+        // Element Drag
+        if (elementId && activeTool === 'cursor') {
+            e.preventDefault(); e.stopPropagation();
+            (e.target as HTMLElement).setPointerCapture(e.pointerId);
+            
+            if (!selectedIds.includes(elementId)) {
+                const newSelection = e.shiftKey ? [...selectedIds, elementId] : [elementId];
+                setSelectedIds(newSelection);
+                tryPlaySound('tap');
+            }
+
+            setIsDragging(true);
+            const selectedEls = visibleElements.filter(el => selectedIds.includes(el.id) || el.id === elementId);
+            setDragInfo({
+                startX: x,
+                startY: y,
+                initialElements: selectedEls.map(el => ({ id: el.id, initialX: el.x, initialY: el.y }))
+            });
+        }
     };
 
     const handleResizeStart = (e: React.PointerEvent, element: WhiteboardElement) => {
@@ -294,6 +325,11 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
             return;
         }
 
+        if (activeTool === 'pen' && currentDrawPath) {
+            setCurrentDrawPath(prev => prev + ` L ${x} ${y}`);
+            return;
+        }
+
         if (connectingFrom) {
             setTempArrowEnd({ x, y });
             return;
@@ -304,11 +340,7 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
             const deltaY = y - resizeInfo.startY;
             setElements(els => els.map(el => {
                 if (el.id === isResizing) {
-                    return { 
-                        ...el, 
-                        w: Math.max(100, resizeInfo.initialW + deltaX),
-                        h: Math.max(50, resizeInfo.initialH + deltaY) 
-                    };
+                    return { ...el, w: Math.max(100, resizeInfo.initialW + deltaX), h: Math.max(50, resizeInfo.initialH + deltaY) };
                 }
                 return el;
             }));
@@ -318,7 +350,6 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
         if (isDragging && dragInfo) {
             const deltaX = x - dragInfo.startX;
             const deltaY = y - dragInfo.startY;
-
             setElements(els => els.map(el => {
                 const initial = dragInfo.initialElements.find(i => i.id === el.id);
                 if (initial) {
@@ -332,10 +363,15 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
     const handlePointerUp = (e: React.PointerEvent) => {
         (e.target as HTMLElement).releasePointerCapture(e.pointerId);
 
+        if (activeTool === 'pen' && currentDrawPath) {
+            createElement('drawing', 0, 0, { path: currentDrawPath, color: penSettings.color, thickness: penSettings.thickness, w: 0, h: 0 });
+            setCurrentDrawPath(null);
+        }
+
         if (connectingFrom) {
             if (hoveredElementId && hoveredElementId !== connectingFrom) {
                 tryPlaySound('success');
-                setConnections(prev => [...prev, { id: generateId(), from: connectingFrom, to: hoveredElementId }]);
+                setConnections(prev => [...prev, { id: generateId(), from: connectingFrom, to: hoveredElementId, parentId: currentBoardId }]);
             }
             setConnectingFrom(null);
             setTempArrowEnd(null);
@@ -355,6 +391,11 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
         setElements(els => els.map(el => el.id === id ? { ...el, ...updates } : el));
     };
 
+    const deleteElement = (id: string) => {
+        setElements(els => els.filter(el => el.id !== id));
+        setConnections(cons => cons.filter(c => c.from !== id && c.to !== id));
+    };
+
     const deleteSelection = (e: React.MouseEvent) => {
         e.stopPropagation();
         tryPlaySound('close');
@@ -363,26 +404,25 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
         setSelectedIds([]);
     };
 
-    const deleteConnection = (id: string) => {
-        setConnections(cons => cons.filter(c => c.id !== id));
-        tryPlaySound('close');
+    const execCommand = (e: React.MouseEvent, cmd: string, val: string | undefined = undefined) => {
+        e.preventDefault();
+        document.execCommand(cmd, false, val);
     };
 
     // =====================================
     // RENDERERS
     // =====================================
     const renderConnections = () => {
-        const activeConnections = [...connections];
+        const activeConnections = [...visibleConnections];
         if (connectingFrom && tempArrowEnd) {
             activeConnections.push({ id: 'temp', from: connectingFrom, to: 'temp' });
         }
 
         return activeConnections.map(conn => {
-            const fromEl = elements.find(e => e.id === conn.from);
-            const toEl = conn.to === 'temp' ? { x: tempArrowEnd!.x, y: tempArrowEnd!.y, w: 0, h: 0 } as any : elements.find(e => e.id === conn.to);
+            const fromEl = visibleElements.find(e => e.id === conn.from);
+            const toEl = conn.to === 'temp' ? { x: tempArrowEnd!.x, y: tempArrowEnd!.y, w: 0, h: 0 } as any : visibleElements.find(e => e.id === conn.to);
             if (!fromEl || !toEl) return null;
 
-            // Calc centers approximately
             const w1 = typeof fromEl.w === 'number' ? fromEl.w : 150;
             const h1 = typeof fromEl.h === 'number' ? fromEl.h : 50;
             const w2 = typeof toEl.w === 'number' ? toEl.w : 150;
@@ -393,28 +433,13 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
             const x2 = toEl.x + w2 / 2;
             const y2 = toEl.y + h2 / 2;
 
-            // Smooth cubic bezier
             const d = `M ${x1} ${y1} C ${x1 + (x2 - x1) / 2} ${y1}, ${x1 + (x2 - x1) / 2} ${y2}, ${x2} ${y2}`;
 
             return (
                 <g key={conn.id}>
-                    <path 
-                        d={d} 
-                        fill="none" 
-                        stroke={document.documentElement.classList.contains('dark') ? "#6b7280" : "#9ca3af"} 
-                        strokeWidth="3" 
-                        strokeDasharray={conn.id === 'temp' ? "5,5" : "none"} 
-                        markerEnd="url(#arrowhead)" 
-                    />
+                    <path d={d} fill="none" stroke={document.documentElement.classList.contains('dark') ? "#6b7280" : "#9ca3af"} strokeWidth="3" strokeDasharray={conn.id === 'temp' ? "5,5" : "none"} markerEnd="url(#arrowhead)" />
                     {conn.id !== 'temp' && activeTool === 'cursor' && (
-                        <path 
-                            d={d} 
-                            fill="none" 
-                            stroke="transparent" 
-                            strokeWidth="20" 
-                            className="cursor-pointer hover:stroke-rose-500/30 transition-colors" 
-                            onClick={(e) => { e.stopPropagation(); deleteConnection(conn.id); }} 
-                        />
+                        <path d={d} fill="none" stroke="transparent" strokeWidth="20" className="cursor-pointer hover:stroke-rose-500/30 transition-colors" onClick={(e) => { e.stopPropagation(); setConnections(cs => cs.filter(c => c.id !== conn.id)); tryPlaySound('close'); }} />
                     )}
                 </g>
             );
@@ -422,63 +447,106 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
     };
 
     return (
-        <div className="relative w-full h-full overflow-hidden bg-gray-50 dark:bg-[#0a0a0c] font-sans">
+        <div className="relative w-full h-full overflow-hidden bg-gray-50 dark:bg-[#0a0a0c] font-sans flex flex-col">
             
             <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
 
-            {/* AUTO SAVE INDICATOR */}
-            <div className="absolute top-4 left-4 sm:top-6 sm:left-6 md:left-[90px] z-50 flex items-center gap-2 bg-white/90 dark:bg-zinc-900/90 border border-gray-200 dark:border-zinc-800 backdrop-blur-md px-4 py-2 rounded-xl text-xs font-bold shadow-sm pointer-events-none">
-                {isLoading ? (
-                    <span className="text-gray-500 animate-pulse">Carregando...</span>
-                ) : saveStatus === 'saving' ? (
-                    <span className="text-amber-500 animate-pulse">Salvando Workspace...</span>
-                ) : saveStatus === 'saved' ? (
-                    <span className="text-emerald-500">Salvo!</span>
-                ) : (
-                    <span className="text-gray-400">Mapa Mental Ativo</span>
-                )}
+            {/* BREADCRUMBS & AUTO SAVE */}
+            <div className="absolute top-4 left-4 z-50 flex items-center gap-2">
+                {/* Autosave HUD */}
+                <div className="flex items-center gap-2 bg-white/90 dark:bg-zinc-900/90 border border-gray-200 dark:border-zinc-800 backdrop-blur-md px-4 py-2 rounded-xl text-xs font-bold shadow-sm">
+                    {isLoading ? <span className="text-gray-500 animate-pulse">Carregando...</span> : saveStatus === 'saving' ? <span className="text-amber-500 animate-pulse">Salvando Workspace...</span> : saveStatus === 'saved' ? <span className="text-emerald-500">Salvo!</span> : <span className="text-gray-400">Mapa Mental Ativo</span>}
+                </div>
+                
+                {/* Breadcrumbs HUD */}
+                <div className="flex items-center gap-1 bg-white/90 dark:bg-zinc-900/90 border border-gray-200 dark:border-zinc-800 backdrop-blur-md px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm">
+                    {activeBoard.map((board, ii) => (
+                        <React.Fragment key={board.id}>
+                            <button onClick={() => { setActiveBoard(prev => prev.slice(0, ii + 1)); resetCamera(); }} className={`hover:text-indigo-500 transition-colors ${ii === activeBoard.length - 1 ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-zinc-400'}`}>
+                                {board.name}
+                            </button>
+                            {ii < activeBoard.length - 1 && <ChevronRight size={14} className="text-gray-300 dark:text-zinc-700" />}
+                        </React.Fragment>
+                    ))}
+                </div>
             </div>
 
-            {/* SELECTION MENU (Floating) */}
+            {/* PEN COLOR SELECTION HUD */}
+            {activeTool === 'pen' && (
+                <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 p-1.5 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl animate-in slide-in-from-top-2">
+                    {['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#8b5cf6', '#000000', '#ffffff'].map((c, i) => (
+                        <button key={i} onClick={() => setPenSettings(p => ({ ...p, color: c }))} className={`w-6 h-6 rounded-full border border-black/10 dark:border-white/10 transition-transform ${penSettings.color === c ? 'scale-125 ring-2 ring-offset-1 ring-offset-white dark:ring-offset-black ring-indigo-500' : 'hover:scale-110'} ios-btn`} style={{ backgroundColor: c }} />
+                    ))}
+                    <div className="w-px h-6 bg-gray-200 dark:bg-zinc-800 mx-1"></div>
+                    <input type="range" min="1" max="20" value={penSettings.thickness} onChange={(e) => setPenSettings(p => ({ ...p, thickness: parseInt(e.target.value) }))} className="w-24" />
+                </div>
+            )}
+
+            {/* SELECTION MENU */}
             {selectedIds.length > 0 && activeTool === 'cursor' && (
                 <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 p-1.5 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl animate-in slide-in-from-top-2">
                     {elements.find(e => e.id === selectedIds[0])?.type === 'postit' && (
                         <div className="flex gap-1 pr-2 border-r border-gray-200 dark:border-zinc-800">
                             {COLORS.map((c, i) => (
-                                <button key={i} onClick={() => updateElement(selectedIds[0], { color: c })} className={`w-6 h-6 rounded-full border border-black/10 dark:border-white/10 ${c.split(' ')[0]} transition-transform hover:scale-110 ios-btn`} />
+                                <button key={i} onClick={() => updateElement(selectedIds[0], { color: c })} className={`w-6 h-6 rounded-full border border-black/10 transition-transform hover:scale-110 ios-btn ${c.split(' ')[0]}`} />
                             ))}
                         </div>
                     )}
                     <button onClick={deleteSelection} className="p-2 text-gray-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-colors ios-btn">
                         <Trash2 size={18} />
                     </button>
+                    {elements.find(e => e.id === selectedIds[0])?.type === 'folder' && (
+                        <button onClick={() => { 
+                            const fw = elements.find(e => e.id === selectedIds[0]); 
+                            if(fw) setActiveBoard(prev => [...prev, { id: fw.id, name: fw.title || 'Pasta' }]); 
+                            resetCamera(); 
+                            setSelectedIds([]); 
+                        }} className="p-2 text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-xl font-bold flex gap-2 items-center text-xs ml-2 border-l border-gray-200 dark:border-zinc-800 pl-4">
+                            Entrar na Pasta <ChevronRight size={14} />
+                        </button>
+                    )}
                 </div>
             )}
 
-            {/* TOOLBAR (Floating Bottom/Left) */}
-            <div className={`absolute z-40 bg-white/90 dark:bg-[#111114]/90 backdrop-blur-xl border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl transition-all
+            {/* FULL MILANOTE TOOLBAR (Floating Bottom/Left) */}
+            <div className={`absolute z-40 bg-white/90 dark:bg-[#111114]/90 backdrop-blur-xl border border-gray-200 dark:border-zinc-800 shadow-2xl transition-all
                 ${isMobile 
-                    ? 'bottom-6 left-4 right-4 flex-row justify-between p-2' 
-                    : 'left-6 top-1/2 -translate-y-1/2 flex-col gap-2 p-2'}
+                    ? 'bottom-6 left-4 right-4 flex-row overflow-x-auto no-scrollbar rounded-2xl p-2' 
+                    : 'left-6 top-1/2 -translate-y-1/2 flex-col gap-2 p-2 rounded-2xl h-auto max-h-[80vh] overflow-y-auto custom-scrollbar'}
             `}>
-                <div className={`flex ${isMobile ? 'flex-row gap-1 overflow-x-auto no-scrollbar' : 'flex-col gap-2'}`}>
-                    {/* Operation Modes */}
-                    <button onClick={() => { setActiveTool('cursor'); tryPlaySound('tap'); }} className={`p-3 rounded-xl transition-all ios-btn shrink-0 ${activeTool === 'cursor' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`}><MousePointer2 size={18} /></button>
-                    <button onClick={() => { setActiveTool('connect'); setSelectedIds([]); tryPlaySound('tap'); }} className={`p-3 rounded-xl transition-all ios-btn shrink-0 ${activeTool === 'connect' ? 'bg-emerald-500 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`} title="Conectar Nós (Ative e clique em dois painéis)"><ArrowUpRight size={18} /></button>
+                <div className={`flex ${isMobile ? 'flex-row gap-1' : 'flex-col gap-1'}`}>
                     
+                    {/* Selectors & Nav */}
+                    <button onClick={() => { setActiveTool('cursor'); tryPlaySound('tap'); }} className={`p-3 rounded-xl transition-all ios-btn shrink-0 ${activeTool === 'cursor' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`} title="Cursor"><MousePointer2 size={18} /></button>
+                    <button onClick={() => { setActiveTool('pan'); setSelectedIds([]); tryPlaySound('tap'); }} className={`p-3 rounded-xl transition-all ios-btn shrink-0 ${activeTool === 'pan' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`} title="Pan (Mover View)"><Hand size={18} /></button>
+                    
+                    <div className={`${isMobile ? 'w-px h-full mx-1' : 'h-px w-full my-1'} bg-gray-200 dark:bg-zinc-800 shrink-0`}></div>
+                    
+                    {/* Line based tools */}
+                    <button onClick={() => { setActiveTool('connect'); setSelectedIds([]); tryPlaySound('tap'); }} className={`p-3 rounded-xl transition-all ios-btn shrink-0 ${activeTool === 'connect' ? 'bg-emerald-500 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`} title="Conectar"><ArrowUpRight size={18} /></button>
+                    <button onClick={() => { setActiveTool('pen'); setSelectedIds([]); tryPlaySound('tap'); }} className={`p-3 rounded-xl transition-all ios-btn shrink-0 ${activeTool === 'pen' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`} title="Caneta Livre"><PenTool size={18} /></button>
+                    <button onClick={() => { setActiveTool('eraser'); setSelectedIds([]); tryPlaySound('tap'); }} className={`p-3 rounded-xl transition-all ios-btn shrink-0 ${activeTool === 'eraser' ? 'bg-rose-500 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`} title="Borracha"><Eraser size={18} /></button>
+
                     <div className={`${isMobile ? 'w-px h-full mx-1' : 'h-px w-full my-1'} bg-gray-200 dark:bg-zinc-800 shrink-0`}></div>
 
                     {/* Content Adders */}
-                    <button onClick={() => createElement('postit')} title="Post-it (Sticky Note)" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-zinc-800 shrink-0"><StickyNote size={18} /></button>
-                    <button onClick={() => createElement('card')} title="Cartão Complexo" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-zinc-800 shrink-0"><GripHorizontal size={18} /></button>
-                    <button onClick={() => createElement('text')} title="Texto Simples" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-zinc-800 shrink-0"><Type size={18} /></button>
+                    <button onClick={() => createElement('postit')} title="Nota (Post-it)" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-zinc-800 shrink-0"><StickyNote size={18} /></button>
+                    <button onClick={() => createElement('task')} title="Tarefas" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-zinc-800 shrink-0"><CheckSquare size={18} /></button>
+                    <button onClick={() => createElement('text')} title="Texto" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-zinc-800 shrink-0"><Type size={18} /></button>
                     <button onClick={() => fileInputRef.current?.click()} title="Imagem" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-zinc-800 shrink-0"><ImageIcon size={18} /></button>
-                    <button onClick={addLink} title="Link com Preview" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-zinc-800 shrink-0"><Link2 size={18} /></button>
+                    <button onClick={() => addLink()} title="Link" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-zinc-800 shrink-0"><Link2 size={18} /></button>
+
+                    <div className={`${isMobile ? 'w-px h-full mx-1' : 'h-px w-full my-1'} bg-gray-200 dark:bg-zinc-800 shrink-0`}></div>
+
+                    {/* Structures */}
+                    <button onClick={() => createElement('folder')} title="Pasta (Sub-board)" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-zinc-800 shrink-0"><Folder size={18} /></button>
+                    <button onClick={() => createElement('frame')} title="Frame / Zona" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-zinc-800 shrink-0"><Square size={18} /></button>
+                    <button onClick={() => createElement('document')} title="Documento" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-zinc-800 shrink-0"><FileText size={18} /></button>
                 </div>
             </div>
 
-            {/* CAMERA CONTROLS (Floating Right Bottom) */}
-            <div className={`absolute ${isMobile ? 'right-4 top-4' : 'right-6 bottom-6'} z-40 flex items-center gap-1 p-1 bg-white/90 dark:bg-[#111114]/90 backdrop-blur-xl border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl pointer-events-auto`}>
+            {/* CAMERA CONTROLS */}
+            <div className={`absolute ${isMobile ? 'right-4 top-4 mt-12' : 'right-6 bottom-6'} z-40 flex items-center gap-1 p-1 bg-white/90 dark:bg-[#111114]/90 backdrop-blur-xl border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl pointer-events-auto`}>
                 <button onClick={zoomOut} className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg ios-btn"><ZoomOut size={16} /></button>
                 {!isMobile && <span className="text-xs font-bold text-gray-700 dark:text-zinc-300 w-12 text-center font-mono">{Math.round(camera.z * 100)}%</span>}
                 <button onClick={zoomIn} className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg ios-btn"><ZoomIn size={16} /></button>
@@ -489,7 +557,7 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
             {/* MAIN CANVAS */}
             <div
                 ref={canvasRef}
-                className={`w-full h-full cursor-${isPanning ? 'grabbing' : (activeTool === 'connect' ? 'crosshair' : 'grab')} touch-none`}
+                className={`w-full flex-1 overflow-hidden touch-none ${activeTool === 'pan' || isPanning ? 'cursor-grabbing' : activeTool === 'connect' ? 'cursor-crosshair' : activeTool === 'pen' ? 'cursor-edit' : activeTool === 'eraser' ? 'cursor-not-allowed' : 'cursor-default'}`}
                 onPointerDown={handlePointerDown}
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
@@ -502,7 +570,7 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
             >
                 <div className="absolute inset-0 origin-top-left" style={{ transform: `translate(${camera.x}px, ${camera.y}px) scale(${camera.z})` }}>
                     
-                    {/* SVGS Connections */}
+                    {/* DRAWING / CONNECTIONS LAYER */}
                     <svg className="absolute pointer-events-none z-0" style={{ top: 0, left: 0, width: 1, height: 1, overflow: 'visible' }}>
                         <defs>
                             <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
@@ -510,62 +578,185 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
                             </marker>
                         </defs>
                         {renderConnections()}
+                        
+                        {/* Live drawing path */}
+                        {currentDrawPath && (
+                            <path d={currentDrawPath} fill="none" stroke={penSettings.color} strokeWidth={penSettings.thickness} strokeLinecap="round" strokeLinejoin="round" />
+                        )}
+
+                        {/* Saved drawing paths */}
+                        {visibleElements.filter(e => e.type === 'drawing').map(el => (
+                            <path 
+                                key={el.id} 
+                                d={el.path!} 
+                                fill="none" 
+                                stroke={el.color || '#000'} 
+                                strokeWidth={el.thickness || 3} 
+                                strokeLinecap="round" 
+                                strokeLinejoin="round" 
+                                onClick={(e) => {
+                                    if(activeTool === 'eraser') {
+                                        e.stopPropagation();
+                                        deleteElement(el.id);
+                                        tryPlaySound('close');
+                                    }
+                                }}
+                                style={{ pointerEvents: activeTool === 'eraser' ? 'stroke' : 'none', cursor: activeTool === 'eraser' ? 'crosshair' : 'default' }}
+                                className={activeTool === 'eraser' ? 'hover:opacity-50 transition-opacity' : ''}
+                            />
+                        ))}
                     </svg>
 
-                    {/* Nodes Loop */}
-                    {elements.map((el) => {
+                    {/* Nodes Loop (We render frames first so they act as backgrounds) */}
+                    {[...visibleElements].sort((a, b) => (a.type === 'frame' ? -1 : 1)).map((el) => {
+                        if (el.type === 'drawing') return null; // handled in SVG
+                        
                         const isSelected = selectedIds.includes(el.id);
-                        const isHovered = hoveredElementId === el.id;
+                        const isFrame = el.type === 'frame';
 
-                        // Shared CSS bases
-                        const baseClasses = `absolute touch-none origin-top-left group ${isSelected || (isHovered && activeTool === 'connect') ? 'ring-2 ring-indigo-500 shadow-2xl z-20' : 'shadow-xl z-10'} transition-shadow`;
+                        // Shared CSS bases. Frames have pointer-events-none in their center.
+                        const baseClasses = `absolute origin-top-left group ${isSelected && activeTool === 'cursor' ? 'ring-2 ring-indigo-500 shadow-2xl z-20' : (isFrame ? 'z-0' : 'shadow-xl z-10')} transition-shadow`;
 
-                        // Type Overrides
+                        const ResizeHandle = () => isSelected && activeTool === 'cursor' ? (
+                            <div onPointerDown={(e) => handleResizeStart(e, el)} className="absolute -bottom-1 -right-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full cursor-nwse-resize z-50 pointer-events-auto" />
+                        ) : null;
+
+                        // RENDER: POST-IT
                         if (el.type === 'postit') {
                             return (
-                                <div key={el.id} className={baseClasses} style={{ left: el.x, top: el.y, width: el.w, height: el.h }} onPointerEnter={() => setHoveredElementId(el.id)} onPointerLeave={() => setHoveredElementId(null)} onPointerDown={(e) => handlePointerDown(e, el.id)}>
-                                    {isSelected && activeTool === 'cursor' && <div onPointerDown={(e) => handleResizeStart(e, el)} className="absolute -bottom-1 -right-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full cursor-nwse-resize z-30" />}
-                                    <div className={`w-full h-full p-6 shadow-[4px_4px_15px_rgba(0,0,0,0.1)] relative overflow-hidden transition-colors ${el.color}`}>
+                                <div key={el.id} className={`${baseClasses} touch-none pointer-events-auto`} style={{ left: el.x, top: el.y, width: el.w, height: el.h }} onPointerDown={(e) => handlePointerDown(e, el.id)}>
+                                    <ResizeHandle />
+                                    <div className={`w-full h-full p-6 shadow-md relative overflow-hidden transition-colors ${el.color || COLORS[0]}`}>
                                         <div className="absolute top-0 left-0 w-full h-2 bg-black/10 dark:bg-white/10" />
-                                        <textarea value={el.content} onChange={(e) => updateElement(el.id, { content: e.target.value })} placeholder="Sua nota..." className="no-drag w-full h-full bg-transparent resize-none outline-none text-base font-medium leading-relaxed custom-scrollbar" style={{ color: 'inherit' }} />
+                                        <textarea value={el.content} onChange={(e) => updateElement(el.id, { content: e.target.value })} className="no-drag w-full h-full bg-transparent resize-none outline-none text-base font-medium leading-relaxed custom-scrollbar" style={{ color: 'inherit' }} />
                                     </div>
                                 </div>
                             );
                         }
 
-                        if (el.type === 'card') {
+                        // RENDER: TEXT
+                        if (el.type === 'text') {
                             return (
-                                <div key={el.id} className={`${baseClasses} rounded-2xl overflow-hidden bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 flex flex-col`} style={{ left: el.x, top: el.y, width: el.w, minHeight: 150 }} onPointerEnter={() => setHoveredElementId(el.id)} onPointerLeave={() => setHoveredElementId(null)} onPointerDown={(e) => handlePointerDown(e, el.id)}>
-                                    {isSelected && activeTool === 'cursor' && <div onPointerDown={(e) => handleResizeStart(e, el)} className="absolute -bottom-1 -right-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full cursor-nwse-resize z-30" />}
-                                    
-                                    {el.imageSrc && <img src={el.imageSrc} alt="Preview" className="w-full h-40 object-cover pointer-events-none" />}
-                                    
-                                    <div className="p-4 flex flex-col gap-2 flex-1">
-                                        <input value={el.title || ''} onChange={(e) => updateElement(el.id, { title: e.target.value })} placeholder="Título do Cartão" className="no-drag w-full font-black text-gray-900 dark:text-white bg-transparent outline-none text-sm" />
-                                        <textarea value={el.content} onChange={(e) => updateElement(el.id, { content: e.target.value })} placeholder="Escreva os detalhes aqui..." className="no-drag w-full flex-1 min-h-[80px] text-sm text-gray-600 dark:text-zinc-400 bg-transparent resize-none outline-none custom-scrollbar" />
-                                    </div>
+                                <div key={el.id} className={`${baseClasses} touch-none pointer-events-auto`} style={{ left: el.x, top: el.y, minWidth: 150 }} onPointerDown={(e) => handlePointerDown(e, el.id)}>
+                                    <textarea value={el.content} onChange={(e) => updateElement(el.id, { content: e.target.value })} rows={1} className="no-drag w-full bg-transparent border-none resize-none outline-none whitespace-pre-wrap overflow-hidden p-3 font-black text-2xl text-gray-900 dark:text-white" onInput={(e: any) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
                                 </div>
                             );
                         }
 
+                        // RENDER: FOLDER
+                        if (el.type === 'folder') {
+                            return (
+                                <div key={el.id} className={`${baseClasses} touch-none pointer-events-auto rounded-3xl bg-indigo-50 dark:bg-indigo-500/10 border-2 border-indigo-200 dark:border-indigo-500/30 flex items-center justify-center gap-3 cursor-pointer`} style={{ left: el.x, top: el.y, width: el.w, height: el.h }} onDoubleClick={() => { setActiveBoard(prev => [...prev, { id: el.id, name: el.title || 'Pasta' }]); resetCamera(); }} onPointerDown={(e) => handlePointerDown(e, el.id)}>
+                                    <Folder className="text-indigo-500 w-8 h-8 pointer-events-none" />
+                                    <input value={el.title} onChange={(e) => updateElement(el.id, { title: e.target.value })} className="no-drag font-black text-gray-900 dark:text-white bg-transparent outline-none w-2/3 truncate" onClick={e => e.stopPropagation()} />
+                                </div>
+                            );
+                        }
+
+                        // RENDER: FRAME
+                        if (el.type === 'frame') {
+                            return (
+                                <div key={el.id} className={`${baseClasses} bg-transparent pointer-events-none border-2 border-dashed border-gray-400/50 dark:border-zinc-700 rounded-3xl`} style={{ left: el.x, top: el.y, width: el.w, height: el.h }}>
+                                    <div className="absolute top-0 left-0 bg-gray-400/20 dark:bg-zinc-800 backdrop-blur-md px-4 py-2 rounded-br-2xl rounded-tl-xl pointer-events-auto cursor-grab active:cursor-grabbing border-b border-r border-gray-300/30 font-bold" onPointerDown={(e) => handlePointerDown(e, el.id)}>
+                                        <input value={el.title} onChange={(e) => updateElement(el.id, { title: e.target.value })} className="bg-transparent outline-none w-32 border-none text-gray-600 dark:text-gray-300 no-drag" onClick={e => e.stopPropagation()}/>
+                                    </div>
+                                    <ResizeHandle />
+                                </div>
+                            );
+                        }
+
+                        // RENDER: DOCUMENT (Rich Text Box)
+                        if (el.type === 'document') {
+                            return (
+                                <div key={el.id} className={`${baseClasses} touch-none pointer-events-auto rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 flex flex-col shadow-xl overflow-hidden group`} style={{ left: el.x, top: el.y, width: el.w, height: el.h }} onPointerDown={(e) => handlePointerDown(e, el.id)}>
+                                    {/* Floating Rich Text Toolbar (appears on hover near top) */}
+                                    {isSelected && activeTool === 'cursor' && (
+                                        <div className="absolute -top-12 left-0 right-0 flex justify-center no-drag">
+                                            <div className="bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 shadow-xl rounded-xl flex items-center p-1 gap-1 text-gray-700 dark:text-gray-200">
+                                                <button onClick={(e) => execCommand(e, 'bold')} className="p-1.5 hover:bg-gray-100 dark:hover:bg-zinc-700 rounded font-bold">B</button>
+                                                <button onClick={(e) => execCommand(e, 'italic')} className="p-1.5 hover:bg-gray-100 dark:hover:bg-zinc-700 rounded italic">I</button>
+                                                <button onClick={(e) => execCommand(e, 'underline')} className="p-1.5 hover:bg-gray-100 dark:hover:bg-zinc-700 rounded underline">U</button>
+                                                <div className="w-px h-4 bg-gray-300 mx-1"></div>
+                                                <button onClick={(e) => execCommand(e, 'formatBlock', 'H1')} className="p-1.5 hover:bg-gray-100 dark:hover:bg-zinc-700 rounded font-bold">H1</button>
+                                                <button onClick={(e) => execCommand(e, 'formatBlock', 'H2')} className="p-1.5 hover:bg-gray-100 dark:hover:bg-zinc-700 rounded font-bold">H2</button>
+                                                <div className="w-px h-4 bg-gray-300 mx-1"></div>
+                                                <button onClick={(e) => execCommand(e, 'insertUnorderedList')} className="p-1.5 hover:bg-gray-100 dark:hover:bg-zinc-700 rounded">•</button>
+                                                <button onClick={(e) => execCommand(e, 'insertOrderedList')} className="p-1.5 hover:bg-gray-100 dark:hover:bg-zinc-700 rounded">1.</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="w-full h-8 bg-gray-100 dark:bg-black/40 border-b border-gray-200 dark:border-zinc-800 drag-handle cursor-grab flex items-center px-4 shrink-0">
+                                        <FileText size={14} className="text-gray-400 mr-2" />
+                                        <span className="text-xs font-bold text-gray-500">Documento</span>
+                                    </div>
+                                    <div className="flex-1 p-6 overflow-y-auto custom-scrollbar no-drag bg-white dark:bg-zinc-900">
+                                        <div
+                                            contentEditable
+                                            suppressContentEditableWarning
+                                            onBlur={(e) => updateElement(el.id, { htmlContent: e.currentTarget.innerHTML })}
+                                            className="w-full h-full outline-none prose dark:prose-invert max-w-none text-sm"
+                                            dangerouslySetInnerHTML={{ __html: el.htmlContent || '' }}
+                                        />
+                                    </div>
+                                    <ResizeHandle />
+                                </div>
+                            );
+                        }
+
+                        // RENDER: TASK (Checklist)
+                        if (el.type === 'task') {
+                            return (
+                                <div key={el.id} className={`${baseClasses} touch-none pointer-events-auto rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 flex flex-col shadow-xl overflow-hidden group p-4`} style={{ left: el.x, top: el.y, width: el.w, height: el.h }} onPointerDown={(e) => handlePointerDown(e, el.id)}>
+                                    <input value={el.title} onChange={(e) => updateElement(el.id, { title: e.target.value })} className="no-drag font-black text-gray-900 dark:text-white bg-transparent outline-none mb-3 text-lg" placeholder="Tarefas" />
+                                    <div className="flex-1 overflow-y-auto no-drag custom-scrollbar pr-2 flex flex-col gap-2">
+                                        {el.tasks?.map((tsk, i) => (
+                                            <div key={tsk.id} className="flex items-center gap-2 group/task">
+                                                <input type="checkbox" checked={tsk.done} onChange={(e) => {
+                                                    const newTasks = [...(el.tasks || [])];
+                                                    newTasks[i].done = e.target.checked;
+                                                    updateElement(el.id, { tasks: newTasks });
+                                                }} className="w-4 h-4 rounded-md border-gray-300 text-indigo-600 focus:ring-indigo-600" />
+                                                <input value={tsk.text} onChange={(e) => {
+                                                    const newTasks = [...(el.tasks || [])];
+                                                    newTasks[i].text = e.target.value;
+                                                    updateElement(el.id, { tasks: newTasks });
+                                                }} className={`bg-transparent outline-none flex-1 text-sm ${tsk.done ? 'line-through text-gray-400' : 'text-gray-700 dark:text-gray-200'}`} />
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <button onClick={() => updateElement(el.id, { tasks: [...(el.tasks || []), { id: generateId(), text: 'Nova tarefa', done: false }] })} className="no-drag mt-3 text-sm text-indigo-500 hover:text-indigo-600 font-bold flex items-center gap-1 justify-center py-2 bg-indigo-50 dark:bg-indigo-500/10 rounded-xl">
+                                        <Plus size={14} /> Adicionar Item
+                                    </button>
+                                    <ResizeHandle />
+                                </div>
+                            );
+                        }
+
+                        // RENDER: CARD & IMAGE
+                        if (el.type === 'card' || el.type === 'image') {
+                            return (
+                                <div key={el.id} className={`${baseClasses} touch-none pointer-events-auto rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 flex flex-col shadow-xl overflow-hidden group`} style={{ left: el.x, top: el.y, width: el.w, minHeight: 150 }} onPointerDown={(e) => handlePointerDown(e, el.id)}>
+                                    {el.imageSrc && <img src={el.imageSrc} alt="Preview" className="w-full h-40 object-cover pointer-events-none" />}
+                                    <div className="p-4 flex flex-col gap-2 flex-1">
+                                        <input value={el.title || ''} onChange={(e) => updateElement(el.id, { title: e.target.value })} placeholder="Título" className="no-drag w-full font-black text-gray-900 dark:text-white bg-transparent outline-none" />
+                                        <textarea value={el.content} onChange={(e) => updateElement(el.id, { content: e.target.value })} placeholder="Escreva os detalhes aqui..." className="no-drag w-full flex-1 min-h-[40px] text-sm text-gray-600 dark:text-zinc-400 bg-transparent resize-none outline-none custom-scrollbar" />
+                                    </div>
+                                    <ResizeHandle />
+                                </div>
+                            );
+                        }
+
+                        // RENDER: LINK
                         if (el.type === 'link') {
                             return (
-                                <div key={el.id} className={`${baseClasses} rounded-2xl overflow-hidden bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-4 flex gap-4 min-w-[300px]`} style={{ left: el.x, top: el.y }} onPointerEnter={() => setHoveredElementId(el.id)} onPointerLeave={() => setHoveredElementId(null)} onPointerDown={(e) => handlePointerDown(e, el.id)}>
+                                <div key={el.id} className={`${baseClasses} touch-none pointer-events-auto rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-4 flex gap-4 min-w-[300px] items-center`} style={{ left: el.x, top: el.y }} onPointerDown={(e) => handlePointerDown(e, el.id)}>
                                     <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-500/10 rounded-xl flex items-center justify-center shrink-0">
                                         <Link2 className="text-indigo-500" />
                                     </div>
-                                    <div className="flex flex-col flex-1 overflow-hidden justify-center">
-                                        <input value={el.title || ''} onChange={(e) => updateElement(el.id, { title: e.target.value })} className="no-drag font-black text-sm text-gray-900 dark:text-white bg-transparent outline-none truncate w-full" placeholder="Título do Link" />
+                                    <div className="flex flex-col flex-1 overflow-hidden">
+                                        <input value={el.title || ''} onChange={(e) => updateElement(el.id, { title: e.target.value })} className="no-drag font-black text-sm text-gray-900 dark:text-white bg-transparent outline-none w-full" placeholder="Título" />
                                         <a href={el.content || el.url} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-500 hover:underline truncate no-drag" onPointerDown={e => e.stopPropagation()}>{el.content || el.url}</a>
                                     </div>
-                                </div>
-                            );
-                        }
-
-                        if (el.type === 'text') {
-                            return (
-                                <div key={el.id} className={`absolute touch-none origin-top-left group ${isSelected || isHovered ? 'ring-2 ring-indigo-500/50 bg-indigo-500/5 rounded-lg' : ''}`} style={{ left: el.x, top: el.y, minWidth: 150 }} onPointerEnter={() => setHoveredElementId(el.id)} onPointerLeave={() => setHoveredElementId(null)} onPointerDown={(e) => handlePointerDown(e, el.id)}>
-                                    <textarea value={el.content} onChange={(e) => updateElement(el.id, { content: e.target.value })} placeholder="Digite algo..." rows={1} className="no-drag w-full bg-transparent border-none resize-none outline-none whitespace-pre-wrap overflow-hidden p-3 font-black text-2xl text-gray-900 dark:text-white" onInput={(e: any) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
                                 </div>
                             );
                         }

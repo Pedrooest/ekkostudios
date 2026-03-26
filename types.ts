@@ -336,7 +336,8 @@ export interface Convite {
 
 export interface WhiteboardElement {
   id: string;
-  type: 'postit' | 'card' | 'text' | 'link';
+  parentId?: string; // root folder by default
+  type: 'postit' | 'card' | 'text' | 'link' | 'folder' | 'frame' | 'document' | 'task' | 'image' | 'drawing';
   x: number;
   y: number;
   w: number;
@@ -346,11 +347,19 @@ export interface WhiteboardElement {
   color?: string;
   imageSrc?: string;
   url?: string;
+  // Draw Tool
+  path?: string;
+  thickness?: number;
+  // Checklist Tool
+  tasks?: { id: string, text: string, done: boolean }[];
+  // Rich Text Tool
+  htmlContent?: string;
 }
 
 export interface WhiteboardConnection {
   id: string;
   from: string;
   to: string;
+  parentId?: string;
 }
 
