@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   List, LayoutGrid, Search, Plus, Trash2, Edit2, 
   Instagram, Youtube, Twitter, Facebook, Linkedin, 
@@ -7,7 +8,6 @@ import {
   Target, Zap, Mic2, Map, Layout, CheckCircle2, AlertCircle, Users, Clock
 } from 'lucide-react';
 import { Card, Button, InputSelect, Badge, DeletionBar } from '../Components';
-import { BottomSheet } from '../components/BottomSheet';
 import { 
   OPCOES_CANAL_COBO, OPCOES_FREQUENCIA_COBO, OPCOES_PUBLICO_COBO, 
   OPCOES_VOZ_COBO, OPCOES_ZONA_COBO, OPCOES_INTENCAO_COBO, 
@@ -324,20 +324,27 @@ export function CoboView({
         </div>
       )}
 
-      {/* Modal / BottomSheet de Edição - REESCRITO DO ZERO */}
-      {editingItem && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setEditingItem(null)}>
+      {/* Modal de Edição - Via Portal para garantir que fique acima de tudo */}
+      {editingItem && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          {/* Backdrop que cobre 100% da tela */}
           <div 
-            className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-[560px] overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-in fade-in duration-300" 
+            onClick={() => setEditingItem(null)} 
+          />
+          
+          {/* Modal Container perfeitamente centralizado */}
+          <div 
+            className="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-[560px] overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center gap-4 p-6 border-b border-zinc-100 dark:border-zinc-800 relative">
+            <div className="flex items-center gap-4 p-6 border-b border-zinc-100 dark:border-zinc-800 shrink-0">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20 shrink-0">
-                <Edit2 size={22} className="text-white" strokeWidth={2.5} />
+                <Edit2 size={24} className="text-white" strokeWidth={2.5} />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-[20px] font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight leading-tight">Editar COBO</h3>
+                <h3 className="text-[20px] font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight leading-tight uppercase">Editar COBO</h3>
                 <p className="text-[13px] text-zinc-500 dark:text-zinc-400 mt-0.5">Refinando a estratégia de canal</p>
               </div>
               <button 
@@ -350,11 +357,11 @@ export function CoboView({
             </div>
 
             {/* Body */}
-            <div className="p-6 space-y-6 max-h-[70dvh] overflow-y-auto custom-scrollbar">
+            <div className="p-6 space-y-6 overflow-y-auto custom-scrollbar max-h-[calc(100vh-200px)]">
               
               {/* DISTRIBUIÇÃO */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mb-3 ml-1">
+              <div>
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mb-4 ml-1">
                   <Globe size={14} className="text-blue-500" />
                   <span>Distribuição</span>
                 </div>
@@ -381,8 +388,8 @@ export function CoboView({
               </div>
 
               {/* AUDIÊNCIA */}
-              <div className="space-y-4 pt-2">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mb-3 ml-1">
+              <div className="pt-2">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mb-4 ml-1">
                   <Users size={14} className="text-emerald-500" />
                   <span>Audiência</span>
                 </div>
@@ -409,8 +416,8 @@ export function CoboView({
               </div>
 
               {/* CONTEÚDO ESTRATÉGICO */}
-              <div className="space-y-4 pt-2">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mb-3 ml-1">
+              <div className="pt-2">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mb-4 ml-1">
                   <Layout size={14} className="text-amber-500" />
                   <span>Conteúdo Estratégico</span>
                 </div>
@@ -454,7 +461,7 @@ export function CoboView({
             </div>
 
             {/* Footer */}
-            <div className="flex gap-3 p-6 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/50">
+            <div className="flex gap-3 p-6 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/50 shrink-0">
               <button 
                 className="flex-1 h-11 rounded-xl border border-zinc-200 dark:border-zinc-700 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors ios-btn"
                 onClick={() => setEditingItem(null)}
@@ -462,7 +469,7 @@ export function CoboView({
                 Cancelar
               </button>
               <button 
-                className="flex-1 h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm ios-btn"
+                className="flex-1 h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm ios-btn shadow-blue-600/10"
                 onClick={handleSave}
               >
                 <CheckCircle2 size={18} />
@@ -470,7 +477,8 @@ export function CoboView({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {selection.length > 0 && (
