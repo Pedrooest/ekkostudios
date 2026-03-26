@@ -333,3 +333,24 @@ export interface Convite {
   papel: string;
   expira_em: string;
 }
+
+export interface WhiteboardElement {
+  id: string;
+  type: 'postit' | 'card' | 'text' | 'link';
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  content: string;
+  title?: string;
+  color?: string;
+  imageSrc?: string;
+  url?: string;
+}
+
+export interface WhiteboardConnection {
+  id: string;
+  from: string;
+  to: string;
+}
+

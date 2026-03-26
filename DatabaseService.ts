@@ -272,5 +272,37 @@ export const DatabaseService = {
         ]);
 
         return { clients, cobo, matriz, rdc, planning, financas, tasks, collaborators, checklists };
+    },
+
+    // WHITEBOARD (Milanote)
+    async getWhiteboard(workspaceId: string) {
+        const { data, error } = await supabase
+            .from('whiteboards')
+            .select('*')
+            .eq('workspace_id', workspaceId)
+            .single();
+        
+        if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "No rows found"
+        return data || null;
+    },
+
+    async saveWhiteboard(workspaceId: string, elements: any[], connections: any[], id?: string) {
+        const payload: any = { 
+            workspace_id: workspaceId, 
+            elements, 
+            connections, 
+            updated_at: new Date().toISOString() 
+        };
+        if (id) payload.id = id;
+        
+        // As workspace_id is UNIQUE, we can upsert safely!
+        const { data, error } = await supabase
+            .from('whiteboards')
+            .upsert(payload, { onConflict: 'workspace_id' })
+            .select()
+            .single();
+            
+        if (error) throw error;
+        return data;
     }
 };

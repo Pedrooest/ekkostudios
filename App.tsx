@@ -1474,7 +1474,7 @@ export default function App() {
           />}
           {activeTab === 'WHITEBOARD' && (
             <ErrorBoundary>
-              <Whiteboard />
+              <Whiteboard workspaceId={currentWorkspace?.id} />
             </ErrorBoundary>
           )}
         </div>
