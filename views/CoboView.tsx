@@ -4,7 +4,7 @@ import {
   List, LayoutGrid, Search, Plus, Trash2, Edit2, 
   Instagram, Youtube, Twitter, Facebook, Linkedin, 
   MessageCircle, Send, Globe, Filter, X, ChevronRight,
-  Target, Zap, Mic2, Map, Layout, CheckCircle2, AlertCircle, Users
+  Target, Zap, Mic2, Map, Layout, CheckCircle2, AlertCircle, Users, Clock
 } from 'lucide-react';
 import { Card, Button, InputSelect, Badge, DeletionBar } from '../Components';
 import { BottomSheet } from '../components/BottomSheet';
@@ -326,12 +326,15 @@ export function CoboView({
 
       {/* Modal / BottomSheet de Edição */}
       {editingItem && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-2xl bg-app-surface-2 rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden animate-in slide-in-from-bottom-8 duration-300">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setEditingItem(null)}>
+          <div 
+            className="w-full max-w-[600px] bg-app-surface-2 rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden animate-in slide-in-from-bottom-8 duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Header Modal */}
             <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/5 backdrop-blur-xl">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white">
+                <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
                   <Edit2 size={24} />
                 </div>
                 <div>
@@ -339,22 +342,28 @@ export function CoboView({
                   <p className="text-[10px] font-bold text-app-text-muted uppercase tracking-widest mt-0.5">Refinando a estratégia de canal</p>
                 </div>
               </div>
-              <button onClick={() => setEditingItem(null)} className="w-10 h-10 rounded-full hover:bg-white/10 flex items-center justify-center text-app-text-muted transition-colors">
+              <button 
+                onClick={() => setEditingItem(null)} 
+                className="w-10 h-10 rounded-full hover:bg-white/10 flex items-center justify-center text-app-text-muted transition-colors ios-btn"
+              >
                 <X size={20} />
               </button>
             </div>
 
             {/* Content Modal */}
-            <div className="p-8 max-h-[70dvh] overflow-y-auto custom-scrollbar">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Distribuição */}
-                <div className="space-y-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Globe size={14} className="text-blue-500" />
-                    <h4 className="text-[11px] font-black text-app-text-strong uppercase tracking-[0.2em]">Distribuição</h4>
-                  </div>
+            <div className="p-8 max-h-[70dvh] overflow-y-auto custom-scrollbar space-y-8">
+              
+              {/* Seção 1: DISTRIBUIÇÃO */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-3 pb-2 border-b border-white/5">
+                  <Globe size={16} className="text-blue-500" />
+                  <h4 className="text-[11px] font-black text-app-text-strong uppercase tracking-[0.2em]">Distribuição</h4>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <InputSelect
                     label="Canal"
+                    icon={Globe}
+                    placeholder="Ex: Instagram, TikTok..."
                     value={editingItem.Canal}
                     options={OPCOES_CANAL_COBO}
                     onChange={(val) => setEditingItem({ ...editingItem, Canal: val })}
@@ -362,72 +371,104 @@ export function CoboView({
                   />
                   <InputSelect
                     label="Frequência"
+                    icon={Clock}
+                    placeholder="Ex: 3x por semana..."
                     value={editingItem.Frequência}
                     options={OPCOES_FREQUENCIA_COBO}
                     onChange={(val) => setEditingItem({ ...editingItem, Frequência: val })}
                     editable={true}
                   />
                 </div>
+              </div>
 
-                {/* Audiência */}
-                <div className="space-y-6">
-                   <div className="flex items-center gap-2 mb-2">
-                    <Users size={14} className="text-indigo-500" />
-                    <h4 className="text-[11px] font-black text-app-text-strong uppercase tracking-[0.2em]">Audiência</h4>
-                  </div>
+              {/* Seção 2: AUDIÊNCIA */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-3 pb-2 border-b border-white/5">
+                  <Users size={16} className="text-indigo-500" />
+                  <h4 className="text-[11px] font-black text-app-text-strong uppercase tracking-[0.2em]">Audiência</h4>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <InputSelect
                     label="Público-Alvo"
+                    icon={Target}
+                    placeholder="Descreva o público..."
                     value={editingItem.Público}
                     options={OPCOES_PUBLICO_COBO}
                     onChange={(val) => setEditingItem({ ...editingItem, Público: val })}
                     editable={true}
                   />
                   <InputSelect
-                    label="Voz do Conteúdo"
+                    label="Voz da Marca"
+                    icon={Mic2}
+                    placeholder="Tom de voz..."
                     value={editingItem.Voz}
                     options={OPCOES_VOZ_COBO}
                     onChange={(val) => setEditingItem({ ...editingItem, Voz: val })}
                     editable={true}
                   />
                 </div>
+              </div>
 
-                {/* Conteúdo */}
-                <div className="md:col-span-2 space-y-6 pt-4 border-t border-white/5">
-                   <div className="flex items-center gap-2 mb-2">
-                    <Layout size={14} className="text-orange-500" />
-                    <h4 className="text-[11px] font-black text-app-text-strong uppercase tracking-[0.2em]">Conteúdo Estratégico</h4>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <InputSelect
-                      label="Zona"
-                      value={editingItem.Zona}
-                      options={OPCOES_ZONA_COBO}
-                      onChange={(val) => setEditingItem({ ...editingItem, Zona: val })}
-                      editable={true}
-                    />
-                    <InputSelect
-                      label="Intenção"
-                      value={editingItem.Intenção}
-                      options={OPCOES_INTENCAO_COBO}
-                      onChange={(val) => setEditingItem({ ...editingItem, Intenção: val })}
-                      editable={true}
-                    />
-                    <InputSelect
-                      label="Formato"
-                      value={editingItem.Formato}
-                      options={OPCOES_FORMATO_COBO}
-                      onChange={(val) => setEditingItem({ ...editingItem, Formato: val })}
-                      editable={true}
-                    />
-                  </div>
+              {/* Seção 3: CONTEÚDO ESTRATÉGICO */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-3 pb-2 border-b border-white/5">
+                  <Layout size={16} className="text-orange-500" />
+                  <h4 className="text-[11px] font-black text-app-text-strong uppercase tracking-[0.2em]">Conteúdo Estratégico</h4>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <InputSelect
+                    label="Zona"
+                    icon={Zap}
+                    placeholder="Selecione a zona..."
+                    value={editingItem.Zona}
+                    options={[
+                      { value: 'Primária', label: 'Quente', color: 'orange' },
+                      { value: 'Conversão', label: 'Quente', color: 'orange' },
+                      { value: 'Secundária', label: 'Morna', color: 'amber' },
+                      { value: 'Nutrição', label: 'Morna', color: 'amber' },
+                      { value: 'Paralela', label: 'Fria', color: 'blue' },
+                      { value: 'Aquisição', label: 'Fria', color: 'blue' },
+                    ]}
+                    onChange={(val) => setEditingItem({ ...editingItem, Zona: val })}
+                    editable={true}
+                  />
+                  <InputSelect
+                    label="Intenção"
+                    icon={Target}
+                    placeholder="Objetivo..."
+                    value={editingItem.Intenção}
+                    options={OPCOES_INTENCAO_COBO}
+                    onChange={(val) => setEditingItem({ ...editingItem, Intenção: val })}
+                    editable={true}
+                  />
+                  <InputSelect
+                    label="Formato"
+                    icon={Layout}
+                    placeholder="Formato..."
+                    value={editingItem.Formato}
+                    options={OPCOES_FORMATO_COBO}
+                    onChange={(val) => setEditingItem({ ...editingItem, Formato: val })}
+                    editable={true}
+                  />
                 </div>
               </div>
             </div>
 
             {/* Footer Modal */}
-            <div className="p-8 border-t border-white/5 bg-white/5 flex gap-4">
-              <Button variant="secondary" className="flex-1 !h-14 !rounded-2xl" onClick={() => setEditingItem(null)}>Cancelar</Button>
-              <Button className="flex-1 !h-14 !rounded-2xl !bg-blue-600 shadow-xl shadow-blue-500/20" onClick={handleSave}>Salvar Alterações</Button>
+            <div className="p-8 border-t border-white/5 bg-white/5 backdrop-blur-xl flex gap-4">
+              <button 
+                className="flex-1 h-12 rounded-2xl border border-app-border text-app-text-muted hover:text-app-text-strong hover:bg-white/5 transition-all font-bold text-xs uppercase tracking-widest ios-btn"
+                onClick={() => setEditingItem(null)}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="flex-1 h-12 rounded-2xl bg-blue-600 text-white hover:bg-blue-700 shadow-xl shadow-blue-500/20 transition-all font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 ios-btn"
+                onClick={handleSave}
+              >
+                <CheckCircle2 size={18} />
+                Salvar Alterações
+              </button>
             </div>
           </div>
         </div>

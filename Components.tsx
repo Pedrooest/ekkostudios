@@ -205,12 +205,13 @@ export const FloatingPopover: React.FC<{
 export const InputSelect: React.FC<{
   value: string | number;
   onChange: (val: string) => void;
-  options: (string | { value: string | number; label: string })[];
+  options: (string | { value: string | number; label: string; color?: "blue" | "green" | "red" | "orange" | "slate" | "indigo" | "emerald" | "rose" | "amber" })[];
   placeholder?: string;
   className?: string; // Additional classes for the trigger
-  label?: string; // Label for BottomSheet
+  label?: string; // Top label heading
   editable?: boolean; // Allow custom text input
-}> = ({ value, onChange, options, placeholder = "Selecione...", className = "", label, editable = false }) => {
+  icon?: any; // New: Lucide icon or FontAwesome string
+}> = ({ value, onChange, options, placeholder = "Selecione...", className = "", label, editable = false, icon: Icon }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(window.innerWidth < 1024);
   const triggerRef = React.useRef<HTMLButtonElement | HTMLInputElement>(null);
@@ -234,7 +235,9 @@ export const InputSelect: React.FC<{
     );
   }, [normalizedOptions, value, editable]);
 
-  const currentLabel = normalizedOptions.find(o => String(o.value) === String(value))?.label || value || placeholder;
+  const currentOption = normalizedOptions.find(o => String(o.value) === String(value));
+  const currentLabel = currentOption?.label || value || placeholder;
+  const currentColor = currentOption?.color;
 
   // Handle desktop popover toggle
   const toggleOpen = () => {
@@ -256,7 +259,13 @@ export const InputSelect: React.FC<{
             }}
             className={`ios-btn px-4 py-3 text-left text-xs font-bold border-b border-app-border last:border-0 hover:bg-app-surface-2 transition-colors flex items-center justify-between gap-4 group ${String(value) === String(opt.value) ? 'bg-blue-600/5 text-blue-500' : 'text-app-text-muted hover:text-app-text-strong'}`}
           >
-            <span className="whitespace-nowrap">{opt.label}</span>
+            <div className="flex items-center gap-3">
+              {opt.color ? (
+                <Badge color={opt.color as any} className="!py-0.5 !px-2">{opt.label}</Badge>
+              ) : (
+                <span className="whitespace-nowrap">{opt.label}</span>
+              )}
+            </div>
             {String(value) === String(opt.value) && <i className="fa-solid fa-check text-blue-500"></i>}
           </button>
         ))
@@ -269,37 +278,57 @@ export const InputSelect: React.FC<{
   );
 
   return (
-    <>
-      {editable ? (
-        <div className="relative w-full">
-          <input
-            ref={triggerRef as React.RefObject<HTMLInputElement>}
-            type="text"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            onFocus={() => setIsOpen(true)}
-            placeholder={placeholder}
-            className={`w-full px-3 py-2 bg-transparent border-none text-app-text-strong text-[11px] font-bold outline-none transition-all hover:text-blue-500 ${className}`}
-          />
+    <div className="flex flex-col gap-2 w-full">
+      {label && (
+        <label className="text-[10px] font-black text-app-text-muted uppercase tracking-[0.2em] ml-1">
+          {label}
+        </label>
+      )}
+      
+      <div className={`relative flex items-center bg-app-surface border border-app-border rounded-xl transition-all focus-within:border-blue-500/50 focus-within:ring-4 focus-within:ring-blue-500/10 group ${className}`}>
+        {Icon && (
+          <div className="pl-4 text-app-text-muted group-focus-within:text-blue-500 transition-colors shrink-0">
+            {typeof Icon === 'string' ? <i className={`fa-solid ${Icon} text-xs`}></i> : <Icon size={14} />}
+          </div>
+        )}
+        
+        {editable ? (
+          <div className="relative flex-1">
+            <input
+              ref={triggerRef as React.RefObject<HTMLInputElement>}
+              type="text"
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              onFocus={() => setIsOpen(true)}
+              placeholder={placeholder}
+              className="w-full pl-3 pr-10 py-3 bg-transparent border-none text-app-text-strong text-xs font-bold outline-none placeholder:text-app-text-muted/40 uppercase"
+            />
+            <button
+              type="button"
+              onClick={toggleOpen}
+              className="ios-btn absolute right-0 top-0 bottom-0 px-3 flex items-center justify-center text-app-text-muted hover:text-app-text-strong"
+            >
+              <i className={`fa-solid fa-chevron-down text-[9px] opacity-50 transition-transform ${isOpen ? 'rotate-180' : ''}`}></i>
+            </button>
+          </div>
+        ) : (
           <button
             type="button"
+            ref={triggerRef as React.RefObject<HTMLButtonElement>}
             onClick={toggleOpen}
-            className="ios-btn absolute right-0 top-0 bottom-0 px-2 flex items-center justify-center text-app-text-muted hover:text-app-text-strong"
+            className="ios-btn flex items-center justify-between gap-2 pl-3 pr-4 py-3 bg-transparent border-none text-app-text-strong text-xs font-bold outline-none transition-all w-full text-left uppercase"
           >
+            <div className="truncate flex-1">
+              {currentColor ? (
+                <Badge color={currentColor as any} className="!py-0.5 !px-2">{currentLabel}</Badge>
+              ) : (
+                currentLabel
+              )}
+            </div>
             <i className={`fa-solid fa-chevron-down text-[9px] opacity-50 transition-transform ${isOpen ? 'rotate-180' : ''}`}></i>
           </button>
-        </div>
-      ) : (
-        <button
-          type="button"
-          ref={triggerRef as React.RefObject<HTMLButtonElement>}
-          onClick={toggleOpen}
-          className={`ios-btn flex items-center justify-between gap-2 px-3 py-2 bg-transparent border-none text-app-text-strong text-[11px] font-bold outline-none transition-all hover:text-app-text-strong w-full text-left ${className}`}
-        >
-          <span className="truncate">{currentLabel}</span>
-          <i className={`fa-solid fa-chevron-down text-[9px] opacity-50 transition-transform ${isOpen ? 'rotate-180' : ''}`}></i>
-        </button>
-      )}
+        )}
+      </div>
 
       {/* Mobile Bottom Sheet */}
       {isMobile && (
@@ -326,7 +355,7 @@ export const InputSelect: React.FC<{
           <OptionList />
         </FloatingPopover>
       )}
-    </>
+    </div>
   );
 };
 
