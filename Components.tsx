@@ -280,12 +280,12 @@ export const InputSelect: React.FC<{
   return (
     <div className="flex flex-col gap-2 w-full">
       {label && (
-        <label className="text-[12px] font-medium text-app-text-muted uppercase tracking-wider ml-1 mb-0.5">
+        <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 ml-1">
           {label}
         </label>
       )}
       
-      <div className={`relative flex items-center bg-app-surface border border-app-border rounded-[10px] h-[44px] transition-all focus-within:border-blue-500 focus-within:ring-[3px] focus-within:ring-blue-500/10 group ${className}`}>
+      <div className={`relative flex items-center bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl h-11 transition-all focus-within:ring-2 focus-within:ring-blue-500/30 focus-within:border-blue-500 group ${className}`}>
         {Icon && (
           <div className="pl-4 text-app-text-muted group-focus-within:text-blue-500 transition-colors shrink-0">
             {typeof Icon === 'string' ? <i className={`fa-solid ${Icon} text-xs`}></i> : <Icon size={14} />}
@@ -301,7 +301,7 @@ export const InputSelect: React.FC<{
               onChange={(e) => onChange(e.target.value)}
               onFocus={() => setIsOpen(true)}
               placeholder={placeholder}
-              className="w-full pl-3 pr-10 h-full bg-transparent border-none text-app-text-strong text-sm font-medium outline-none placeholder:text-app-text-muted/40"
+              className="w-full pl-3 pr-10 h-full bg-transparent border-none text-zinc-900 dark:text-zinc-100 text-sm font-medium outline-none placeholder:text-zinc-400/50"
             />
             <button
               type="button"
@@ -316,7 +316,7 @@ export const InputSelect: React.FC<{
             type="button"
             ref={triggerRef as React.RefObject<HTMLButtonElement>}
             onClick={toggleOpen}
-            className="ios-btn flex items-center justify-between gap-2 pl-3 pr-4 h-full bg-transparent border-none text-app-text-strong text-sm font-medium outline-none transition-all w-full text-left"
+            className="ios-btn flex items-center justify-between gap-2 pl-3 pr-4 h-full bg-transparent border-none text-zinc-900 dark:text-zinc-100 text-sm font-medium outline-none transition-all w-full text-left"
           >
             <div className="truncate flex-1">
               {currentColor ? (

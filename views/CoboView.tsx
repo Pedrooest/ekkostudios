@@ -324,46 +324,41 @@ export function CoboView({
         </div>
       )}
 
-      {/* Modal / BottomSheet de Edição */}
+      {/* Modal / BottomSheet de Edição - REESCRITO DO ZERO */}
       {editingItem && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px] animate-in fade-in duration-200" onClick={() => setEditingItem(null)}>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setEditingItem(null)}>
           <div 
-            className="w-full max-w-[560px] bg-white dark:bg-zinc-900 rounded-[16px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+            className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-[560px] overflow-hidden animate-in fade-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header Modal */}
-            <div className="px-8 pt-8 pb-6 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-[16px] flex items-center justify-center text-white shadow-lg shadow-blue-500/20 shrink-0">
-                  <Edit2 size={20} strokeWidth={2.5} />
-                </div>
-                <div>
-                  <h3 className="text-[20px] font-semibold text-app-text-strong tracking-tight">Editar COBO</h3>
-                  <p className="text-[13px] text-zinc-500 dark:text-zinc-400 mt-0.5">Refinando a estratégia de canal</p>
-                </div>
+            {/* Header */}
+            <div className="flex items-center gap-4 p-6 border-b border-zinc-100 dark:border-zinc-800 relative">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20 shrink-0">
+                <Edit2 size={22} className="text-white" strokeWidth={2.5} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-[20px] font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight leading-tight">Editar COBO</h3>
+                <p className="text-[13px] text-zinc-500 dark:text-zinc-400 mt-0.5">Refinando a estratégia de canal</p>
               </div>
               <button 
                 onClick={() => setEditingItem(null)} 
-                className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 flex items-center justify-center text-zinc-500 transition-colors ios-btn"
+                className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 flex items-center justify-center text-zinc-500 transition-colors"
+                aria-label="FECHAR"
               >
                 <X size={16} />
               </button>
             </div>
 
-            <div className="px-8">
-              <hr className="border-zinc-100 dark:border-zinc-800" />
-            </div>
-
-            {/* Content Modal */}
-            <div className="p-8 max-h-[65dvh] overflow-y-auto custom-scrollbar space-y-8">
+            {/* Body */}
+            <div className="p-6 space-y-6 max-h-[70dvh] overflow-y-auto custom-scrollbar">
               
-              {/* Seção 1: DISTRIBUIÇÃO */}
+              {/* DISTRIBUIÇÃO */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mb-3 ml-1">
                   <Globe size={14} className="text-blue-500" />
-                  <h4 className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.15em]">Distribuição</h4>
+                  <span>Distribuição</span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <InputSelect
                     label="Canal"
                     icon={Globe}
@@ -385,17 +380,13 @@ export function CoboView({
                 </div>
               </div>
 
-              <div className="py-2">
-                <hr className="border-zinc-100 dark:border-zinc-800" />
-              </div>
-
-              {/* Seção 2: AUDIÊNCIA */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2.5">
+              {/* AUDIÊNCIA */}
+              <div className="space-y-4 pt-2">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mb-3 ml-1">
                   <Users size={14} className="text-emerald-500" />
-                  <h4 className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.15em]">Audiência</h4>
+                  <span>Audiência</span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <InputSelect
                     label="Público-Alvo"
                     icon={Target}
@@ -417,17 +408,13 @@ export function CoboView({
                 </div>
               </div>
 
-              <div className="py-2">
-                <hr className="border-zinc-100 dark:border-zinc-800" />
-              </div>
-
-              {/* Seção 3: CONTEÚDO ESTRATÉGICO */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2.5">
-                  <Layout size={14} className="text-orange-500" />
-                  <h4 className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.15em]">Conteúdo Estratégico</h4>
+              {/* CONTEÚDO ESTRATÉGICO */}
+              <div className="space-y-4 pt-2">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mb-3 ml-1">
+                  <Layout size={14} className="text-amber-500" />
+                  <span>Conteúdo Estratégico</span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-3 gap-3">
                   <InputSelect
                     label="Zona"
                     icon={Zap}
@@ -466,23 +453,19 @@ export function CoboView({
               </div>
             </div>
 
-            <div className="px-8">
-              <hr className="border-zinc-100 dark:border-zinc-800" />
-            </div>
-
-            {/* Footer Modal */}
-            <div className="p-8 flex items-center justify-end gap-3">
+            {/* Footer */}
+            <div className="flex gap-3 p-6 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/50">
               <button 
-                className="px-6 h-[44px] rounded-[10px] border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all font-semibold text-sm ios-btn"
+                className="flex-1 h-11 rounded-xl border border-zinc-200 dark:border-zinc-700 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors ios-btn"
                 onClick={() => setEditingItem(null)}
               >
                 Cancelar
               </button>
               <button 
-                className="px-6 h-[44px] rounded-[10px] bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-500/10 transition-all font-semibold text-sm flex items-center justify-center gap-2 ios-btn"
+                className="flex-1 h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm ios-btn"
                 onClick={handleSave}
               >
-                <CheckCircle2 size={16} />
+                <CheckCircle2 size={18} />
                 Salvar Alterações
               </button>
             </div>
