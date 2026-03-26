@@ -257,7 +257,7 @@ export const InputSelect: React.FC<{
               onChange(String(opt.value));
               setIsOpen(false);
             }}
-            className={`ios-btn px-4 py-3 text-left text-xs font-bold border-b border-app-border last:border-0 hover:bg-app-surface-2 transition-colors flex items-center justify-between gap-4 group ${String(value) === String(opt.value) ? 'bg-blue-600/5 text-blue-500' : 'text-app-text-muted hover:text-app-text-strong'}`}
+            className={`ios-btn py-3 text-left text-xs font-bold border-b border-app-border last:border-0 hover:bg-app-surface-2 transition-colors flex items-center justify-between gap-4 group ${Icon ? 'pl-9 pr-4' : 'px-4'} ${String(value) === String(opt.value) ? 'bg-blue-600/5 text-blue-500' : 'text-app-text-muted hover:text-app-text-strong'}`}
           >
             <div className="flex items-center gap-3">
               {opt.color ? (
@@ -266,7 +266,7 @@ export const InputSelect: React.FC<{
                 <span className="whitespace-nowrap">{opt.label}</span>
               )}
             </div>
-            {String(value) === String(opt.value) && <i className="fa-solid fa-check text-blue-500"></i>}
+            {String(value) === String(opt.value) && <i className="fa-solid fa-check text-blue-500 shrink-0"></i>}
           </button>
         ))
       ) : (
@@ -285,15 +285,15 @@ export const InputSelect: React.FC<{
         </label>
       )}
       
-      <div className={`relative flex items-center bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl h-11 transition-all focus-within:ring-2 focus-within:ring-blue-500/30 focus-within:border-blue-500 group ${className}`}>
+      <div className={`relative flex items-center w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl h-11 transition-all focus-within:ring-2 focus-within:ring-blue-500/30 focus-within:border-blue-500 group ${className}`}>
         {Icon && (
-          <div className="pl-4 text-app-text-muted group-focus-within:text-blue-500 transition-colors shrink-0">
-            {typeof Icon === 'string' ? <i className={`fa-solid ${Icon} text-xs`}></i> : <Icon size={14} />}
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400 w-4 h-4 flex items-center justify-center shrink-0 z-10 transition-colors group-focus-within:text-blue-500">
+            {typeof Icon === 'string' ? <i className={`fa-solid ${Icon} text-xs`}></i> : <Icon size={16} />}
           </div>
         )}
         
         {editable ? (
-          <div className="relative flex-1">
+          <div className="relative flex-1 w-full h-full">
             <input
               ref={triggerRef as React.RefObject<HTMLInputElement>}
               type="text"
@@ -301,7 +301,7 @@ export const InputSelect: React.FC<{
               onChange={(e) => onChange(e.target.value)}
               onFocus={() => setIsOpen(true)}
               placeholder={placeholder}
-              className="w-full pl-3 pr-10 h-full bg-transparent border-none text-zinc-900 dark:text-zinc-100 text-sm font-medium outline-none placeholder:text-zinc-400/50"
+              className={`w-full ${Icon ? 'pl-9' : 'pl-3'} pr-8 h-full bg-transparent border-none text-zinc-900 dark:text-zinc-100 text-sm font-medium outline-none placeholder:text-zinc-400/50`}
             />
             <button
               type="button"
@@ -316,7 +316,7 @@ export const InputSelect: React.FC<{
             type="button"
             ref={triggerRef as React.RefObject<HTMLButtonElement>}
             onClick={toggleOpen}
-            className="ios-btn flex items-center justify-between gap-2 pl-3 pr-4 h-full bg-transparent border-none text-zinc-900 dark:text-zinc-100 text-sm font-medium outline-none transition-all w-full text-left"
+            className={`ios-btn flex items-center justify-between gap-2 ${Icon ? 'pl-9' : 'pl-3'} pr-3 h-full bg-transparent border-none text-zinc-900 dark:text-zinc-100 text-sm font-medium outline-none transition-all w-full text-left`}
           >
             <div className="truncate flex-1">
               {currentColor ? (
@@ -325,7 +325,7 @@ export const InputSelect: React.FC<{
                 <span className="truncate">{currentLabel}</span>
               )}
             </div>
-            <i className={`fa-solid fa-chevron-down text-[9px] opacity-50 transition-transform ${isOpen ? 'rotate-180' : ''}`}></i>
+            <i className={`fa-solid fa-chevron-down shrink-0 text-[9px] opacity-50 transition-transform ${isOpen ? 'rotate-180' : ''}`}></i>
           </button>
         )}
       </div>

@@ -26,6 +26,7 @@ import { DashboardView } from './views/DashboardView';
 import { ClientesView } from './views/ClientesView';
 import { SystematicModelingView } from './views/SystematicModelingView';
 import { OrganickIAView } from './views/OrganickIAView';
+import { MatrizEstrategicaView } from './views/MatrizEstrategicaView';
 import ChecklistsTab from './views/ChecklistsView';
 import { TaskFlowView, TaskDetailPanel } from './views/TaskFlowView';
 import FinancasTab from './views/FinancasView';
@@ -1442,7 +1443,7 @@ export default function App() {
           {activeTab === 'DASHBOARD' && <DashboardView clients={clients} tasks={currentTasks} financas={currentFinancas} planejamento={currentPlanejamento} rdc={currentRdc} />}
           {activeTab === 'CLIENTES' && <ClientesView clients={filterArchived(clients)} onUpdate={handleUpdate} onDelete={performDelete} onAdd={() => handleAddRow('CLIENTES')} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} />}
           {activeTab === 'RDC' && <TableView tab="RDC" data={currentRdc} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('RDC')} library={BibliotecaConteudo} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
-          {activeTab === 'MATRIZ' && <TableView tab="MATRIZ" data={currentMatriz} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('MATRIZ')} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} library={BibliotecaConteudo} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
+          {activeTab === 'MATRIZ' && <MatrizEstrategicaView data={currentMatriz} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('MATRIZ')} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
 
 
           {activeTab === 'COBO' && (
