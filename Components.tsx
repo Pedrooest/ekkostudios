@@ -293,7 +293,7 @@ export const InputSelect: React.FC<{
         </label>
       )}
       
-      <div className={`relative flex items-center w-full px-3 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg h-10 transition-all focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 group ${disabled ? 'opacity-50 cursor-not-allowed grayscale' : ''} ${className}`}>
+      <div className={`relative flex items-center w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg h-10 transition-all focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 group ${disabled ? 'opacity-50 cursor-not-allowed grayscale' : ''} ${className}`}>
         {Icon && (
           <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400 w-4 h-4 flex items-center justify-center shrink-0 z-10 transition-colors group-focus-within:text-blue-500">
             {typeof Icon === 'string' ? <i className={`fa-solid ${Icon} text-xs`}></i> : <Icon size={16} />}
@@ -309,7 +309,7 @@ export const InputSelect: React.FC<{
               onChange={(e) => onChange(e.target.value)}
               onFocus={() => setIsOpen(true)}
               placeholder={placeholder}
-              className={`w-full ${Icon ? 'pl-9' : 'pl-3'} pr-8 h-full bg-transparent border-none text-zinc-900 dark:text-zinc-100 text-sm font-medium outline-none placeholder:text-zinc-400/50`}
+              className={`w-full ${Icon ? 'pl-10' : 'pl-3'} pr-8 h-full bg-transparent border-none text-zinc-900 dark:text-zinc-100 text-sm font-medium outline-none placeholder:text-zinc-400/50`}
             />
             <button
               type="button"
@@ -324,7 +324,7 @@ export const InputSelect: React.FC<{
             type="button"
             ref={triggerRef as React.RefObject<HTMLButtonElement>}
             onClick={toggleOpen}
-            className={`ios-btn flex items-center justify-between gap-2 ${Icon ? 'pl-9' : 'pl-3'} pr-3 h-full bg-transparent border-none text-zinc-900 dark:text-zinc-100 text-sm font-medium outline-none transition-all w-full text-left`}
+            className={`ios-btn flex items-center justify-between gap-2 ${Icon ? 'pl-10' : 'pl-3'} pr-3 h-full bg-transparent border-none text-zinc-900 dark:text-zinc-100 text-sm font-medium outline-none transition-all w-full text-left`}
           >
             <div className="truncate flex-1">
               {currentColor ? (
