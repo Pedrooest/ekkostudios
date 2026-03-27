@@ -293,15 +293,15 @@ export const InputSelect: React.FC<{
         </label>
       )}
       
-      <div className={`relative flex items-center w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg h-10 transition-all focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 group ${disabled ? 'opacity-50 cursor-not-allowed grayscale' : ''} ${className}`}>
+      <div className={`flex items-center w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg h-10 transition-all focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 group px-3 gap-2 ${disabled ? 'opacity-50 cursor-not-allowed grayscale' : ''} ${className}`}>
         {Icon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400 w-4 h-4 flex items-center justify-center shrink-0 z-10 transition-colors group-focus-within:text-blue-500">
+          <div className="pointer-events-none text-zinc-400 w-4 h-4 flex items-center justify-center shrink-0 transition-colors group-focus-within:text-blue-500">
             {typeof Icon === 'string' ? <i className={`fa-solid ${Icon} text-xs`}></i> : <Icon size={16} />}
           </div>
         )}
-        
+
         {editable ? (
-          <div className="relative flex-1 w-full h-full">
+          <div className="relative flex-1 h-full min-w-0">
             <input
               ref={triggerRef as React.RefObject<HTMLInputElement>}
               type="text"
@@ -309,12 +309,12 @@ export const InputSelect: React.FC<{
               onChange={(e) => onChange(e.target.value)}
               onFocus={() => setIsOpen(true)}
               placeholder={placeholder}
-              className={`w-full ${Icon ? 'pl-10' : 'pl-3'} pr-8 h-full bg-transparent border-none text-zinc-900 dark:text-zinc-100 text-sm font-medium outline-none placeholder:text-zinc-400/50`}
+              className="w-full pr-7 h-full bg-transparent border-none text-zinc-900 dark:text-zinc-100 text-sm font-medium outline-none placeholder:text-zinc-400/50"
             />
             <button
               type="button"
               onClick={toggleOpen}
-              className="ios-btn absolute right-0 top-0 bottom-0 px-3 flex items-center justify-center text-app-text-muted hover:text-app-text-strong"
+              className="ios-btn absolute right-0 top-0 bottom-0 px-2 flex items-center justify-center text-app-text-muted hover:text-app-text-strong"
             >
               <i className={`fa-solid fa-chevron-down text-[9px] opacity-50 transition-transform ${isOpen ? 'rotate-180' : ''}`}></i>
             </button>
@@ -324,9 +324,9 @@ export const InputSelect: React.FC<{
             type="button"
             ref={triggerRef as React.RefObject<HTMLButtonElement>}
             onClick={toggleOpen}
-            className={`ios-btn flex items-center justify-between gap-2 ${Icon ? 'pl-10' : 'pl-3'} pr-3 h-full bg-transparent border-none text-zinc-900 dark:text-zinc-100 text-sm font-medium outline-none transition-all w-full text-left`}
+            className="ios-btn flex items-center justify-between gap-2 pr-0 h-full bg-transparent border-none text-zinc-900 dark:text-zinc-100 text-sm font-medium outline-none transition-all flex-1 min-w-0 text-left"
           >
-            <div className="truncate flex-1">
+            <div className="truncate flex-1 min-w-0">
               {currentColor ? (
                 <Badge color={currentColor as any} className="!py-0 !px-1.5 !text-[10px] !rounded-md">{currentLabel}</Badge>
               ) : (
