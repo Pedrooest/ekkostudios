@@ -41,15 +41,18 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({ onClic
 
 Button.displayName = 'Button';
 
-export const Card: React.FC<{ children: React.ReactNode; title?: string; extra?: React.ReactNode; className?: string }> = ({ children, title, extra, className = "" }) => (
-  <div className={`bg-app-surface rounded-xl border border-app-border overflow-hidden mb-6 shadow-sm ${className}`}>
+export const Card: React.FC<{ children: React.ReactNode; title?: string; extra?: React.ReactNode; className?: string; onClick?: (e: React.MouseEvent) => void }> = ({ children, title, extra, className = "", onClick }) => (
+  <div 
+    onClick={onClick}
+    className={`rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-4 ${onClick ? 'cursor-pointer active:scale-[0.99]' : ''} ${className}`}
+  >
     {(title || extra) && (
-      <div className="px-5 py-3 md:px-8 md:py-5 border-b border-app-border flex items-center justify-between bg-app-surface-2">
-        <h3 className="font-bold text-app-text-strong text-[10px] md:text-xs uppercase tracking-widest truncate min-w-0 pr-2">{title}</h3>
-        {extra}
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-sm font-semibold truncate min-w-0 flex-1">{title}</h3>
+        {extra && <div className="flex items-center gap-2 shrink-0">{extra}</div>}
       </div>
     )}
-    <div className="p-4 md:p-8">
+    <div className="flex-1">
       {children}
     </div>
   </div>
@@ -66,10 +69,13 @@ export const Badge: React.FC<{ children: React.ReactNode; color?: "blue" | "gree
     orange: 'border-amber-500/30 text-amber-600',
     amber: 'border-amber-500/30 text-amber-600',
     indigo: 'border-indigo-500/30 text-indigo-600',
-    slate: 'border-app-border text-app-text-muted'
+    slate: 'border-app-border text-app-text-muted',
+    hub: 'bg-blue-100/80 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800/50',
+    hero: 'bg-purple-100/80 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border-purple-200 dark:border-purple-800/50',
+    help: 'bg-green-100/80 text-green-700 dark:bg-green-900/30 dark:text-green-300 border-green-200 dark:border-green-800/50'
   };
   return (
-    <span style={style} className={`px-2.5 py-1 rounded-md text-[9px] uppercase tracking-widest font-bold border truncate max-w-full ${colors[color] || colors.blue} ${className}`}>
+    <span style={style} className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap shrink-0 border uppercase tracking-wider ${colors[color] || colors.blue} ${className}`}>
       {children}
     </span>
   );
@@ -205,13 +211,14 @@ export const FloatingPopover: React.FC<{
 export const InputSelect: React.FC<{
   value: string | number;
   onChange: (val: string) => void;
-  options: (string | { value: string | number; label: string; color?: "blue" | "green" | "red" | "orange" | "slate" | "indigo" | "emerald" | "rose" | "amber" })[];
+  options: (string | { value: string | number; label: string; color?: "blue" | "green" | "red" | "orange" | "slate" | "indigo" | "emerald" | "rose" | "amber" | "hub" | "hero" | "help" })[];
   placeholder?: string;
   className?: string; // Additional classes for the trigger
   label?: string; // Top label heading
   editable?: boolean; // Allow custom text input
   icon?: any; // New: Lucide icon or FontAwesome string
-}> = ({ value, onChange, options, placeholder = "Selecione...", className = "", label, editable = false, icon: Icon }) => {
+  disabled?: boolean;
+}> = ({ value, onChange, options, placeholder = "Selecione...", className = "", label, editable = false, icon: Icon, disabled = false }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(window.innerWidth < 1024);
   const triggerRef = React.useRef<HTMLButtonElement | HTMLInputElement>(null);
@@ -241,6 +248,7 @@ export const InputSelect: React.FC<{
 
   // Handle desktop popover toggle
   const toggleOpen = () => {
+    if (disabled) return;
     if (!isOpen) playUISound('open');
     setIsOpen(!isOpen);
   };
@@ -257,7 +265,7 @@ export const InputSelect: React.FC<{
               onChange(String(opt.value));
               setIsOpen(false);
             }}
-            className={`ios-btn py-3 text-left text-xs font-bold border-b border-app-border last:border-0 hover:bg-app-surface-2 transition-colors flex items-center justify-between gap-4 group ${Icon ? 'pl-9 pr-4' : 'px-4'} ${String(value) === String(opt.value) ? 'bg-blue-600/5 text-blue-500' : 'text-app-text-muted hover:text-app-text-strong'}`}
+            className={`ios-btn py-3 text-left text-xs font-bold border-b border-app-border last:border-0 hover:bg-app-surface-2 transition-colors flex items-center justify-between gap-4 group ${Icon ? 'pl-10 pr-4' : 'px-4'} ${String(value) === String(opt.value) ? 'bg-blue-600/5 text-blue-500' : 'text-app-text-muted hover:text-app-text-strong'}`}
           >
             <div className="flex items-center gap-3">
               {opt.color ? (
@@ -285,7 +293,7 @@ export const InputSelect: React.FC<{
         </label>
       )}
       
-      <div className={`relative flex items-center w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl h-11 transition-all focus-within:ring-2 focus-within:ring-blue-500/30 focus-within:border-blue-500 group ${className}`}>
+      <div className={`relative flex items-center w-full px-3 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg h-10 transition-all focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 group ${disabled ? 'opacity-50 cursor-not-allowed grayscale' : ''} ${className}`}>
         {Icon && (
           <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400 w-4 h-4 flex items-center justify-center shrink-0 z-10 transition-colors group-focus-within:text-blue-500">
             {typeof Icon === 'string' ? <i className={`fa-solid ${Icon} text-xs`}></i> : <Icon size={16} />}
@@ -490,9 +498,9 @@ export const StatCard: React.FC<{
 };
 
 export const LibraryEditorModal: React.FC<{ library: any; onClose: () => void }> = ({ library, onClose }) => {
-  return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-md md:p-10 pointer-events-auto text-left">
-      <div className="w-full h-full md:h-[80vh] md:max-w-4xl bg-app-surface-2 border border-app-border md:rounded-[30px] shadow-2xl flex flex-col">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-zinc-900/50 backdrop-blur-sm p-4 pointer-events-auto text-left">
+      <div className="w-full h-full md:h-[80vh] md:max-w-4xl bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl flex flex-col">
         <div className="h-20 flex items-center justify-between px-10 border-b border-app-border">
           <h3 className="text-xl font-bold uppercase text-app-text-strong">Biblioteca de Formatos</h3>
           <button onClick={() => { playUISound('tap'); onClose(); }} className="ios-btn text-app-text-muted hover:text-app-text-strong">
@@ -502,7 +510,7 @@ export const LibraryEditorModal: React.FC<{ library: any; onClose: () => void }>
         <div className="flex-1 overflow-y-auto p-10 custom-scrollbar space-y-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
             {Object.keys(library).map(net => (
-              <div key={net} className="p-6 rounded-2xl bg-app-surface border border-app-border space-y-4">
+              <div key={net} className="p-6 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 space-y-4">
                 <h4 className="text-sm font-black text-[#3B82F6] uppercase">{net}</h4>
                 <div className="flex flex-wrap gap-2">
                   {library[net].map((type: string, idx: number) => (
@@ -517,7 +525,8 @@ export const LibraryEditorModal: React.FC<{ library: any; onClose: () => void }>
           <Button onClick={onClose}>Fechar</Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
@@ -533,9 +542,9 @@ export const ReorderTabsModal: React.FC<{ tabOrder: TipoTabela[]; setTabOrder: (
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-10 pointer-events-auto text-left transition-all" onClick={onClose}>
-      <div className="w-full max-w-lg bg-app-surface-2 border border-app-border rounded-2xl shadow-2xl p-8 flex flex-col relative" onClick={(e) => e.stopPropagation()}>
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-zinc-900/50 backdrop-blur-sm p-4 pointer-events-auto text-left transition-all" onClick={onClose}>
+      <div className="w-full max-w-lg bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl p-8 flex flex-col relative" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold uppercase text-app-text-strong">Ordem das Abas</h3>
           <button onClick={() => { playUISound('tap'); onClose(); }} className="ios-btn text-app-text-muted hover:text-app-text-strong transition-colors">
@@ -544,14 +553,15 @@ export const ReorderTabsModal: React.FC<{ tabOrder: TipoTabela[]; setTabOrder: (
         </div>
         <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-2 mb-8 max-h-[50vh]">
           {tabOrder.map((tab) => (
-            <div key={tab} className="flex items-center gap-4 p-4 rounded-xl border border-app-border bg-app-surface">
+            <div key={tab} className="flex items-center gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
               <span className="text-xs font-black uppercase text-app-text-strong">{ROTULOS_TABELAS[tab]}</span>
             </div>
           ))}
         </div>
         <Button onClick={onClose} className="w-full h-12 !bg-[#3B82F6]">Salvar e Fechar</Button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
@@ -562,11 +572,11 @@ export const ColorPickerModal: React.FC<{ target: { id: string; value: string };
     '#1E293B', '#64748B', '#94A3B8', '#CBD5E1'
   ];
 
-  return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade pointer-events-auto" onClick={onClose}>
-      <div className="bg-app-surface-2 border border-app-border rounded-3xl p-8 shadow-2xl space-y-6 w-full max-w-sm transform transition-all scale-100" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-black uppercase text-app-text-strong tracking-widest">Escolher Cor</h3>
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-zinc-900/50 backdrop-blur-sm p-4 animate-fade pointer-events-auto" onClick={onClose}>
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl p-8 space-y-6 w-full max-w-sm transform transition-all scale-100" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-sm font-black uppercase text-app-text-strong tracking-widest truncate flex-1">Escolher Cor</h3>
           <button onClick={() => { playUISound('tap'); onClose(); }} className="ios-btn text-app-text-muted hover:text-app-text-strong transition-colors"><i className="fa-solid fa-xmark text-xl"></i></button>
         </div>
 
@@ -578,11 +588,11 @@ export const ColorPickerModal: React.FC<{ target: { id: string; value: string };
               className="ios-btn group aspect-square rounded-2xl border border-white/10 hover:border-white transition-all shadow-lg hover:shadow-xl hover:shadow-white/10 relative overflow-hidden"
               style={{ backgroundColor: color }}
             >
-              {target.value === color && <div className="absolute inset-0 flex items-center justify-center bg-black/20"><i className="fa-solid fa-check text-app-text-strong drop-shadow-md"></i></div>}
+              {target.value === color && <div className="absolute inset-0 flex items-center justify-center bg-black/20"><i className="fa-solid fa-check text-white drop-shadow-md"></i></div>}
             </button>
           ))}
 
-          <div className="aspect-square rounded-2xl border-2 border-dashed border-gray-600 hover:border-white transition-all flex items-center justify-center relative cursor-pointer group bg-app-surface">
+          <div className="aspect-square rounded-2xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 hover:border-blue-500 transition-all flex items-center justify-center relative cursor-pointer group bg-zinc-50 dark:bg-zinc-800">
             <i className="fa-solid fa-plus text-app-text-muted group-hover:text-app-text-strong text-xl"></i>
             <input
               type="color"
@@ -600,6 +610,7 @@ export const ColorPickerModal: React.FC<{ target: { id: string; value: string };
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

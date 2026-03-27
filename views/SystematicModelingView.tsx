@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import { Card, InputSelect } from '../Components';
+import { Card, InputSelect, Badge } from '../Components';
 import { LINHAS_MODELAGEM_SISTEMATICA as rows } from '../constants';
 import { Cliente, BibliotecaConteudo } from '../types';
 import { playUISound } from '../utils/uiSounds';
@@ -58,82 +58,82 @@ export function SystematicModelingView({
     }, [data, activeClient, days]);
 
     return (
-        <div className="bg-app-surface/40 border border-white/5 rounded-2xl md:rounded-[40px] p-4 md:p-10 backdrop-blur-xl animate-fade overflow-x-auto shadow-2xl relative">
-            <div className="mb-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="flex flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors">
+            {/* HEADER */}
+            <div className="flex items-center justify-between flex-wrap gap-3 px-6 py-4 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+                <div className="flex items-center gap-4">
                     <div>
-                        <h2 className="text-xl md:text-2xl font-black uppercase tracking-tighter text-app-text-strong">Modelagem Sistemática</h2>
-                        <p className="text-[10px] font-bold text-app-text-muted uppercase tracking-widest leading-none">Matriz Estratégica</p>
+                        <h2 className="text-lg font-semibold text-zinc-900 dark:text-white truncate">Modelagem Sistemática</h2>
+                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none">Matriz Estratégica</p>
                     </div>
-                    <div className="w-full sm:w-64">
+                    <div className="w-64">
                         <InputSelect
                             value={activeClient ? activeClient.id : ""}
                             onChange={(val) => onSelectClient && onSelectClient(val)}
                             options={clients?.map((c: any) => ({ value: c.id, label: c.Nome })) || []}
                             placeholder="Selecione um Cliente"
-                            className="w-full text-[10px] font-bold uppercase bg-blue-600/10 text-blue-500 border border-blue-500/20 rounded-xl"
+                            className="!h-9 !text-[11px] font-semibold uppercase"
                         />
                     </div>
                 </div>
-                <div className="flex flex-wrap gap-3">
-                    <div className="px-3 md:px-4 py-2 bg-rose-500/10 rounded-xl border border-rose-500/20 flex items-center gap-2">
-                        <span className="text-[9px] md:text-[10px] font-bold uppercase text-rose-500/70">Equilíbrio:</span>
-                        <span className="text-xs font-black text-rose-500">HERO: {counts.hero}</span>
-                    </div>
-                    <div className="px-3 md:px-4 py-2 bg-blue-500/10 rounded-xl border border-blue-500/20 flex items-center gap-2">
-                        <span className="text-[9px] md:text-[10px] font-bold uppercase text-blue-500/70">Equilíbrio:</span>
-                        <span className="text-xs font-black text-blue-500">HUB: {counts.hub}</span>
-                    </div>
-                    <div className="px-3 md:px-4 py-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20 flex items-center gap-2">
-                        <span className="text-[9px] md:text-[10px] font-bold uppercase text-emerald-500/70">Equilíbrio:</span>
-                        <span className="text-xs font-black text-emerald-500">HELP: {counts.help}</span>
-                    </div>
+                <div className="flex flex-wrap gap-2">
+                    <Badge color="rose" className="h-8 px-3 gap-2">
+                        <span className="text-[10px] uppercase font-bold opacity-70 tracking-widest">Hero:</span>
+                        <span className="font-bold">{counts.hero}</span>
+                    </Badge>
+                    <Badge color="blue" className="h-8 px-3 gap-2">
+                        <span className="text-[10px] uppercase font-bold opacity-70 tracking-widest">Hub:</span>
+                        <span className="font-bold">{counts.hub}</span>
+                    </Badge>
+                    <Badge color="emerald" className="h-8 px-3 gap-2">
+                        <span className="text-[10px] uppercase font-bold opacity-70 tracking-widest">Help:</span>
+                        <span className="font-bold">{counts.help}</span>
+                    </Badge>
                 </div>
             </div>
 
-            <div className="hidden md:block">
-                <table className="w-full min-w-[1000px] border-separate border-spacing-x-4 border-spacing-y-2">
-                    <thead>
-                        <tr>
-                            <th className="text-left text-[11px] font-black uppercase tracking-[0.2em] text-app-text-muted pb-8 pl-4 w-[150px]">Atributo</th>
-                            {days.map(day => (
-                                <th key={day} className="text-center pb-8">
-                                    <div className="px-6 py-3 rounded-2xl bg-app-surface border border-white/5 text-[11px] font-black uppercase tracking-[0.2em] text-app-text-strong shadow-lg">
+            {/* CONTENT */}
+            <div className="flex-1 overflow-auto p-6 custom-scrollbar">
+                <div className="hidden md:block">
+                    <table className="w-full border-separate border-spacing-0 table-fixed min-w-[1000px]">
+                        <thead>
+                            <tr>
+                                <th className="text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500 px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 w-[180px]">Atributo</th>
+                                {days.map(day => (
+                                    <th key={day} className="text-center text-[10px] font-bold uppercase tracking-widest text-zinc-500 px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
                                         {day}
-                                    </div>
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {rows.map(row => (
-                            <tr key={row.id}>
-                                <td className="text-[11px] font-black uppercase tracking-[0.2em] text-rose-500 py-4 pl-4">
-                                    {row.label}
-                                </td>
-                                {days.map(day => {
-                                    const value = (activeClient && data && data[activeClient.id]) ? (data[activeClient.id][`${day}-${row.id}`] || '') : '';
-                                    return (
-                                        <td key={`${day}-${row.id}`} className="py-2">
-                                            <div className="relative group">
-                                                {row.id === 'conteudo' ? (
-                                                    <select
-                                                        value={value}
-                                                        onChange={(e) => updateCell(day, row.id, e.target.value)}
-                                                        disabled={!activeClient}
-                                                        className="w-full bg-app-bg/80 border border-white/5 rounded-[20px] px-5 py-3 text-[10px] font-bold text-gray-300 focus:text-app-text-strong focus:border-rose-500/30 outline-none appearance-none transition-all hover:bg-app-bg uppercase tracking-tight shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
-                                                    >
-                                                        {contentOptions.map(opt => <option key={opt} value={opt} className="bg-app-surface">{opt}</option>)}
-                                                    </select>
-                                                ) : (
-                                                    <div className="relative">
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {rows.map((row, idx) => (
+                                <tr key={row.id} className={`${idx % 2 === 0 ? 'bg-white dark:bg-zinc-900' : 'bg-zinc-50 dark:bg-zinc-800/30'} hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors`}>
+                                    <td className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100 border-b border-zinc-100 dark:border-zinc-800/50">
+                                        {row.label}
+                                    </td>
+                                    {days.map(day => {
+                                        const value = (activeClient && data && data[activeClient.id]) ? (data[activeClient.id][`${day}-${row.id}`] || '') : '';
+                                        return (
+                                            <td key={`${day}-${row.id}`} className="px-2 py-1.5 border-b border-zinc-100 dark:border-zinc-800/50">
+                                                <div className="relative group">
+                                                    {row.id === 'conteudo' ? (
                                                         <select
                                                             value={value}
                                                             onChange={(e) => updateCell(day, row.id, e.target.value)}
                                                             disabled={!activeClient}
-                                                            className="w-full bg-app-surface/40 border border-transparent rounded-xl px-4 py-3 text-[10px] font-bold text-app-text-muted focus:text-app-text-strong focus:bg-app-bg/60 outline-none appearance-none cursor-pointer text-center uppercase transition-all hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            className="w-full h-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-md px-2 text-[10px] font-semibold text-zinc-700 dark:text-zinc-300 focus:border-zinc-500 outline-none appearance-none transition-all uppercase tracking-tight shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
                                                         >
-                                                            <option value="" className="bg-app-surface">-</option>
+                                                            {contentOptions.map(opt => <option key={opt} value={opt} className="bg-white dark:bg-zinc-900">{opt}</option>)}
+                                                        </select>
+                                                    ) : (
+                                                        <select
+                                                            value={value}
+                                                            onChange={(e) => updateCell(day, row.id, e.target.value)}
+                                                            disabled={!activeClient}
+                                                            className="w-full h-8 bg-transparent border-none text-[10px] font-bold text-zinc-500 dark:text-zinc-400 focus:text-zinc-900 dark:focus:text-white outline-none appearance-none cursor-pointer text-center uppercase transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                                        >
+                                                            <option value="" className="bg-white dark:bg-zinc-900">-</option>
                                                             {(() => {
                                                                 if (row.id === 'formato') {
                                                                     const selectedContent = activeClient && data && data[activeClient.id] ? data[activeClient.id][`${day}-conteudo`] : null;
@@ -141,54 +141,41 @@ export function SystematicModelingView({
                                                                         const rdcItem = rdc.find((r: any) => r['Ideia de Conteúdo'] === selectedContent && r.Cliente_ID === activeClient.id);
                                                                         const planItem = planning.find((p: any) => p.Conteúdo === selectedContent && p.Cliente_ID === activeClient.id);
                                                                         const network = rdcItem?.Rede_Social || planItem?.Rede_Social;
-                                                                        if (network && library[network]) return library[network].map((opt: any) => <option key={opt} value={opt} className="bg-app-surface">{opt}</option>);
+                                                                        if (network && library[network]) return library[network].map((opt: any) => <option key={opt} value={opt} className="bg-white dark:bg-zinc-900">{opt}</option>);
                                                                     }
-                                                                    return Object.values(library).flat().map((opt: any) => <option key={opt} value={opt} className="bg-app-surface">{opt}</option>);
+                                                                    return Object.values(library).flat().map((opt: any) => <option key={opt} value={opt} className="bg-white dark:bg-zinc-900">{opt}</option>);
                                                                 }
-                                                                return row.options?.map((opt: any) => <option key={opt} value={opt} className="bg-app-surface">{opt}</option>);
+                                                                return row.options?.map((opt: any) => <option key={opt} value={opt} className="bg-white dark:bg-zinc-900">{opt}</option>);
                                                             })()}
                                                         </select>
-                                                        <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <i className="fa-solid fa-chevron-down text-[7px] text-gray-600"></i>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </td>
-                                    );
-                                })}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        );
+                                    })}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
 
-            {/* MOBILE LIST VIEW */}
-            <div className="md:hidden space-y-6">
-                {days.map(day => (
-                    <div key={day} className="bg-app-bg/50 border border-white/5 rounded-[32px] p-5 md:p-8 overflow-hidden relative">
-                        <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 blur-[40px] rounded-full"></div>
-                        <h3 className="text-xl font-black uppercase tracking-tighter text-app-text-strong mb-6 pl-2 border-l-4 border-blue-500">{day}</h3>
-                        <div className="space-y-5">
-                            {rows.map(row => {
-                                const value = (activeClient && data && data[activeClient.id]) ? (data[activeClient.id][`${day}-${row.id}`] || '') : '';
-                                return (
-                                    <div key={row.id}>
-                                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-app-text-muted block mb-2 ml-1">{row.label}</label>
-                                        {row.id === 'conteudo' ? (
+                {/* MOBILE LIST VIEW */}
+                <div className="md:hidden space-y-6">
+                    {days.map(day => (
+                        <Card key={day} className="overflow-hidden">
+                            <h3 className="text-sm font-bold uppercase tracking-tight text-zinc-900 dark:text-white mb-4 pl-3 border-l-2 border-zinc-900 dark:border-zinc-100">{day}</h3>
+                            <div className="space-y-4">
+                                {rows.map(row => {
+                                    const value = (activeClient && data && data[activeClient.id]) ? (data[activeClient.id][`${day}-${row.id}`] || '') : '';
+                                    return (
+                                        <div key={row.id}>
                                             <InputSelect
-                                                value={value}
-                                                onChange={(val) => updateCell(day, row.id, val)}
-                                                options={contentOptions.map(opt => ({ value: opt, label: opt }))}
-                                                className="w-full bg-app-surface border border-white/10 rounded-2xl px-5 py-4 text-[11px] font-bold text-app-text-strong outline-none focus:border-blue-500/50 uppercase tracking-wide appearance-none"
-                                                placeholder="Selecione..."
                                                 label={row.label}
-                                            />
-                                        ) : (
-                                            <InputSelect
                                                 value={value}
                                                 onChange={(val) => updateCell(day, row.id, val)}
+                                                disabled={!activeClient}
                                                 options={(() => {
+                                                    if (row.id === 'conteudo') return contentOptions.map(opt => ({ value: opt, label: opt }));
                                                     if (row.id === 'formato') {
                                                         const selectedContent = activeClient && data && data[activeClient.id] ? data[activeClient.id][`${day}-conteudo`] : null;
                                                         if (selectedContent) {
@@ -201,17 +188,16 @@ export function SystematicModelingView({
                                                     }
                                                     return row.options?.map((opt: any) => ({ value: opt, label: opt })) || [];
                                                 })()}
-                                                className="w-full bg-app-surface border border-white/10 rounded-2xl px-5 py-4 text-[11px] font-bold text-app-text-strong outline-none focus:border-blue-500/50 uppercase tracking-wide appearance-none"
-                                                placeholder="-"
-                                                label={row.label}
+                                                className="!h-9 !text-[11px] font-semibold uppercase"
+                                                placeholder={row.id === 'conteudo' ? "Selecione..." : "-"}
                                             />
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                ))}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </Card>
+                    ))}
+                </div>
             </div>
         </div>
     );

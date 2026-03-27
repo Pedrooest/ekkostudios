@@ -199,25 +199,25 @@ export function PlanningView({
 
     return (
         <div className={`${isDarkMode ? 'dark' : ''} flex-1 flex flex-col font-sans w-full h-full transition-colors overflow-hidden`}>
-            <div className="flex-1 flex flex-col w-full h-full bg-[#F8FAFC] dark:bg-[#0a0a0c] transition-colors overflow-y-auto custom-scrollbar">
+            <div className="flex-1 flex flex-col w-full h-full bg-white dark:bg-zinc-900 transition-colors overflow-y-auto custom-scrollbar">
 
-                <div className="p-6 lg:p-8 space-y-8 w-full">
-
-                    {/* TOP ACTION BAR */}
-                    <div className="flex items-center justify-between mb-8">
-                        <div className="flex items-center gap-4 text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest relative z-10">
+                {/* HEADER SECTION */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 shrink-0">
+                    <div>
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 truncate">Planejamento Estratégico</h1>
                             <div className="relative">
                                 <button
                                     onClick={() => setIsClientDropdownOpen(!isClientDropdownOpen)}
-                                    className="flex items-center gap-2 hover:text-gray-800 dark:hover:text-white transition-colors ios-btn"
+                                    className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-700 text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
                                 >
-                                    <Filter size={16} /> {activeClientId ? (clients.find(c => c.id === activeClientId)?.Nome || 'Cliente') : 'Todos Clientes'} <ChevronDown size={14} />
+                                    <Filter size={10} /> {activeClientId ? (clients.find(c => c.id === activeClientId)?.Nome || 'Cliente') : 'Todos Clientes'} <ChevronDown size={10} />
                                 </button>
                                 {isClientDropdownOpen && (
-                                    <div className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl py-1 z-50">
+                                    <div className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg py-1 z-50">
                                         <button
                                             onClick={() => { playUISound('tap'); setIsClientFilterOpen?.(false); setIsClientDropdownOpen(false); }}
-                                            className="w-full text-left px-4 py-2 text-sm font-bold text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                                            className="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700/50"
                                         >
                                             Todos Clientes
                                         </button>
@@ -225,7 +225,7 @@ export function PlanningView({
                                             <button
                                                 key={c.id}
                                                 onClick={() => { playUISound('tap'); onUpdate('', 'PLANEJAMENTO', 'FILTER_CLIENT', c.id); setIsClientDropdownOpen(false); }}
-                                                className="w-full text-left px-4 py-2 text-sm font-bold text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                                                className="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700/50"
                                             >
                                                 {c.Nome}
                                             </button>
@@ -233,107 +233,104 @@ export function PlanningView({
                                     </div>
                                 )}
                             </div>
+                        </div>
+                        <p className="text-zinc-500 dark:text-zinc-400 text-xs mt-0.5">Calendário tático e cronograma de posts.</p>
+                    </div>
 
-                            <button className="flex items-center gap-2 hover:text-gray-800 dark:hover:text-white transition-colors ios-btn ml-2" onClick={() => { playUISound('tap'); setShowArchived?.(!showArchived); }}>
-                                <Archive size={16} /> {showArchived ? 'OCULTAR' : 'ARQUIVADOS'}
-                            </button>
+                    <div className="flex items-center gap-2">
+                        <button 
+                            onClick={() => { playUISound('tap'); setShowArchived?.(!showArchived); }}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all border ${showArchived ? 'bg-zinc-100 dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100' : 'bg-transparent border-zinc-200 dark:border-zinc-700 text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800'}`}
+                        >
+                            <Archive size={14} className="inline mr-1.5" /> {showArchived ? 'Ocultar Arquivados' : 'Arquivados'}
+                        </button>
+                        <button
+                            onClick={() => { playUISound('open'); setIsExportModalOpen(true); }}
+                            className="px-3 py-1.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 rounded-lg text-xs font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all shadow-sm flex items-center gap-1.5"
+                        >
+                            <Download size={14} /> Exportar
+                        </button>
+                        <div className="w-px h-6 bg-zinc-200 dark:bg-zinc-700 mx-1"></div>
+                        <button onClick={handleAddContent} className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5">
+                            <Plus size={14} strokeWidth={2.5} /> Novo Post
+                        </button>
+                    </div>
+                </div>
+
+                <div className="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/50">
+                    <div className="flex flex-wrap items-center gap-1">
+                        {['ALL', 'EM ESPERA', 'AGUARDANDO APROVAÇÃO', 'PRODUÇÃO', 'PUBLICADO', 'CONCLUÍDO'].map((tab) => (
                             <button
-                                onClick={() => { playUISound('open'); setIsExportModalOpen(true); }}
-                                className="flex items-center gap-2 px-4 py-1.5 bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 text-gray-800 dark:text-white rounded-full shadow-sm hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all ios-btn ml-2"
+                                key={tab}
+                                onClick={() => { playUISound('tap'); setActiveStatus(tab); }}
+                                className={`px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all whitespace-nowrap ${activeStatus === tab
+                                    ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-zinc-600'
+                                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                                    }`}
                             >
-                                <Download size={14} /> EXPORTAR
+                                {tab}
                             </button>
-                        </div>
+                        ))}
                     </div>
 
-                    <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6">
-                        <div>
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="w-2.5 h-8 bg-blue-600 rounded-full"></div>
-                                <h1 className="text-[32px] font-black text-[#0B1527] dark:text-white tracking-tight leading-none uppercase">
-                                    PLANEJAMENTO ESTRATÉGICO
-                                </h1>
-                            </div>
-
-                            <div className="flex flex-wrap items-center gap-2 lg:gap-6">
-                                {['ALL', 'EM ESPERA', 'AGUARDANDO APROVAÇÃO', 'PRODUÇÃO', 'PUBLICADO', 'CONCLUÍDO'].map((tab) => (
-                                    <button
-                                        key={tab}
-                                        onClick={() => { playUISound('tap'); setActiveStatus(tab); }}
-                                        className={`text-[11px] font-black uppercase tracking-widest transition-all ios-btn ${activeStatus === tab
-                                            ? 'bg-blue-600 text-white px-5 py-2 rounded-full shadow-md'
-                                            : 'text-gray-500 dark:text-zinc-400 hover:text-gray-800 dark:hover:text-white px-2 py-2'
-                                            }`}
-                                    >
-                                        {tab}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 shrink-0">
-                            <button onClick={() => { playUISound('open'); setSidebarView('banco'); }} className="flex items-center gap-2 px-6 py-3 bg-[#9CA3AF] dark:bg-zinc-700 hover:bg-gray-500 dark:hover:bg-zinc-600 text-white rounded-full text-xs font-bold uppercase tracking-wider transition-all ios-btn">
-                                <Database size={16} /> BANCO DE CONTEÚDO
-                            </button>
-                            <button onClick={handleAddContent} className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-xs font-bold uppercase tracking-wider shadow-[0_4px_14px_rgba(59,130,246,0.4)] transition-all ios-btn">
-                                <Plus size={16} strokeWidth={3} /> NOVO CONTEÚDO
-                            </button>
-                        </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                        <button onClick={() => { playUISound('open'); setSidebarView('banco'); }} className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all active:scale-95">
+                            <Database size={14} /> Banco de Itens
+                        </button>
                     </div>
+                </div>
 
-                    <div className="flex items-center justify-between mb-4 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 p-3 px-5 rounded-2xl shadow-sm max-w-[1400px]">
+                <div className="p-6 space-y-6">
+
+                    <div className="flex items-center justify-between mb-4 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-2 px-4 rounded-xl shadow-sm">
                         <div className="flex items-center gap-4">
-                            <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 transition-colors ios-btn" onClick={() => handleMonthNav(-1)}>
-                                <ChevronLeft size={20} />
+                            <button className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-500 transition-colors" onClick={() => handleMonthNav(-1)}>
+                                <ChevronLeft size={18} />
                             </button>
-                            <h3 className="text-lg font-black text-[#0B1527] dark:text-white min-w-[150px] text-center uppercase tracking-tight">
-                                {viewMode === 'month' ? `${MONTH_NAMES_BR[currentDate.getMonth()]} ${currentDate.getFullYear()}` : 'Vista Semanal'}
+                            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 min-w-[120px] text-center uppercase tracking-tight">
+                                {viewMode === 'month' ? `${MONTH_NAMES_BR[currentDate.getMonth()]} ${currentDate.getFullYear()}` : 'Semana'}
                             </h3>
-                            <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 transition-colors ios-btn" onClick={() => handleMonthNav(1)}>
-                                <ChevronRight size={20} />
+                            <button className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-50 text-zinc-500 transition-colors" onClick={() => handleMonthNav(1)}>
+                                <ChevronRight size={18} />
                             </button>
                         </div>
 
-                        <div className="flex bg-[#F8FAFC] dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-1 rounded-2xl items-center relative overflow-hidden shadow-sm">
-                            <div
-                                className="absolute top-1 bottom-1 w-10 bg-white dark:bg-zinc-800 rounded-xl shadow-sm transition-transform duration-300 ease-in-out"
-                                style={{ transform: `translateX(${viewMode === 'month' ? 4 : viewMode === 'week' ? 48 : 92}px)` }}
-                            />
+                        <div className="flex bg-zinc-100 dark:bg-zinc-900 p-1 rounded-lg items-center relative gap-1">
                             <button
                                 onClick={() => { playUISound('tap'); setViewMode('month'); }}
-                                className={`relative z-10 w-11 h-8 flex items-center justify-center rounded-xl transition-colors ios-btn ${viewMode === 'month' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300'}`}
+                                className={`w-9 h-7 flex items-center justify-center rounded-md transition-all ${viewMode === 'month' ? 'bg-white dark:bg-zinc-700 text-blue-600 shadow-sm' : 'text-zinc-400 hover:text-zinc-600'}`}
                                 title="Mês"
                             >
-                                <LayoutGrid size={18} strokeWidth={2.5} />
+                                <LayoutGrid size={16} />
                             </button>
                             <button
                                 onClick={() => { playUISound('tap'); setViewMode('week'); }}
-                                className={`relative z-10 w-11 h-8 flex items-center justify-center rounded-xl transition-colors ios-btn ${viewMode === 'week' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300'}`}
+                                className={`w-9 h-7 flex items-center justify-center rounded-md transition-all ${viewMode === 'week' ? 'bg-white dark:bg-zinc-700 text-blue-600 shadow-sm' : 'text-zinc-400 hover:text-zinc-600'}`}
                                 title="Semana"
                             >
-                                <Columns size={18} strokeWidth={2.5} />
+                                <Columns size={16} />
                             </button>
                             <button
                                 onClick={() => { playUISound('tap'); setViewMode('list'); }}
-                                className={`relative z-10 w-11 h-8 flex items-center justify-center rounded-xl transition-colors ios-btn ${viewMode === 'list' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300'}`}
+                                className={`w-9 h-7 flex items-center justify-center rounded-md transition-all ${viewMode === 'list' ? 'bg-white dark:bg-zinc-700 text-blue-600 shadow-sm' : 'text-zinc-400 hover:text-zinc-600'}`}
                                 title="Lista"
                             >
-                                <List size={18} strokeWidth={2.5} />
+                                <List size={16} />
                             </button>
                         </div>
                     </div>
 
                     {/* CALENDAR GRID */}
-                    <div className="bg-white dark:bg-[#111114] border border-gray-100 dark:border-zinc-800 rounded-[2.5rem] shadow-xl overflow-hidden flex flex-col">
-                        <div className="grid grid-cols-7 border-b border-gray-100 dark:border-zinc-800 bg-white dark:bg-[#111114]">
+                    <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm overflow-hidden flex flex-col">
+                        <div className="grid grid-cols-7 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50">
                             {WEEKDAYS_BR_SHORT.map(dia => (
-                                <div key={dia} className="py-6 text-center text-[10px] font-black text-[#0B1527] dark:text-zinc-400 uppercase tracking-[0.2em] border-r border-gray-100 dark:border-zinc-800 last:border-0">
+                                <div key={dia} className="py-3 text-center text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider border-r border-zinc-200 dark:border-zinc-700 last:border-0">
                                     {dia}
                                 </div>
                             ))}
                         </div>
 
-                        <div className={`grid grid-cols-7 ${viewMode === 'month' ? 'auto-rows-[minmax(180px,auto)]' : 'auto-rows-[minmax(600px,auto)]'}`}>
+                        <div className={`grid grid-cols-7 ${viewMode === 'month' ? 'auto-rows-[minmax(140px,auto)]' : 'auto-rows-[minmax(500px,auto)]'}`}>
                             {calendarDays.map((diaObj, idx) => {
                                 const evts = getEventosDoDia(diaObj.dateStr);
                                 const isToday = diaObj.dateStr === new Date().toISOString().split('T')[0];
@@ -341,46 +338,35 @@ export function PlanningView({
                                 return (
                                     <div
                                         key={idx}
-                                        className={`p-1.5 md:p-3 border-r border-b border-gray-100 dark:border-zinc-800 transition-all relative flex flex-col ${diaObj.isNextMonth || diaObj.isPrevMonth ? 'bg-gray-50/50 dark:bg-zinc-900/30 opacity-40' :
-                                            isToday ? 'bg-blue-600/5' : 'bg-white dark:bg-[#111114]'
-                                            } hover:bg-gray-50 dark:hover:bg-zinc-900/50`}
+                                        className={`p-2 border-r border-b border-zinc-100 dark:border-zinc-700 transition-all relative flex flex-col min-h-0 ${diaObj.isNextMonth || diaObj.isPrevMonth ? 'bg-zinc-50/50 dark:bg-zinc-900/30 opacity-40' :
+                                            isToday ? 'bg-blue-50/50 dark:bg-blue-500/5' : 'bg-white dark:bg-zinc-800'
+                                            } hover:bg-zinc-50/80 dark:hover:bg-zinc-700/50`}
                                     >
-                                        <div className="flex justify-start mb-4">
-                                            <span className={`text-[11px] font-bold w-12 h-6 flex items-center justify-center rounded-lg ${isToday ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40' : 'text-[#0B1527] dark:text-zinc-400 font-black'}`}>
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className={`text-[11px] font-bold w-6 h-6 flex items-center justify-center rounded-md ${isToday ? 'bg-blue-600 text-white' : 'text-zinc-500 dark:text-zinc-400'}`}>
                                                 {diaObj.day}
                                             </span>
                                         </div>
 
-                                        <div className="flex-1 space-y-2">
+                                        <div className="flex-1 space-y-1.5 overflow-hidden">
                                             {evts.map(evt => {
-                                                const color = getClientColor(evt.Cliente_ID);
+                                                const styles = getCardStyles(evt.Cliente_ID);
                                                 return (
                                                     <div
                                                         key={evt.id}
                                                         onClick={() => openEditSidebar(evt.id)}
-                                                        className="group relative border p-3 rounded-2xl shadow-sm hover:shadow-xl transition-all cursor-pointer overflow-hidden transform hover:-translate-y-1 active:scale-95"
+                                                        className="group relative border px-2 py-1.5 rounded-lg shadow-sm transition-all cursor-pointer overflow-hidden border-opacity-50 hover:shadow-md"
                                                         style={{
-                                                            backgroundColor: getCardStyles(evt.Cliente_ID).bg,
-                                                            borderColor: getCardStyles(evt.Cliente_ID).border
+                                                            backgroundColor: styles.bg,
+                                                            borderColor: styles.border
                                                         }}
                                                     >
-                                                        <div className="space-y-2">
-                                                            <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest italic" style={{ color: getCardStyles(evt.Cliente_ID).text }}>
-                                                                <Clock size={10} strokeWidth={3} /> {evt.Hora || '09:00'}
+                                                        <div className="space-y-1 min-w-0">
+                                                            <div className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-wider" style={{ color: styles.text }}>
+                                                                <Clock size={8} /> {evt.Hora || '09:00'}
                                                             </div>
-                                                            <div className="text-[10px] font-black leading-tight text-[#0B1527] dark:text-white italic tracking-tighter line-clamp-2">
+                                                            <div className="text-[10px] font-bold leading-tight text-zinc-900 dark:text-white truncate">
                                                                 {evt.Conteúdo}
-                                                            </div>
-                                                            <div className="flex items-center justify-between">
-                                                                <div className="flex items-center gap-1.5">
-                                                                    <div className="w-4 h-4 rounded-full flex items-center justify-center bg-white/50 dark:bg-black/20" style={{ color: getCardStyles(evt.Cliente_ID).text }}>
-                                                                        <User size={10} strokeWidth={3} />
-                                                                    </div>
-                                                                    <span className="text-[8px] font-black uppercase tracking-widest truncate max-w-[80px]" style={{ color: getCardStyles(evt.Cliente_ID).text }}>
-                                                                        {clients.find(c => c.id === evt.Cliente_ID)?.Nome || 'GERAL'}
-                                                                    </span>
-                                                                </div>
-                                                                <ChevronRight size={12} className="opacity-30 group-hover:opacity-100 transition-opacity" style={{ color: getCardStyles(evt.Cliente_ID).text }} />
                                                             </div>
                                                         </div>
                                                     </div>
@@ -398,7 +384,7 @@ export function PlanningView({
                 {/* SIDEBAR EDIT */}
                 {sidebarView === 'edit' && (
                     <div className="fixed inset-0 z-[100] pointer-events-none">
-                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto" onClick={() => setSidebarView(null)}></div>
+                        <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm pointer-events-auto" onClick={() => setSidebarView(null)}></div>
                         <div className="absolute inset-y-0 right-0 w-full sm:w-[500px] bg-white dark:bg-[#0C0C14] shadow-2xl pointer-events-auto flex flex-col transform animate-in slide-in-from-right duration-300">
                             <div className="flex items-center justify-between px-8 py-6 border-b border-gray-100 dark:border-zinc-800/50 bg-gray-50/50 dark:bg-zinc-900/40">
                                 <h3 className="text-[16px] font-black uppercase tracking-tighter text-[#0B1527] dark:text-white italic">DETALHES DO PLANEJAMENTO</h3>
@@ -407,280 +393,288 @@ export function PlanningView({
                                 </button>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto px-10 py-8 space-y-10 custom-scrollbar">
-                                <textarea
-                                    className="w-full text-3xl font-black text-[#0B1527] dark:text-white bg-transparent border-none p-0 focus:ring-0 italic tracking-tighter leading-none min-h-[100px] animate-fade placeholder:opacity-20"
-                                    value={selectedEvent?.Conteúdo || ''}
-                                    onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Conteúdo', e.target.value)}
-                                    placeholder="QUAL O CONTEÚDO?"
-                                />
+                {/* SIDEBAR EDIT */}
+                {sidebarView === 'edit' && (
+                    <div className="fixed inset-0 z-[100] flex justify-end">
+                        <div className="absolute inset-0 bg-zinc-950/20 backdrop-blur-sm" onClick={() => setSidebarView(null)}></div>
+                        <div className="relative w-full sm:w-[450px] bg-white dark:bg-zinc-900 shadow-2xl flex flex-col h-full animate-in slide-in-from-right duration-300">
+                            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
+                                <h2 className="text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-tight">Detalhes do Post</h2>
+                                <button onClick={() => setSidebarView(null)} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-zinc-400 transition-colors">
+                                    <X size={20} />
+                                </button>
+                            </div>
 
-                                <div className="bg-white dark:bg-[#14141C] border border-gray-100 dark:border-zinc-800/50 rounded-[2rem] p-8 space-y-8 shadow-sm">
-                                    <div className="grid grid-cols-2 gap-8">
-                                        <div className="space-y-3">
-                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">SELECIONE...</label>
-                                            <select
-                                                value={selectedEvent?.Cliente_ID || ''}
-                                                onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Cliente_ID', e.target.value)}
-                                                className="w-full bg-transparent border-b border-gray-100 dark:border-zinc-800 text-xs font-black text-gray-800 dark:text-zinc-200 pb-3 focus:outline-none focus:border-blue-500 transition-colors uppercase"
-                                            >
-                                                <option value="">-- CLIENTE --</option>
-                                                {clients.map(c => <option key={c.id} value={c.id}>{c.Nome}</option>)}
-                                            </select>
-                                        </div>
-                                        <div className="space-y-3">
-                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">IDEIA</label>
-                                            <select
-                                                value={selectedEvent?.["Tipo de conteúdo"] || ''}
-                                                onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Tipo de conteúdo', e.target.value)}
-                                                className="w-full bg-transparent border-b border-gray-100 dark:border-zinc-800 text-xs font-black text-gray-800 dark:text-zinc-200 pb-3 focus:outline-none focus:border-blue-500 transition-colors uppercase"
-                                            >
-                                                <option value="">-- FORMATO --</option>
-                                                <option value="Reels Viral">Reels Viral</option>
-                                                <option value="Carrossel Edu.">Carrossel Edu.</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-8">
-                                        <div className="space-y-3">
-                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">DATA</label>
-                                            <input
-                                                type="date"
-                                                value={selectedEvent?.Data || ''}
-                                                onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Data', e.target.value)}
-                                                className="w-full bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-xl px-4 py-2 text-xs font-black text-gray-800 dark:text-zinc-200 focus:outline-none focus:border-blue-500"
-                                            />
-                                        </div>
-                                        <div className="space-y-3">
-                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">HORA</label>
-                                            <input
-                                                type="time"
-                                                value={selectedEvent?.Hora || ''}
-                                                onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Hora', e.target.value)}
-                                                className="w-full bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-xl px-4 py-2 text-xs font-black text-gray-800 dark:text-zinc-200 focus:outline-none focus:border-blue-500"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-5">
-                                    <select
-                                        value={selectedEvent?.Rede_Social || ''}
-                                        onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Rede_Social', e.target.value)}
-                                        className="w-full bg-white dark:bg-[#14141C] border border-gray-100 dark:border-zinc-800/50 text-xs font-black text-gray-800 dark:text-zinc-200 rounded-2xl px-6 py-4 focus:outline-none focus:border-blue-500 shadow-sm appearance-none cursor-pointer uppercase"
-                                    >
-                                        <option value="">INSTAGRAM</option>
-                                        <option value="LINKEDIN">LINKEDIN</option>
-                                        <option value="YOUTUBE">YOUTUBE</option>
-                                    </select>
-
-                                    <select
-                                        value={selectedEvent?.["Status do conteúdo"] || ''}
-                                        onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Status do conteúdo', e.target.value)}
-                                        className="w-full bg-white dark:bg-[#14141C] border border-gray-100 dark:border-zinc-800/50 text-xs font-black text-gray-800 dark:text-zinc-200 rounded-2xl px-6 py-4 focus:outline-none focus:border-blue-500 shadow-sm appearance-none cursor-pointer uppercase"
-                                    >
-                                        <option value="EM ESPERA">-- EM ESPERA --</option>
-                                        <option value="PRODUÇÃO">PRODUÇÃO</option>
-                                        <option value="AGUARDANDO APROVAÇÃO">AGUARDANDO APROVAÇÃO</option>
-                                        <option value="PUBLICADO">PUBLICADO</option>
-                                    </select>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] ml-1">OBSERVAÇÕES TÁTICAS</label>
+                            <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1">Conteúdo principal</label>
                                     <textarea
-                                        rows={5}
+                                        rows={4}
+                                        value={selectedEvent?.Conteúdo || ''}
+                                        onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Conteúdo', e.target.value)}
+                                        className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-4 text-sm font-medium text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none"
+                                        placeholder="O que será postado?"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1">Cliente</label>
+                                        <select
+                                            value={selectedEvent?.Cliente_ID || ''}
+                                            onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Cliente_ID', e.target.value)}
+                                            className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-2.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500 appearance-none"
+                                        >
+                                            <option value="">Selecionar Cliente</option>
+                                            {clients.map(c => <option key={c.id} value={c.id}>{c.Nome}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1">Formato</label>
+                                        <select
+                                            value={selectedEvent?.["Tipo de conteúdo"] || ''}
+                                            onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Tipo de conteúdo', e.target.value)}
+                                            className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-2.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500 appearance-none"
+                                        >
+                                            <option value="">Selecionar Formato</option>
+                                            <option value="Reels Viral">Reels Viral</option>
+                                            <option value="Carrossel Edu.">Carrossel Edu.</option>
+                                            <option value="Estático">Estático</option>
+                                            <option value="Stories">Stories</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1">Data</label>
+                                        <input
+                                            type="date"
+                                            value={selectedEvent?.Data || ''}
+                                            onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Data', e.target.value)}
+                                            className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-2.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1">Hora</label>
+                                        <input
+                                            type="time"
+                                            value={selectedEvent?.Hora || ''}
+                                            onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Hora', e.target.value)}
+                                            className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-2.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1">Rede Social</label>
+                                        <select
+                                            value={selectedEvent?.Rede_Social || ''}
+                                            onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Rede_Social', e.target.value)}
+                                            className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-2.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500 appearance-none"
+                                        >
+                                            <option value="">INSTAGRAM</option>
+                                            <option value="LINKEDIN">LINKEDIN</option>
+                                            <option value="YOUTUBE">YOUTUBE</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1">Status</label>
+                                        <select
+                                            value={selectedEvent?.["Status do conteúdo"] || ''}
+                                            onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Status do conteúdo', e.target.value)}
+                                            className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-2.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500 appearance-none"
+                                        >
+                                            <option value="EM ESPERA">EM ESPERA</option>
+                                            <option value="PRODUÇÃO">PRODUÇÃO</option>
+                                            <option value="AGUARDANDO APROVAÇÃO">APROVAÇÃO</option>
+                                            <option value="PUBLICADO">PUBLICADO</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold text-blue-500 uppercase tracking-wider ml-1">Observações</label>
+                                    <textarea
+                                        rows={4}
                                         value={selectedEvent?.Observações || ''}
                                         onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Observações', e.target.value)}
-                                        className="w-full bg-white dark:bg-[#14141C] border border-gray-100 dark:border-zinc-800/50 rounded-[2rem] p-6 text-xs font-bold text-gray-700 dark:text-zinc-300 focus:outline-none focus:border-blue-500 shadow-inner resize-none"
-                                        placeholder="..."
+                                        className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-4 text-sm font-medium text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500 transition-all resize-none shadow-inner"
+                                        placeholder="Notas adicionais..."
                                     />
                                 </div>
                             </div>
 
-                            <div className="p-10 border-t border-gray-100 dark:border-zinc-800/50 bg-white dark:bg-[#0C0C14] shrink-0">
-                                <div className="flex gap-4 mb-6">
-                                    <button className="flex-1 h-14 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 text-[10px] font-black uppercase tracking-widest text-gray-600 dark:text-zinc-400 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all ios-btn flex items-center justify-center gap-2">
-                                        <Copy size={16} /> DUPLICAR
+                            <div className="p-6 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 space-y-4">
+                                <div className="grid grid-cols-3 gap-2">
+                                    <button className="flex flex-col items-center justify-center p-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-[10px] font-bold text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all">
+                                        <Copy size={16} className="mb-1" /> Duplicar
                                     </button>
-                                    <button onClick={() => selectedEvent && performArchive([selectedEvent.id], 'PLANEJAMENTO', true)} className="flex-1 h-14 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 text-[10px] font-black uppercase tracking-widest text-gray-600 dark:text-zinc-400 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all ios-btn flex items-center justify-center gap-2">
-                                        <Archive size={16} /> ARQUIVAR
+                                    <button onClick={() => selectedEvent && performArchive([selectedEvent.id], 'PLANEJAMENTO', true)} className="flex flex-col items-center justify-center p-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-[10px] font-bold text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all">
+                                        <Archive size={16} className="mb-1" /> Arquivar
                                     </button>
-                                    <button onClick={() => selectedEvent && performDelete([selectedEvent.id], 'PLANEJAMENTO')} className="flex-1 h-14 bg-white dark:bg-zinc-900 border border-rose-100 dark:border-rose-900/10 text-[10px] font-black uppercase tracking-widest text-rose-500 rounded-2xl hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all ios-btn flex items-center justify-center gap-2">
-                                        <Trash2 size={16} /> EXCLUIR
+                                    <button onClick={() => selectedEvent && performDelete([selectedEvent.id], 'PLANEJAMENTO')} className="flex flex-col items-center justify-center p-2 rounded-lg border border-rose-100 dark:border-rose-900/20 bg-rose-50/30 dark:bg-rose-900/10 text-[10px] font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/20 transition-all">
+                                        <Trash2 size={16} className="mb-1" /> Excluir
                                     </button>
                                 </div>
-                                <button onClick={() => setSidebarView(null)} className="w-full h-16 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-2xl shadow-blue-500/40 transition-all ios-btn flex items-center justify-center gap-3 active:scale-[0.98]">
-                                    <Check size={20} /> SALVAR CONTEÚDO
+                                <button onClick={() => setSidebarView(null)} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98]">
+                                    Salvar Alterações
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                )}
                         </div>
                     </div>
                 )}
 
                 {/* SIDEBAR BANCO */}
                 {sidebarView === 'banco' && (
-                    <div className="fixed inset-0 z-[100] pointer-events-none">
-                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto" onClick={() => setSidebarView(null)}></div>
-                        <div className="absolute inset-y-0 right-0 w-full sm:w-[500px] bg-white dark:bg-[#0C0C14] shadow-2xl pointer-events-auto flex flex-col transform animate-in slide-in-from-right duration-300">
-                            <div className="px-8 py-6 border-b border-gray-100 dark:border-zinc-800/50 flex justify-between items-center bg-gray-50/50 dark:bg-zinc-900/30">
-                                <h2 className="text-[11px] font-black text-[#0B1527] dark:text-white uppercase tracking-[0.2em] flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-inner">
-                                        <FolderOpen size={18} strokeWidth={2.5} />
+                    <div className="fixed inset-0 z-[100] flex justify-end">
+                        <div className="absolute inset-0 bg-zinc-950/20 backdrop-blur-sm" onClick={() => setSidebarView(null)}></div>
+                        <div className="relative w-full sm:w-[500px] bg-white dark:bg-zinc-900 shadow-2xl flex flex-col h-full animate-in slide-in-from-right duration-300">
+                            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
+                                <h2 className="text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
+                                    <div className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600">
+                                        <FolderOpen size={16} />
                                     </div>
-                                    BANCO DE CONTEÚDOS
+                                    Banco de Conteúdos
                                 </h2>
-                                <button onClick={() => setSidebarView(null)} className="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 text-gray-400 hover:text-white transition-all ios-btn">
+                                <button onClick={() => setSidebarView(null)} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-zinc-400 transition-colors">
                                     <X size={20} />
                                 </button>
                             </div>
 
-                            <div className="p-6 border-b border-gray-100 dark:border-zinc-800/50 shrink-0">
+                            <div className="p-4 border-b border-zinc-100 dark:border-zinc-800">
                                 <div className="relative">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={14} />
                                     <input
                                         type="text"
-                                        placeholder="BUSCAR IDEIAS APROVADAS..."
+                                        placeholder="Pesquisar ideias..."
                                         value={librarySearchTerm}
                                         onChange={(e) => setLibrarySearchTerm(e.target.value)}
-                                        className="w-full bg-white dark:bg-[#14141C] border border-gray-200 dark:border-zinc-800 text-xs font-black uppercase rounded-2xl pl-12 pr-6 py-4 focus:outline-none focus:border-blue-500 transition-all placeholder:text-gray-300 dark:placeholder:text-zinc-600"
+                                        className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl pl-9 pr-4 py-2.5 text-xs font-medium focus:outline-none focus:border-blue-500 transition-all"
                                     />
                                 </div>
                             </div>
 
-                            {rdcLibrary.length === 0 ? (
-                                <div className="flex-1 flex flex-col items-center justify-center p-12 opacity-30">
-                                    <div className="w-20 h-20 rounded-full bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 flex items-center justify-center text-gray-300 dark:text-zinc-700 mb-6">
-                                        <FolderOpen size={32} />
+                            <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                                {rdcLibrary.length === 0 ? (
+                                    <div className="h-full flex flex-col items-center justify-center opacity-40 text-center">
+                                        <FolderOpen size={32} className="mb-2 text-zinc-300" />
+                                        <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Nenhuma ideia encontrada</p>
                                     </div>
-                                    <p className="text-[10px] font-black text-gray-400 dark:text-zinc-600 uppercase tracking-[0.3em]">NENHUMA IDEIA ENCONTRADA</p>
-                                </div>
-                            ) : (
-                                <div className="flex-1 p-6 overflow-y-auto custom-scrollbar space-y-4">
-                                    {rdcLibrary.map(item => (
-                                        <div
-                                            key={item.id}
-                                            onClick={() => {
-                                                playUISound('tap');
-                                                const today = new Date().toISOString().split('T')[0];
-                                                const newId = onAdd('PLANEJAMENTO', {
-                                                    Data: today,
-                                                    Hora: '09:00',
-                                                    "Status do conteúdo": 'EM ESPERA',
-                                                    Conteúdo: item['Ideia de Conteúdo'],
-                                                    "Tipo de conteúdo": item['Tipo de conteúdo'] || 'Post',
-                                                    Cliente_ID: item.Cliente_ID || activeClientId || 'GERAL',
-                                                    Origem_ID: item.id,
-                                                    Fonte_Origem: 'RDC'
-                                                });
-                                                newId.then((id) => {
-                                                    if (id) {
-                                                        setSelectedEventId(id);
+                                ) : (
+                                    <div className="space-y-3">
+                                        {rdcLibrary.map(item => (
+                                            <div
+                                                key={item.id}
+                                                onClick={async () => {
+                                                    playUISound('tap');
+                                                    const today = new Date().toISOString().split('T')[0];
+                                                    const newId = await onAdd('PLANEJAMENTO', {
+                                                        Data: today,
+                                                        Hora: '09:00',
+                                                        "Status do conteúdo": 'EM ESPERA',
+                                                        Conteúdo: item['Ideia de Conteúdo'],
+                                                        "Tipo de conteúdo": item['Tipo de conteúdo'] || 'Post',
+                                                        Cliente_ID: item.Cliente_ID || activeClientId || 'GERAL',
+                                                        Origem_ID: item.id,
+                                                        Fonte_Origem: 'RDC'
+                                                    });
+                                                    if (newId) {
+                                                        setSelectedEventId(newId);
                                                         setSidebarView('edit');
                                                     }
-                                                });
-                                            }}
-                                            className="p-5 rounded-[1.25rem] bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 hover:shadow-xl transition-all cursor-pointer group hover:border-blue-500/50 transform hover:-translate-y-1"
-                                        >
-                                            <div className="flex items-center gap-2 mb-3">
-                                                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: clients.find(c => c.id === item.Cliente_ID)?.['Cor (HEX)'] || '#3B82F6' }}></div>
-                                                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest truncate">
-                                                    {clients.find(c => c.id === item.Cliente_ID)?.Nome || 'GERAL'}
+                                                }}
+                                                className="p-4 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:border-blue-500 hover:ring-1 hover:ring-blue-500/10 transition-all cursor-pointer group"
+                                            >
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: clients.find(c => c.id === item.Cliente_ID)?.['Cor (HEX)'] || '#3B82F6' }}></div>
+                                                        <span className="text-[10px] font-bold text-zinc-500 uppercase">
+                                                            {clients.find(c => c.id === item.Cliente_ID)?.Nome || 'Geral'}
+                                                        </span>
+                                                    </div>
+                                                    <span className="text-[9px] font-medium text-zinc-400 px-2 py-0.5 bg-zinc-100 dark:bg-zinc-700 rounded-full">
+                                                        {item['Tipo de conteúdo'] || 'Post'}
+                                                    </span>
                                                 </div>
+                                                <p className="text-xs font-medium text-zinc-900 dark:text-zinc-100 line-clamp-2 leading-relaxed">
+                                                    {item['Ideia de Conteúdo']}
+                                                </p>
                                             </div>
-                                            <div className="text-[13px] font-black leading-snug text-[#0B1527] dark:text-white mb-4">
-                                                {item['Ideia de Conteúdo']}
-                                            </div>
-                                            <div className="flex items-center justify-between mt-2 pt-4 border-t border-gray-50 dark:border-zinc-800/50">
-                                                <span className="text-[9px] font-black px-3 py-1.5 rounded-md bg-gray-50 text-gray-500 dark:bg-zinc-800 dark:text-zinc-400 uppercase tracking-widest border border-gray-100 dark:border-zinc-700">
-                                                    {item['Tipo de conteúdo'] || 'IDEIA'}
-                                                </span>
-                                                <span className="flex items-center gap-1.5 text-[10px] font-black text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-widest bg-blue-50 dark:bg-blue-500/10 px-4 py-1.5 rounded-lg">
-                                                    <Plus size={12} strokeWidth={3} /> USAR
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}
 
-                {/* MODAL EXPORT (REFINED) */}
+                {/* MODAL EXPORT */}
                 {isExportModalOpen && (
-                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 lg:p-10">
-                        <div className="absolute inset-0 bg-black/90 backdrop-blur-xl animate-fade pointer-events-auto" onClick={() => !isGenerating && setIsExportModalOpen(false)}></div>
-                        <div className="relative w-full max-w-[1300px] h-full max-h-[95vh] bg-white dark:bg-[#0C0C14] border border-white/5 rounded-[3rem] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto">
-
-                            {/* MODAL HEADER */}
-                            <div className="px-10 py-8 bg-white dark:bg-[#111114] border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center shrink-0">
-                                <div className="flex items-center gap-6">
-                                    <div className="w-14 h-14 bg-blue-600 rounded-[1.25rem] flex items-center justify-center text-white shadow-xl shadow-blue-500/20">
-                                        <CalendarIcon size={28} strokeWidth={2.5} />
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                        <div className="absolute inset-0 bg-zinc-950/40 backdrop-blur-sm shadow-sm" onClick={() => !isGenerating && setIsExportModalOpen(false)}></div>
+                        <div className="relative w-full max-w-5xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh] animate-in zoom-in-95 duration-200">
+                            <div className="px-6 py-4 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center bg-white dark:bg-zinc-900 shrink-0">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-blue-600 rounded-lg text-white">
+                                        <CalendarIcon size={20} />
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl font-black text-[#0B1527] dark:text-white uppercase italic tracking-tighter leading-none">EXPORTAR PLANEJAMENTO</h2>
-                                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.2em] mt-2 flex items-center gap-2">
-                                            FEVEREIRO 2026 <span className="w-1 h-1 bg-blue-500 rounded-full"></span> AGÊNCIA EKKO STUDIOS
-                                        </p>
+                                        <h2 className="text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-tight">Exportar Planejamento</h2>
+                                        <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider">Formato PNG • Agência Ekko Studios</p>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-4">
-                                    {/* FILTRO RÁPIDO NO MODAL */}
-                                    <div className="flex bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 p-1.5 rounded-2xl mr-4">
-                                        {['Todos', ...clients.slice(0, 3).map(c => c.Nome)].map((name) => (
-                                            <button
-                                                key={name}
-                                                onClick={() => { playUISound('tap'); setExportSelectedClient(name); }}
-                                                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${exportSelectedClient === name ? 'bg-white dark:bg-zinc-800 text-blue-600 shadow-sm border border-gray-100 dark:border-white/5' : 'text-gray-400'}`}
-                                            >
-                                                {name}
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    <button onClick={() => setIsExportModalOpen(false)} className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 text-gray-400 hover:text-rose-500 transition-all ios-btn shadow-sm">
-                                        <X size={24} />
+                                <div className="flex items-center gap-3">
+                                    <select
+                                        value={exportSelectedClient}
+                                        onChange={(e) => setExportSelectedClient(e.target.value)}
+                                        className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-1.5 text-[10px] font-bold text-zinc-600 dark:text-zinc-300 focus:outline-none"
+                                    >
+                                        <option value="Todos">Todos os Clientes</option>
+                                        {clients.map(c => <option key={c.id} value={c.Nome}>{c.Nome}</option>)}
+                                    </select>
+                                    <button onClick={() => setIsExportModalOpen(false)} className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-zinc-400 transition-colors">
+                                        <X size={20} />
                                     </button>
                                 </div>
                             </div>
 
                             {/* PREVIEW AREA */}
-                            <div className="flex-1 p-10 overflow-y-auto bg-[#F8FAFC] dark:bg-black/40 custom-scrollbar flex justify-center">
+                            <div className="flex-1 p-10 overflow-y-auto bg-[#F8FAFC] dark:bg-zinc-900/60 custom-scrollbar flex justify-center">
                                 <div id="export-canvas" className="w-[1240px] min-h-[800px] bg-white text-gray-900 p-16 shadow-2xl shrink-0 rounded-[3rem] flex flex-col relative overflow-hidden transition-all scale-100 origin-top">
 
                                     {/* CABEÇALHO EXECUTIVO NO PNG */}
-                                    <div className="flex justify-between items-end mb-16 border-b-2 border-gray-100 pb-12">
+                                    <div className="flex justify-between items-end mb-12 border-b border-zinc-100 pb-10">
                                         <div>
-                                            <div className="flex items-center gap-4 mb-4">
-                                                <div className="w-2 h-10 bg-blue-600 rounded-full"></div>
-                                                <h1 className="text-5xl font-black tracking-tighter uppercase italic leading-none border-gray-100">PLANEJAMENTO</h1>
+                                            <div className="flex items-center gap-3 mb-3">
+                                                <div className="w-1.5 h-8 bg-blue-600 rounded-full"></div>
+                                                <h1 className="text-4xl font-bold tracking-tight text-zinc-900 uppercase">Planejamento</h1>
                                             </div>
-                                            <div className="flex items-center gap-6">
-                                                <p className="text-[12px] font-black text-gray-400 uppercase tracking-[0.3em]">
-                                                    CALENDÁRIO DE CONTEÚDO <span className="text-blue-600 mx-2">/</span> FEVEREIRO 2026
-                                                </p>
-                                                <div className="h-4 w-[1px] bg-gray-200"></div>
-                                                <p className="text-[12px] font-black text-blue-600 uppercase tracking-[0.3em]">
-                                                    CLIENTE: {exportSelectedClient === 'Todos' ? 'VISÃO GERAL' : exportSelectedClient}
-                                                </p>
+                                            <div className="flex items-center gap-4 text-[11px] font-bold text-zinc-400 uppercase tracking-widest">
+                                                <span>Calendário de Conteúdo</span>
+                                                <span className="w-1 h-1 bg-zinc-200 rounded-full"></span>
+                                                <span className="text-blue-600">Fevereiro 2026</span>
+                                                <span className="w-1 h-1 bg-zinc-200 rounded-full"></span>
+                                                <span className="text-zinc-900 italic">Cliente: {exportSelectedClient === 'Todos' ? 'Visão Geral' : exportSelectedClient}</span>
                                             </div>
                                         </div>
-                                        <div className="flex flex-col items-end gap-2">
-                                            <div className="text-3xl font-black italic tracking-tighter text-[#0B1527]">EKKO<span className="text-blue-600">.</span></div>
-                                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">STUDIOS INTELIGENTES</span>
+                                        <div className="flex flex-col items-end gap-1">
+                                            <div className="text-2xl font-bold tracking-tighter text-zinc-900">EKKO<span className="text-blue-600">.</span></div>
+                                            <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest bg-zinc-50 px-2 py-1 rounded-md border border-zinc-100">Studios Inteligentes</span>
                                         </div>
                                     </div>
 
                                     {/* GRID NO PNG */}
                                     <div className="flex-1 flex flex-col">
-                                        <div className="grid grid-cols-7 border border-gray-100 rounded-[2rem] overflow-hidden bg-gray-50/30">
+                                        <div className="grid grid-cols-7 border border-zinc-100 rounded-2xl overflow-hidden bg-zinc-50/20">
                                             {/* Header Dias */}
                                             {WEEKDAYS_BR_SHORT.map(dia => (
-                                                <div key={dia} className="py-6 text-center text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] border-r border-gray-100 last:border-0 bg-white">
+                                                <div key={dia} className="py-4 text-center text-[10px] font-bold text-zinc-400 uppercase tracking-widest border-r border-zinc-100 last:border-0 bg-white">
                                                     {dia}
                                                 </div>
                                             ))}
@@ -693,26 +687,24 @@ export function PlanningView({
                                                 );
 
                                                 return (
-                                                    <div key={idx} className="bg-white border-r border-t border-gray-100 p-6 min-h-[220px] flex flex-col last:border-r-0">
-                                                        <div className="text-sm font-black text-right text-gray-200 mb-4">{diaObj.day}</div>
-                                                        <div className="space-y-3">
+                                                    <div key={idx} className="bg-white border-r border-t border-zinc-100 p-4 min-h-[180px] flex flex-col last:border-r-0">
+                                                        <div className="text-xs font-bold text-zinc-200 text-right mb-3">{diaObj.day}</div>
+                                                        <div className="space-y-2">
                                                             {evts.map(evt => {
-                                                                const color = getClientColor(evt.Cliente_ID);
+                                                                const cardStyle = getCardStyles(evt.Cliente_ID);
                                                                 return (
-                                                                    <div key={evt.id} className="p-4 rounded-[1.25rem] border shadow-sm flex flex-col relative overflow-hidden"
+                                                                    <div key={evt.id} className="p-3 rounded-xl border shadow-sm flex flex-col relative overflow-hidden"
                                                                         style={{
-                                                                            backgroundColor: getCardStyles(evt.Cliente_ID).bg,
-                                                                            borderColor: getCardStyles(evt.Cliente_ID).border
+                                                                            backgroundColor: cardStyle.bg,
+                                                                            borderColor: cardStyle.border
                                                                         }}
                                                                     >
-                                                                        <div className="space-y-1.5">
-                                                                            <div className="text-[11px] font-black uppercase tracking-widest flex items-center gap-1.5" style={{ color: getCardStyles(evt.Cliente_ID).text }}>
-                                                                                <Clock size={12} strokeWidth={3} /> {evt.Hora || '09:00'}
+                                                                        <div className="space-y-1">
+                                                                            <div className="text-[9px] font-bold uppercase tracking-wider flex items-center gap-1" style={{ color: cardStyle.text }}>
+                                                                                <Clock size={10} /> {evt.Hora || '09:00'}
                                                                             </div>
-                                                                            <div className="text-[12px] font-black text-[#0B1527] leading-snug line-clamp-2 tracking-tighter">{evt.Conteúdo}</div>
-                                                                            <div className="text-[9px] font-black uppercase tracking-widest mt-1 bg-white/50 px-2.5 py-1 rounded-md w-fit flex items-center gap-2"
-                                                                                style={{ color: getCardStyles(evt.Cliente_ID).text }}>
-                                                                                <User size={11} strokeWidth={3} />
+                                                                            <div className="text-[10px] font-bold text-zinc-900 leading-snug line-clamp-2">{evt.Conteúdo}</div>
+                                                                            <div className="text-[8px] font-bold uppercase tracking-wider mt-1 bg-white/60 px-2 py-0.5 rounded w-fit text-zinc-500">
                                                                                 {clients.find(c => c.id === evt.Cliente_ID)?.Nome}
                                                                             </div>
                                                                         </div>
@@ -727,51 +719,51 @@ export function PlanningView({
                                     </div>
 
                                     {/* LEGENDA NO PNG */}
-                                    <div className="mt-12 flex items-center justify-between border-t border-gray-100 pt-10">
-                                        <div className="flex flex-wrap gap-8">
+                                    <div className="mt-8 flex items-center justify-between border-t border-zinc-100 pt-8">
+                                        <div className="flex flex-wrap gap-6">
                                             {exportSelectedClient === 'Todos' ? (
                                                 clients.slice(0, 5).map(c => (
-                                                    <div key={c.id} className="flex items-center gap-3">
-                                                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: c['Cor (HEX)'] }}></div>
-                                                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{c.Nome}</span>
+                                                    <div key={c.id} className="flex items-center gap-2">
+                                                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c['Cor (HEX)'] }}></div>
+                                                        <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">{c.Nome}</span>
                                                     </div>
                                                 ))
                                             ) : (
-                                                <div className="flex items-center gap-3 bg-blue-50 px-4 py-2 rounded-full border border-blue-100/50">
-                                                    <div className="w-3 h-3 rounded-full bg-blue-600"></div>
-                                                    <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">RELATÓRIO EXCLUSIVO: {exportSelectedClient}</span>
+                                                <div className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
+                                                    <div className="w-2.5 h-2.5 rounded-full bg-blue-600"></div>
+                                                    <span className="text-[9px] font-bold text-blue-600 uppercase tracking-widest">Relatório: {exportSelectedClient}</span>
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em]">EKKO STUDIOS • 2026</div>
+                                        <div className="text-[9px] font-bold text-zinc-300 uppercase tracking-[0.2em]">Ekko Studios • 2026</div>
                                     </div>
                                 </div>
                             </div>
 
                             {/* MODAL FOOTER */}
-                            <div className="py-8 px-10 border-t border-gray-100 dark:border-zinc-800 bg-white dark:bg-[#111114] flex justify-between items-center shrink-0">
-                                <div className="flex items-center gap-6">
-                                    <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                        <span className="w-2 h-2 rounded-full bg-green-500"></span> SISTEMA PRONTO
+                            <div className="py-6 px-8 border-t border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex justify-between items-center shrink-0">
+                                <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Pronto para exportar
                                     </div>
-                                    <div className="h-4 w-[1px] bg-gray-100 dark:bg-zinc-800"></div>
-                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">FORMATO: PNG ALTA RESOLUÇÃO (2X)</span>
+                                    <div className="h-4 w-[1px] bg-zinc-100 dark:bg-zinc-800"></div>
+                                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">PNG 2X • {exportSelectedClient}</span>
                                 </div>
 
-                                <div className="flex gap-4">
+                                <div className="flex gap-3">
                                     <button
                                         onClick={() => setIsExportModalOpen(false)}
-                                        className="px-8 py-4 text-[11px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all ios-btn"
+                                        className="px-6 py-2.5 text-xs font-bold text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all uppercase tracking-wider"
                                     >
-                                        CANCELAR
+                                        Cancelar
                                     </button>
                                     <button
                                         onClick={handleRealDownload}
-                                        className="px-12 py-5 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-black uppercase tracking-widest rounded-3xl shadow-2xl shadow-blue-500/40 transition-all flex items-center gap-3 disabled:opacity-50 hover:scale-105 active:scale-95"
+                                        className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-500/10 transition-all flex items-center gap-2 disabled:opacity-50 active:scale-95"
                                         disabled={isGenerating}
                                     >
-                                        {isGenerating ? <Loader2 className="animate-spin" size={20} /> : <Download size={20} />}
-                                        {isGenerating ? 'GERANDO ARQUIVO...' : 'BAIXAR PLANEJAMENTO'}
+                                        {isGenerating ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
+                                        {isGenerating ? 'Gerando...' : 'Baixar PNG'}
                                     </button>
                                 </div>
                             </div>

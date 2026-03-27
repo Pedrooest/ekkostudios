@@ -48,7 +48,7 @@ const getSocialColor = (canal: string): any => {
   const c = String(canal).toLowerCase();
   if (c.includes('instagram')) return 'indigo';
   if (c.includes('youtube')) return 'rose';
-  if (c.includes('tiktok')) return 'zinc';
+  if (c.includes('tiktok')) return 'slate';
   if (c.includes('facebook')) return 'blue';
   if (c.includes('linkedin')) return 'blue';
   if (c.includes('whatsapp')) return 'emerald';
@@ -112,40 +112,40 @@ export function MatrizEstrategicaView({
   return (
     <div className="space-y-6 animate-fade pb-20">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-app-surface/30 p-6 rounded-[2rem] border border-app-border/40 backdrop-blur-md">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm">
         <div className="flex items-center gap-4 flex-1">
-          <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20 shrink-0">
-            <Database size={28} />
+          <div className="w-12 h-12 bg-zinc-900 dark:bg-zinc-100 rounded-xl flex items-center justify-center text-white dark:text-zinc-900 shadow-lg shadow-zinc-500/10 shrink-0">
+            <Database size={24} />
           </div>
           <div className="min-w-0">
-            <div className="flex items-center gap-3 flex-wrap">
-              <h2 className="text-2xl font-black text-app-text-strong uppercase tracking-tight truncate">Matriz Estratégica</h2>
-              <Badge color="blue">{filteredData.length} Registros</Badge>
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight truncate">Matriz Estratégica</h2>
+              <Badge color="slate">{filteredData.length} Registros</Badge>
             </div>
-            <p className="text-[10px] font-bold text-app-text-muted uppercase tracking-widest mt-1 truncate">
-              Gerenciamento Unificado de Estrutura e Estratégia
+            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate">
+              Gerenciamento Unificado de Estrutura
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 shrink-0">
-          <div className="flex bg-app-bg p-1 rounded-xl border border-app-border">
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg border border-zinc-200 dark:border-zinc-700">
             <button
               onClick={() => { playUISound('tap'); setViewMode('table'); }}
-              className={`p-2 rounded-lg transition-all ${viewMode === 'table' ? 'bg-blue-600 text-white shadow-lg' : 'text-app-text-muted hover:text-app-text-strong'}`}
+              className={`p-1.5 rounded transition-all ${viewMode === 'table' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
             >
-              <List size={20} />
+              <List size={16} />
             </button>
             <button
               onClick={() => { playUISound('tap'); setViewMode('cards'); }}
-              className={`p-2 rounded-lg transition-all ${viewMode === 'cards' ? 'bg-blue-600 text-white shadow-lg' : 'text-app-text-muted hover:text-app-text-strong'}`}
+              className={`p-1.5 rounded transition-all ${viewMode === 'cards' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
             >
-              <LayoutGrid size={20} />
+              <LayoutGrid size={16} />
             </button>
           </div>
 
-          <Button onClick={() => { playUISound('tap'); onAdd(); }} className="!h-12 !px-6 !bg-blue-600 hover:!bg-blue-700 shadow-lg shadow-blue-600/20">
-            <Plus size={18} className="mr-2" /> Nova Entrada
+          <Button onClick={() => { playUISound('tap'); onAdd(); }} className="!h-10 !px-5 !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 !rounded-lg !text-[11px] !font-bold !uppercase shadow-lg shadow-zinc-500/10 transition-transform hover:scale-[1.02]">
+            <Plus size={16} className="mr-2" /> Nova Entrada
           </Button>
         </div>
       </div>
@@ -154,93 +154,90 @@ export function MatrizEstrategicaView({
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
         
         {/* Selection Actions */}
-        <div className={`transition-all duration-300 ${selection.length > 0 ? 'opacity-100 scale-100 w-full md:w-auto h-auto' : 'opacity-0 scale-95 w-0 h-0 overflow-hidden'}`}>
-          <div className="flex items-center gap-2 bg-blue-600/10 border border-blue-500/20 rounded-2xl p-2 w-full md:w-auto backdrop-blur-sm">
-            <div className="px-4 py-2 border-r border-blue-500/20">
-              <span className="text-sm font-black text-blue-500 uppercase tracking-wider">{selection.length}</span>
-              <span className="text-[10px] font-bold text-blue-500/70 uppercase tracking-widest ml-2">Selecionados</span>
+        <div className={`transition-all duration-300 ${selection.length > 0 ? 'opacity-100 scale-100 w-full md:w-auto' : 'opacity-0 scale-95 w-0 h-0 overflow-hidden'}`}>
+          <div className="flex items-center gap-2 bg-zinc-900 dark:bg-zinc-100 border border-zinc-800 dark:border-zinc-200 rounded-xl p-1.5 w-full md:w-auto shadow-lg shadow-zinc-500/10">
+            <div className="px-3 py-1 border-r border-zinc-700 dark:border-zinc-300">
+              <span className="text-[10px] font-bold text-white dark:text-zinc-900 uppercase tracking-widest">{selection.length} Selecionados</span>
             </div>
-            <div className="flex items-center gap-1 px-2">
+            <div className="flex items-center gap-1 px-1">
               <button 
                 onClick={() => onArchive(selection, 'MATRIZ', true)}
-                className="ios-btn p-2 text-rose-500 hover:bg-rose-500/10 rounded-xl transition-colors tooltip-trigger"
-                data-tooltip="Arquivar"
+                className="p-1.5 text-zinc-400 dark:text-zinc-500 hover:text-white dark:hover:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 rounded-lg transition-all"
+                title="Arquivar"
               >
-                <Trash2 size={18} />
+                <Trash2 size={16} />
               </button>
               <button 
                 onClick={onClearSelection}
-                className="ios-btn p-2 text-blue-500 hover:bg-blue-500/10 rounded-xl transition-colors tooltip-trigger"
-                data-tooltip="Limpar Seleção"
+                className="p-1.5 text-zinc-400 dark:text-zinc-500 hover:text-white dark:hover:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 rounded-lg transition-all"
+                title="Limpar Seleção"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
           </div>
         </div>
 
         {/* Filters */}
-        <div className={`flex flex-col md:flex-row gap-4 flex-1 w-full justify-end transition-all ${selection.length > 0 ? 'md:max-w-xl' : 'max-w-full'}`}>
-          
-          <div className="relative w-full md:w-64">
+        <div className={`flex flex-col md:flex-row gap-3 flex-1 w-full justify-end transition-all ${selection.length > 0 ? 'md:max-w-xl' : 'max-w-full'}`}>
+          <div className="w-full md:w-56 shrink-0">
             <InputSelect
               value={activeClient ? activeClient.id : ''}
               onChange={(val) => onSelectClient(val)}
-              options={[{value: '', label: 'Todos os Clientes'}, ...clients.map(c => ({value: c.id, label: c.Nome}))]}
-              placeholder="Todos os Clientes"
-              className="bg-app-surface border border-app-border text-xs font-bold w-full"
-              icon="fa-users"
+              options={[{value: '', label: 'TODOS OS CLIENTES'}, ...clients.map(c => ({value: c.id, label: c.Nome.toUpperCase()}))]}
+              placeholder="CLIENTE"
+              className="!h-10 !text-[10px] !font-bold !rounded-xl"
+              icon={Users}
             />
           </div>
 
           <div className="relative flex-1 group min-w-[200px]">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-app-text-muted group-focus-within:text-blue-500 transition-colors" size={16} />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-zinc-900 dark:group-focus-within:text-zinc-100 transition-colors" size={14} />
             <input
               type="text"
               placeholder="Buscar por papéis, conteúdo..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full h-11 bg-app-surface border border-app-border rounded-xl pl-10 pr-4 text-xs font-medium text-app-text-strong outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+              className="w-full h-10 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl pl-9 pr-4 text-[11px] font-medium text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-500/10 focus:border-zinc-500 transition-all font-sans"
             />
           </div>
           
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
              {['Instagram', 'YouTube', 'TikTok'].map(canal => (
               <button
                 key={canal}
                 onClick={() => setFilterCanal(filterCanal === canal ? null : canal)}
-                className={`h-11 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all whitespace-nowrap flex items-center gap-2 ${filterCanal === canal ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/20' : 'bg-app-surface border-app-border text-app-text-muted hover:border-blue-500/50 hover:text-app-text-strong'}`}
+                className={`h-10 px-3.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all whitespace-nowrap flex items-center gap-2 ${filterCanal === canal ? 'bg-zinc-900 dark:bg-zinc-100 border-zinc-900 dark:border-zinc-100 text-white dark:text-zinc-900 shadow-md shadow-zinc-500/10' : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-zinc-400 dark:hover:border-zinc-600'}`}
               >
                 {getSocialIcon(canal)}
               </button>
             ))}
           </div>
-
         </div>
       </div>
 
       {/* Main Content */}
       {filteredData.length === 0 ? (
-        <div className="py-20 flex flex-col items-center justify-center text-center">
-          <div className="w-16 h-16 bg-app-surface border border-app-border rounded-2xl flex items-center justify-center text-app-text-muted mb-4">
-            <Search size={24} />
+        <div className="py-20 flex flex-col items-center justify-center text-center bg-zinc-50/50 dark:bg-zinc-900/50 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 animate-in fade-in zoom-in duration-300">
+          <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl flex items-center justify-center text-zinc-400 mb-6">
+            <Search size={28} />
           </div>
-          <h3 className="text-lg font-black text-app-text-strong uppercase tracking-widest mb-2">Nenhum registro encontrado</h3>
-          <p className="text-sm text-app-text-muted font-medium mb-6 max-w-md">
+          <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">Nenhum registro encontrado</h3>
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-2 max-w-xs">
             Não encontramos nenhum dado na Matriz Estratégica com os filtros atuais.
           </p>
-          <Button onClick={onAdd} className="!bg-blue-600">
+          <Button onClick={onAdd} className="mt-8 !h-10 !px-6 !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 !rounded-lg !text-[11px] !font-bold !uppercase transition-transform hover:scale-105">
             Criar Nova Entrada
           </Button>
         </div>
       ) : viewMode === 'table' ? (
-        /* TABLE MODE (SaaS Dense) */
-        <div className="bg-app-surface border border-app-border rounded-[2rem] overflow-hidden shadow-xl">
+        /* TABLE MODE (Zinc Dense) */
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
           <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left border-collapse whitespace-nowrap">
+            <table className="w-full text-left border-collapse whitespace-nowrap table-fixed min-w-[1000px]">
               <thead>
-                <tr className="bg-app-surface-2 border-b border-app-border">
-                  <th className="px-4 py-4 w-12 text-center">
+                <tr className="bg-zinc-50/50 dark:bg-zinc-800/30 border-b border-zinc-100 dark:border-zinc-800">
+                  <th className="px-6 py-4 w-12 text-center shrink-0">
                     <input 
                       type="checkbox" 
                       onChange={e => { 
@@ -248,69 +245,71 @@ export function MatrizEstrategicaView({
                         else onClearSelection(); 
                       }} 
                       checked={filteredData.length > 0 && filteredData.every(r => selection.includes(r.id))} 
-                      className="rounded bg-app-bg border-app-border text-blue-500 focus:ring-0" 
+                      className="w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500/20" 
                     />
                   </th>
-                  {!activeClient && <th className="px-5 py-4 text-[10px] font-black text-app-text-muted uppercase tracking-[0.15em]">Cliente</th>}
-                  <th className="px-5 py-4 text-[10px] font-black text-app-text-muted uppercase tracking-[0.15em]">Rede Social</th>
-                  <th className="px-5 py-4 text-[10px] font-black text-app-text-muted uppercase tracking-[0.15em]">Função</th>
-                  <th className="px-5 py-4 text-[10px] font-black text-app-text-muted uppercase tracking-[0.15em]">Quem Fala</th>
-                  <th className="px-5 py-4 text-[10px] font-black text-app-text-muted uppercase tracking-[0.15em]">Papel Estratégico</th>
-                  <th className="px-5 py-4 text-[10px] font-black text-app-text-muted uppercase tracking-[0.15em]">Tipo de Conteúdo</th>
-                  <th className="px-5 py-4 text-[10px] font-black text-app-text-muted uppercase tracking-[0.15em]">Resultado Esperado</th>
-                  <th className="px-5 py-4 text-[10px] font-black text-app-text-muted uppercase tracking-[0.15em] text-right">Ação</th>
+                  {!activeClient && <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[150px]">Cliente</th>}
+                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[120px]">Rede Social</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[120px]">Função</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[20%]">Quem Fala</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[20%]">Papel Estratégico</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[20%]">Tipo de Conteúdo</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[20%]">Resultado</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right w-[100px]">Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-app-border">
+              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                 {filteredData.map(row => {
                   const client = clients.find(c => c.id === row.Cliente_ID);
                   return (
                     <tr 
                       key={row.id} 
-                      className={`hover:bg-app-surface-2 transition-colors group cursor-pointer ${selection.includes(row.id) ? 'bg-blue-600/5' : ''}`}
+                      className={`hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors group cursor-pointer ${selection.includes(row.id) ? 'bg-zinc-900/5 dark:bg-zinc-100/5' : ''}`}
                       onClick={() => handleEdit(row)}
                     >
-                      <td className="px-4 py-3 text-center" onClick={e => e.stopPropagation()}>
+                      <td className="px-6 py-3 text-center" onClick={e => e.stopPropagation()}>
                         <input 
                           type="checkbox" 
                           checked={selection.includes(row.id)} 
                           onChange={() => onSelect(row.id)} 
-                          className="rounded bg-app-bg border-app-border text-blue-500 focus:ring-0" 
+                          className="w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500/20" 
                         />
                       </td>
                       {!activeClient && (
-                        <td className="px-5 py-3">
-                          <span className="text-xs font-bold text-app-text-strong">{client?.Nome || 'Agência'}</span>
-                        </td>
-                      )}
-                      <td className="px-5 py-3">
-                         <div className="flex items-center gap-2">
-                           {getSocialIcon(row['Rede_Social'])}
-                           <Badge color={getSocialColor(row['Rede_Social'])} className="!py-0.5 !text-[10px]">{row['Rede_Social'] || 'N/A'}</Badge>
-                         </div>
+                      <td className="px-6 py-3" title={client?.Nome || 'Agencia'}>
+                        <span className="text-[11px] font-bold text-zinc-900 dark:text-zinc-100 truncate block">{client?.Nome || 'Agência'}</span>
                       </td>
-                      <td className="px-5 py-3">
-                         <Badge color={getFuncaoColor(row['Função'])} className="!py-0.5 !text-[10px]">{row['Função'] || 'N/A'}</Badge>
-                      </td>
-                      <td className="px-5 py-3 text-xs font-medium text-app-text-muted">
-                        {row['Quem fala'] || '-'}
-                      </td>
-                      <td className="px-5 py-3 text-xs font-medium text-app-text-strong truncate max-w-xs">
-                        {row['Papel estratégico'] || '-'}
-                      </td>
-                      <td className="px-5 py-3 text-xs font-medium text-app-text-strong truncate max-w-xs">
-                        {row['Tipo de conteúdo'] || '-'}
-                      </td>
-                      <td className="px-5 py-3 text-xs font-medium text-app-text-strong truncate max-w-xs">
-                        {row['Resultado esperado'] || '-'}
-                      </td>
-                      <td className="px-5 py-3 text-right" onClick={e => e.stopPropagation()}>
-                        <button 
-                          onClick={() => handleEdit(row)}
-                          className="w-8 h-8 rounded-lg border border-app-border flex items-center justify-center text-app-text-muted hover:text-blue-500 hover:border-blue-500 transition-colors ml-auto"
-                        >
-                          <Edit2 size={14} />
-                        </button>
+                    )}
+                    <td className="px-6 py-3">
+                        <div className="flex items-center gap-2 overflow-hidden">
+                          <div className="text-zinc-400 shrink-0">{getSocialIcon(row['Rede_Social'])}</div>
+                          <Badge color={getSocialColor(row['Rede_Social'])} className="!py-0 !text-[9px] !rounded-md !uppercase truncate">{row['Rede_Social'] || 'N/A'}</Badge>
+                        </div>
+                    </td>
+                    <td className="px-6 py-3">
+                        <Badge color={getFuncaoColor(row['Função'])} className="!py-0 !text-[9px] !rounded-md !uppercase truncate w-full">{row['Função'] || 'N/A'}</Badge>
+                    </td>
+                    <td className="px-6 py-3 text-[11px] font-medium text-zinc-500 truncate" title={row['Quem fala']}>
+                      {row['Quem fala'] || '-'}
+                    </td>
+                    <td className="px-6 py-3 text-[11px] font-bold text-zinc-900 dark:text-zinc-100 truncate" title={row['Papel estratégico']}>
+                      {row['Papel estratégico'] || '-'}
+                    </td>
+                    <td className="px-6 py-3 text-[11px] font-medium text-zinc-500 truncate" title={row['Tipo de conteúdo']}>
+                      {row['Tipo de conteúdo'] || '-'}
+                    </td>
+                    <td className="px-6 py-3 text-[11px] font-medium text-zinc-500 truncate" title={row['Resultado esperado']}>
+                      {row['Resultado esperado'] || '-'}
+                    </td>
+                      <td className="px-6 py-3 text-right" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button 
+                            onClick={() => handleEdit(row)}
+                            className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   )
@@ -326,56 +325,64 @@ export function MatrizEstrategicaView({
             const client = clients.find(c => c.id === clientId);
             return (
               <div key={clientId} className="space-y-6">
-                <div className="flex items-center gap-4 border-b border-app-border pb-4">
-                  <div className="w-8 h-8 rounded-full bg-blue-600/10 flex items-center justify-center text-blue-500">
-                    <Users size={16} />
+                <div className="flex items-center gap-4 border-b border-zinc-100 dark:border-zinc-800 pb-4">
+                  <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700">
+                    <Users size={20} />
                   </div>
                   <div>
-                    <h3 className="text-lg font-black text-app-text-strong uppercase tracking-widest">{client?.Nome || 'Agência'}</h3>
-                    <p className="text-[10px] font-bold text-app-text-muted uppercase tracking-widest">{items.length} Entradas nesta matriz</p>
+                    <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">{client?.Nome || 'Agência'}</h3>
+                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{items.length} Entradas na Matriz</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {items.map(row => (
                     <div 
                       key={row.id}
                       onClick={() => handleEdit(row)}
-                      className={`bg-white dark:bg-[#0B0B0E] border rounded-[2rem] p-6 cursor-pointer group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${selection.includes(row.id) ? 'border-blue-500 shadow-blue-500/10 shadow-lg' : 'border-app-border hover:border-blue-500/50'}`}
+                      className={`bg-white dark:bg-zinc-900 border rounded-2xl p-5 cursor-pointer group transition-all duration-300 hover:border-zinc-400 dark:hover:border-zinc-600 shadow-sm relative overflow-hidden ${selection.includes(row.id) ? 'border-zinc-900 ring-2 ring-zinc-500/10' : 'border-zinc-200 dark:border-zinc-800'}`}
                     >
-                      <div className="flex justify-between items-start mb-6">
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-zinc-500/5 rounded-full -mr-12 -mt-12 group-hover:scale-125 transition-transform" />
+                      
+                      <div className="flex justify-between items-start mb-6 relative z-10">
                         <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
                            <input 
                             type="checkbox" 
                             checked={selection.includes(row.id)} 
                             onChange={() => onSelect(row.id)} 
-                            className="rounded bg-app-bg border-app-border text-blue-500 focus:ring-0 mr-2" 
+                            className="w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500/20 mr-1" 
                           />
-                          {getSocialIcon(row['Rede_Social'])}
-                          <Badge color={getSocialColor(row['Rede_Social'])} className="!py-0.5 !text-[10px]">{row['Rede_Social'] || 'N/A'}</Badge>
+                          <div className="text-zinc-400">{getSocialIcon(row['Rede_Social'])}</div>
+                          <Badge color={getSocialColor(row['Rede_Social'])} className="!py-0 !text-[9px] !rounded-md !uppercase">{row['Rede_Social'] || 'N/A'}</Badge>
                         </div>
-                        <Badge color={getFuncaoColor(row['Função'])} className="!py-0.5 !text-[10px]">{row['Função'] || 'N/A'}</Badge>
+                        <Badge color={getFuncaoColor(row['Função'])} className="!py-0 !text-[9px] !rounded-md !uppercase">{row['Função'] || 'N/A'}</Badge>
                       </div>
 
-                      <div className="space-y-4">
-                        <div>
-                          <p className="text-[10px] font-black text-app-text-muted uppercase tracking-widest mb-1">Papel Estratégico</p>
-                          <p className="text-sm font-bold text-app-text-strong line-clamp-2">{row['Papel estratégico'] || '-'}</p>
+                      <div className="space-y-4 relative z-10">
+                        <div className="min-h-[48px]">
+                          <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                            <Megaphone size={10} /> Papel Estratégico
+                          </p>
+                          <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 line-clamp-2 uppercase tracking-tight">{row['Papel estratégico'] || '-'}</p>
                         </div>
                         
-                        <div className="pt-4 border-t border-app-border/50">
-                          <p className="text-[10px] font-black text-app-text-muted uppercase tracking-widest mb-1">Tipo de Conteúdo</p>
-                          <p className="text-xs font-medium text-app-text-strong line-clamp-2">{row['Tipo de conteúdo'] || '-'}</p>
+                        <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                          <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                            <Layout size={10} /> Tipo de Conteúdo
+                          </p>
+                          <p className="text-[10px] font-medium text-zinc-500 line-clamp-2 uppercase leading-relaxed">{row['Tipo de conteúdo'] || '-'}</p>
                         </div>
 
-                        <div className="flex items-center gap-2 pt-4 border-t border-app-border/50">
-                          <TargetIcon size={12} className="text-emerald-500 shrink-0" />
-                          <p className="text-xs font-bold text-app-text-strong truncate">{row['Resultado esperado'] || '-'}</p>
+                        <div className="flex items-center justify-between pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <TargetIcon size={12} className="text-zinc-400 shrink-0" />
+                            <p className="text-[10px] font-bold text-zinc-900 dark:text-zinc-100 truncate uppercase tracking-tight">{row['Resultado esperado'] || '-'}</p>
+                          </div>
                         </div>
                         
                         <div className="flex items-center gap-2 pt-2">
-                           <Users size={12} className="text-blue-500 shrink-0" />
-                           <p className="text-[10px] font-bold text-app-text-muted uppercase tracking-widest truncate">Fala: {row['Quem fala'] || '-'}</p>
+                           <Users size={12} className="text-zinc-400 shrink-0" />
+                           <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest truncate">Fala: {row['Quem fala'] || '-'}</p>
                         </div>
                       </div>
                     </div>
@@ -389,123 +396,110 @@ export function MatrizEstrategicaView({
 
       {/* Editing Modal (Portal) */}
       {editingItem && createPortal(
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 animate-fade-in">
-          <div className="absolute inset-0 bg-[#0B0B0E]/80 backdrop-blur-md" onClick={() => setEditingItem(null)}></div>
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
+          <div className="absolute inset-0 bg-zinc-950/40 backdrop-blur-sm" onClick={() => setEditingItem(null)}></div>
           
-          <div className="relative w-full max-w-4xl bg-app-bg border border-app-border rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] shadow-blue-900/10 animate-scale-up">
+          <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
             
             {/* Modal Header */}
-            <div className="flex justify-between items-center p-6 sm:p-8 border-b border-app-border bg-app-surface z-10 relative overflow-hidden">
-               <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-              
-              <div className="flex items-center gap-4 relative z-10">
-                <div className="w-12 h-12 bg-blue-600/10 rounded-xl flex items-center justify-center text-blue-500 border border-blue-500/20">
-                  <Database size={24} />
+            <div className="flex justify-between items-center p-6 border-b border-zinc-100 dark:border-zinc-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-zinc-900 dark:bg-zinc-100 rounded-xl flex items-center justify-center text-white dark:text-zinc-900 shadow-lg shadow-zinc-500/10">
+                  <Database size={20} />
                 </div>
                 <div>
-                  <h3 className="text-xl sm:text-2xl font-black text-app-text-strong uppercase tracking-tight">Editar Entrada</h3>
-                  <p className="text-[10px] sm:text-xs font-bold text-app-text-muted uppercase tracking-widest mt-1">Configuração da Matriz Estratégica</p>
+                  <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">Editar Entrada</h3>
+                  <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Matriz Estratégica</p>
                 </div>
               </div>
               
               <button 
                 onClick={() => setEditingItem(null)}
-                className="ios-btn w-10 h-10 rounded-full bg-app-surface-2 border border-app-border flex items-center justify-center text-app-text-muted hover:text-white transition-colors relative z-10"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
               >
                 <X size={18} />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8 space-y-10 relative z-0">
-               <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-app-bg to-transparent pointer-events-none z-10"></div>
-              
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
               {/* ESTRUTURA Section */}
-              <div className="space-y-6 relative z-0">
-                <div className="flex items-center gap-3 border-b border-app-border pb-3">
-                  <Layout className="text-blue-500" size={18} />
-                  <h4 className="text-xs font-black text-app-text-strong uppercase tracking-[0.2em]">Estrutura</h4>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800 pb-2">Estrutura</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <InputSelect
-                    label="Cliente"
+                    label="CLIENTE"
                     value={editingItem.Cliente_ID}
                     onChange={(val) => setEditingItem({ ...editingItem, Cliente_ID: val })}
-                    options={[{ value: "GERAL", label: "AGÊNCIA" }, ...clients.map(c => ({ value: c.id, label: c.Nome }))]}
-                    icon="fa-users"
+                    options={[{ value: "GERAL", label: "AGÊNCIA" }, ...clients.map(c => ({ value: c.id, label: c.Nome.toUpperCase() }))]}
+                    icon={Users}
                   />
                   <InputSelect
-                    label="Rede Social"
+                    label="REDE SOCIAL"
                     value={editingItem['Rede_Social']}
                     onChange={(val) => setEditingItem({ ...editingItem, 'Rede_Social': val })}
-                    options={[{label: 'Instagram', value: 'Instagram'}, {label: 'TikTok', value: 'TikTok'}, {label: 'YouTube', value: 'Youtube'}, {label: 'LinkedIn', value: 'LinkedIn'}, {label: 'Facebook', value: 'Facebook'}, {label: 'WhatsApp', value: 'WhatsApp'}]}
-                    icon="fa-hashtag"
+                    options={[{label: 'INSTAGRAM', value: 'Instagram'}, {label: 'TIKTOK', value: 'TikTok'}, {label: 'YOUTUBE', value: 'Youtube'}, {label: 'LINKEDIN', value: 'LinkedIn'}, {label: 'FACEBOOK', value: 'Facebook'}, {label: 'WHATSAPP', value: 'WhatsApp'}]}
+                    icon={Globe}
                     editable
                   />
                   <InputSelect
-                    label="Função"
+                    label="FUNÇÃO"
                     value={editingItem['Função']}
                     onChange={(val) => setEditingItem({ ...editingItem, 'Função': val })}
                     options={OPCOES_FUNCAO_MATRIZ}
-                    icon="fa-layer-group"
+                    icon={Layout}
                     editable
                   />
                   <InputSelect
-                    label="Quem Fala"
+                    label="QUEM FALA"
                     value={editingItem['Quem fala']}
                     onChange={(val) => setEditingItem({ ...editingItem, 'Quem fala': val })}
                     options={OPCOES_QUEM_FALA_MATRIZ}
-                    icon="fa-user-tie"
+                    icon={Users}
                     editable
                   />
                 </div>
               </div>
 
               {/* ESTRATÉGIA Section */}
-              <div className="space-y-6 relative z-0">
-                <div className="flex items-center gap-3 border-b border-app-border pb-3">
-                  <Megaphone className="text-blue-500" size={18} />
-                  <h4 className="text-xs font-black text-app-text-strong uppercase tracking-[0.2em]">Estratégia</h4>
-                </div>
-                
-                <div className="grid grid-cols-1 gap-6">
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800 pb-2">Estratégia</h4>
+                <div className="grid grid-cols-1 gap-4">
                   <InputSelect
-                    label="Papel Estratégico"
+                    label="PAPEL ESTRATÉGICO"
                     value={editingItem['Papel estratégico']}
                     onChange={(val) => setEditingItem({ ...editingItem, 'Papel estratégico': val })}
                     options={OPCOES_PAPEL_ESTRATEGICO_MATRIZ}
-                    icon="fa-chess-knight"
+                    icon={Zap}
                     editable
                   />
                   <InputSelect
-                    label="Tipo de Conteúdo"
+                    label="TIPO DE CONTEÚDO"
                     value={editingItem['Tipo de conteúdo']}
                     onChange={(val) => setEditingItem({ ...editingItem, 'Tipo de conteúdo': val })}
                     options={OPCOES_TIPO_CONTEUDO_MATRIZ}
-                    icon="fa-pen-nib"
+                    icon={MessageCircle}
                     editable
                   />
                   <InputSelect
-                    label="Resultado Esperado"
+                    label="RESULTADO ESPERADO"
                     value={editingItem['Resultado esperado']}
                     onChange={(val) => setEditingItem({ ...editingItem, 'Resultado esperado': val })}
                     options={OPCOES_RESULTADO_ESPERADO_MATRIZ}
-                    icon="fa-bullseye"
+                    icon={TargetIcon}
                     editable
                   />
                 </div>
               </div>
-
             </div>
 
             {/* Modal Footer */}
-            <div className="p-6 sm:p-8 border-t border-app-border bg-app-surface flex flex-col sm:flex-row justify-end items-center gap-4 z-20 relative">
-              <Button variant="secondary" onClick={() => { playUISound('tap'); setEditingItem(null); }} className="w-full sm:w-auto">
+            <div className="p-6 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/20 flex items-center justify-end gap-3">
+              <Button variant="secondary" onClick={() => { playUISound('tap'); setEditingItem(null); }} className="!h-10 !px-5 !text-[10px] !font-bold !uppercase !rounded-lg">
                 Cancelar
               </Button>
-              <Button onClick={handleSave} className="w-full sm:w-auto !bg-blue-600 hover:!bg-blue-700 shadow-lg shadow-blue-600/20">
-                <CheckCircle2 size={18} className="mr-2" /> Salvar Alterações
+              <Button onClick={handleSave} className="!h-10 !px-6 !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 !text-[10px] !font-bold !uppercase !rounded-lg shadow-lg shadow-zinc-500/10">
+                <CheckCircle2 size={16} className="mr-2" /> Salvar Alterações
               </Button>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import React, { useMemo, Suspense, lazy } from 'react';
-import { Card, StatCard } from '../Components';
+import { Card, StatCard, Badge } from '../Components';
+import { Calendar, Clock, Users, DollarSign, ListChecks, CheckCircle2, AlertTriangle, Info, Coffee } from 'lucide-react';
 
 const DashboardCharts = lazy(() => import('./DashboardCharts'));
 
@@ -45,12 +46,12 @@ export const DashboardView = React.memo(({ clients, tasks, financas, planejament
         return validTasks
             .filter((t: any) => t.Status !== 'done' && t.Status !== 'arquivado')
             .sort((a: any, b: any) => new Date(a.Data_Entrega || 0).getTime() - new Date(b.Data_Entrega || 0).getTime())
-            .slice(0, 4);
+            .slice(0, 5);
     }, [tasks]);
 
     const alerts = useMemo(() => {
         const msgs = [];
-        if (stats.pendingPlanning === '-') msgs.push({ icon: 'fa-calendar-plus', text: 'Adicione planejamentos para começar', color: 'text-orange-500', bg: 'bg-orange-500/10' });
+        if (stats.pendingPlanning === '-') msgs.push({ icon: <Calendar size={14} />, text: 'Adicione planejamentos para começar', color: 'indigo' });
         
         const hasOverdue = recentTasks.some(t => {
             if (!t.Data_Entrega) return false;
@@ -58,47 +59,45 @@ export const DashboardView = React.memo(({ clients, tasks, financas, planejament
         });
         
         if (hasOverdue) {
-            msgs.push({ icon: 'fa-clock-rotate-left', text: 'Existem tarefas com entrega atrasada', color: 'text-red-500', bg: 'bg-red-500/10' });
+            msgs.push({ icon: <Clock size={14} />, text: 'Existem tarefas com entrega atrasada', color: 'red' });
         }
-        if (stats.activeClients === '-') msgs.push({ icon: 'fa-handshake', text: 'Parece que seu workspace não tem clientes', color: 'text-blue-500', bg: 'bg-blue-500/10' });
+        if (stats.activeClients === '-') msgs.push({ icon: <Users size={14} />, text: 'Seu workspace não tem clientes cadastrados', color: 'blue' });
 
         if (msgs.length === 0) {
-            msgs.push({ icon: 'fa-check-circle', text: 'Operação dentro da normalidade', color: 'text-emerald-500', bg: 'bg-emerald-500/10' });
+            msgs.push({ icon: <CheckCircle2 size={14} />, text: 'Operação dentro da normalidade', color: 'emerald' });
         }
         return msgs;
     }, [stats, recentTasks]);
 
-    const getStatusColor = (status: string) => {
+    const getStatusTheme = (status: string): { color: any, label: string } => {
         switch(status?.toLowerCase()) {
-            case 'todo': return 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400';
-            case 'doing': return 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400';
-            case 'review': return 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400';
-            case 'blocked': return 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400';
-            default: return 'bg-gray-100 text-gray-700 dark:bg-gray-500/20 dark:text-gray-400';
-        }
-    };
-
-    const getStatusText = (status: string) => {
-        switch(status?.toLowerCase()) {
-            case 'todo': return 'A Fazer';
-            case 'doing': return 'Fazendo';
-            case 'review': return 'Aprovação';
-            case 'blocked': return 'Bloqueado';
-            default: return status || 'Pendente';
+            case 'todo': return { color: 'blue', label: 'A Fazer' };
+            case 'doing': return { color: 'orange', label: 'Fazendo' };
+            case 'review': return { color: 'indigo', label: 'Aprovação' };
+            case 'blocked': return { color: 'red', label: 'Bloqueado' };
+            default: return { color: 'slate', label: status || 'Pendente' };
         }
     };
 
     return (
-        <div className="pb-10 space-y-6 md:space-y-8 animate-fade text-left mobile-container">
-            {/* Header Area */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="space-y-6 animate-fade">
+            {/* Standardized Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-1">
                 <div>
-                    <h2 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white tracking-tight">Visão Geral</h2>
-                    <p className="text-gray-500 dark:text-[#a3aac4] text-sm mt-1">Acompanhe métricas globais, tarefas pendentes e alertas importantes.</p>
+                    <h1 className="text-xl font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100 flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900">
+                            <Info size={18} />
+                        </div>
+                        Visão Geral
+                    </h1>
+                    <p className="text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase tracking-widest mt-1.5 opacity-60">
+                        Métricas, prazos e alertas para sua operação.
+                    </p>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            {/* KPI Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard label="Receita Bruta" value={stats.revenue} icon="fa-money-bill-trend-up" color="emerald" />
                 <StatCard label="Contratos Ativos" value={stats.activeClients} icon="fa-users" color="blue" />
                 <StatCard label="Produção Ativa" value={stats.pendingPlanning} icon="fa-calendar-check" color="orange" />
@@ -106,65 +105,68 @@ export const DashboardView = React.memo(({ clients, tasks, financas, planejament
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card title="Tarefas Recentes / Urgentes" className="lg:col-span-2 shadow-xl border border-gray-200 dark:border-white/5">
-                    <div className="p-1">
+                {/* Recent Tasks */}
+                <Card title="TAREFAS CRÍTICAS" className="lg:col-span-2 overflow-hidden !p-0">
+                    <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
                         {recentTasks.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center p-10 text-gray-400 dark:text-gray-500">
-                                <i className="fa-solid fa-mug-hot text-4xl mb-4 opacity-50"></i>
-                                <span className="text-sm font-medium">Nenhuma tarefa pendente no momento.</span>
+                            <div className="flex flex-col items-center justify-center py-16 text-zinc-400">
+                                <Coffee size={32} className="mb-4 opacity-20" />
+                                <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Nada pendente no momento.</span>
                             </div>
                         ) : (
-                            <div className="divide-y divide-gray-100 dark:divide-white/5">
-                                {recentTasks.map((task: any, idx: number) => (
-                                    <div key={idx} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors rounded-xl mx-2 my-1">
-                                        <div className="flex flex-col gap-1">
-                                            <span className="font-bold text-gray-900 dark:text-white text-base">{task.Título || 'Tarefa Sem Título'}</span>
-                                            <span className="text-xs text-gray-500 dark:text-[#a3aac4] font-medium flex items-center gap-2">
-                                                <i className="fa-regular fa-clock"></i> 
-                                                {task.Data_Entrega ? new Date(task.Data_Entrega).toLocaleDateString('pt-BR') : 'Sem data definida'}
+                            recentTasks.map((task: any, idx: number) => {
+                                const theme = getStatusTheme(task.Status);
+                                return (
+                                    <div key={idx} className="p-4 flex items-center justify-between gap-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition-colors group">
+                                        <div className="flex flex-col gap-1 min-w-0">
+                                            <span className="font-bold text-zinc-900 dark:text-zinc-100 text-xs uppercase tracking-tight truncate group-hover:text-blue-500 transition-colors">
+                                                {task.Título || 'Tarefa Sem Título'}
                                             </span>
+                                            <div className="flex items-center gap-2 text-[10px] text-zinc-400 font-black uppercase tracking-widest">
+                                                <Clock size={10} className="shrink-0" /> 
+                                                {task.Data_Entrega ? new Date(task.Data_Entrega).toLocaleDateString('pt-BR') : 'Sem data'}
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-3 self-start sm:self-auto">
-                                            <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg ${getStatusColor(task.Status)}`}>
-                                                {getStatusText(task.Status)}
-                                            </span>
-                                        </div>
+                                        <Badge color={theme.color} className="text-[9px] font-black uppercase tracking-widest shrink-0">
+                                            {theme.label}
+                                        </Badge>
                                     </div>
-                                ))}
-                            </div>
+                                );
+                            })
                         )}
                     </div>
                 </Card>
 
-                <Card title="Alertas do Workspace" className="shadow-xl border border-gray-200 dark:border-white/5 bg-gradient-to-br from-gray-50 to-white dark:from-[#091328] dark:to-[#0f1930]">
-                    <div className="p-5 space-y-4">
+                {/* Alerts Area */}
+                <Card title="ALERTAS E INSIGHTS" className="!p-5">
+                    <div className="space-y-3">
                         {alerts.map((alert, i) => (
-                            <div key={i} className={`flex items-start gap-4 p-4 rounded-2xl ${alert.bg} border border-white/5`}>
-                                <div className={`mt-0.5 ${alert.color}`}>
-                                    <i className={`fa-solid ${alert.icon} text-xl`}></i>
+                            <div key={i} className={`flex items-start gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 shadow-sm`}>
+                                <div className={`shrink-0 mt-0.5 p-2 rounded-lg bg-${alert.color}-500/10 text-${alert.color}-500`}>
+                                    {alert.icon}
                                 </div>
-                                <div className="flex-1">
-                                    <p className={`text-sm font-bold ${alert.color} leading-snug`}>{alert.text}</p>
-                                </div>
+                                <p className={`text-[11px] font-bold text-zinc-600 dark:text-zinc-400 leading-snug`}>
+                                    {alert.text}
+                                </p>
                             </div>
                         ))}
                     </div>
                 </Card>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 mt-2">
+            {/* Charts Area */}
+            <div className="grid grid-cols-1 gap-6">
                 <Suspense fallback={
-                    <Card className="h-[360px] shadow-xl flex items-center justify-center border border-gray-200 dark:border-white/5">
+                    <Card className="h-[400px] flex items-center justify-center">
                         <div className="animate-pulse flex flex-col items-center opacity-40">
-                            <i className="fa-solid fa-chart-pie text-4xl mb-4 text-gray-400"></i>
-                            <span className="text-sm font-bold tracking-wide uppercase text-gray-500">Inicializando módulo visual...</span>
+                            <ListChecks size={32} className="mb-4 text-zinc-400" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Inicializando módulo visual...</span>
                         </div>
                     </Card>
                 }>
                     <DashboardCharts stats={stats} financas={financas} tasks={tasks} planejamento={planejamento} clients={clients} />
                 </Suspense>
             </div>
-            
         </div>
     );
 });

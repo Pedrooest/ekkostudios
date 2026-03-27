@@ -151,12 +151,12 @@ export function TableView({
             ))}
         >
             {!hideHeader && isRDC && rdcHeader}
-            <div className={`hidden md:block custom-scrollbar bg-app-bg/50 w-full ${(tab === 'MATRIZ' || tab === 'RDC' || tab === 'FINANCAS') ? 'overflow-auto max-h-[60vh]' : ''}`}>
-                <table className={`w-full text-left text-[11px] border-separate border-spacing-0 ${(tab === 'MATRIZ' || tab === 'RDC' || tab === 'FINANCAS') ? 'whitespace-nowrap min-w-max' : ''}`}>
-                    <thead className="sticky top-0 z-20">
-                        <tr className="border-b border-app-border bg-app-surface-2 shadow-md">
-                            <th className={`px-4 py-5 text-center bg-app-surface-2 border-b border-app-border ${tab === 'RDC' ? 'w-[50px]' : 'w-10'}`}>
-                                <input type="checkbox" onChange={e => { if (e.target.checked) filteredData.forEach((r: any) => !selection.includes(r.id) && onSelect(r.id)); else onClearSelection(); }} checked={filteredData.length > 0 && filteredData.every((r: any) => selection.includes(r.id))} className="rounded bg-app-bg border-app-border text-blue-500 focus:ring-0 focus:ring-offset-0" />
+            <div className="hidden md:block w-full overflow-x-auto custom-scrollbar border border-zinc-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-800">
+                <table className="w-full text-left border-collapse min-w-[600px]">
+                    <thead className="sticky top-0 z-20 bg-white dark:bg-zinc-800 shadow-sm">
+                        <tr>
+                            <th className={`px-3 py-2.5 text-center border-b border-zinc-200 dark:border-zinc-700 ${tab === 'RDC' ? 'w-[50px]' : 'w-10'}`}>
+                                <input type="checkbox" onChange={e => { if (e.target.checked) filteredData.forEach((r: any) => !selection.includes(r.id) && onSelect(r.id)); else onClearSelection(); }} checked={filteredData.length > 0 && filteredData.every((r: any) => selection.includes(r.id))} className="rounded bg-white border-zinc-300 text-blue-600 focus:ring-blue-500" />
                             </th>
                             {cols.map(c => {
                                 let widthStyle = {};
@@ -177,17 +177,17 @@ export function TableView({
                                     else if (c === 'Resultado esperado') widthStyle = { minWidth: '200px' };
                                 }
                                 return (
-                                    <th key={c} style={widthStyle} className="px-4 py-5 font-black text-[#64748B] uppercase tracking-[0.15em] bg-app-surface-2 border-b border-app-border min-w-[120px] whitespace-nowrap">
+                                    <th key={c} style={widthStyle} className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-zinc-500 border-b border-zinc-200 dark:border-zinc-700 whitespace-nowrap text-left">
                                         <div className="flex items-center gap-2 min-w-0">
                                             <span className="truncate">{c}</span>
                                         </div>
                                     </th>
                                 );
                             })}
-                            <th className={`px-4 py-5 text-right bg-app-surface-2 border-b border-app-border ${tab === 'RDC' ? 'w-[80px]' : ''}`}>Ação</th>
+                            <th className={`px-3 py-2.5 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 border-b border-zinc-200 dark:border-zinc-700 ${tab === 'RDC' ? 'w-[80px]' : ''}`}>Ação</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#1F2937]">
+                    <tbody className="divide-y divide-zinc-200 dark:divide-zinc-700">
                         {filteredData.map((row: any) => (
                             <TableRow
                                 key={row.id}
@@ -323,9 +323,9 @@ function TableRow({ row, tab, cols, onUpdate, clients, library, onOpenColorPicke
     const isRDC = tab === 'RDC';
 
     return (
-        <tr key={row.id} className={`hover:bg-app-surface group transition-colors ${selection.includes(row.id) ? 'bg-[#3B82F6]/5' : ''} ${row.__archived ? 'opacity-50' : ''} ${isRDC ? 'min-h-[64px]' : 'min-h-[56px]'}`}>
-            <td className={`px-4 py-4 text-center ${isRDC ? 'w-[50px]' : 'w-10'}`}>
-                <input type="checkbox" checked={selection.includes(row.id)} onChange={() => onSelect(row.id)} className="rounded bg-app-bg border-app-border text-blue-500 focus:ring-0 focus:ring-offset-0" />
+        <tr key={row.id} className={`even:bg-zinc-50 dark:even:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-700/50 group transition-colors ${selection.includes(row.id) ? 'bg-blue-500/5 dark:bg-blue-500/10' : ''} ${row.__archived ? 'opacity-50' : ''}`}>
+            <td className={`px-3 py-2.5 text-center ${isRDC ? 'w-[50px]' : 'w-10'}`}>
+                <input type="checkbox" checked={selection.includes(row.id)} onChange={() => onSelect(row.id)} className="rounded bg-white border-zinc-300 text-blue-600 focus:ring-blue-500" />
             </td>
             {cols.map((col: string) => {
                 let widthStyle = {};
@@ -338,12 +338,12 @@ function TableRow({ row, tab, cols, onUpdate, clients, library, onOpenColorPicke
                     else if (col === 'Decisão') widthStyle = { width: '180px' };
                 }
                 return (
-                    <td key={col} className="px-4 py-4 align-middle min-w-0" style={widthStyle}>
+                    <td key={col} className="px-3 py-2.5 text-sm align-middle min-w-0" style={widthStyle}>
                         {renderCell(tab, row, col, onUpdate, clients, library, onOpenColorPicker)}
                     </td>
                 );
             })}
-            <td className={`px-4 py-4 text-right align-middle ${isRDC ? 'w-[80px]' : ''}`}>
+            <td className={`px-3 py-2.5 text-right align-middle ${isRDC ? 'w-[80px]' : ''}`}>
                 <div className="relative inline-block text-left">
                     <button
                         onClick={() => { if (!isMenuOpen) playUISound('open'); setIsMenuOpen(!isMenuOpen); }}
@@ -373,7 +373,7 @@ function TableRow({ row, tab, cols, onUpdate, clients, library, onOpenColorPicke
 };
 
 function renderCell(tab: TipoTabela, row: any, col: string, update: Function, clients: Cliente[] = [], library: BibliotecaConteudo = {}, onOpenColorPicker?: Function) {
-    const common = "w-full text-[11px] font-bold bg-transparent border-none text-app-text-strong pointer-events-auto outline-none transition-all focus:text-[#3B82F6]";
+    const common = "w-full bg-transparent border-none text-sm text-zinc-900 dark:text-zinc-100 pointer-events-auto outline-none transition-all focus:text-blue-600 dark:focus:text-blue-400 truncate max-w-[200px] placeholder:text-zinc-400";
 
     if (tab === 'RDC') {
         if (col === 'Rede_Social') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={REDES_SOCIAIS_RDC} className={common} placeholder="Selecione..." label={col} />);

@@ -46,12 +46,12 @@ const getSocialColor = (canal: string) => {
   const c = canal.toLowerCase();
   if (c.includes('instagram')) return 'indigo';
   if (c.includes('youtube')) return 'rose';
-  if (c.includes('tiktok')) return 'zinc';
+  if (c.includes('tiktok')) return 'slate';
   if (c.includes('facebook')) return 'blue';
   if (c.includes('linkedin')) return 'blue';
   if (c.includes('whatsapp')) return 'emerald';
   if (c.includes('telegram')) return 'blue';
-  return 'zinc';
+  return 'slate';
 };
 
 const getZonaColor = (zona: string) => {
@@ -59,7 +59,7 @@ const getZonaColor = (zona: string) => {
   if (z.includes('quente') || z.includes('conversão') || z.includes('primária')) return 'orange';
   if (z.includes('morna') || z.includes('nutrição') || z.includes('secundária')) return 'amber';
   if (z.includes('fria') || z.includes('aquisição') || z.includes('paralela')) return 'blue';
-  return 'zinc';
+  return 'slate';
 };
 
 export function CoboView({
@@ -90,24 +90,23 @@ export function CoboView({
 
   if (!activeClient) {
     return (
-      <div className="p-8 md:p-12 flex flex-col items-center justify-center text-center space-y-6 animate-fade">
-        <div className="w-20 h-20 bg-blue-600/10 rounded-full flex items-center justify-center text-blue-500 text-4xl shadow-[0_0_30px_rgba(37,99,235,0.2)]">
-          <Target size={40} />
+      <div className="p-8 md:p-12 flex flex-col items-center justify-center text-center space-y-6 animate-in fade-in duration-500">
+        <div className="w-20 h-20 bg-zinc-100 dark:bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-900 dark:text-zinc-100 shadow-xl shadow-zinc-500/5 border border-zinc-200 dark:border-zinc-700">
+          <Target size={32} />
         </div>
         <div className="space-y-2">
-          <h3 className="text-xl font-black text-app-text-strong uppercase tracking-widest">Estratégia COBO</h3>
-          <p className="text-xs font-bold text-app-text-muted uppercase tracking-widest">Selecione um cliente para visualizar sua distribuição de canais.</p>
+          <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">Estratégia COBO</h3>
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest max-w-[280px]">Selecione um cliente para visualizar sua distribuição de canais.</p>
         </div>
-        <select
-          value=""
-          onChange={(e) => onSelectClient(e.target.value)}
-          className="w-full max-w-sm h-12 bg-app-surface text-app-text-strong text-xs font-bold uppercase pl-4 pr-10 rounded-xl border border-app-border outline-none appearance-none cursor-pointer hover:border-blue-500 transition-colors shadow-xl"
-        >
-          <option value="" disabled>Selecionar Cliente</option>
-          {clients.map(c => (
-            <option key={c.id} value={c.id}>{c.Nome}</option>
-          ))}
-        </select>
+        <div className="w-full max-w-sm">
+          <InputSelect
+            value=""
+            onChange={(val) => onSelectClient(val)}
+            options={[{ value: '', label: '-- SELECIONAR CLIENTE --' }, ...clients.map(c => ({ value: c.id, label: c.Nome.toUpperCase() }))]}
+            className="!h-10 !text-[11px] !font-bold !rounded-xl"
+            icon={Users}
+          />
+        </div>
       </div>
     );
   }
@@ -129,40 +128,40 @@ export function CoboView({
   return (
     <div className="space-y-6 animate-fade pb-20">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-app-surface/30 p-6 rounded-[2rem] border border-app-border/40 backdrop-blur-md">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
-            <Zap size={28} />
+          <div className="w-12 h-12 bg-zinc-900 dark:bg-zinc-100 rounded-xl flex items-center justify-center text-white dark:text-zinc-900 shadow-lg shadow-zinc-500/10">
+            <Zap size={24} />
           </div>
           <div>
             <div className="flex items-center gap-3">
-              <h2 className="text-2xl font-black text-app-text-strong uppercase tracking-tight">COBO</h2>
-              <Badge color="blue">{filteredData.length} Registros</Badge>
+              <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">COBO</h2>
+              <Badge color="slate">{filteredData.length} Registros</Badge>
             </div>
-            <p className="text-[10px] font-bold text-app-text-muted uppercase tracking-widest mt-1">
-              Distribuição Estratégica de Canais e Conteúdo
+            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+              Distribuição Estratégica de Canais
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex bg-app-bg p-1 rounded-xl border border-app-border">
+        <div className="flex items-center gap-3">
+          <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg border border-zinc-200 dark:border-zinc-700">
             <button
               onClick={() => { playUISound('tap'); setViewMode('table'); }}
-              className={`p-2 rounded-lg transition-all ${viewMode === 'table' ? 'bg-blue-600 text-white shadow-lg' : 'text-app-text-muted hover:text-app-text-strong'}`}
+              className={`p-1.5 rounded transition-all ${viewMode === 'table' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
             >
-              <List size={20} />
+              <List size={16} />
             </button>
             <button
               onClick={() => { playUISound('tap'); setViewMode('cards'); }}
-              className={`p-2 rounded-lg transition-all ${viewMode === 'cards' ? 'bg-blue-600 text-white shadow-lg' : 'text-app-text-muted hover:text-app-text-strong'}`}
+              className={`p-1.5 rounded transition-all ${viewMode === 'cards' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
             >
-              <LayoutGrid size={20} />
+              <LayoutGrid size={16} />
             </button>
           </div>
 
-          <Button onClick={onAdd} className="!h-12 !px-6 !bg-blue-600 hover:!bg-blue-700 shadow-lg shadow-blue-600/20">
-            <Plus size={18} className="mr-2" /> Novo Registro
+          <Button onClick={onAdd} className="!h-10 !px-5 !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 !rounded-lg !text-[11px] !font-bold !uppercase shadow-lg shadow-zinc-500/10 transition-transform hover:scale-[1.02]">
+            <Plus size={16} className="mr-2" /> Novo Registro
           </Button>
         </div>
       </div>
@@ -170,13 +169,13 @@ export function CoboView({
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1 group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-app-text-muted group-focus-within:text-blue-500 transition-colors" size={18} />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-zinc-900 dark:group-focus-within:text-zinc-100 transition-colors" size={18} />
           <input
             type="text"
             placeholder="Buscar por canal, intenção ou formato..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full h-14 bg-app-surface border border-app-border rounded-2xl pl-12 pr-4 text-sm font-medium text-app-text-strong outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+            className="w-full h-12 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl pl-11 pr-4 text-[11px] font-medium text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-500/10 focus:border-zinc-500 transition-all font-sans"
           />
         </div>
 
@@ -185,17 +184,17 @@ export function CoboView({
             <button
               key={canal}
               onClick={() => setFilterCanal(filterCanal === canal ? null : canal)}
-              className={`h-11 px-5 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all whitespace-nowrap flex items-center gap-2 ${filterCanal === canal ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/20' : 'bg-app-surface border-app-border text-app-text-muted hover:border-blue-500/50 hover:text-app-text-strong'}`}
+              className={`h-10 px-4 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all whitespace-nowrap flex items-center gap-2 ${filterCanal === canal ? 'bg-zinc-900 dark:bg-zinc-100 border-zinc-900 dark:border-zinc-100 text-white dark:text-zinc-900 shadow-md shadow-zinc-500/10' : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-zinc-400 dark:hover:border-zinc-600'}`}
             >
               {getSocialIcon(canal)} {canal}
             </button>
           ))}
-          <div className="w-px h-6 bg-app-border mx-1"></div>
+          <div className="w-px h-6 bg-zinc-200 dark:bg-zinc-800 mx-1 shrink-0"></div>
           {['Quente', 'Morna', 'Fria'].map(zona => (
             <button
               key={zona}
               onClick={() => setFilterZona(filterZona === zona ? null : zona)}
-              className={`h-11 px-5 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all whitespace-nowrap ${filterZona === zona ? 'bg-orange-600 border-orange-600 text-white shadow-lg shadow-orange-600/20' : 'bg-app-surface border-app-border text-app-text-muted hover:border-orange-500/50 hover:text-app-text-strong'}`}
+              className={`h-10 px-4 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all whitespace-nowrap ${filterZona === zona ? 'bg-zinc-900 dark:bg-zinc-100 border-zinc-900 dark:border-zinc-100 text-white dark:text-zinc-900 shadow-md shadow-zinc-500/10' : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-zinc-400 dark:hover:border-zinc-600'}`}
             >
               {zona}
             </button>
@@ -205,47 +204,47 @@ export function CoboView({
 
       {/* Main Content */}
       {viewMode === 'table' ? (
-        <div className="bg-app-surface rounded-[2rem] border border-app-border overflow-hidden shadow-xl">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
           <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse table-fixed min-w-[800px]">
               <thead>
-                <tr className="border-b border-app-border/40 bg-app-surface-2/30">
-                  <th className="p-5 text-[10px] font-black text-app-text-muted uppercase tracking-[0.2em] pl-8">Canal</th>
-                  <th className="p-5 text-[10px] font-black text-app-text-muted uppercase tracking-[0.2em]">Frequência</th>
-                  <th className="p-5 text-[10px] font-black text-app-text-muted uppercase tracking-[0.2em]">Zona</th>
-                  <th className="p-5 text-[10px] font-black text-app-text-muted uppercase tracking-[0.2em]">Intenção</th>
-                  <th className="p-5 text-[10px] font-black text-app-text-muted uppercase tracking-[0.2em]">Formato</th>
-                  <th className="p-5 text-[10px] font-black text-app-text-muted uppercase tracking-[0.2em] text-right pr-8">Ações</th>
+                <tr className="border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/30">
+                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[15%]">Canal</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[15%]">Frequência</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[15%]">Zona</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[25%]">Intenção</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[30%]">Formato</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right w-[100px]">Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-app-border/20">
+              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                 {filteredData.map(item => (
-                  <tr key={item.id} className="group hover:bg-blue-500/[0.02] transition-colors">
-                    <td className="p-5 pl-8">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-${getSocialColor(item.Canal)}-500/10 text-${getSocialColor(item.Canal)}-500 border border-${getSocialColor(item.Canal)}-500/20`}>
+                  <tr key={item.id} className="group hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
+                    <td className="px-6 py-3" title={item.Canal}>
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-500 border border-zinc-200 dark:border-zinc-700 shrink-0">
                           {getSocialIcon(item.Canal)}
                         </div>
-                        <span className="text-xs font-bold text-app-text-strong uppercase tracking-tight truncate min-w-0">{item.Canal}</span>
+                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight truncate min-w-0">{item.Canal}</span>
                       </div>
                     </td>
-                    <td className="p-5 text-xs font-medium text-app-text-muted">{item.Frequência}</td>
-                    <td className="p-5">
-                      <Badge color={getZonaColor(item.Zona) as any}>{item.Zona}</Badge>
+                    <td className="px-6 py-3 text-xs font-medium text-zinc-500 truncate" title={item.Frequência}>{item.Frequência}</td>
+                    <td className="px-6 py-3">
+                      <Badge color={getZonaColor(item.Zona) as any} className="truncate">{item.Zona}</Badge>
                     </td>
-                    <td className="p-5">
-                      <Badge color="slate">{item.Intenção}</Badge>
+                    <td className="px-6 py-3">
+                      <Badge color="slate" className="truncate">{item.Intenção}</Badge>
                     </td>
-                    <td className="p-5">
-                      <Badge color="slate">{item.Formato}</Badge>
+                    <td className="px-6 py-3">
+                      <Badge color="slate" className="truncate">{item.Formato}</Badge>
                     </td>
-                    <td className="p-5 text-right pr-8">
+                    <td className="px-6 py-3 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => handleEdit(item)} className="p-2 text-app-text-muted hover:text-blue-500 transition-colors">
-                          <Edit2 size={16} />
+                        <button onClick={() => handleEdit(item)} className="p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
+                          <Edit2 size={14} />
                         </button>
-                        <button onClick={() => onDelete([item.id], 'COBO')} className="p-2 text-app-text-muted hover:text-red-500 transition-colors">
-                          <Trash2 size={16} />
+                        <button onClick={() => onDelete([item.id], 'COBO')} className="p-2 text-zinc-400 hover:text-red-500 transition-colors">
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </td>
@@ -258,52 +257,52 @@ export function CoboView({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredData.map(item => (
-            <div key={item.id} className="bg-app-surface p-6 rounded-3xl border border-app-border hover:border-blue-500/30 transition-all group relative overflow-hidden">
-               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/5 to-transparent rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform"></div>
+            <div key={item.id} className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 transition-all group relative overflow-hidden shadow-sm">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-zinc-500/5 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform"></div>
               
               <div className="flex justify-between items-start mb-6 relative z-10">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-${getSocialColor(item.Canal)}-500/10 text-${getSocialColor(item.Canal)}-500 border border-${getSocialColor(item.Canal)}-500/20 shadow-sm`}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-500 border border-zinc-200 dark:border-zinc-700 shadow-sm">
                     {getSocialIcon(item.Canal)}
                   </div>
                   <div>
-                    <h4 className="text-sm font-black text-app-text-strong uppercase tracking-tight">{item.Canal}</h4>
-                    <p className="text-[10px] font-bold text-app-text-muted uppercase tracking-widest">{activeClient.Nome}</p>
+                    <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">{item.Canal}</h4>
+                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{activeClient.Nome}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => handleEdit(item)} className="p-2 text-app-text-muted hover:text-blue-500 transition-colors">
-                    <Edit2 size={16} />
+                  <button onClick={() => handleEdit(item)} className="p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
+                    <Edit2 size={14} />
                   </button>
-                  <button onClick={() => onDelete([item.id], 'COBO')} className="p-2 text-app-text-muted hover:text-red-500 transition-colors">
-                    <Trash2 size={16} />
+                  <button onClick={() => onDelete([item.id], 'COBO')} className="p-2 text-zinc-400 hover:text-red-500 transition-colors">
+                    <Trash2 size={14} />
                   </button>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-y-4 gap-x-6 relative z-10">
                 <div className="space-y-1">
-                  <p className="text-[9px] font-bold text-app-text-muted uppercase tracking-widest">Frequência</p>
-                  <p className="text-xs font-bold text-app-text-strong">{item.Frequência}</p>
+                  <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Frequência</p>
+                  <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">{item.Frequência}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[9px] font-bold text-app-text-muted uppercase tracking-widest">Zona</p>
+                  <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Zona</p>
                   <Badge color={getZonaColor(item.Zona) as any}>{item.Zona}</Badge>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[9px] font-bold text-app-text-muted uppercase tracking-widest">Voz</p>
-                  <p className="text-xs font-bold text-app-text-strong">{item.Voz}</p>
+                  <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Voz</p>
+                  <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">{item.Voz}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[9px] font-bold text-app-text-muted uppercase tracking-widest">Público</p>
-                  <p className="text-xs font-bold text-app-text-strong">{item.Público}</p>
+                  <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Público</p>
+                  <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">{item.Público}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[9px] font-bold text-app-text-muted uppercase tracking-widest">Intenção</p>
+                  <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Intenção</p>
                   <Badge color="slate" className="w-fit">{item.Intenção}</Badge>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[9px] font-bold text-app-text-muted uppercase tracking-widest">Formato</p>
+                  <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Formato</p>
                   <Badge color="slate" className="w-fit">{item.Formato}</Badge>
                 </div>
               </div>
@@ -314,13 +313,13 @@ export function CoboView({
 
       {/* Empty State */}
       {filteredData.length === 0 && (
-        <div className="py-20 text-center bg-app-surface/50 rounded-[2rem] border border-dashed border-app-border animate-in fade-in zoom-in duration-300">
-          <div className="w-20 h-20 bg-zinc-500/10 rounded-full flex items-center justify-center text-zinc-500 mx-auto mb-6">
-            <Layout size={40} />
+        <div className="py-20 text-center bg-zinc-50/50 dark:bg-zinc-900/50 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 animate-in fade-in zoom-in duration-300">
+          <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-400 mx-auto mb-6 border border-zinc-200 dark:border-zinc-700">
+            <Layout size={32} />
           </div>
-          <h3 className="text-lg font-black text-app-text-strong uppercase tracking-widest">Nenhum Registro Encontrado</h3>
-          <p className="text-xs font-bold text-app-text-muted uppercase tracking-widest mt-2">Tente ajustar seus filtros ou busca.</p>
-          <Button variant="secondary" onClick={() => { setSearchTerm(''); setFilterCanal(null); setFilterZona(null); }} className="mt-8 border-app-border">Limpar Filtros</Button>
+          <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">Nenhum Registro Encontrado</h3>
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-2">Tente ajustar seus filtros ou busca.</p>
+          <Button variant="secondary" onClick={() => { setSearchTerm(''); setFilterCanal(null); setFilterZona(null); }} className="mt-8 !h-9 !px-4 !text-[10px] !font-bold !rounded-lg !uppercase">Limpar Filtros</Button>
         </div>
       )}
 
@@ -329,7 +328,7 @@ export function CoboView({
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           {/* Backdrop que cobre 100% da tela */}
           <div 
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-in fade-in duration-300" 
+            className="absolute inset-0 bg-zinc-950/50 backdrop-blur-sm animate-in fade-in duration-300" 
             onClick={() => setEditingItem(null)} 
           />
           

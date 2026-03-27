@@ -94,8 +94,8 @@ export default function DashboardCharts({ stats, financas, tasks, planejamento, 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full animate-fade">
             
             {/* Line Chart: Financas */}
-            <Card title="Evolução Financeira (Últimos 6 meses)" className="lg:col-span-2 shadow-xl border border-gray-200 dark:border-white/5">
-                <div className="p-4 sm:p-6 h-[300px]">
+            <Card title="Evolução Financeira (Últimos 6 meses)" className="lg:col-span-2">
+                <div className="h-[300px]">
                     {financas6Meses.filter(m => m.Entrada > 0 || m.Saida > 0).length === 0 ? (
                         <div className="w-full h-full flex items-center justify-center text-gray-500 font-medium">Sem lançamentos nos últimos 6 meses.</div>
                     ) : (
@@ -115,8 +115,8 @@ export default function DashboardCharts({ stats, financas, tasks, planejamento, 
             </Card>
 
             {/* Pie Chart: Status das Tarefas */}
-            <Card title="Distribuição de Tarefas" className="shadow-xl border border-gray-200 dark:border-white/5 h-full hover:border-[#a855f7]/30 transition-colors">
-                <div className="p-4 sm:p-6 h-[250px] flex items-center justify-center">
+            <Card title="Distribuição de Tarefas">
+                <div className="h-[250px] flex items-center justify-center">
                     {distribuicaoTarefas.length === 0 ? (
                         <div className="text-gray-500 font-medium">Nenhuma tarefa ativa computada.</div>
                     ) : (
@@ -144,8 +144,8 @@ export default function DashboardCharts({ stats, financas, tasks, planejamento, 
             </Card>
 
             {/* Bar Chart: Posts por Cliente */}
-            <Card title="Top Planejamento de Posts (Ativos)" className="shadow-xl border border-gray-200 dark:border-white/5 h-full hover:border-[#3b82f6]/30 transition-colors">
-                <div className="p-4 sm:p-6 h-[250px]">
+            <Card title="Top Planejamento de Posts (Ativos)">
+                <div className="h-[250px]">
                     {planejamentoPorCliente.length === 0 ? (
                         <div className="w-full h-full flex items-center justify-center text-gray-500 font-medium">Nenhum post ativo no planejamento.</div>
                     ) : (

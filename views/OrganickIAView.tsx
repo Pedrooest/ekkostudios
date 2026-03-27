@@ -201,37 +201,39 @@ export function OrganickIAView({
     const filteredHistory = history.filter((h: any) => showArchived ? true : !h.__archived);
 
     return (
-        <div className="space-y-8 animate-fade max-w-5xl mx-auto pb-20 text-left px-4 md:px-0">
-
-            {/* CABEÇALHO PREMIUM */}
-            <div className="flex items-center gap-5 mb-10 group">
-                <div className="w-16 h-16 rounded-[24px] bg-gradient-to-br from-blue-600 to-emerald-500 flex items-center justify-center shadow-2xl shadow-blue-500/20 group-hover:scale-105 transition-transform duration-500 rotate-3 group-hover:rotate-0">
-                    <BrainCircuit className="text-white" size={32} />
-                </div>
-                <div>
-                    <h1 className="text-3xl md:text-4xl font-black text-app-text-strong tracking-tighter uppercase leading-none mb-2">OrganickIA 2.0</h1>
-                    <p className="text-[10px] md:text-xs text-app-text-muted font-bold uppercase tracking-[0.2em] opacity-80">
-                        A inteligência operacional do Método Organick.
-                    </p>
+        <div className="p-4 sm:p-6 space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto pb-20">
+            {/* CABEÇALHO */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center shadow-lg shadow-zinc-500/10">
+                        <BrainCircuit className="text-white dark:text-zinc-900" size={20} />
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">OrganickIA 2.0</h1>
+                        <p className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest">Inteligência Operacional</p>
+                    </div>
                 </div>
             </div>
 
             {/* 1. SELETOR DE CONTEXTO */}
-            <Card title="Contexto do Cliente">
-                <div className="p-6 md:p-8">
-                    <label className="flex items-center gap-2 text-[10px] font-black text-blue-500 uppercase tracking-widest mb-4">
-                        <CheckCircle2 size={14} /> Selecionar Cliente (Obrigatório)
-                    </label>
-                    <div className="relative group">
-                        <select
+            <Card>
+                <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg">
+                            <User className="text-zinc-500" size={18} />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Contexto do Cliente</p>
+                            <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase">Selecione para processar</p>
+                        </div>
+                    </div>
+                    <div className="w-full sm:w-72">
+                        <InputSelect 
                             value={selectedClientId}
-                            onChange={(e) => { playUISound('tap'); setSelectedClientId(e.target.value); }}
-                            className="ios-btn w-full h-14 !bg-app-bg border-app-border text-sm font-bold uppercase text-app-text-strong rounded-[16px] px-5 outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none transition-all cursor-pointer"
-                        >
-                            <option value="">-- Escolha um cliente --</option>
-                            {clients.map((c: any) => <option key={c.id} value={c.id} className="bg-app-bg">{c.Nome}</option>)}
-                        </select>
-                        <ChevronDown size={18} className="absolute right-5 top-1/2 -translate-y-1/2 text-app-text-muted pointer-events-none group-hover:text-blue-500 transition-colors" />
+                            onChange={(val) => { playUISound('tap'); setSelectedClientId(val); }}
+                            options={[{value: '', label: '-- ESCOLHA UM CLIENTE --'}, ...clients.map((c: any) => ({value: c.id, label: c.Nome.toUpperCase()}))]}
+                            className="!h-10 !text-[11px] !font-bold !rounded-lg"
+                        />
                     </div>
                 </div>
             </Card>
@@ -247,18 +249,19 @@ export function OrganickIAView({
                                 <div className="group relative">
                                     <input type="file" accept="audio/*" multiple ref={audioInputRef} className="hidden" onChange={(e) => handleFileUpload(e, 'audio')} />
                                     <div
-                                        className="ios-btn flex flex-col items-center justify-center border-2 border-dashed border-app-border rounded-[24px] py-10 px-6 text-center transition-all hover:border-blue-500 cursor-pointer bg-app-surface/50 hover:bg-blue-500/5 active:scale-[0.98] group"
+                                        className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl py-12 px-6 text-center transition-all hover:border-zinc-400 dark:hover:border-zinc-600 cursor-pointer bg-zinc-50/50 dark:bg-zinc-900/30 group"
                                         onClick={() => { playUISound('tap'); audioInputRef.current?.click(); }}
                                     >
-                                        <div className="w-14 h-14 bg-app-surface shadow-xl rounded-2xl flex items-center justify-center mb-4 text-blue-500 group-hover:scale-110 transition-transform border border-app-border">
-                                            <Mic size={24} />
+                                        <div className="w-16 h-16 bg-white dark:bg-zinc-900 shadow-sm border border-zinc-200 dark:border-zinc-800 rounded-2xl flex items-center justify-center mb-4 text-zinc-600 dark:text-zinc-400 group-hover:scale-105 transition-transform">
+                                            <Mic size={28} />
                                         </div>
-                                        <h3 className="text-xs font-black text-app-text-strong uppercase tracking-widest mb-1">Pautas / Áudios</h3>
-                                        <p className="text-[10px] text-app-text-muted font-bold uppercase mb-6 opacity-60">Áudios de reuniões ou notas de voz.</p>
+                                        <h3 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight mb-1">Pautas / Áudios</h3>
+                                        <p className="text-[10px] text-zinc-500 font-medium uppercase mb-6">Mapeamento por Voz</p>
                                         <Button
                                             onClick={(e) => { e.stopPropagation(); audioInputRef.current?.click(); }}
                                             disabled={loading}
-                                            className="!px-6 !py-2.5 !bg-blue-500/10 !text-blue-500 hover:!bg-blue-500 hover:!text-white !rounded-xl !text-[10px] !font-black !tracking-widest !uppercase !transition-all border border-blue-500/20"
+                                            variant="secondary"
+                                            className="!h-9 !px-6 !text-[10px] !font-bold !uppercase"
                                         >
                                             {loading ? 'Processando...' : 'Carregar Áudio'}
                                         </Button>
@@ -269,18 +272,19 @@ export function OrganickIAView({
                                 <div className="group relative">
                                     <input type="file" accept="application/pdf" multiple ref={pdfInputRef} className="hidden" onChange={(e) => handleFileUpload(e, 'pdf')} />
                                     <div
-                                        className="ios-btn flex flex-col items-center justify-center border-2 border-dashed border-app-border rounded-[24px] py-10 px-6 text-center transition-all hover:border-rose-500 cursor-pointer bg-app-surface/50 hover:bg-rose-500/5 active:scale-[0.98] group"
+                                        className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl py-12 px-6 text-center transition-all hover:border-zinc-400 dark:hover:border-zinc-600 cursor-pointer bg-zinc-50/50 dark:bg-zinc-900/30 group"
                                         onClick={() => { playUISound('tap'); pdfInputRef.current?.click(); }}
                                     >
-                                        <div className="w-14 h-14 bg-app-surface shadow-xl rounded-2xl flex items-center justify-center mb-4 text-rose-500 group-hover:scale-110 transition-transform border border-app-border">
-                                            <FileText size={24} />
+                                        <div className="w-16 h-16 bg-white dark:bg-zinc-900 shadow-sm border border-zinc-200 dark:border-zinc-800 rounded-2xl flex items-center justify-center mb-4 text-zinc-600 dark:text-zinc-400 group-hover:scale-105 transition-transform">
+                                            <FileText size={28} />
                                         </div>
-                                        <h3 className="text-xs font-black text-app-text-strong uppercase tracking-widest mb-1">Documentos PDF</h3>
-                                        <p className="text-[10px] text-app-text-muted font-bold uppercase mb-6 opacity-60">Briefings, pautas ou relatórios.</p>
+                                        <h3 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight mb-1">Documentos PDF</h3>
+                                        <p className="text-[10px] text-zinc-500 font-medium uppercase mb-6">Briefings e Relatórios</p>
                                         <Button
                                             onClick={(e) => { e.stopPropagation(); pdfInputRef.current?.click(); }}
                                             disabled={loading}
-                                            className="!px-6 !py-2.5 !bg-rose-500/10 !text-rose-500 hover:!bg-rose-500 hover:!text-white !rounded-xl !text-[10px] !font-black !tracking-widest !uppercase !transition-all border border-rose-500/20"
+                                            variant="secondary"
+                                            className="!h-9 !px-6 !text-[10px] !font-bold !uppercase"
                                         >
                                             {loading ? 'Analisando...' : 'Carregar PDF'}
                                         </Button>
@@ -290,110 +294,100 @@ export function OrganickIAView({
 
                             {/* Undo Import Block */}
                             {lastImportedIds.length > 0 && (
-                                <div className="p-5 bg-rose-500/10 border border-rose-500/20 rounded-[20px] flex items-center justify-between animate-fade">
-                                    <div className="flex items-center gap-4">
-                                        <div className="p-3 bg-rose-500/10 rounded-xl border border-rose-500/20">
-                                            <HistoryIcon className="text-rose-500" size={18} />
+                                <div className="p-4 bg-zinc-900 dark:bg-zinc-100 rounded-xl flex items-center justify-between">
+                                    <div className="flex items-center gap-3 text-white dark:text-zinc-900">
+                                        <div className="p-2 bg-white/10 rounded-lg">
+                                            <HistoryIcon size={18} />
                                         </div>
                                         <div>
-                                            <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1">Importação Recente ({lastImportedIds.length} itens)</p>
-                                            <p className="text-[9px] text-rose-400 font-bold uppercase tracking-wider opacity-80">Deseja desfazer? Os itens criados serão excluídos.</p>
+                                            <p className="text-[10px] font-bold uppercase tracking-widest">Importação Recente</p>
+                                            <p className="text-[9px] font-medium opacity-70 uppercase">{lastImportedIds.length} itens extraídos</p>
                                         </div>
                                     </div>
-                                    <Button onClick={handleUndoImport} className="!bg-rose-500 !text-white hover:!bg-rose-600 !text-[9px] !font-black !uppercase !tracking-widest !h-10 !px-6 !rounded-xl shadow-lg shadow-rose-500/20 border border-rose-500">
-                                        <Trash2 className="mr-2" size={14} /> DESFAZER
+                                    <Button onClick={handleUndoImport} variant="secondary" className="!h-8 !px-4 !text-[9px] !font-bold !bg-white/10 !text-white hover:!bg-white/20 !border-none !uppercase">
+                                        DESFAZER
                                     </Button>
                                 </div>
                             )}
                         </div>
                     </Card>
 
-                    {/* 3. CÉREBRO OPERACIONAL (Console) */}
-                    <Card title="Cérebro Operacional">
-                        <div className="p-6 md:p-8 space-y-8">
-                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    {/* 3. CÉREBRO OPERACIONAL */}
+                    <Card>
+                        <div className="p-6 space-y-6">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2.5 bg-amber-500/10 rounded-xl border border-amber-500/20">
-                                        <Sparkles className="text-amber-500" size={20} />
+                                    <div className="p-2 bg-amber-50 dark:bg-amber-900/10 rounded-lg text-amber-500 border border-amber-100 dark:border-amber-900/20">
+                                        <Sparkles size={18} />
                                     </div>
                                     <div>
-                                        <h4 className="text-xs font-black text-app-text-strong uppercase tracking-widest">Processamento IA</h4>
-                                        <p className="text-[9px] text-app-text-muted font-bold uppercase mt-1 opacity-70">Gere briefings baseados na sua base de conhecimento.</p>
+                                        <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">Cérebro Operacional</h4>
+                                        <p className="text-[10px] text-zinc-500 font-medium uppercase">Compilação estratégica IA</p>
                                     </div>
                                 </div>
                                 <Button
                                     onClick={generateBriefing}
                                     disabled={loading}
-                                    className="!h-14 !px-8 !bg-emerald-600 !text-white !rounded-[16px] shadow-xl shadow-emerald-600/20 !text-[11px] !font-black !tracking-widest !uppercase !transition-all hover:scale-105 active:scale-95 flex items-center gap-3"
+                                    className="!h-10 !px-6 !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 !rounded-lg !text-[11px] !font-bold !tracking-widest !uppercase"
                                 >
-                                    {loading ? <Loader2 size={18} className="animate-spin" /> : <BrainCircuit size={18} />}
-                                    Compilar Briefing Organick
+                                    {loading ? <Loader2 size={16} className="animate-spin" /> : <BrainCircuit size={16} className="mr-2" />}
+                                    Compilar Briefing
                                 </Button>
                             </div>
 
-                            <div className={`w-full rounded-[20px] p-6 font-mono text-[11px] leading-relaxed min-h-[160px] border transition-all duration-500 overflow-hidden relative
-                                ${!briefing && !loading ? 'bg-app-bg border-app-border text-app-text-muted flex items-center justify-center text-center italic' : ''}
-                                ${loading ? 'bg-blue-500/5 border-blue-500/20 text-blue-500 flex items-center justify-center' : ''}
-                                ${briefing && !loading ? 'bg-[#111114] border-emerald-500/30 text-app-text-strong' : ''}
+                            <div className={`w-full rounded-xl p-6 font-mono text-[11px] leading-relaxed min-h-[160px] border transition-all duration-500 overflow-hidden relative
+                                ${!briefing && !loading ? 'bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-400 flex items-center justify-center text-center italic' : ''}
+                                ${loading ? 'bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-500 flex items-center justify-center' : ''}
+                                ${briefing && !loading ? 'bg-zinc-950 border-zinc-800 text-zinc-300' : ''}
                             `}>
                                 {!briefing && !loading && (
-                                    <div className="space-y-3 px-10">
-                                        <Loader2 size={24} className="mx-auto mb-2 opacity-20" />
-                                        <p className="uppercase tracking-widest font-bold text-[9px]">Aguardando comando para analisar a base de conhecimento...</p>
+                                    <div className="space-y-2 opacity-60">
+                                        <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center mx-auto mb-2 font-black">?</div>
+                                        <p className="uppercase tracking-widest font-bold text-[9px]">Aguardando comando operacional...</p>
                                     </div>
                                 )}
 
                                 {loading && (
-                                    <div className="flex items-center gap-3 font-bold uppercase tracking-widest">
-                                        <Loader2 size={16} className="animate-spin" />
-                                        <span>Extraindo insights e formatando dados estratégicos...</span>
+                                    <div className="flex flex-col items-center gap-3 font-bold uppercase tracking-widest text-[10px]">
+                                        <Loader2 size={18} className="animate-spin text-zinc-500" />
+                                        <span>Processando dados estratégicos...</span>
                                     </div>
                                 )}
 
                                 {briefing && !loading && (
-                                    <div className="animate-fade space-y-4">
-                                        <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-4">
-                                            <div className="flex items-center gap-2 font-black text-emerald-400 uppercase tracking-widest">
-                                                <CheckCircle2 size={14} /> Briefing Extraído com Sucesso
+                                    <div className="animate-in fade-in duration-300 space-y-4">
+                                        <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-4">
+                                            <div className="flex items-center gap-2 font-bold text-emerald-400 uppercase tracking-widest text-[10px]">
+                                                <CheckCircle2 size={12} /> Briefing Organick
                                             </div>
                                             <div className="flex gap-2">
-                                                <Button onClick={copyBriefing} variant="secondary" className="!h-8 !px-3 !text-[9px] !font-black !rounded-lg border-white/10"><Copy size={12} className="mr-2" /> Copiar</Button>
-                                                <Button onClick={() => onGenerateSlide(briefing)} className="!h-8 !px-3 !text-[9px] !font-black !rounded-lg !bg-blue-600 !text-white border-none"><FileImage size={12} className="mr-2" /> Gerar Slide</Button>
+                                                <button onClick={copyBriefing} className="p-1.5 text-zinc-500 hover:text-white transition-colors"><Copy size={14} /></button>
+                                                <button onClick={() => onGenerateSlide(briefing)} className="p-1.5 text-zinc-500 hover:text-white transition-colors"><FileImage size={14} /></button>
                                             </div>
                                         </div>
-                                        <div className="max-h-[300px] overflow-y-auto custom-scrollbar font-sans pr-2">
+                                        <div className="max-h-[350px] overflow-y-auto custom-scrollbar font-sans pr-2 text-zinc-300">
                                             <SimpleMarkdown content={briefing} />
                                         </div>
                                     </div>
                                 )}
-
-                                <div className="absolute top-0 right-0 p-4 opacity-[0.03] pointer-events-none">
-                                    <BrainCircuit size={120} />
-                                </div>
                             </div>
 
                             {(audioInsight || pdfInsight) && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {audioInsight && (
-                                        <div className="p-5 bg-blue-500/5 border border-blue-500/10 rounded-[20px] space-y-3 group hover:border-blue-500/30 transition-all">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2 uppercase tracking-widest font-black text-blue-500 text-[9px]">
-                                                    <Zap size={12} /> Insight Áudio
-                                                </div>
-                                                <CheckCircle2 size={12} className="text-blue-500/40" />
+                                        <div className="p-4 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl space-y-2">
+                                            <div className="flex items-center gap-2 uppercase tracking-widest font-bold text-zinc-400 text-[9px]">
+                                                <Mic size={12} /> Insight Áudio
                                             </div>
-                                            <p className="text-[11px] text-app-text-muted leading-relaxed font-bold uppercase italic line-clamp-3">{audioInsight}</p>
+                                            <p className="text-[10px] text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed line-clamp-2">{audioInsight}</p>
                                         </div>
                                     )}
                                     {pdfInsight && (
-                                        <div className="p-5 bg-rose-500/5 border border-rose-500/10 rounded-[20px] space-y-3 group hover:border-rose-500/30 transition-all">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2 uppercase tracking-widest font-black text-rose-500 text-[9px]">
-                                                    <Sparkles size={12} /> Insight PDF
-                                                </div>
-                                                <CheckCircle2 size={12} className="text-rose-500/40" />
+                                        <div className="p-4 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl space-y-2">
+                                            <div className="flex items-center gap-2 uppercase tracking-widest font-bold text-zinc-400 text-[9px]">
+                                                <FileText size={12} /> Insight PDF
                                             </div>
-                                            <p className="text-[11px] text-app-text-muted leading-relaxed font-bold uppercase italic line-clamp-3">{pdfInsight}</p>
+                                            <p className="text-[10px] text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed line-clamp-2">{pdfInsight}</p>
                                         </div>
                                     )}
                                 </div>
@@ -401,34 +395,26 @@ export function OrganickIAView({
                         </div>
                     </Card>
 
-                    {/* 4. CHAT ORGANICKIA (Gateway) */}
-                    <Card title="Chat OrganickIA">
-                        <div className="p-6 md:p-8 space-y-8">
+                    {/* 4. CHAT GATEWAY */}
+                    <Card>
+                        <div className="p-6 space-y-6">
                             <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 text-3xl border border-emerald-500/20 shadow-lg shadow-emerald-500/5">
-                                    <MessageSquare size={28} />
+                                <div className="w-12 h-12 rounded-xl bg-zinc-950 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900">
+                                    <MessageSquare size={22} />
                                 </div>
-                                <div className="">
-                                    <h3 className="text-sm font-black uppercase text-app-text-strong tracking-[0.1em] mb-1">Central de Inteligência</h3>
-                                    <p className="text-[10px] font-bold text-app-text-muted uppercase tracking-widest opacity-80">Acesse o OrganickAI 2.0 no ChatGPT.</p>
+                                <div>
+                                    <h3 className="text-xs font-bold uppercase text-zinc-900 dark:text-zinc-100 tracking-tight">Chat OrganickIA</h3>
+                                    <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-widest">Acesso à Central de Inteligência</p>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <Button onClick={() => window.open(CHATGPT_LINK, '_blank')} className="!h-16 !bg-app-surface !text-app-text-strong border border-app-border hover:!border-blue-500 !rounded-[18px] !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-3">
-                                    <ExternalLink size={16} /> Abrir Chat OrganickIA
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <Button onClick={() => window.open(CHATGPT_LINK, '_blank')} variant="secondary" className="!h-12 !rounded-xl !text-[10px] !font-bold !uppercase">
+                                    ABRIR CHATGPT
                                 </Button>
-                                <Button onClick={handleCopyAndOpenChat} className="!h-16 !bg-emerald-600 !text-white !rounded-[18px] !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-3 shadow-lg shadow-emerald-500/20 hover:scale-[1.02] transition-transform">
-                                    <Copy size={16} /> Copiar Briefing + Abrir Chat
+                                <Button onClick={handleCopyAndOpenChat} className="!h-12 !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 !rounded-xl !text-[10px] !font-bold !uppercase shadow-lg shadow-zinc-500/10 hover:scale-[1.01]">
+                                    COPIAR E ABRIR CHAT
                                 </Button>
-                            </div>
-
-                            <div className="bg-app-bg/50 border border-dashed border-app-border rounded-[24px] p-8 flex flex-col items-center justify-center text-center group">
-                                <ShieldAlert size={32} className="text-app-text-muted mb-4 group-hover:text-rose-500 transition-colors duration-500" />
-                                <p className="max-w-md text-[10px] text-app-text-muted font-bold uppercase tracking-widest leading-relaxed opacity-60">
-                                    O ChatGPT não permite exibição embutida por segurança. <br />
-                                    Utilize os botões acima para interagir em uma nova aba dedicada.
-                                </p>
                             </div>
                         </div>
                     </Card>
@@ -437,59 +423,57 @@ export function OrganickIAView({
 
             {/* 5. HISTÓRICO */}
             <div className="space-y-8 pt-8">
-                <div className="flex items-center justify-between border-b border-app-border pb-6">
+                <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-6">
                     <div className="flex items-center gap-3">
-                        <HistoryIcon className="text-app-text-muted" size={18} />
-                        <h3 className="text-xs font-black uppercase text-app-text-strong tracking-[0.3em]">Histórico de Inteligência</h3>
+                        <HistoryIcon className="text-zinc-400" size={18} />
+                        <h3 className="text-xs font-bold uppercase text-zinc-900 dark:text-zinc-100 tracking-tight">Histórico de Inteligência</h3>
                     </div>
                     <DeletionBar count={selection.length} onDelete={() => onDelete(selection, 'IA_HISTORY')} onArchive={() => onArchive(selection, 'IA_HISTORY', true)} onClear={() => setSelection([])} />
                 </div>
 
                 {filteredHistory.length === 0 ? (
-                    <div className="py-20 text-center border-2 border-dashed border-app-border rounded-[32px] opacity-40">
-                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-app-text-muted">Nenhum registro processado recentemente.</p>
+                    <div className="py-20 text-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-[32px] opacity-40">
+                        <p className="text-xs font-bold uppercase tracking-widest text-zinc-500">Nenhum registro processado recentemente.</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {filteredHistory.map((item: any) => (
-                            <div key={item.id} className={`p-6 bg-app-surface border border-app-border rounded-[28px] shadow-2xl hover:border-blue-500/30 transition-all duration-300 group relative overflow-hidden ${selection.includes(item.id) ? 'border-blue-500 ring-4 ring-blue-500/10' : ''}`}>
-                                <div className="absolute top-0 right-0 p-5 opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100">
-                                    <input type="checkbox" checked={selection.includes(item.id)} onChange={() => setSelection(prev => prev.includes(item.id) ? prev.filter(i => i !== item.id) : [...prev, item.id])} className="w-6 h-6 rounded-lg cursor-pointer" />
+                            <div key={item.id} className={`p-5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm hover:border-zinc-400 dark:hover:border-zinc-600 transition-all group relative overflow-hidden ${selection.includes(item.id) ? 'border-zinc-900 ring-2 ring-zinc-500/10' : ''}`}>
+                                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all">
+                                    <input type="checkbox" checked={selection.includes(item.id)} onChange={() => setSelection(prev => prev.includes(item.id) ? prev.filter(i => i !== item.id) : [...prev, item.id])} className="w-5 h-5 rounded-lg cursor-pointer border-zinc-300" />
                                 </div>
 
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-lg ${item.type === 'SLIDE' ? 'bg-blue-500/10 text-blue-500 shadow-blue-500/5' : 'bg-emerald-500/10 text-emerald-500 shadow-emerald-500/5'}`}>
-                                        {item.type === 'SLIDE' ? <FileImage size={24} /> : <FileText size={24} />}
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500">
+                                        {item.type === 'SLIDE' ? <FileImage size={20} /> : <FileText size={20} />}
                                     </div>
-                                    <div>
-                                        <h4 className="text-xs font-black uppercase text-app-text-strong tracking-widest mb-1">{item.clientName}</h4>
-                                        <span className="text-[9px] font-bold text-app-text-muted uppercase tracking-wider opacity-60">
+                                    <div className="min-w-0">
+                                        <h4 className="text-[11px] font-bold uppercase text-zinc-900 dark:text-zinc-100 tracking-tight truncate">{item.clientName}</h4>
+                                        <span className="text-[9px] font-medium text-zinc-500 uppercase tracking-widest">
                                             {new Date(item.timestamp).toLocaleDateString('pt-BR')} • {item.type}
                                         </span>
                                     </div>
                                 </div>
 
                                 {item.type === 'SLIDE' ? (
-                                    <div className="space-y-4">
-                                        <p className="text-[11px] font-black text-blue-500 uppercase tracking-wider line-clamp-1">{item.content.title}</p>
-                                        <p className="text-[10px] text-app-text-muted font-bold leading-relaxed line-clamp-3 uppercase tracking-tight">{item.content.subtitle}</p>
+                                    <div className="space-y-2">
+                                        <p className="text-[10px] font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight line-clamp-1">{item.content.title}</p>
+                                        <p className="text-[9px] text-zinc-500 font-medium leading-relaxed line-clamp-2 uppercase">{item.content.subtitle}</p>
                                     </div>
                                 ) : (
-                                    <p className="text-[10px] text-app-text-muted font-bold leading-relaxed line-clamp-4 italic uppercase tracking-tight opacity-70">
-                                        {item.content.slice(0, 300)}...
+                                    <p className="text-[9px] text-zinc-500 font-medium leading-relaxed line-clamp-3 italic uppercase">
+                                        {item.content.slice(0, 200)}...
                                     </p>
                                 )}
 
-                                <div className="mt-8 pt-5 border-t border-app-border flex gap-3">
-                                    <Button variant="secondary" className="flex-1 !h-10 !text-[9px] !font-black !rounded-xl border-app-border" onClick={() => { if (item.type === 'SLIDE') { /* logic */ } else { setBriefing(item.content); window.scrollTo({ top: 0, behavior: 'smooth' }); } }}>
-                                        <Eye size={14} className="mr-2" /> Visualizar
+                                <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex gap-2">
+                                    <Button variant="secondary" className="flex-1 !h-8 !text-[9px] !font-bold !rounded-lg !uppercase" onClick={() => { if (item.type === 'SLIDE') { /* logic */ } else { setBriefing(item.content); window.scrollTo({ top: 0, behavior: 'smooth' }); } }}>
+                                        <Eye size={12} className="mr-1.5" /> Visualizar
                                     </Button>
-                                    <Button variant="secondary" className="!h-10 !w-10 !p-0 !rounded-xl border-app-border" onClick={() => { playUISound('tap'); onArchive([item.id], 'IA_HISTORY', !item.__archived); }}>
-                                        {item.__archived ? <FolderOpen size={16} /> : <Box size={16} />}
+                                    <Button variant="secondary" className="!h-8 !w-8 !p-0 !rounded-lg" onClick={() => { playUISound('tap'); onArchive([item.id], 'IA_HISTORY', !item.__archived); }}>
+                                        {item.__archived ? <FolderOpen size={14} /> : <Box size={14} />}
                                     </Button>
                                 </div>
-
-                                <div className="absolute -bottom-6 -right-6 w-20 h-20 bg-app-text-strong/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-colors" />
                             </div>
                         ))}
                     </div>
@@ -498,107 +482,104 @@ export function OrganickIAView({
 
             {/* Import Preview Modal */}
             {isImportModalOpen && importPreview && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-xl p-6 pointer-events-auto transition-all animate-in fade-in zoom-in duration-300">
-                    <div className="w-full max-w-4xl bg-[#111114] border border-white/10 rounded-[32px] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
-                        <div className="p-8 border-b border-white/5 flex justify-between items-center bg-gradient-to-r from-[#111114] to-[#1a1a1e]">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center border border-emerald-500/20">
-                                    <Plus size={24} className="text-emerald-500" />
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsImportModalOpen(false)}></div>
+                    <div className="relative w-full max-w-4xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-300">
+                        {/* MODAL HEADER */}
+                        <div className="px-6 py-4 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center bg-zinc-50 dark:bg-zinc-800/10">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center text-zinc-900 dark:text-zinc-100">
+                                    <Plus size={20} />
                                 </div>
                                 <div>
-                                    <h3 className="text-2xl font-black uppercase text-white tracking-tighter mb-1">Confirmação de Importação</h3>
-                                    <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-[0.2em]">Revise os dados extraídos pelo OrganickIA.</p>
+                                    <h3 className="text-sm font-bold uppercase text-zinc-900 dark:text-zinc-100 tracking-tight">Importação Estratégica</h3>
+                                    <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Extração OrganickIA</p>
                                 </div>
                             </div>
-                            <button onClick={() => { playUISound('tap'); setIsImportModalOpen(false); }} className="ios-btn w-10 h-10 flex items-center justify-center text-zinc-500 hover:text-white hover:bg-white/5 rounded-full transition-all"><X size={24} /></button>
+                            <button onClick={() => { playUISound('tap'); setIsImportModalOpen(false); }} className="p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-lg transition-all"><X size={20} /></button>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
-                            <div className="bg-white/5 p-8 rounded-[24px] border border-white/5 relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-110 transition-transform duration-700"><User size={120} /></div>
-                                <h4 className="text-[10px] font-black uppercase text-blue-500 mb-6 tracking-[0.3em] flex items-center gap-2">
-                                    <User size={14} /> Dados do Cliente Detectados
+                        <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+                            <div className="bg-zinc-50 dark:bg-zinc-950/20 p-6 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                                <h4 className="text-[10px] font-bold uppercase text-zinc-400 mb-4 tracking-widest flex items-center gap-2">
+                                    <User size={12} /> Cliente Detectado
                                 </h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                                     <div className="space-y-1">
-                                        <span className="text-[9px] text-zinc-500 uppercase font-black tracking-widest block">Nome do Cliente</span>
-                                        <span className="text-lg font-black text-white tracking-tight">{importPreview.cliente?.nome || "Não Detectado"}</span>
+                                        <span className="text-[9px] text-zinc-400 uppercase font-black tracking-widest block">Nome</span>
+                                        <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase">{importPreview.cliente?.nome || "NÃO DETECTADO"}</span>
                                     </div>
                                     <div className="space-y-1">
-                                        <span className="text-[9px] text-zinc-500 uppercase font-black tracking-widest block">Nicho / Setor</span>
-                                        <span className="text-lg font-black text-white tracking-tight">{importPreview.cliente?.nicho || "Geral"}</span>
+                                        <span className="text-[9px] text-zinc-400 uppercase font-black tracking-widest block">Nicho</span>
+                                        <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase">{importPreview.cliente?.nicho || "GERAL"}</span>
                                     </div>
-                                    <div className="space-y-1 md:col-span-2 lg:col-span-1">
-                                        <span className="text-[9px] text-zinc-500 uppercase font-black tracking-widest block">Objetivo Principal</span>
-                                        <span className="text-sm font-bold text-zinc-300 leading-snug">{importPreview.cliente?.objetivo || "Não Especificado"}</span>
+                                    <div className="space-y-1">
+                                        <span className="text-[9px] text-zinc-400 uppercase font-black tracking-widest block">Objetivo</span>
+                                        <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 leading-snug uppercase">{importPreview.cliente?.objetivo || "NÃO ESPECIFICADO"}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="space-y-6">
-                                <h4 className="text-[10px] font-black uppercase text-emerald-500 tracking-[0.3em] flex items-center gap-2 px-1">
-                                    <CheckCircle2 size={14} /> Selecionar Módulos para Importação
+                            <div className="space-y-4">
+                                <h4 className="text-[10px] font-bold uppercase text-zinc-400 tracking-widest flex items-center gap-2 px-1">
+                                    <CheckCircle2 size={12} /> Selecionar Módulos
                                 </h4>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                     {[
-                                        { id: 'cobo', label: 'Canais', color: 'purple', count: importPreview.cobo?.length, icon: Radio },
-                                        { id: 'estrategia', label: 'Estratégias', color: 'emerald', count: importPreview.estrategia?.length, icon: Target },
-                                        { id: 'rdc', label: 'Ideias', color: 'amber', count: importPreview.rdc?.length, icon: Lightbulb },
-                                        { id: 'planejamento', label: 'Calendário', color: 'rose', count: importPreview.planejamento?.length, icon: LucideCalendar }
+                                        { id: 'cobo', label: 'Canais', count: importPreview.cobo?.length, icon: Radio },
+                                        { id: 'estrategia', label: 'Estratégias', count: importPreview.estrategia?.length, icon: Target },
+                                        { id: 'rdc', label: 'Ideias', count: importPreview.rdc?.length, icon: Lightbulb },
+                                        { id: 'planejamento', label: 'Calendário', count: importPreview.planejamento?.length, icon: LucideCalendar }
                                     ].map((tab) => (
                                         <div
                                             key={tab.id}
                                             onClick={() => { playUISound('tap'); setImportSelection((prev: any) => ({ ...prev, [tab.id]: !prev[tab.id] })); }}
-                                            className={`ios-btn p-6 rounded-[24px] border-2 cursor-pointer transition-all duration-300 flex flex-col items-center text-center
+                                            className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col items-center text-center gap-2
                                                 ${(importSelection as any)[tab.id]
-                                                    ? `bg-${tab.color}-500/10 border-${tab.color}-500 ring-4 ring-${tab.color}-500/10`
-                                                    : 'bg-white/5 border-white/5 opacity-40 hover:opacity-100 hover:bg-white/[0.08]'}`}
+                                                    ? 'bg-zinc-900 dark:bg-zinc-100 border-zinc-900 dark:border-zinc-100 text-white dark:text-zinc-900 shadow-lg shadow-zinc-500/10'
+                                                    : 'bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-800 text-zinc-400'}`}
                                         >
-                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 
-                                                ${(importSelection as any)[tab.id] ? `bg-${tab.color}-500 text-white` : 'bg-white/10 text-zinc-500'}`}>
-                                                <tab.icon size={24} />
-                                            </div>
-                                            <div className={`text-2xl font-black mb-1 ${(importSelection as any)[tab.id] ? 'text-white' : 'text-zinc-500'}`}>{tab.count || 0}</div>
-                                            <div className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500">{tab.label}</div>
+                                            <tab.icon size={20} className={(importSelection as any)[tab.id] ? 'opacity-100' : 'opacity-40'} />
+                                            <div className="text-lg font-bold leading-none">{tab.count || 0}</div>
+                                            <div className="text-[9px] font-bold uppercase tracking-widest">{tab.label}</div>
                                         </div>
                                     ))}
                                 </div>
                             </div>
 
                             {importPreview.pendencias && importPreview.pendencias.length > 0 && (
-                                <div className="bg-rose-500/5 border border-rose-500/20 p-8 rounded-[24px] space-y-4">
-                                    <h4 className="text-[10px] font-black uppercase text-rose-500 tracking-[0.3em] flex items-center gap-2">
-                                        <ShieldAlert size={16} /> Atenção aos seguintes pontos
+                                <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20 p-5 rounded-xl">
+                                    <h4 className="text-[10px] font-bold uppercase text-amber-600 dark:text-amber-400 tracking-widest flex items-center gap-2 mb-3">
+                                        <ShieldAlert size={14} /> Observações Importantes
                                     </h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <ul className="space-y-2">
                                         {importPreview.pendencias.map((p: string, idx: number) => (
-                                            <div key={idx} className="flex gap-3 items-start">
-                                                <div className="w-5 h-5 rounded-full bg-rose-500/20 flex items-center justify-center shrink-0 mt-0.5"><div className="w-1.5 h-1.5 rounded-full bg-rose-500" /></div>
-                                                <p className="text-[11px] font-bold text-rose-400/90 leading-relaxed uppercase tracking-tight">{p}</p>
-                                            </div>
+                                            <li key={idx} className="text-[10px] font-semibold text-amber-600/80 dark:text-amber-400/80 uppercase tracking-tight flex items-center gap-2">
+                                                <div className="w-1 h-1 rounded-full bg-current shrink-0" />
+                                                {p}
+                                            </li>
                                         ))}
-                                    </div>
+                                    </ul>
                                 </div>
                             )}
                         </div>
 
-                        <div className="p-8 border-t border-white/5 bg-[#111114] flex flex-col md:flex-row gap-6 items-center justify-between">
-                            <div className="flex flex-col gap-2 w-full md:w-auto">
-                                <span className="text-[9px] font-black uppercase text-zinc-500 tracking-widest pl-1">Destino da Importação</span>
+                        <div className="p-6 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/10 flex flex-col sm:flex-row gap-4 items-center justify-between">
+                            <div className="flex flex-col gap-1.5 w-full sm:w-auto">
+                                <span className="text-[9px] font-bold uppercase text-zinc-400 tracking-widest ml-1">Vincular Cliente</span>
                                 <InputSelect
                                     value={selectedClientId}
                                     onChange={(val) => setSelectedClientId(val)}
-                                    options={clients.map((c: any) => ({ value: c.id, label: c.Nome }))}
-                                    className="!bg-zinc-900 !border-white/10 !text-white !text-[11px] !font-black !uppercase !rounded-xl !px-5 !h-12 !min-w-[260px]"
-                                    placeholder="Vincular a um Cliente"
+                                    options={clients.map((c: any) => ({ value: c.id, label: c.Nome.toUpperCase() }))}
+                                    className="!h-10 !text-[10px] !font-bold !min-w-[240px]"
                                 />
                             </div>
-                            <div className="flex gap-4 w-full md:w-auto">
-                                <Button variant="ghost" onClick={() => setIsImportModalOpen(false)} className="!h-12 !px-8 !text-[10px] !font-black !uppercase !tracking-[0.2em]">Cancelar</Button>
+                            <div className="flex gap-3 w-full sm:w-auto">
+                                <Button variant="secondary" onClick={() => setIsImportModalOpen(false)} className="flex-1 sm:flex-none !h-10 !px-6 !text-[10px] !font-bold !uppercase">Cancelar</Button>
                                 <Button
                                     onClick={() => handleConfirmImport(selectedClientId)}
                                     disabled={!selectedClientId}
-                                    className="!h-12 !px-10 !bg-emerald-600 !text-white !rounded-xl !text-[10px] !font-black !uppercase !tracking-[0.2em] shadow-xl shadow-emerald-500/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-30 disabled:hover:scale-100"
+                                    className="flex-1 sm:flex-none !h-10 !px-8 !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 !rounded-lg !text-[10px] !font-bold !uppercase shadow-lg shadow-zinc-500/10 enabled:hover:scale-[1.02]"
                                 >
                                     Confirmar Importação
                                 </Button>

@@ -2,8 +2,10 @@ import React, { useState, useRef } from 'react';
 import {
     CheckCircle2, XCircle, MessageSquare, Smartphone,
     LayoutGrid, Clock, Check, X, Image as ImageIcon,
-    Send, Filter, Copy, MoreHorizontal, Pencil, UploadCloud
+    Send, Filter, Copy, MoreHorizontal, Pencil, UploadCloud,
+    Globe, Instagram, Linkedin, Video
 } from 'lucide-react';
+import { Badge, Button, Card } from '../Components';
 
 // ==========================================
 // FUNÇÕES AUXILIARES DE SOM
@@ -164,7 +166,7 @@ export default function AprovacaoTab() {
     };
 
     return (
-        <div className="flex h-[calc(100vh-80px)] overflow-hidden bg-[#F8FAFC] dark:bg-[#0a0a0c] font-sans transition-colors">
+        <div className="flex h-[calc(100vh-80px)] overflow-hidden bg-zinc-50 dark:bg-[#09090b] font-sans transition-colors">
 
             {/* Input de Ficheiro Escondido para Upload de Imagem */}
             <input
@@ -178,21 +180,21 @@ export default function AprovacaoTab() {
             {/* =========================================
           COLUNA ESQUERDA: LISTA DE CONTEÚDOS
           ========================================= */}
-            <div className="w-full md:w-[380px] flex-shrink-0 bg-white dark:bg-[#111114] border-r border-gray-200 dark:border-zinc-800 flex flex-col z-10 transition-colors">
+            <div className="w-full md:w-[360px] flex-shrink-0 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex flex-col z-10 transition-colors">
 
                 {/* Header da Lista */}
-                <div className="p-6 pb-4 border-b border-gray-100 dark:border-zinc-800/80 shrink-0">
+                <div className="p-6 pb-4 shrink-0">
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
-                            <CheckCircle2 className="text-indigo-500" /> Aprovação
+                        <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight flex items-center gap-2">
+                             Aprovação
                         </h2>
-                        <button className="p-2 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 rounded-lg hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors ios-btn">
+                        <button className="p-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-lg hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
                             <Filter size={16} />
                         </button>
                     </div>
 
                     {/* Filtros de Status (Tabs) */}
-                    <div className="flex bg-gray-100 dark:bg-zinc-900/80 p-1 rounded-xl mb-2">
+                    <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl mb-2">
                         {[
                             { id: 'pendente', label: 'Pendentes' },
                             { id: 'alteracao', label: 'Ajustes' },
@@ -201,9 +203,9 @@ export default function AprovacaoTab() {
                             <button
                                 key={tab.id}
                                 onClick={() => { tryPlaySound('tap'); setActiveFilter(tab.id); }}
-                                className={`flex-1 py-2 text-[11px] font-bold uppercase tracking-wider rounded-lg transition-all ios-btn ${activeFilter === tab.id
-                                        ? 'bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm'
-                                        : 'text-gray-500 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-300'
+                                className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${activeFilter === tab.id
+                                        ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                                        : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-400'
                                     }`}
                             >
                                 {tab.label}
@@ -213,46 +215,41 @@ export default function AprovacaoTab() {
                 </div>
 
                 {/* Lista de Posts */}
-                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-3">
+                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-2">
                     {filteredPosts.length === 0 ? (
-                        <div className="text-center py-10 opacity-50">
-                            <CheckCircle2 size={40} className="mx-auto mb-3 text-gray-400" />
-                            <p className="text-sm font-bold text-gray-500">Tudo limpo por aqui!</p>
+                        <div className="text-center py-20 opacity-50">
+                            <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center text-zinc-400 mx-auto mb-4">
+                                <Check size={24} />
+                            </div>
+                            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Tudo limpo por aqui!</p>
                         </div>
                     ) : (
                         filteredPosts.map(post => (
                             <div
                                 key={post.id}
                                 onClick={() => selectPost(post.id)}
-                                className={`p-4 rounded-2xl cursor-pointer transition-all border ios-btn flex gap-4 ${selectedPostId === post.id && !isEditing
-                                        ? 'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/30'
-                                        : 'bg-white dark:bg-[#151518] border-gray-200 dark:border-zinc-800 hover:border-indigo-300 dark:hover:border-zinc-700'
+                                className={`p-3 rounded-xl cursor-pointer transition-all border group flex gap-3 ${selectedPostId === post.id && !isEditing
+                                        ? 'bg-zinc-900 dark:bg-zinc-100 !border-zinc-900 dark:!border-zinc-100'
+                                        : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 shadow-sm'
                                     }`}
                             >
                                 {/* Miniatura da Imagem */}
-                                <div className="w-16 h-16 rounded-xl bg-gray-200 dark:bg-zinc-800 shrink-0 overflow-hidden relative">
+                                <div className="w-14 h-14 rounded-lg bg-zinc-100 dark:bg-zinc-800 shrink-0 overflow-hidden relative border border-zinc-200 dark:border-zinc-700">
                                     <img src={post.image} alt="Thumb" className="w-full h-full object-cover" />
-                                    {post.format === 'Reels' && (
-                                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                                            <div className="w-6 h-6 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center"><div className="w-0 h-0 border-t-4 border-t-transparent border-l-6 border-l-white border-b-4 border-b-transparent ml-0.5"></div></div>
-                                        </div>
-                                    )}
                                 </div>
 
-                                <div className="flex-1 overflow-hidden">
-                                    <div className="flex justify-between items-start mb-1">
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 dark:text-zinc-500 truncate">
+                                <div className="flex-1 overflow-hidden flex flex-col justify-center">
+                                    <div className="flex justify-between items-start mb-0.5">
+                                        <span className={`text-[9px] font-bold uppercase tracking-widest truncate ${selectedPostId === post.id && !isEditing ? 'text-zinc-400 dark:text-zinc-500' : 'text-zinc-500'}`}>
                                             {post.client}
                                         </span>
-                                        {post.status === 'alteracao' && <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0 mt-0.5"></span>}
-                                        {post.status === 'aprovado' && <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 mt-0.5"></span>}
                                     </div>
-                                    <h4 className={`text-sm font-bold truncate mb-1.5 ${selectedPostId === post.id && !isEditing ? 'text-indigo-900 dark:text-indigo-400' : 'text-gray-900 dark:text-zinc-200'}`}>
+                                    <h4 className={`text-[11px] font-bold truncate mb-1 uppercase tracking-tight ${selectedPostId === post.id && !isEditing ? 'text-white dark:text-zinc-900' : 'text-zinc-900 dark:text-zinc-100'}`}>
                                         {post.title}
                                     </h4>
-                                    <div className="flex items-center gap-2 text-[10px] font-medium text-gray-500 dark:text-zinc-400">
+                                    <div className={`flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest ${selectedPostId === post.id && !isEditing ? 'text-zinc-400 dark:text-zinc-500' : 'text-zinc-400'}`}>
                                         <span className="flex items-center gap-1"><Clock size={10} /> {post.date}</span>
-                                        <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-zinc-700"></span>
+                                        <span className="w-1 h-1 rounded-full bg-current opacity-30"></span>
                                         <span>{post.network}</span>
                                     </div>
                                 </div>
@@ -265,35 +262,41 @@ export default function AprovacaoTab() {
             {/* =========================================
           COLUNA DIREITA: VISUALIZADOR E EDITOR DE POST
           ========================================= */}
-            <div className="flex-1 flex flex-col relative bg-[#F8FAFC] dark:bg-[#0a0a0c]">
+            {/* =========================================
+          COLUNA DIREITA: VISUALIZADOR E EDITOR DE POST
+          ========================================= */}
+            <div className="flex-1 flex flex-col relative bg-zinc-50 dark:bg-[#09090b]">
                 {selectedPost ? (
                     <>
                         {/* Header de Ação Superior */}
-                        <div className="px-6 sm:px-10 py-4 bg-white/80 dark:bg-[#111114]/80 backdrop-blur-md border-b border-gray-200 dark:border-zinc-800 flex justify-between items-center z-10 shrink-0">
-                            <div>
-                                <h3 className="text-sm font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                                    <LayoutGrid size={16} className="text-indigo-500" /> Detalhes do Post
+                        <div className="px-6 sm:px-10 py-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center z-10 shrink-0">
+                            <div className="flex items-center gap-3">
+                                <Badge color={selectedPost.status === 'aprovado' ? 'emerald' : selectedPost.status === 'alteracao' ? 'amber' : 'slate'} className="uppercase text-[9px] tracking-widest px-3">
+                                    {selectedPost.status}
+                                </Badge>
+                                <h3 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
+                                    Visualização de Conteúdo
                                 </h3>
                             </div>
 
                             <div className="flex gap-2">
                                 {!isEditing && (
-                                    <button
+                                    <Button
+                                        variant="secondary"
                                         onClick={handleCopyClientLink}
-                                        className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 text-xs font-bold rounded-xl transition-colors ios-btn"
-                                        title="Copiar link para enviar ao cliente"
+                                        className="text-[10px] uppercase tracking-widest font-bold px-4"
                                     >
-                                        <Copy size={14} /> Link do Cliente
-                                    </button>
+                                        <Copy size={13} strokeWidth={2.5} /> Link do Cliente
+                                    </Button>
                                 )}
-                                {/* Botão Alterado de Link para Editar */}
                                 {!isEditing && (
-                                    <button
+                                    <Button
+                                        variant="primary"
                                         onClick={startEditing}
-                                        className="flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-xl transition-colors ios-btn"
+                                        className="text-[10px] uppercase tracking-widest font-bold px-4 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 border-none hover:bg-zinc-800 dark:hover:bg-zinc-200"
                                     >
-                                        <Pencil size={14} /> Editar Post
-                                    </button>
+                                        <Pencil size={13} strokeWidth={2.5} /> Editar Post
+                                    </Button>
                                 )}
                             </div>
                         </div>
@@ -304,39 +307,36 @@ export default function AprovacaoTab() {
                             <div className="w-full max-w-4xl flex flex-col lg:flex-row gap-8 items-start">
 
                                 {/* 1. MOCKUP DO POST (Lado Esquerdo) */}
-                                <div className={`w-full lg:w-[400px] shrink-0 bg-white dark:bg-[#151518] rounded-[2rem] shadow-xl border overflow-hidden flex flex-col transition-all ${isEditing ? 'border-indigo-400 dark:border-indigo-500 ring-4 ring-indigo-500/10' : 'border-gray-200 dark:border-zinc-800'}`}>
+                                <div className={`w-full lg:w-[400px] shrink-0 bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl border overflow-hidden flex flex-col transition-all ${isEditing ? 'border-zinc-900 dark:border-zinc-100 ring-4 ring-zinc-900/10 dark:ring-zinc-100/10' : 'border-zinc-200 dark:border-zinc-800'}`}>
 
                                     {/* Header do Mockup (Fake Instagram) */}
-                                    <div className="p-4 border-b border-gray-100 dark:border-zinc-800/80 flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-yellow-400 via-rose-500 to-purple-600 p-[2px] shrink-0">
-                                            <div className="w-full h-full bg-white dark:bg-zinc-900 rounded-full flex items-center justify-center text-[10px] font-black text-gray-800 dark:text-zinc-200">
-                                                {(isEditing ? editingData.client : selectedPost.client).substring(0, 2).toUpperCase()}
-                                            </div>
+                                    <div className="p-4 border-b border-zinc-100 dark:border-zinc-800/80 flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-[10px] font-black text-zinc-800 dark:text-zinc-200 shrink-0">
+                                            {(isEditing ? editingData.client : selectedPost.client).substring(0, 2).toUpperCase()}
                                         </div>
 
-                                        {/* Seleção de Cliente no Modo Edição */}
                                         <div className="flex flex-col flex-1 overflow-hidden">
                                             {isEditing ? (
                                                 <select
                                                     value={editingData.client}
                                                     onChange={(e) => setEditingData({ ...editingData, client: e.target.value })}
-                                                    className="w-full bg-transparent text-xs font-bold text-gray-900 dark:text-white outline-none cursor-pointer border-b border-gray-200 dark:border-zinc-700 pb-0.5"
+                                                    className="w-full bg-transparent text-xs font-bold text-zinc-900 dark:text-zinc-100 outline-none cursor-pointer border-b border-zinc-200 dark:border-zinc-700 pb-0.5"
                                                 >
                                                     {CLIENTES_CADASTRADOS.map(c => (
-                                                        <option key={c} value={c} className="text-gray-900 dark:text-white bg-white dark:bg-zinc-900">{c}</option>
+                                                        <option key={c} value={c} className="text-zinc-900 dark:text-zinc-100 bg-white dark:bg-zinc-900">{c}</option>
                                                     ))}
                                                 </select>
                                             ) : (
-                                                <span className="text-xs font-bold text-gray-900 dark:text-white truncate">{selectedPost.client}</span>
+                                                <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">{selectedPost.client}</span>
                                             )}
-                                            <span className="text-[10px] text-gray-500">Patrocinado</span>
+                                            <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold opacity-60">Sponsored</span>
                                         </div>
-                                        <MoreHorizontal size={16} className="text-gray-400 shrink-0 ml-auto" />
+                                        <MoreHorizontal size={16} className="text-zinc-400 shrink-0 ml-auto" />
                                     </div>
 
                                     {/* Imagem/Vídeo Editável */}
                                     <div
-                                        className="w-full aspect-square bg-gray-100 dark:bg-zinc-900 relative group"
+                                        className="w-full aspect-square bg-zinc-100 dark:bg-zinc-950 relative group border-b border-zinc-100 dark:border-zinc-800"
                                         onClick={() => isEditing ? fileInputRef.current?.click() : null}
                                     >
                                         <img
@@ -345,43 +345,41 @@ export default function AprovacaoTab() {
                                             className="w-full h-full object-cover"
                                         />
 
-                                        {/* Overlay de Edição da Imagem */}
                                         {isEditing && (
-                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer backdrop-blur-[2px]">
+                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer backdrop-blur-[2px]">
                                                 <div className="bg-white/20 p-3 rounded-full mb-2">
                                                     <UploadCloud size={24} className="text-white" />
                                                 </div>
-                                                <span className="text-white text-xs font-bold uppercase tracking-widest">Alterar Imagem</span>
+                                                <span className="text-white text-[10px] font-bold uppercase tracking-widest">Alterar Mídia</span>
                                             </div>
                                         )}
 
                                         {(!isEditing && selectedPost.format === 'Reels') && (
-                                            <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1">
-                                                <div className="w-0 h-0 border-t-4 border-t-transparent border-l-6 border-l-white border-b-4 border-b-transparent"></div> Reels
+                                            <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-1 rounded flex items-center gap-1 uppercase tracking-widest">
+                                                <Video size={10} /> Reels
                                             </div>
                                         )}
                                     </div>
 
                                     {/* Legenda (Copy) Editável */}
-                                    <div className="p-5 flex-1 bg-white dark:bg-[#151518] flex flex-col">
-                                        <div className="flex items-center gap-4 mb-3 text-gray-700 dark:text-zinc-300">
-                                            <svg aria-label="Gostar" className="x1lliihq x1n2onr6 xyb1xck" color="currentColor" fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24"><path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.514 1.118 1.514s.278-.339 1.118-1.514a4.21 4.21 0 0 1 3.675-1.941z" stroke="currentColor" strokeLinejoin="round" strokeWidth="2"></path></svg>
-                                            <MessageSquare size={24} />
-                                            <Send size={24} />
+                                    <div className="p-5 flex-1 bg-white dark:bg-zinc-900 flex flex-col">
+                                        <div className="flex items-center gap-4 mb-4 text-zinc-900 dark:text-zinc-100">
+                                            <Instagram size={20} className="opacity-50" />
+                                            <span className="text-[10px] font-bold uppercase tracking-widest opacity-50">{selectedPost.network} Preview</span>
                                         </div>
 
                                         {isEditing ? (
                                             <textarea
                                                 value={editingData.copy}
                                                 onChange={(e) => setEditingData({ ...editingData, copy: e.target.value })}
-                                                className="w-full flex-1 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-3 text-sm text-gray-800 dark:text-zinc-200 resize-none outline-none focus:ring-2 focus:ring-indigo-500/50 custom-scrollbar min-h-[150px]"
+                                                className="w-full flex-1 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-4 text-sm text-zinc-800 dark:text-zinc-200 resize-none outline-none focus:ring-2 focus:ring-zinc-900/10 dark:focus:ring-white/10 custom-scrollbar min-h-[150px]"
                                                 placeholder="Escreva a legenda aqui..."
                                             />
                                         ) : (
-                                            <p className="text-sm text-gray-800 dark:text-zinc-200 whitespace-pre-wrap leading-relaxed">
+                                            <div className="text-sm text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap leading-relaxed">
                                                 <span className="font-bold mr-2">{selectedPost.client}</span>
                                                 {selectedPost.copy}
-                                            </p>
+                                            </div>
                                         )}
                                     </div>
                                 </div>
@@ -390,98 +388,111 @@ export default function AprovacaoTab() {
                                 <div className="flex-1 w-full max-w-[400px] flex flex-col gap-6">
 
                                     {/* Painel de Edição vs Aprovação */}
-                                    <div className="bg-white dark:bg-[#111114] p-6 rounded-2xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+                                    <Card className="p-6 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-visible">
                                         {isEditing ? (
-                                            <>
-                                                <h4 className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-4">Modo de Edição Ativo</h4>
-                                                <div className="flex flex-col gap-3">
-                                                    <button
-                                                        onClick={saveEditing}
-                                                        className="w-full flex items-center justify-center gap-2 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-black uppercase tracking-wider shadow-lg shadow-indigo-500/20 transition-all ios-btn"
-                                                    >
-                                                        <Check size={18} strokeWidth={3} /> Guardar Alterações
-                                                    </button>
-                                                    <button
-                                                        onClick={cancelEditing}
-                                                        className="w-full flex items-center justify-center gap-2 py-3 bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-300 rounded-xl text-sm font-bold transition-all ios-btn"
-                                                    >
-                                                        Cancelar
-                                                    </button>
+                                            <div className="flex flex-col gap-4">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <div className="w-2 h-2 rounded-full bg-zinc-900 dark:bg-zinc-100 animate-pulse"></div>
+                                                    <h4 className="text-[10px] font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-widest">Modo Edição</h4>
                                                 </div>
-                                            </>
+                                                <Button
+                                                    onClick={saveEditing}
+                                                    className="w-full py-6 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-bold uppercase tracking-widest shadow-xl shadow-zinc-900/10"
+                                                >
+                                                    <Check size={16} strokeWidth={3} /> Salvar Alterações
+                                                </Button>
+                                                <Button
+                                                    variant="secondary"
+                                                    onClick={cancelEditing}
+                                                    className="w-full text-xs font-bold uppercase tracking-widest"
+                                                >
+                                                    Cancelar
+                                                </Button>
+                                            </div>
                                         ) : (
-                                            <>
-                                                <h4 className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-4">Ação de Equipe / Cliente</h4>
+                                            <div className="flex flex-col gap-4">
+                                                <h4 className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2">Ações do Review</h4>
 
                                                 {selectedPost.status === 'aprovado' ? (
-                                                    <div className="flex flex-col items-center justify-center py-6 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl border border-emerald-100 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
-                                                        <CheckCircle2 size={48} className="mb-3" />
-                                                        <h3 className="text-lg font-black uppercase tracking-wider">Conteúdo Aprovado</h3>
-                                                        <p className="text-xs font-medium mt-1 opacity-80">Pronto para agendamento.</p>
+                                                    <div className="flex flex-col items-center justify-center py-8 bg-emerald-500/5 rounded-2xl border border-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                                                        <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mb-4">
+                                                            <Check size={24} />
+                                                        </div>
+                                                        <h3 className="text-xs font-bold uppercase tracking-widest">Conteúdo Aprovado</h3>
+                                                        <p className="text-[9px] font-bold uppercase tracking-tight mt-2 opacity-60 text-zinc-500">Pronto para a rede social</p>
                                                     </div>
                                                 ) : (
                                                     <div className="flex flex-col gap-3">
-                                                        <button
+                                                        <Button
                                                             onClick={handleApprove}
-                                                            className="w-full flex items-center justify-center gap-2 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-black uppercase tracking-wider shadow-lg shadow-emerald-500/20 transition-all ios-btn"
+                                                            variant="primary"
+                                                            className="w-full py-6 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 border-none text-xs font-bold uppercase tracking-widest shadow-xl shadow-zinc-900/10"
                                                         >
-                                                            <Check size={18} strokeWidth={3} /> Aprovar Conteúdo
-                                                        </button>
+                                                            <Check size={16} strokeWidth={3} /> Aprovar Agora
+                                                        </Button>
 
-                                                        <button
+                                                        <Button
+                                                            variant="secondary"
                                                             onClick={() => { tryPlaySound('tap'); setIsRejecting(!isRejecting); }}
-                                                            className={`w-full flex items-center justify-center gap-2 py-4 rounded-xl text-sm font-black uppercase tracking-wider transition-all ios-btn border-2 ${isRejecting ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-500 text-amber-600 dark:text-amber-500' : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800'}`}
+                                                            className={`w-full py-4 text-xs font-bold uppercase tracking-widest transition-all ${isRejecting ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-900 dark:border-zinc-100' : ''}`}
                                                         >
-                                                            <X size={18} strokeWidth={3} /> Solicitar Alteração
-                                                        </button>
+                                                            <XCircle size={14} /> Solicitar Ajuste
+                                                        </Button>
 
-                                                        {/* Caixa de Feedback (Aparece se clicar em Solicitar Alteração) */}
+                                                        {/* Caixa de Feedback */}
                                                         {isRejecting && (
-                                                            <div className="mt-2 animate-in slide-in-from-top-2">
+                                                            <div className="mt-2 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
                                                                 <textarea
                                                                     autoFocus
                                                                     value={feedbackText}
                                                                     onChange={(e) => setFeedbackText(e.target.value)}
-                                                                    placeholder="O que precisa ser alterado? (ex: Mudar a cor do fundo, ajustar a frase...)"
-                                                                    className="w-full bg-amber-50/50 dark:bg-amber-500/5 border border-amber-200 dark:border-amber-500/30 rounded-xl p-4 text-sm font-medium text-gray-800 dark:text-zinc-200 outline-none focus:ring-2 focus:ring-amber-500/50 min-h-[100px] resize-none mb-3 placeholder:text-amber-700/40 dark:placeholder:text-amber-500/40"
+                                                                    placeholder="Quais ajustes são necessários?"
+                                                                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-700 rounded-xl p-4 text-sm font-medium text-zinc-800 dark:text-zinc-200 outline-none focus:ring-2 focus:ring-zinc-900/10 dark:focus:ring-white/10 min-h-[100px] resize-none"
                                                                 />
                                                                 <div className="flex gap-2">
-                                                                    <button onClick={() => setIsRejecting(false)} className="px-4 py-2 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 text-xs font-bold rounded-lg hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors ios-btn">Cancelar</button>
-                                                                    <button onClick={handleSendFeedback} disabled={!feedbackText.trim()} className="flex-1 px-4 py-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white text-xs font-bold rounded-lg shadow-md shadow-amber-500/20 transition-all ios-btn">Enviar Feedback</button>
+                                                                    <Button variant="ghost" onClick={() => setIsRejecting(false)} className="text-[10px] uppercase font-bold tracking-widest">Cancelar</Button>
+                                                                    <Button
+                                                                        variant="primary"
+                                                                        onClick={handleSendFeedback}
+                                                                        disabled={!feedbackText.trim()}
+                                                                        className="flex-1 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-[10px] uppercase font-bold tracking-widest"
+                                                                    >
+                                                                        Enviar Feedback
+                                                                    </Button>
                                                                 </div>
                                                             </div>
                                                         )}
                                                     </div>
                                                 )}
-                                            </>
+                                            </div>
                                         )}
-                                    </div>
+                                    </Card>
 
                                     {/* Histórico de Alterações / Comentários */}
                                     {!isEditing && (
-                                        <div className="bg-white dark:bg-[#111114] p-6 rounded-2xl border border-gray-200 dark:border-zinc-800 shadow-sm flex-1">
-                                            <h4 className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                                <MessageSquare size={14} /> Histórico de Ajustes
+                                        <Card className="p-6 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex-1">
+                                            <h4 className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                                <MessageSquare size={14} className="opacity-50" /> Histórico de Ajustes
                                             </h4>
 
                                             {selectedPost.feedback.length > 0 ? (
                                                 <div className="space-y-4">
                                                     {selectedPost.feedback.map((fb, idx) => (
-                                                        <div key={idx} className="p-4 bg-gray-50 dark:bg-zinc-900/50 border border-gray-100 dark:border-zinc-800 rounded-xl">
+                                                        <div key={idx} className="p-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl">
                                                             <div className="flex justify-between items-center mb-2">
-                                                                <span className="text-xs font-bold text-gray-900 dark:text-zinc-200">{fb.author}</span>
-                                                                <span className="text-[10px] font-medium text-gray-400">{fb.time}</span>
+                                                                <span className="text-[10px] font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-widest">{fb.author}</span>
+                                                                <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">{fb.time}</span>
                                                             </div>
-                                                            <p className="text-sm text-gray-700 dark:text-zinc-400 leading-relaxed">{fb.text}</p>
+                                                            <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">{fb.text}</p>
                                                         </div>
                                                     ))}
                                                 </div>
                                             ) : (
-                                                <div className="text-center py-10 opacity-50">
-                                                    <p className="text-sm font-medium text-gray-500">Nenhuma solicitação registrada.</p>
+                                                <div className="text-center py-10 opacity-30">
+                                                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Sem ajustes registrados</p>
                                                 </div>
                                             )}
-                                        </div>
+                                        </Card>
                                     )}
 
                                 </div>
@@ -489,14 +500,15 @@ export default function AprovacaoTab() {
                         </div>
                     </>
                 ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center text-gray-400 dark:text-zinc-600">
-                        <LayoutGrid size={64} className="mb-4 opacity-50" />
-                        <h2 className="text-xl font-black">Nenhum post selecionado</h2>
-                        <p className="text-sm font-medium mt-1">Selecione um conteúdo na lista lateral para visualizar ou aprovar.</p>
+                    <div className="flex-1 flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-600">
+                        <div className="w-20 h-20 bg-zinc-100 dark:bg-zinc-800 rounded-3xl flex items-center justify-center mb-6 border border-zinc-200 dark:border-zinc-700">
+                            <LayoutGrid size={32} className="opacity-20" />
+                        </div>
+                        <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100">Nenhum post selecionado</h2>
+                        <p className="text-xs font-medium mt-2 opacity-50 uppercase tracking-tighter">Escolha um item na lista ao lado.</p>
                     </div>
                 )}
             </div>
-
         </div>
     );
 }

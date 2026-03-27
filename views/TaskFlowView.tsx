@@ -12,7 +12,7 @@ import {
     Columns, CalendarDays, ChevronLeft, ChevronRight, CheckSquare, ArrowUp, ArrowDown
 } from 'lucide-react';
 import { getCalendarDays, MONTH_NAMES_BR, WEEKDAYS_BR_SHORT } from '../utils/calendarUtils';
-import { Card, Button, DeletionBar } from '../Components';
+import { Card, Button, DeletionBar, Badge } from '../Components';
 import { generateId } from '../utils/id';
 import {
     VISOES_TAREFA_PADRAO as DEFAULT_TASK_VIEWS,
@@ -64,7 +64,6 @@ function SortableTaskCard({ Tarefa, clients, getPriorityInfo, onSelectTask, sele
     };
 
     const Cliente = clients.find((c: any) => c.id === Tarefa.Cliente_ID);
-    const clientColorCss = Cliente?.['Cor (HEX)'] || '#3B82F6';
     const prio = getPriorityInfo(Tarefa.Prioridade);
     const isOverdue = Tarefa.Data_Entrega && new Date(Tarefa.Data_Entrega) < new Date(new Date().setHours(0,0,0,0));
 
@@ -72,26 +71,26 @@ function SortableTaskCard({ Tarefa, clients, getPriorityInfo, onSelectTask, sele
         <div
             ref={setNodeRef} style={style} {...attributes} {...listeners}
             onClick={() => onSelectTask(Tarefa.id)}
-            className={`bg-app-surface border border-app-border p-4 rounded-2xl shadow-sm hover:shadow-xl transition-all group flex flex-col gap-3 relative overflow-hidden cursor-grab active:cursor-grabbing ${selection.includes(Tarefa.id) ? 'ring-2 ring-blue-500/50 bg-blue-500/5' : ''} ${isDragging ? 'ring-2 ring-blue-500 z-50 shadow-2xl scale-105' : ''}`}
+            className={`bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl shadow-sm hover:shadow-xl transition-all group flex flex-col gap-3 relative overflow-hidden cursor-grab active:cursor-grabbing ${selection.includes(Tarefa.id) ? 'ring-2 ring-zinc-900 dark:ring-white bg-zinc-50 dark:bg-zinc-800' : ''} ${isDragging ? 'ring-2 ring-zinc-900 z-50 shadow-2xl scale-[1.02]' : ''}`}
         >
-            <div className="absolute top-0 left-0 w-[3px] h-full opacity-60" style={{ backgroundColor: statusCor }} />
+            <div className="absolute top-0 left-0 w-1 h-full opacity-40" style={{ backgroundColor: statusCor }} />
+            
             <div className="flex justify-between items-start pointer-events-none gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md truncate max-w-[120px]" style={{ color: clientColorCss, backgroundColor: `${clientColorCss}15` }}>
-                    {Cliente?.Nome || 'Agência'}
-                </span>
-                <div className={`px-2 py-0.5 rounded flex items-center gap-1.5 ${prio.color}`} title={Tarefa.Prioridade}>
-                    <i className={`fa-solid ${prio.icon} text-[8px]`}></i>
-                </div>
+                <Badge color="slate" className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 opacity-60">
+                    {Cliente?.Nome || 'AGÊNCIA'}
+                </Badge>
+                <div className={`w-2 h-2 rounded-full ${prio.color.split(' ')[0].replace('text-', 'bg-')} shadow-[0_0_8px_rgba(0,0,0,0.1)]`} title={Tarefa.Prioridade} />
             </div>
             
-            <h4 className="text-[13px] font-bold text-app-text-strong leading-snug group-hover:text-blue-500 transition-colors uppercase tracking-tight pointer-events-none mt-1 truncate" title={Tarefa.Título}>{Tarefa.Título}</h4>
+            <h4 className="text-[11px] font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight leading-tight group-hover:text-blue-500 transition-colors pointer-events-none mt-1 line-clamp-2" title={Tarefa.Título}>
+                {Tarefa.Título}
+            </h4>
             
-            <div className="flex items-center justify-between mt-2 pt-3 border-t border-app-border/50 pointer-events-none">
-                <div className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-tight ${isOverdue ? 'text-rose-500' : 'text-app-text-muted'}`}>
-                    {Tarefa.Data_Entrega ? <span className="flex items-center gap-1.5"><Clock size={12} /> {Tarefa.Data_Entrega}</span> : <span className="flex items-center gap-1.5 opacity-40"><Clock size={12} /> S/ Data</span>}
-                    {Tarefa.Checklist && Tarefa.Checklist.length > 0 && <span className="flex items-center gap-1 text-app-text-muted opacity-80 ml-1"><CheckCircle2 size={10} /> {Tarefa.Checklist.filter((i:any)=>i.concluido).length}/{Tarefa.Checklist.length}</span>}
+            <div className="flex items-center justify-between mt-1 pt-3 border-t border-zinc-100 dark:border-zinc-800 pointer-events-none">
+                <div className={`flex items-center gap-2 text-[9px] font-black uppercase tracking-widest ${isOverdue ? 'text-rose-600' : 'text-zinc-400'}`}>
+                    {Tarefa.Data_Entrega ? <span className="flex items-center gap-1.5"><Clock size={10} /> {Tarefa.Data_Entrega}</span> : <span className="flex items-center gap-1.5 opacity-30"><Clock size={10} /> S/ DATA</span>}
                 </div>
-                <div className="w-6 h-6 rounded-full bg-app-surface-2 text-app-text-strong flex items-center justify-center text-[10px] font-black border border-app-border group-hover:ring-2 group-hover:ring-app-border-strong transition-all shrink-0" title={Tarefa.Responsável}>
+                <div className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center text-[9px] font-black border border-zinc-200 dark:border-zinc-800 transition-all shrink-0">
                     {Tarefa.Responsável?.slice(0, 1).toUpperCase() || '?'}
                 </div>
             </div>
@@ -104,13 +103,13 @@ function TaskCardOverlay({ Tarefa, clients, getPriorityInfo, statusCor }: any) {
     const clientColorCss = Cliente?.['Cor (HEX)'] || '#3B82F6';
     const prio = getPriorityInfo(Tarefa.Prioridade);
     return (
-        <div className={`bg-app-surface border border-blue-500 p-4 rounded-2xl shadow-2xl flex flex-col gap-3 relative overflow-hidden rotate-3 cursor-grabbing ring-4 ring-blue-500/20 opacity-95 scale-105 min-w-[300px]`}>
+        <div className={`bg-white dark:bg-zinc-900 border-2 border-blue-500 p-4 rounded-xl shadow-2xl flex flex-col gap-3 relative overflow-hidden rotate-2 cursor-grabbing opacity-95 scale-105 min-w-[300px]`}>
             <div className="absolute top-0 left-0 w-[4px] h-full" style={{ backgroundColor: statusCor }} />
             <div className="flex justify-between items-start gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md truncate max-w-[120px]" style={{ color: clientColorCss, backgroundColor: `${clientColorCss}15` }}>{Cliente?.Nome || 'Agência'}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500 truncate max-w-[140px]">{Cliente?.Nome || 'Agência'}</span>
                 <div className={`px-2 py-0.5 rounded flex items-center gap-1.5 ${prio.color}`}><i className={`fa-solid ${prio.icon} text-[8px]`}></i></div>
             </div>
-            <h4 className="text-[13px] font-bold text-app-text-strong leading-snug uppercase tracking-tight mt-1 truncate">{Tarefa.Título}</h4>
+            <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 leading-snug truncate mt-1">{Tarefa.Título}</h4>
         </div>
     );
 }
@@ -212,31 +211,28 @@ export function TaskFlowView({
     };
 
     return (
-        <div className="flex flex-col h-full pointer-events-auto text-left relative bg-app-bg">
-            {/* TOP BAR SAAS HEADER */}
-            <div className="px-6 py-5 border-b border-app-border flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-app-surface/50 backdrop-blur shrink-0 z-10 w-full">
+        <div className="flex flex-col h-full bg-white dark:bg-zinc-950 overflow-hidden animate-fade">
+            {/* MODERN TOP HEADER */}
+            <div className="shrink-0 flex items-center justify-between flex-wrap gap-4 px-6 py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md sticky top-0 z-10">
                 <div className="flex items-center gap-4">
-                    <h1 className="text-xl font-black text-app-text-strong uppercase tracking-[0.15em] flex items-center gap-3">
-                        <CheckSquare className="text-blue-500" size={24} /> Tarefas
-                    </h1>
-                    <div className="hidden md:flex gap-1.5 bg-app-surface-2 p-1 rounded-xl">
-                        {DEFAULT_TASK_STATUSES.slice(0,3).map(s => (
-                            <div key={s.id} className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[9px] font-bold text-app-text-muted border border-app-border" title={s.rotulo}>
-                                <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.cor }} />
-                                {filteredTasks.filter(t=>t.Status === s.id).length}
-                            </div>
-                        ))}
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900 shadow-lg shadow-zinc-500/10">
+                            <CheckSquare size={20} />
+                        </div>
+                        <div>
+                            <h1 className="text-lg font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100">Tarefas</h1>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-0.5 opacity-60">Operação e Entrega Estratégica</p>
+                        </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 custom-scrollbar-horizontal shrink-0">
-                    {/* View Toggles */}
-                    <div className="flex bg-app-bg border border-app-border rounded-xl p-1 shrink-0">
+                <div className="flex items-center gap-3">
+                    <div className="hidden lg:flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl border border-zinc-200 dark:border-zinc-700">
                         {DEFAULT_TASK_VIEWS.map((v: any) => (
                             <button
                                 key={v.id}
                                 onClick={() => setActiveViewId(v.id)}
-                                className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeViewId === v.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40 border-transparent' : 'text-app-text-muted hover:text-app-text-strong border-transparent'}`}
+                                className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeViewId === v.id ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm shadow-zinc-500/10 active:scale-95' : 'text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}
                             >
                                 {v.tipo === 'List' || (v as any).type === 'List' ? <List size={14} /> : v.tipo === 'Board' || (v as any).type === 'Board' ? <Columns size={14} /> : <CalendarDays size={14} />}
                                 {v.nome || (v as any).name}
@@ -244,31 +240,30 @@ export function TaskFlowView({
                         ))}
                     </div>
 
-                    {/* Search */}
-                    <div className="relative w-40 shrink-0">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-app-text-muted" size={14} />
+                    <div className="relative group">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-zinc-900 dark:group-focus-within:text-white transition-colors" size={14} />
                         <input
                             type="text"
                             value={globalSearch}
                             onChange={e => setGlobalSearch(e.target.value)}
-                            placeholder="Buscar..."
-                            className="w-full h-9 bg-app-surface border border-app-border text-app-text-strong rounded-xl pl-9 text-[11px] font-bold uppercase tracking-widest outline-none focus:border-blue-500/50 transition-all placeholder-app-text-muted/50"
+                            placeholder="BUSCAR TAREFA..."
+                            className="w-48 h-10 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-xl pl-9 text-[10px] font-black uppercase tracking-widest outline-none focus:ring-4 focus:ring-zinc-500/5 transition-all"
                         />
                     </div>
 
                     <DeletionBar count={selection.length} onDelete={() => onDelete(selection, 'TAREFAS')} onArchive={() => onArchive(selection, 'TAREFAS', true)} onClear={onClearSelection} />
                     
-                    <button
+                    <Button
                         onClick={() => onAdd('TAREFAS')}
-                        className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-500/20 whitespace-nowrap shrink-0"
+                        className="!h-10 px-4 !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 !rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-zinc-500/10 active:scale-95 transition-all"
                     >
-                        <Plus size={16} /> Nova Tarefa
-                    </button>
+                        <Plus size={16} className="mr-2" /> Nova Tarefa
+                    </Button>
                 </div>
             </div>
 
             {/* MAIN CONTENT AREA */}
-            <div className="flex-1 overflow-hidden p-6 bg-app-bg/50 rounded-b-[32px]">
+            <div className="flex-1 overflow-hidden p-4 sm:p-6 bg-zinc-50 dark:bg-zinc-950">
 
                 {viewType === 'Board' && (
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
@@ -276,16 +271,18 @@ export function TaskFlowView({
                             {DEFAULT_TASK_STATUSES.map(status => {
                                 const columnTasks = filteredTasks.filter(t => t.Status === status.id);
                                 return (
-                                <div key={status.id} className="w-[320px] flex flex-col max-h-full shrink-0 relative">
+                                <div key={status.id} className="w-[300px] flex flex-col max-h-full shrink-0 relative">
                                     <div className="flex items-center justify-between mb-4 px-1">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: status.cor }} />
-                                            <h3 className="text-[11px] font-black text-app-text-strong uppercase tracking-[0.2em]">{status.rotulo}</h3>
-                                            <span className="text-[10px] font-black text-app-text-muted bg-app-surface-2 px-2 py-0.5 rounded-full">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="w-4 h-4 rounded-md shadow-sm flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
+                                                <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: status.cor }} />
+                                            </div>
+                                            <h3 className="text-[10px] font-black text-zinc-900 dark:text-white uppercase tracking-[0.1em]">{status.rotulo}</h3>
+                                            <Badge color="slate" className="text-[8px] font-black px-1.5 py-0.5 opacity-60">
                                                 {columnTasks.length}
-                                            </span>
+                                            </Badge>
                                         </div>
-                                        <button onClick={() => onAdd('TAREFAS', { Status: status.id })} className="text-app-text-muted hover:text-blue-500 transition-colors"><Plus size={16} /></button>
+                                        <button onClick={() => onAdd('TAREFAS', { Status: status.id })} className="p-1.5 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all"><Plus size={14} /></button>
                                     </div>
 
                                     <DroppableColumn id={status.id}>
@@ -304,7 +301,7 @@ export function TaskFlowView({
                                         </SortableContext>
                                         <button
                                             onClick={() => onAdd('TAREFAS', { Status: status.id })}
-                                            className="w-full mt-2 py-2.5 flex items-center justify-center gap-2 text-[10px] font-black text-app-text-muted hover:text-app-text-strong hover:bg-app-surface-2 rounded-xl border border-dashed border-app-border hover:border-app-border-strong transition-all uppercase tracking-widest"
+                                            className="w-full mt-2 py-3 flex items-center justify-center gap-2 text-xs font-bold text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:hover:bg-zinc-900 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all uppercase tracking-widest shadow-sm hover:shadow-md"
                                         >
                                             <Plus size={14} /> Adicionar
                                         </button>
@@ -326,14 +323,14 @@ export function TaskFlowView({
                 )}
 
                 {viewType === 'List' && (
-                    <div className="h-full overflow-hidden flex flex-col bg-app-surface border border-app-border rounded-2xl shadow-sm relative">
+                    <div className="h-full overflow-hidden flex flex-col bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm relative">
                         {/* Table Header Wrapper to keep it fixed */}
-                        <div className="overflow-hidden border-b border-app-border bg-app-surface-2/50 backdrop-blur shrink-0 pr-[8px]">
+                        <div className="overflow-hidden border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/50 backdrop-blur shrink-0 pr-[8px]">
                             <table className="w-full text-left border-collapse table-fixed">
                                 <thead>
                                     <tr>
                                         <th className="w-12 p-3 text-center">
-                                            <input type="checkbox" className="w-3 h-3 text-blue-500 rounded focus:ring-0 bg-transparent border-app-border" checked={selection.length === filteredTasks.length && filteredTasks.length > 0} onChange={() => selection.length === filteredTasks.length ? onClearSelection() : filteredTasks.forEach(t => !selection.includes(t.id) && onSelect(t.id))} />
+                                            <input type="checkbox" className="w-3 h-3 text-blue-600 rounded border-zinc-300 dark:border-zinc-700 bg-transparent focus:ring-0" checked={selection.length === filteredTasks.length && filteredTasks.length > 0} onChange={() => selection.length === filteredTasks.length ? onClearSelection() : filteredTasks.forEach(t => !selection.includes(t.id) && onSelect(t.id))} />
                                         </th>
                                         {[
                                             { id: 'Título', label: 'Nome da Tarefa', width: 'flex-1 min-w-[200px]' },
@@ -343,11 +340,11 @@ export function TaskFlowView({
                                             { id: 'Data_Entrega', label: 'Entrega', width: 'w-[100px]' },
                                             { id: 'Responsável', label: 'Resp.', width: 'w-[80px]' }
                                         ].map(col => (
-                                            <th key={col.id} className={`p-3 text-[10px] font-black text-app-text-muted hover:text-app-text-strong uppercase tracking-widest cursor-pointer select-none transition-colors ${col.width}`} 
+                                            <th key={col.id} className={`p-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest cursor-pointer select-none transition-colors hover:text-zinc-900 dark:hover:text-white ${col.width}`} 
                                                 onClick={() => { if(sortField===col.id) setSortDesc(!sortDesc); else { setSortField(col.id); setSortDesc(false); } }}>
                                                 <div className="flex items-center gap-2">
                                                     {col.label}
-                                                    {sortField === col.id && (sortDesc ? <ArrowDown size={12} className="text-blue-500" /> : <ArrowUp size={12} className="text-blue-500" />)}
+                                                    {sortField === col.id && (sortDesc ? <ArrowDown size={12} className="text-blue-600" /> : <ArrowUp size={12} className="text-blue-600" />)}
                                                 </div>
                                             </th>
                                         ))}
@@ -357,12 +354,11 @@ export function TaskFlowView({
                         </div>
                         
                         {/* Table Body Scrollable */}
-                        <div className="flex-1 overflow-y-auto custom-scrollbar bg-app-bg pb-32">
+                        <div className="flex-1 overflow-y-auto custom-scrollbar bg-white dark:bg-zinc-900">
                             <table className="w-full text-left border-collapse table-fixed">
                                 <tbody>
                                     {filteredTasks.map(Tarefa => {
                                         const Cliente = clients.find((c: any) => c.id === Tarefa.Cliente_ID);
-                                        const clientColorCss = Cliente?.['Cor (HEX)'] || '#3B82F6';
                                         const prio = getPriorityInfo(Tarefa.Prioridade);
                                         const isOverdue = Tarefa.Data_Entrega && new Date(Tarefa.Data_Entrega) < new Date(new Date().setHours(0,0,0,0));
                                         const statusObj = DEFAULT_TASK_STATUSES.find(s=>s.id === Tarefa.Status);
@@ -371,36 +367,36 @@ export function TaskFlowView({
                                             <tr
                                                 key={Tarefa.id}
                                                 onClick={() => onSelectTask(Tarefa.id)}
-                                                className={`group border-b border-app-border/50 hover:bg-app-surface transition-colors cursor-pointer ${selection.includes(Tarefa.id) ? 'bg-blue-500/5' : 'even:bg-app-surface/20'}`}
+                                                className={`group border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer ${selection.includes(Tarefa.id) ? 'bg-zinc-50 dark:bg-zinc-800' : ''}`}
                                             >
                                                 <td className="w-12 p-3 text-center" onClick={e => { e.stopPropagation(); onSelect(Tarefa.id); }}>
-                                                    <input type="checkbox" checked={selection.includes(Tarefa.id)} readOnly className="w-3 h-3 text-blue-500 rounded focus:ring-0 bg-transparent border-app-border group-hover:border-blue-500/50 transition-colors" />
+                                                    <input type="checkbox" checked={selection.includes(Tarefa.id)} readOnly className="w-3 h-3 text-zinc-900 dark:text-zinc-100 rounded border-zinc-200 dark:border-zinc-700 bg-transparent focus:ring-0 group-hover:border-zinc-400 transition-colors" />
                                                 </td>
                                                 <td className="flex-1 min-w-0 p-3">
-                                                    <span className="text-[12px] font-bold text-app-text-strong uppercase tracking-tight group-hover:text-blue-500 transition-colors block truncate" title={Tarefa.Título}>{Tarefa.Título}</span>
+                                                    <span className="text-[11px] font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight group-hover:text-blue-500 transition-colors block truncate" title={Tarefa.Título}>{Tarefa.Título}</span>
                                                 </td>
-                                                <td className="w-[150px] p-3 truncate">
-                                                    <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md" style={{ color: clientColorCss, backgroundColor: `${clientColorCss}15` }}>
-                                                        {Cliente?.Nome || 'Agência'}
-                                                    </span>
+                                                <td className="w-[150px] p-3">
+                                                    <Badge color="slate" className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 opacity-60">
+                                                        {Cliente?.Nome || 'AGÊNCIA'}
+                                                    </Badge>
                                                 </td>
                                                 <td className="w-[120px] p-3">
-                                                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-app-text-strong uppercase tracking-tight">
+                                                    <div className="flex items-center gap-2 text-[9px] font-black text-zinc-600 dark:text-zinc-400 uppercase tracking-widest">
                                                         <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusObj?.cor || '#666' }} />
                                                         {statusObj?.rotulo || Tarefa.Status}
                                                     </div>
                                                 </td>
                                                 <td className="w-[120px] p-3">
-                                                    <div className={`px-2 py-0.5 rounded flex items-center gap-1.5 w-max ${prio.color}`} title={Tarefa.Prioridade}>
-                                                        <i className={`fa-solid ${prio.icon} text-[8px]`}></i>
-                                                        <span className="text-[9px] font-bold uppercase tracking-widest">{Tarefa.Prioridade}</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className={`w-1.5 h-1.5 rounded-full ${prio.color.split(' ')[0].replace('text-', 'bg-')}`} />
+                                                        <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">{Tarefa.Prioridade}</span>
                                                     </div>
                                                 </td>
-                                                <td className={`w-[100px] p-3 text-[10px] font-bold uppercase tracking-tight ${isOverdue ? 'text-rose-500' : 'text-app-text-muted'}`}>
+                                                <td className={`w-[100px] p-3 text-[9px] font-black uppercase tracking-widest ${isOverdue ? 'text-rose-600' : 'text-zinc-400'}`}>
                                                     {Tarefa.Data_Entrega || '--/--'}
                                                 </td>
                                                 <td className="w-[80px] p-3">
-                                                    <div className="w-6 h-6 rounded-full bg-app-surface-2 text-app-text-strong flex items-center justify-center text-[10px] font-black border border-app-border group-hover:ring-2 group-hover:ring-app-border-strong transition-all shrink-0" title={Tarefa.Responsável}>
+                                                    <div className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center text-[9px] font-black border border-zinc-200 dark:border-zinc-800 transition-all shrink-0">
                                                         {Tarefa.Responsável?.slice(0, 1).toUpperCase() || '?'}
                                                     </div>
                                                 </td>
@@ -409,8 +405,8 @@ export function TaskFlowView({
                                     })}
                                     {filteredTasks.length === 0 && (
                                         <tr>
-                                            <td colSpan={7} className="p-8 text-center text-[11px] font-black uppercase tracking-widest text-app-text-muted border-none">
-                                                NENHUMA TAREFA ENCONTRADA
+                                            <td colSpan={7} className="p-12 text-center text-xs font-bold uppercase tracking-widest text-zinc-400 border-none">
+                                                Nenhuma tarefa encontrada
                                             </td>
                                         </tr>
                                     )}
@@ -424,91 +420,86 @@ export function TaskFlowView({
                     <div className="h-full flex flex-col overflow-hidden relative">
                         {/* CALENDAR HEADER */}
                         <div className="flex items-center justify-between mb-4 shrink-0">
-                            <div className="flex items-center gap-4 bg-app-surface border border-app-border p-2 rounded-2xl shadow-sm">
-                                <button className="p-2 rounded-xl hover:bg-app-surface-2 text-app-text-muted hover:text-app-text-strong transition-colors" onClick={() => handleMonthNav(-1)}>
+                            <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-2 rounded-xl shadow-sm">
+                                <button className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors" onClick={() => handleMonthNav(-1)}>
                                     <ChevronLeft size={20} />
                                 </button>
-                                <h3 className="text-sm font-black text-app-text-strong min-w-[150px] text-center uppercase tracking-widest">
+                                <h3 className="text-sm font-bold text-zinc-900 dark:text-white min-w-[150px] text-center uppercase tracking-[0.2em]">
                                     {MONTH_NAMES_BR[currentDate.getMonth()]} {currentDate.getFullYear()}
                                 </h3>
-                                <button className="p-2 rounded-xl hover:bg-app-surface-2 text-app-text-muted hover:text-app-text-strong transition-colors" onClick={() => handleMonthNav(1)}>
+                                <button className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors" onClick={() => handleMonthNav(1)}>
                                     <ChevronRight size={20} />
                                 </button>
                             </div>
                             <button
                                 onClick={() => { setCurrentDate(new Date()); }}
-                                className="px-5 py-2.5 rounded-2xl bg-app-surface border border-app-border text-[10px] font-black text-app-text-muted tracking-widest uppercase hover:text-app-text-strong hover:bg-app-surface-2 shadow-sm transition-all"
+                                className="px-5 py-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-[10px] font-bold text-zinc-500 tracking-widest uppercase hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 shadow-sm transition-all"
                             >
                                 HOJE
                             </button>
                         </div>
 
                         {/* CALENDAR GRID */}
-                        <div className="flex-1 bg-app-bg border border-app-border rounded-[2rem] overflow-hidden flex flex-col shadow-inner">
-                            <div className="grid grid-cols-7 border-b border-app-border bg-app-surface/50 shrink-0">
+                        <div className="flex-1 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden flex flex-col shadow-sm">
+                            <div className="grid grid-cols-7 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 shrink-0">
                                 {WEEKDAYS_BR_SHORT.map(dia => (
-                                    <div key={dia} className="py-4 text-center text-[10px] font-black text-app-text-muted uppercase tracking-[0.2em] border-r border-app-border last:border-0">
+                                    <div key={dia} className="py-4 text-center text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] border-r border-zinc-200 dark:border-zinc-800 last:border-0">
                                         {dia}
                                     </div>
                                 ))}
                             </div>
 
                             <div className="flex-1 overflow-y-auto custom-scrollbar">
-                                <div className="grid grid-cols-7 auto-rows-[minmax(200px,auto)] min-h-full">
+                                <div className="grid grid-cols-7 auto-rows-[minmax(180px,auto)] min-h-full">
                                     {calendarDays.map((diaObj, idx) => {
                                         const evts = getEventosDoDia(diaObj.dateStr);
                                         const isToday = diaObj.dateStr === new Date().toISOString().split('T')[0];
 
-                                        return (
-                                            <div
-                                                key={idx}
-                                                className={`p-2 border-r border-b border-app-border transition-all relative flex flex-col ${diaObj.isNextMonth || diaObj.isPrevMonth ? 'bg-app-surface/20 opacity-40' :
-                                                    isToday ? 'bg-blue-500/5' : 'bg-transparent'
-                                                    } hover:bg-app-surface/50`}
-                                            >
-                                                <div className="flex justify-between items-start mb-2 px-1">
-                                                    <span className={`text-[11px] font-bold w-7 h-7 flex items-center justify-center rounded-xl ${isToday ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40' : 'text-app-text-strong font-black'}`}>
-                                                        {diaObj.day}
-                                                    </span>
-                                                    <button onClick={() => onAdd('TAREFAS', { Data_Entrega: diaObj.dateStr })} className="opacity-0 group-hover:opacity-100 p-1 text-app-text-muted hover:text-blue-500 transition-all">
-                                                        <Plus size={14} />
-                                                    </button>
-                                                </div>
+                                    return (
+                                        <div
+                                            key={idx}
+                                            className={`p-2 border-r border-b border-zinc-200 dark:border-zinc-800 transition-all relative flex flex-col min-h-[140px] ${diaObj.isNextMonth || diaObj.isPrevMonth ? 'bg-zinc-50/50 dark:bg-zinc-900/20 opacity-40' :
+                                                isToday ? 'bg-zinc-100/50 dark:bg-zinc-800/30' : 'bg-transparent'
+                                                } hover:bg-zinc-50 dark:hover:bg-zinc-900/50 group`}
+                                        >
+                                            <div className="flex justify-between items-start mb-2 px-1">
+                                                <span className={`text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-lg transition-all ${isToday ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-lg' : 'text-zinc-900 dark:text-zinc-100'}`}>
+                                                    {diaObj.day}
+                                                </span>
+                                                <button onClick={() => onAdd('TAREFAS', { Data_Entrega: diaObj.dateStr })} className="opacity-0 group-hover:opacity-100 p-1 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all">
+                                                    <Plus size={14} />
+                                                </button>
+                                            </div>
 
-                                                <div className="flex-1 space-y-2 pb-1">
-                                                    {evts.map(Tarefa => {
-                                                        const Cliente = clients.find((c: any) => c.id === Tarefa.Cliente_ID);
-                                                        const prio = getPriorityInfo(Tarefa.Prioridade);
-                                                        const isDone = Tarefa.Status === 'done' || Tarefa.Status === 'concluido';
+                                            <div className="flex-1 space-y-1.5 pb-1 overflow-y-auto custom-scrollbar-mini max-h-[160px]">
+                                                {evts.map(Tarefa => {
+                                                    const Cliente = clients.find((c: any) => c.id === Tarefa.Cliente_ID);
+                                                    const isDone = Tarefa.Status === 'done' || Tarefa.Status === 'concluido';
 
-                                                        return (
-                                                            <div
-                                                                key={Tarefa.id}
-                                                                onClick={() => onSelectTask(Tarefa.id)}
-                                                                className={`group relative p-3 rounded-2xl shadow-sm border border-app-border hover:shadow-xl hover:border-blue-500/40 cursor-pointer overflow-hidden transform hover:-translate-y-0.5 transition-all bg-app-surface ${isDone ? 'opacity-50' : ''}`}
-                                                            >
-                                                                <div className="absolute left-0 top-1 bottom-1 w-1 rounded-r opacity-80" style={{ backgroundColor: Cliente?.['Cor (HEX)'] || '#3B82F6' }} />
-
-                                                                <div className="pl-2 flex flex-col gap-1.5">
-                                                                    <div className="flex justify-between items-start">
-                                                                        <span className="text-[9px] font-black uppercase tracking-widest text-app-text-muted truncate">
-                                                                            {Cliente?.Nome || 'Agência'}
-                                                                        </span>
-                                                                        <div className="flex items-center gap-1.5 opacity-50 text-[9px] font-bold uppercase tracking-tight text-app-text-strong">
-                                                                            {Tarefa.Hora_Entrega && <><Clock size={10} /> {Tarefa.Hora_Entrega}</>}
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className={`text-[11px] font-bold leading-tight uppercase ${isDone ? 'text-app-text-muted line-through' : 'text-app-text-strong'}`}>
-                                                                        {Tarefa.Título}
-                                                                    </div>
+                                                    return (
+                                                        <div
+                                                            key={Tarefa.id}
+                                                            onClick={() => onSelectTask(Tarefa.id)}
+                                                            className={`group relative p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 cursor-pointer overflow-hidden transition-all bg-white dark:bg-zinc-900 shadow-sm ${isDone ? 'opacity-40' : ''}`}
+                                                        >
+                                                            <div className="absolute left-0 top-0 bottom-0 w-1 opacity-60" style={{ backgroundColor: Cliente?.['Cor (HEX)'] || '#3B82F6' }} />
+                                                            <div className="pl-2 flex flex-col gap-0.5">
+                                                                <div className="flex justify-between items-center">
+                                                                    <span className="text-[7px] font-black uppercase tracking-[0.1em] text-zinc-400 truncate">
+                                                                        {Cliente?.Nome || 'AGÊNCIA'}
+                                                                    </span>
+                                                                </div>
+                                                                <div className={`text-[9px] font-black leading-tight uppercase tracking-tight line-clamp-2 ${isDone ? 'text-zinc-400 line-through' : 'text-zinc-900 dark:text-zinc-100'}`}>
+                                                                    {Tarefa.Título}
                                                                 </div>
                                                             </div>
-                                                        );
-                                                    })}
-                                                </div>
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
-                                        );
-                                    })}
+                                        </div>
+                                    );
+                                })}
                                 </div>
                             </div>
                         </div>
@@ -635,30 +626,29 @@ export function TaskDetailPanel({
     const clientColorCss = Cliente?.['Cor (HEX)'] || '#3B82F6';
 
     return (
-        <div className="flex flex-col h-full bg-app-surface-2 text-left overflow-hidden">
-            {/* PANEL HEADER */}
-            <div className="px-6 py-4 border-b border-app-border flex flex-col gap-2 shrink-0 bg-app-surface/50 backdrop-blur z-10 w-full">
-                <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md truncate max-w-[200px]" style={{ color: clientColorCss, backgroundColor: `${clientColorCss}15` }}>
-                            {Cliente?.Nome || 'Agência'}
-                        </span>
-                        <span className="text-[10px] font-bold text-app-text-muted">#{t.Task_ID}</span>
+        <div className="flex flex-col h-full bg-zinc-50 dark:bg-zinc-950 text-left overflow-hidden border-l border-zinc-200 dark:border-zinc-800">
+                        <div className="px-6 py-5 border-b border-zinc-200 dark:border-zinc-800 flex flex-col gap-4 shrink-0 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md z-10 w-full">
+                <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                        <Badge color="slate" className="text-[9px] font-black uppercase tracking-widest px-3 py-1 opacity-60">
+                            {Cliente?.Nome || 'AGÊNCIA'}
+                        </Badge>
+                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest opacity-40">ID {t.Task_ID}</span>
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <div className="flex bg-app-bg p-1 rounded-lg border border-app-border">
-                            <button onClick={() => setViewMode('sidebar')} className={`p-1.5 rounded transition-all ${viewMode === 'sidebar' ? 'bg-app-surface text-blue-500 shadow-sm' : 'text-app-text-muted hover:text-app-text-strong'}`}><LayoutGrid size={12} /></button>
-                            <button onClick={() => setViewMode('modal')} className={`p-1.5 rounded transition-all ${viewMode === 'modal' ? 'bg-app-surface text-blue-500 shadow-sm' : 'text-app-text-muted hover:text-app-text-strong'}`}><ExternalLink size={12} /></button>
+                        <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl border border-zinc-200 dark:border-zinc-700">
+                            <button onClick={() => setViewMode('sidebar')} className={`p-2 rounded-lg transition-all ${viewMode === 'sidebar' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}><LayoutGrid size={14} /></button>
+                            <button onClick={() => setViewMode('modal')} className={`p-2 rounded-lg transition-all ${viewMode === 'modal' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}><ExternalLink size={14} /></button>
                         </div>
-                        <button onClick={onClose} className="w-8 h-8 rounded-lg bg-app-bg border border-app-border flex items-center justify-center text-app-text-muted hover:text-app-text-strong hover:bg-app-surface-2 transition-all">
-                            <X size={16} />
+                        <button onClick={onClose} className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all shadow-sm">
+                            <X size={18} />
                         </button>
                     </div>
                 </div>
 
                 <input
-                    className="w-full text-xl font-black text-app-text-strong bg-transparent border-none p-0 mt-1 focus:ring-0 uppercase tracking-tight placeholder-app-text-muted/30"
+                    className="w-full text-xl font-black text-zinc-900 dark:text-zinc-100 bg-transparent border-none p-0 focus:ring-0 uppercase tracking-tight placeholder-zinc-200 dark:placeholder-zinc-800"
                     value={t.Título}
                     onChange={e => onUpdate(t.id, 'TAREFAS', 'Título', e.target.value, true)}
                     onBlur={e => onUpdate(t.id, 'TAREFAS', 'Título', e.target.value)}
@@ -666,68 +656,69 @@ export function TaskDetailPanel({
                 />
             </div>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8 bg-app-bg">
+
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
                 {/* METRICS GRID */}
-                <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-app-surface border border-app-border rounded-xl p-3 flex flex-col gap-1.5 hover:border-blue-500/30 transition-colors group">
-                        <label className="text-[9px] font-black text-app-text-muted uppercase tracking-[0.1em] flex items-center gap-1.5">
-                            <HistoryIcon size={10} className="text-blue-500" /> Status
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col gap-2 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors shadow-sm group">
+                        <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                            <HistoryIcon size={12} className="text-zinc-400" /> Status
                         </label>
                         <select
                             value={t.Status}
                             onChange={e => onUpdate(t.id, 'TAREFAS', 'Status', e.target.value)}
-                            className="bg-app-bg border border-app-border rounded-lg text-[10px] font-bold text-app-text-strong uppercase focus:ring-1 focus:ring-blue-500 p-1.5 cursor-pointer outline-none transition-all group-hover:bg-app-surface-2"
+                            className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-[11px] font-bold text-zinc-900 dark:text-zinc-100 uppercase focus:ring-1 focus:ring-zinc-400 p-2 cursor-pointer outline-none transition-all"
                         >
                             {DEFAULT_TASK_STATUSES.map(s => <option key={s.id} value={s.id}>{s.rotulo}</option>)}
                         </select>
                     </div>
-                    <div className="bg-app-surface border border-app-border rounded-xl p-3 flex flex-col gap-1.5 hover:border-rose-500/30 transition-colors group">
-                        <label className="text-[9px] font-black text-app-text-muted uppercase tracking-[0.1em] flex items-center gap-1.5">
-                            <ShieldAlert size={10} className="text-rose-500" /> Prioridade
+                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col gap-2 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors shadow-sm group">
+                        <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                            <ShieldAlert size={12} className="text-zinc-400" /> Prioridade
                         </label>
                         <select
                             value={t.Prioridade}
                             onChange={e => onUpdate(t.id, 'TAREFAS', 'Prioridade', e.target.value)}
-                            className="bg-app-bg border border-app-border rounded-lg text-[10px] font-bold text-app-text-strong uppercase focus:ring-1 focus:ring-rose-500 p-1.5 cursor-pointer outline-none transition-all group-hover:bg-app-surface-2"
+                            className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-[11px] font-bold text-zinc-900 dark:text-zinc-100 uppercase focus:ring-1 focus:ring-zinc-400 p-2 cursor-pointer outline-none transition-all"
                         >
                             {PRIORIDADE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                         </select>
                     </div>
-                    <div className="bg-app-surface border border-app-border rounded-xl p-3 flex flex-col gap-1.5 hover:border-emerald-500/30 transition-colors group">
-                        <label className="text-[9px] font-black text-app-text-muted uppercase tracking-[0.1em] flex items-center gap-1.5">
-                            <User size={10} className="text-emerald-500" /> Responsável
+                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col gap-2 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors shadow-sm group">
+                        <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                            <User size={12} className="text-zinc-400" /> Responsável
                         </label>
                         <select
                             value={t.Responsável}
                             onChange={e => onUpdate(t.id, 'TAREFAS', 'Responsável', e.target.value)}
-                            className="bg-app-bg border border-app-border rounded-lg text-[10px] font-bold text-app-text-strong uppercase focus:ring-1 focus:ring-emerald-500 p-1.5 cursor-pointer outline-none transition-all group-hover:bg-app-surface-2"
+                            className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-[11px] font-bold text-zinc-900 dark:text-zinc-100 uppercase focus:ring-1 focus:ring-zinc-400 p-2 cursor-pointer outline-none transition-all"
                         >
                             <option value="">Sem Resp.</option>
                             {collaborators.map((c: any) => <option key={c.id} value={c.Nome}>{c.Nome}</option>)}
                         </select>
                     </div>
-                    <div className="bg-app-surface border border-app-border rounded-xl p-3 flex flex-col gap-1.5 hover:border-indigo-500/30 transition-colors group">
-                        <label className="text-[9px] font-black text-app-text-muted uppercase tracking-[0.1em] flex items-center gap-1.5">
-                            <Clock size={10} className="text-indigo-500" /> Entrega
+                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col gap-2 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors shadow-sm group">
+                        <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                            <Clock size={12} className="text-zinc-400" /> Entrega
                         </label>
                         <input
                             type="date"
                             value={t.Data_Entrega || ''}
                             onChange={e => onUpdate(t.id, 'TAREFAS', 'Data_Entrega', e.target.value)}
-                            className="bg-app-bg border border-app-border rounded-lg text-[10px] font-bold text-app-text-strong uppercase focus:ring-1 focus:ring-indigo-500 p-1.5 cursor-pointer outline-none transition-all group-hover:bg-app-surface-2"
+                            className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-[11px] font-bold text-zinc-900 dark:text-zinc-100 uppercase focus:ring-1 focus:ring-zinc-400 p-2 cursor-pointer outline-none transition-all"
                         />
                     </div>
                 </div>
 
                 {/* DESCRIPTION */}
                 <section>
-                    <div className="flex items-center justify-between mb-4 border-b border-app-border pb-2">
-                        <h4 className="text-[10px] font-black uppercase text-app-text-strong tracking-[0.2em] flex items-center gap-2">
-                            <FileText size={14} className="text-blue-500" /> Descrição Estratégica
+                    <div className="flex items-center mb-4 border-b border-zinc-200 dark:border-zinc-800 pb-2">
+                        <h4 className="text-[10px] font-black uppercase text-zinc-900 dark:text-zinc-100 tracking-[0.2em] flex items-center gap-2">
+                            <FileText size={14} className="text-zinc-400" /> Descrição Estratégica
                         </h4>
                     </div>
                     <textarea
-                        className="w-full h-32 bg-app-bg border border-app-border rounded-2xl p-5 text-[11px] font-bold text-app-text-strong uppercase leading-relaxed outline-none focus:border-blue-500/50 transition-all custom-scrollbar placeholder-app-text-muted/20"
+                        className="w-full h-32 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 text-[10px] font-black text-zinc-900 dark:text-zinc-100 uppercase leading-relaxed outline-none focus:ring-4 focus:ring-zinc-500/5 transition-all custom-scrollbar placeholder-zinc-200 dark:placeholder-zinc-800 shadow-sm"
                         value={t.Descrição || ''}
                         onChange={e => onUpdate(t.id, 'TAREFAS', 'Descrição', e.target.value, true)}
                         onBlur={e => onUpdate(t.id, 'TAREFAS', 'Descrição', e.target.value)}
@@ -737,44 +728,44 @@ export function TaskDetailPanel({
 
                 {/* CHECKLIST */}
                 <section>
-                    <div className="flex items-center justify-between mb-6 border-b border-app-border pb-2">
-                        <h4 className="text-[10px] font-black uppercase text-app-text-strong tracking-[0.2em] flex items-center gap-2">
-                            <CheckCircle2 size={14} className="text-emerald-500" /> Etapas de Execução
+                    <div className="flex items-center justify-between mb-4 border-b border-zinc-200 dark:border-zinc-800 pb-2">
+                        <h4 className="text-[10px] font-black uppercase text-zinc-900 dark:text-zinc-100 tracking-[0.2em] flex items-center gap-2">
+                            <CheckCircle2 size={14} className="text-zinc-400" /> Etapas de Execução
                         </h4>
-                        <span className="text-[10px] font-black text-app-text-muted bg-app-surface-2 px-3 py-1 rounded-full uppercase tracking-widest">
+                        <Badge color="slate" className="text-[8px] font-black px-2 py-0.5 opacity-60">
                             {t.Checklist?.filter(i => i.concluido).length || 0} / {t.Checklist?.length || 0}
-                        </span>
+                        </Badge>
                     </div>
-                    <div className="space-y-4 px-2">
+                    <div className="space-y-3 px-1">
                         {t.Checklist?.map(item => (
-                            <div key={item.id} className="flex items-center gap-4 group">
+                            <div key={item.id} className="flex items-center gap-3 group">
                                 <button
                                     onClick={() => updateChecklist(t.Checklist.map(i => i.id === item.id ? { ...i, concluido: !i.concluido } : i))}
-                                    className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${item.concluido ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-app-border bg-app-bg text-transparent'}`}
+                                    className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all ${item.concluido ? 'bg-zinc-900 dark:bg-zinc-100 border-zinc-900 dark:border-zinc-100 text-white dark:text-zinc-900' : 'border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-transparent'}`}
                                 >
-                                    <Plus size={14} className={item.concluido ? 'rotate-45' : ''} />
+                                    {item.concluido && <Plus size={12} className="rotate-45" />}
                                 </button>
-                                <span className={`text-[11px] font-black uppercase tracking-tight transition-all flex-1 ${item.concluido ? 'opacity-30 line-through' : 'text-app-text-strong'}`}>
+                                <span className={`text-[10px] font-black uppercase tracking-tight transition-all flex-1 ${item.concluido ? 'text-zinc-300 dark:text-zinc-700 line-through' : 'text-zinc-900 dark:text-zinc-100'}`}>
                                     {item.texto}
                                 </span>
-                                <button onClick={() => updateChecklist(t.Checklist.filter(i => i.id !== item.id))} className="opacity-0 group-hover:opacity-100 text-app-text-muted hover:text-rose-500 transition-all">
-                                    <Trash2 size={16} />
+                                <button onClick={() => updateChecklist(t.Checklist.filter(i => i.id !== item.id))} className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-rose-500 transition-all">
+                                    <Trash2 size={14} />
                                 </button>
                             </div>
                         ))}
-                        <div className="flex gap-3 pt-2">
+                        <div className="flex gap-2 pt-2">
                             <input
                                 value={newCheckItem}
-                                onChange={e => setNewCheckItem(e.target.value)}
+                                onChange={e => setNewCheckItem(e.target.value.toUpperCase())}
                                 onKeyDown={e => e.key === 'Enter' && (() => { if (!newCheckItem.trim()) return; updateChecklist([...(t.Checklist || []), { id: generateId(), texto: newCheckItem.toUpperCase(), concluido: false }]); setNewCheckItem(''); })()}
                                 placeholder="NOVA ETAPA..."
-                                className="flex-1 h-11 bg-app-bg border border-app-border rounded-xl px-4 text-[11px] font-black uppercase tracking-widest outline-none focus:border-blue-500/50 transition-all"
+                                className="flex-1 h-10 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 text-[10px] font-black uppercase tracking-widest outline-none focus:ring-4 focus:ring-zinc-500/5 transition-all shadow-sm"
                             />
                             <button
                                 onClick={() => { if (!newCheckItem.trim()) return; updateChecklist([...(t.Checklist || []), { id: generateId(), texto: newCheckItem.toUpperCase(), concluido: false }]); setNewCheckItem(''); }}
-                                className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/10"
+                                className="w-10 h-10 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 flex items-center justify-center hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all shadow-xl shadow-zinc-500/10"
                             >
-                                <Plus size={20} />
+                                <Plus size={18} />
                             </button>
                         </div>
                     </div>
@@ -782,35 +773,35 @@ export function TaskDetailPanel({
 
                 {/* ATTACHMENTS */}
                 <section>
-                    <div className="flex items-center justify-between mb-6 border-b border-app-border pb-2">
-                        <h4 className="text-[10px] font-black uppercase text-app-text-strong tracking-[0.2em] flex items-center gap-2">
-                            <ImageIcon size={14} className="text-orange-500" /> Ativos e Mídia
+                    <div className="flex items-center justify-between mb-4 border-b border-zinc-200 dark:border-zinc-800 pb-2">
+                        <h4 className="text-[10px] font-black uppercase text-zinc-900 dark:text-zinc-100 tracking-[0.2em] flex items-center gap-2">
+                            <ImageIcon size={14} className="text-zinc-400" /> Ativos e Mídia
                         </h4>
                         <button
                             onClick={() => fileInputRef.current?.click()}
-                            className="text-[10px] font-black uppercase text-blue-500 hover:text-blue-400 transition-colors flex items-center gap-2"
+                            className="text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors flex items-center gap-2"
                         >
-                            {uploading ? <Loader2 size={14} className="animate-spin" /> : <><Plus size={14} /> Upload</>}
+                            {uploading ? <Loader2 size={12} className="animate-spin" /> : <><Plus size={12} /> Upload</>}
                         </button>
                         <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" multiple accept="image/*" />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-3">
                         {(t.Anexos || []).map(file => (
-                            <div key={file.id} className="group relative aspect-video rounded-2xl overflow-hidden bg-app-bg border border-app-border hover:border-blue-500/30 transition-all">
-                                <img src={file.dados} alt={file.nomeArquivo} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 backdrop-blur-[2px]">
-                                    <button onClick={() => setLightboxImage(file.dados)} className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-all"><Eye size={18} /></button>
-                                    <button onClick={() => updateAttachments((t.Anexos || []).filter(a => a.id !== file.id))} className="w-10 h-10 rounded-full bg-rose-500/20 hover:bg-rose-500 text-rose-500 hover:text-white flex items-center justify-center backdrop-blur-md transition-all"><Trash2 size={18} /></button>
+                            <div key={file.id} className="group relative aspect-video rounded-xl overflow-hidden bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 transition-all shadow-sm">
+                                <img src={file.dados} alt={file.nomeArquivo} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-[1px]">
+                                    <button onClick={() => setLightboxImage(file.dados)} className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md transition-all shadow-lg"><Eye size={16} /></button>
+                                    <button onClick={() => updateAttachments((t.Anexos || []).filter(a => a.id !== file.id))} className="w-8 h-8 rounded-lg bg-rose-500/30 hover:bg-rose-500 text-rose-100 flex items-center justify-center backdrop-blur-md transition-all shadow-lg"><Trash2 size={16} /></button>
                                 </div>
                             </div>
                         ))}
                         {(!t.Anexos || t.Anexos.length === 0) && (
-                            <div className="col-span-2 border-2 border-dashed border-app-border rounded-3xl py-12 flex flex-col items-center justify-center gap-4 text-app-text-muted group hover:border-blue-500/30 transition-all cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                                <div className="w-14 h-14 rounded-full bg-app-bg flex items-center justify-center border border-app-border group-hover:scale-110 transition-transform"><ImageIcon size={24} /></div>
+                            <div className="col-span-2 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl py-8 flex flex-col items-center justify-center gap-3 text-zinc-400 group hover:border-zinc-400 dark:hover:border-zinc-600 transition-all cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                                <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center border border-zinc-200 dark:border-zinc-700 group-hover:scale-105 transition-transform"><ImageIcon size={18} /></div>
                                 <div className="text-center">
-                                    <p className="text-[10px] font-black uppercase tracking-widest">Arraste Ativos Aqui</p>
-                                    <p className="text-[8px] font-bold uppercase opacity-50 mt-1">Imagens até 20MB</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest">Arraste Ativos Aqui</p>
+                                    <p className="text-[8px] font-bold uppercase opacity-60 mt-0.5">Imagens até 20MB</p>
                                 </div>
                             </div>
                         )}
@@ -818,43 +809,44 @@ export function TaskDetailPanel({
                 </section>
 
                 {/* ACTIVITY & COMMENTS */}
-                <section className="space-y-6 pt-4 border-t border-app-border">
+                <section className="space-y-6 pt-4 border-t border-zinc-200 dark:border-zinc-800">
                     <div className="flex items-center justify-between">
-                        <h4 className="text-[10px] font-black uppercase text-app-text-strong tracking-[0.2em] flex items-center gap-2">
-                            <MessageSquare size={14} className="text-purple-500" /> Atividade e Timeline
+                        <h4 className="text-[10px] font-bold uppercase text-zinc-900 dark:text-zinc-100 tracking-widest flex items-center gap-2">
+                            <MessageSquare size={14} className="text-zinc-400" /> Atividade e Timeline
                         </h4>
                     </div>
 
-                    <div className="space-y-6">
+                    <div className="space-y-5">
                         {(t.Atividades || []).map(act => (
-                            <div key={act.id} className="flex gap-4 group">
-                                <div className="w-8 h-8 rounded-xl bg-app-bg border border-app-border flex items-center justify-center shrink-0">
-                                    {act.tipo === 'comment' ? <MessageSquare size={12} className="text-purple-500" /> : <Zap size={12} className="text-blue-500" />}
+                            <div key={act.id} className="flex gap-3 group">
+                                <div className="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center shrink-0 shadow-sm">
+                                    {act.tipo === 'comment' ? <MessageSquare size={12} className="text-zinc-400" /> : <Zap size={12} className="text-zinc-400" />}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <div className="flex justify-between items-baseline mb-1">
-                                        <span className="text-[10px] font-black text-app-text-strong uppercase tracking-tight">{act.usuario}</span>
-                                        <span className="text-[8px] font-bold text-app-text-muted uppercase">{new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                    <div className="flex justify-between items-baseline mb-0.5">
+                                        <span className="text-[11px] font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">{act.usuario}</span>
+                                        <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest">{new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                     </div>
-                                    <p className="text-[11px] font-bold text-app-text-muted leading-relaxed uppercase tracking-tight">{act.mensagem}</p>
+                                    <p className="text-[11px] font-bold text-zinc-500 leading-relaxed uppercase tracking-tight">{act.mensagem}</p>
                                 </div>
                             </div>
                         ))}
                     </div>
 
-                    <div className="flex flex-col gap-3 mt-6">
+                    <div className="flex flex-col gap-3 mt-4">
                         <textarea
                             value={comment}
                             onChange={e => setComment(e.target.value)}
                             placeholder="ESCREVA UM COMENTÁRIO..."
-                            className="w-full bg-app-bg border border-app-border rounded-2xl p-4 text-[11px] font-black uppercase tracking-widest placeholder-app-text-muted/30 outline-none focus:border-purple-500/50 transition-all min-h-[80px]"
+                            className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 text-[11px] font-bold uppercase tracking-widest placeholder-zinc-300 dark:placeholder-zinc-700 outline-none focus:border-zinc-400 dark:focus:border-zinc-600 transition-all min-h-[80px] shadow-sm"
                         />
-                        <div className="flex justify-end gap-3">
+                        <div className="flex justify-end pt-1">
                             <button
                                 onClick={handleAddComment}
-                                className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-purple-500/10"
+                                disabled={!comment.trim()}
+                                className="px-5 py-2.5 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-800 dark:hover:bg-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-md"
                             >
-                                Publicar Comentário
+                                Comentar
                             </button>
                         </div>
                     </div>
@@ -862,32 +854,32 @@ export function TaskDetailPanel({
             </div>
 
             {/* FOOTER ACTIONS */}
-            <div className="px-8 py-6 border-t border-app-border bg-app-surface-2/30 flex gap-3">
+            <div className="px-6 py-5 border-t border-zinc-200 dark:border-zinc-800 bg-white grid grid-cols-2 gap-3 shrink-0">
                 <button
                     onClick={() => { onArchive([t.id], 'TAREFAS', !t.__archived); onClose(); }}
-                    className="flex-1 h-12 rounded-xl border border-app-border bg-app-bg text-app-text-muted hover:text-app-text-strong hover:bg-app-surface transition-all text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2"
+                    className="h-11 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 shadow-sm"
                 >
-                    <Box size={16} /> {t.__archived ? 'RESTAURAR' : 'ARQUIVAR'}
+                    <Box size={14} /> {t.__archived ? 'Restaurar' : 'Arquivar'}
                 </button>
                 <button
-                    onClick={() => { if (window.confirm("EXCLUIR DEFINITIVAMENTE?")) { onDelete([t.id], 'TAREFAS'); onClose(); } }}
-                    className="flex-1 h-12 rounded-xl border border-app-border bg-app-bg text-rose-500/70 hover:text-rose-500 hover:bg-rose-500/5 transition-all text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2"
+                    onClick={() => { if (window.confirm("Excluir definitivamente?")) { onDelete([t.id], 'TAREFAS'); onClose(); } }}
+                    className="h-11 rounded-xl border border-rose-100 dark:border-rose-900/30 bg-rose-50/30 dark:bg-rose-900/10 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 shadow-sm"
                 >
-                    <Trash2 size={16} /> EXCLUIR
+                    <Trash2 size={14} /> Excluir
                 </button>
                 <button
                     onClick={onClose}
-                    className="flex-[1.5] h-12 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-all text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl shadow-blue-500/10"
+                    className="col-span-2 h-11 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-all text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
                 >
-                    <CheckCircle2 size={16} /> FINALIZAR
+                    <CheckCircle2 size={16} /> Finalizar Edição
                 </button>
             </div>
 
             {/* LIGHTBOX */}
             {lightboxImage && (
-                <div className="fixed inset-0 z-[3000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-10 animate-fade" onClick={() => setLightboxImage(null)}>
-                    <button className="absolute top-10 right-10 text-white opacity-50 hover:opacity-100 transition-opacity"><X size={32} /></button>
-                    <img src={lightboxImage} className="max-w-full max-h-full object-contain rounded-lg shadow-2xl animate-scale-up" onClick={e => e.stopPropagation()} />
+                <div className="fixed inset-0 z-[3000] bg-zinc-950/90 backdrop-blur-md flex items-center justify-center p-10" onClick={() => setLightboxImage(null)}>
+                    <button className="absolute top-10 right-10 text-white opacity-50 hover:opacity-100 transition-opacity p-2 hover:bg-white/10 rounded-full"><X size={32} /></button>
+                    <img src={lightboxImage} className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl border border-white/10" onClick={e => e.stopPropagation()} />
                 </div>
             )}
         </div>

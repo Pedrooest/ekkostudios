@@ -1236,30 +1236,58 @@ export default function App() {
       )}
 
       {!sidebarCollapsed && (
-        <div className="fixed inset-0 bg-black/50 z-[2000] lg:hidden backdrop-blur-sm animate-fade" onClick={() => setSidebarCollapsed(true)}></div>
+        <div className="fixed inset-0 bg-zinc-950/50 z-[2000] lg:hidden backdrop-blur-sm animate-fade" onClick={() => setSidebarCollapsed(true)}></div>
       )}
 
-      <aside className={`transition-all duration-300 flex flex-col dark:bg-app-surface-2 bg-white border-r border-app-border shrink-0 z-[2100] fixed inset-y-0 left-0 lg:relative ${sidebarCollapsed ? '-translate-x-full lg:translate-x-0 lg:w-16' : 'translate-x-0 w-[85vw] sm:w-64 shadow-2xl lg:shadow-none'}`}>
-        <div className={`h-24 flex items-center border-b border-app-border justify-center overflow-hidden ${sidebarCollapsed ? 'px-0' : 'px-5'}`}>
+      <aside className={`transition-all duration-300 flex flex-col dark:bg-zinc-900 bg-white border-r border-zinc-200 dark:border-zinc-800 shrink-0 z-[2100] fixed inset-y-0 left-0 lg:relative ${sidebarCollapsed ? '-translate-x-full lg:translate-x-0 lg:w-16' : 'translate-x-0 w-[85vw] sm:w-64 shadow-2xl lg:shadow-none'}`}>
+        <div className={`h-20 flex items-center border-b border-zinc-100 dark:border-zinc-800 justify-center overflow-hidden ${sidebarCollapsed ? 'px-0' : 'px-5'}`}>
           <Logo collapsed={sidebarCollapsed} theme={theme} />
         </div>
-        <nav className="flex-1 py-6 px-0 space-y-2 overflow-y-auto custom-scrollbar flex flex-col items-center">
-          {tabOrder.map(tab => (
-            <button key={`nav-tab-${tab}`} onClick={() => { playUISound('tap'); setActiveTab(tab); if (window.innerWidth < 1024) setSidebarCollapsed(true); }} className={`ios-btn w-[90%] flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-4'} py-3 rounded-xl transition-all group ${activeTab === tab ? 'bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'text-app-text-muted hover:bg-app-surface hover:text-app-text-strong'}`}>
-              <i className={`fa-solid ${getIcon(tab)} text-xl transition-transform group-hover:scale-110`}></i>
-              {!sidebarCollapsed && <span className="text-[11px] font-bold uppercase tracking-widest truncate">{TABLE_LABELS[tab]}</span>}
-            </button>
+        
+        <nav className="flex-1 py-4 px-2 space-y-6 overflow-y-auto custom-scrollbar flex flex-col">
+          {/* GRUPOS DE ABAS */}
+          {[
+            { label: 'Visão Geral', tabs: ['DASHBOARD', 'CLIENTES', 'ORGANICKIA'] },
+            { label: 'Estratégia', tabs: ['RDC', 'MATRIZ', 'COBO'] },
+            { label: 'Execução', tabs: ['PLANEJAMENTO', 'APROVACAO', 'TAREFAS', 'CHECKLISTS'] },
+            { label: 'Gestão/Extras', tabs: ['FINANCAS', 'VH', 'WHITEBOARD'] }
+          ].map((group, gIdx) => (
+            <div key={group.label} className="space-y-1">
+              {!sidebarCollapsed && (
+                <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500 mb-2">
+                  {group.label}
+                </p>
+              )}
+              {group.tabs.filter(t => tabOrder.includes(t as TipoTabela)).map(tab => (
+                <button 
+                  key={`nav-tab-${tab}`} 
+                  onClick={() => { playUISound('tap'); setActiveTab(tab as TipoTabela); if (window.innerWidth < 1024) setSidebarCollapsed(true); }} 
+                  title={sidebarCollapsed ? TABLE_LABELS[tab as TipoTabela] : undefined} 
+                  className={`w-full flex items-center transition-all group rounded-lg h-9
+                    ${activeTab === tab ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'}
+                    ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}`}
+                >
+                  <i className={`fa-solid ${getIcon(tab as TipoTabela)} w-5 h-5 shrink-0 flex items-center justify-center text-sm transition-transform group-hover:scale-110`}></i>
+                  {!sidebarCollapsed && <span className="text-[11px] font-bold uppercase tracking-widest truncate min-w-0 flex-1 text-left">{TABLE_LABELS[tab as TipoTabela]}</span>}
+                </button>
+              ))}
+              {gIdx < 3 && !sidebarCollapsed && <div className="mx-4 h-px bg-zinc-100 dark:bg-zinc-800/50 my-4"></div>}
+            </div>
           ))}
         </nav>
-        <div className="p-4 border-t border-app-border space-y-2 bg-app-surface-2/80 backdrop-blur-md flex flex-col items-center">
-          <button onClick={() => { playUISound('tap'); setIsLibraryEditorOpen(true); }} className={`ios-btn w-[90%] flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-4'} py-3 rounded-xl text-app-text-muted hover:text-app-text-strong hover:bg-app-surface transition-all group`}>
-            <i className="fa-solid fa-layer-group text-xl transition-transform group-hover:scale-110"></i>{!sidebarCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest">Tipos</span>}
+
+        <div className="p-2 border-t border-zinc-100 dark:border-zinc-800 space-y-1 bg-white dark:bg-zinc-900 flex flex-col">
+          <button onClick={() => { playUISound('tap'); setIsLibraryEditorOpen(true); }} title={sidebarCollapsed ? "Configurações Globais" : undefined} className={`w-full flex items-center transition-all group rounded-lg h-9 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}`}>
+            <i className="fa-solid fa-layer-group w-5 h-5 shrink-0 flex items-center justify-center text-sm transition-transform group-hover:scale-110"></i>
+            {!sidebarCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest truncate min-w-0 flex-1 text-left">Tipos</span>}
           </button>
-          <button onClick={() => { playUISound('tap'); setIsReorderOpen(true); }} className={`ios-btn w-[90%] flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-4'} py-3 rounded-xl text-app-text-muted hover:text-app-text-strong hover:bg-app-surface transition-all group`}>
-            <i className="fa-solid fa-arrows-up-down-left-right text-xl transition-transform group-hover:scale-110"></i>{!sidebarCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest">Ordem</span>}
+          <button onClick={() => { playUISound('tap'); setIsReorderOpen(true); }} title={sidebarCollapsed ? "Ordenar Abas" : undefined} className={`w-full flex items-center transition-all group rounded-lg h-9 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}`}>
+            <i className="fa-solid fa-arrows-up-down-left-right w-5 h-5 shrink-0 flex items-center justify-center text-sm transition-transform group-hover:scale-110"></i>
+            {!sidebarCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest truncate min-w-0 flex-1 text-left">Ordem</span>}
           </button>
-          <button onClick={() => { playUISound('tap'); setSidebarCollapsed(!sidebarCollapsed); }} className={`ios-btn w-[90%] flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-4'} py-3 rounded-xl text-app-text-muted hover:text-app-text-strong hover:bg-app-surface transition-all group flex`}>
-            <i className={`fa-solid ${sidebarCollapsed ? 'fa-expand' : 'fa-arrow-left'} text-xl transition-transform group-hover:scale-110`}></i>{!sidebarCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest">Recolher</span>}
+          <button onClick={() => { playUISound('tap'); setSidebarCollapsed(!sidebarCollapsed); }} title={sidebarCollapsed ? "Expandir Sidebar" : "Recolher Sidebar"} className={`w-full flex items-center transition-all group rounded-lg h-9 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}`}>
+            <i className={`fa-solid ${sidebarCollapsed ? 'fa-expand' : 'fa-arrow-left'} w-5 h-5 shrink-0 flex items-center justify-center text-sm transition-transform group-hover:scale-110`}></i>
+            {!sidebarCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest truncate min-w-0 flex-1 text-left">{sidebarCollapsed ? 'Expandir' : 'Recolher'}</span>}
           </button>
         </div>
       </aside>
@@ -1439,7 +1467,7 @@ export default function App() {
 
 
 
-        <div className={`flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar animate-fade bg-app-bg ${(activeTab === 'WHITEBOARD' || activeTab === 'CLIENTES' || activeTab === 'PLANEJAMENTO' || activeTab === 'APROVACAO' || activeTab === 'CHECKLISTS') ? 'p-0 overflow-hidden' : 'p-3 md:p-6 lg:p-10 pb-[calc(100px+env(safe-area-inset-bottom))] lg:pb-10'}`}>
+        <div className={`flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar animate-fade bg-app-bg ${(activeTab === 'WHITEBOARD' || activeTab === 'CLIENTES' || activeTab === 'PLANEJAMENTO' || activeTab === 'APROVACAO' || activeTab === 'CHECKLISTS') ? 'p-0 overflow-hidden' : 'p-4 sm:p-6 pb-[calc(100px+env(safe-area-inset-bottom))] sm:pb-6'}`}>
           {activeTab === 'DASHBOARD' && <DashboardView clients={clients} tasks={currentTasks} financas={currentFinancas} planejamento={currentPlanejamento} rdc={currentRdc} />}
           {activeTab === 'CLIENTES' && <ClientesView clients={filterArchived(clients)} onUpdate={handleUpdate} onDelete={performDelete} onAdd={() => handleAddRow('CLIENTES')} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} />}
           {activeTab === 'RDC' && <TableView tab="RDC" data={currentRdc} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('RDC')} library={BibliotecaConteudo} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
@@ -1498,7 +1526,7 @@ export default function App() {
 
         {
           selectedTaskId && (
-            <div className={`fixed inset-0 z-[2000] flex animate-fade pointer-events-none ${taskDetailViewMode === 'sidebar' ? 'justify-end' : 'items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-auto'}`}>
+            <div className={`fixed inset-0 z-[2000] flex animate-fade pointer-events-none ${taskDetailViewMode === 'sidebar' ? 'justify-end' : 'items-center justify-center bg-zinc-950/60 backdrop-blur-sm pointer-events-auto'}`}>
               <div className={`bg-app-surface-2 shadow-2xl transition-all pointer-events-auto overflow-hidden
               ${taskDetailViewMode === 'sidebar' ? 'h-[calc(100dvh-32px)] w-[550px] my-4 mr-4 rounded-3xl border border-app-border' : ''}
               ${taskDetailViewMode === 'modal' ? 'w-[900px] h-[85dvh] rounded-[32px] border border-app-border' : ''}
@@ -1572,7 +1600,7 @@ export default function App() {
 
       {
         isPresentationOpen && presentationBrief && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-xl md:p-10 pointer-events-auto">
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-zinc-950/90 backdrop-blur-xl md:p-10 pointer-events-auto">
             <div className="w-full h-full md:h-[90dvh] md:max-w-6xl bg-app-surface border border-white/10 md:rounded-[30px] shadow-2xl flex flex-col overflow-hidden text-left">
               <div className="h-20 flex items-center justify-between px-6 md:px-10 border-b border-white/5 bg-app-surface-2 shrink-0">
                 <div className="flex items-center gap-4">
@@ -1742,7 +1770,7 @@ export default function App() {
 
       {/* Delete Confirmation Modal */}
       {deleteModalState.isOpen && (
-        <div className="fixed inset-0 z-[999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 min-h-screen animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[999] bg-zinc-950/50 backdrop-blur-sm flex items-center justify-center p-4 min-h-screen animate-in fade-in duration-200">
           <div className="bg-white dark:bg-[#0f1930] w-full max-w-md rounded-3xl shadow-2xl border border-gray-200 dark:border-white/10 overflow-hidden transform transition-all">
             <div className="p-8">
               <div className="w-14 h-14 rounded-full bg-red-100 dark:bg-red-500/10 flex items-center justify-center mb-6 text-red-600 dark:text-red-400 border border-red-500/20">

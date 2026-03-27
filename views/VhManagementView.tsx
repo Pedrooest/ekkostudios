@@ -7,7 +7,7 @@ import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
     ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell
 } from 'recharts';
-import { Card, StatCard, Button, InputSelect } from '../Components';
+import { Card, StatCard, Button, InputSelect, Badge } from '../Components';
 import { TableView } from '../components/TableView';
 import { Colaborador, Cliente } from '../types';
 
@@ -64,232 +64,249 @@ export function VhManagementView({
     }, [simulator, collaborators]);
 
     return (
-        <div className="space-y-8 animate-fade text-left pb-20">
-            {/* SUB-NAVIGATION */}
-            <div className="flex bg-app-surface border border-app-border p-1.5 rounded-2xl w-fit mb-4">
-                {[
-                    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-                    { id: 'clients', label: 'Rentabilidade', icon: TrendingUp },
-                    { id: 'config', label: 'Equipe e Custos', icon: Settings }
-                ].map(t => (
-                    <button
-                        key={t.id}
-                        onClick={() => { setSubTab(t.id as any); }}
-                        className={`flex items-center gap-3 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all
-                            ${subTab === t.id ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/20' : 'text-app-text-muted hover:text-app-text-strong'}`}
-                    >
-                        <t.icon size={14} /> {t.label}
-                    </button>
-                ))}
+        <div className="flex flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors">
+            
+            {/* SUB-NAVIGATION HEADER */}
+            <div className="flex items-center justify-between flex-wrap gap-3 px-6 py-4 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900 shadow-sm">
+                        <TrendingUp size={16} />
+                    </div>
+                    <div>
+                        <h2 className="text-lg font-semibold text-zinc-900 dark:text-white truncate">Gestão VH</h2>
+                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none">Análise de Rentabilidade</p>
+                    </div>
+                </div>
+
+                <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg shrink-0">
+                    {[
+                        { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+                        { id: 'clients', label: 'Rentabilidade', icon: TrendingUp },
+                        { id: 'config', label: 'Equipe', icon: Settings }
+                    ].map(t => (
+                        <button
+                            key={t.id}
+                            onClick={() => setSubTab(t.id as any)}
+                            className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all
+                                ${subTab === t.id ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+                        >
+                            <t.icon size={12} /> {t.label}
+                        </button>
+                    ))}
+                </div>
             </div>
 
-            {subTab === 'dashboard' && (
-                <div className="space-y-8">
-                    {/* KPI row */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <StatCard label="Faturamento Total" value={formatBRL(dashboardData.totalFees)} icon="fa-money-bill-wave" color="emerald" />
-                        <StatCard label="Custo Operacional" value={formatBRL(dashboardData.totalCosts)} icon="fa-calculator" color="rose" />
-                        <StatCard label="Lucro Bruto" value={formatBRL(dashboardData.profit)} icon="fa-chart-line" color="blue" />
-                        <StatCard label="Margem de Lucro" value={`${dashboardData.margin.toFixed(1)}%`} icon="fa-percentage" color="orange" />
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {/* VH Chart */}
-                        <Card title="Valor Hora por Colaborador">
-                            <div className="h-[300px] w-full p-6">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={dashboardData.collabData}>
-                                        <defs>
-                                            <linearGradient id="colorVh" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
-                                                <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                                        <XAxis dataKey="name" stroke="#6B7280" fontSize={10} axisLine={false} tickLine={false} />
-                                        <YAxis stroke="#6B7280" fontSize={10} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val}`} />
-                                        <Tooltip
-                                            contentStyle={{ backgroundColor: '#111114', borderColor: '#333', borderRadius: '12px' }}
-                                            labelStyle={{ fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '4px' }}
-                                        />
-                                        <Area type="monotone" dataKey="vh" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorVh)" name="Valor Hora (R$)" />
-                                    </AreaChart>
-                                </ResponsiveContainer>
+            {/* CONTENT */}
+            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar pb-24">
+                <div className="max-w-7xl mx-auto space-y-6">
+                    
+                    {subTab === 'dashboard' && (
+                        <>
+                            {/* KPI row */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <StatCard label="Faturamento" value={formatBRL(dashboardData.totalFees)} icon="fa-money-bill-wave" color="emerald" />
+                                <StatCard label="Custo Op." value={formatBRL(dashboardData.totalCosts)} icon="fa-calculator" color="rose" />
+                                <StatCard label="Lucro Bruto" value={formatBRL(dashboardData.profit)} icon="fa-chart-line" color="blue" />
+                                <StatCard label="Margem" value={`${dashboardData.margin.toFixed(1)}%`} icon="fa-percentage" color="orange" />
                             </div>
-                        </Card>
 
-                        {/* Profitability Chart */}
-                        <Card title="Ranking de Rentabilidade (Fee)">
-                            <div className="h-[300px] w-full p-6">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={dashboardData.profitabilityData} layout="vertical">
-                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(255,255,255,0.05)" />
-                                        <XAxis type="number" hide />
-                                        <YAxis dataKey="name" type="category" stroke="#6B7280" fontSize={10} width={80} axisLine={false} tickLine={false} />
-                                        <Tooltip contentStyle={{ backgroundColor: '#111114', borderColor: '#333', borderRadius: '12px' }} />
-                                        <Area type="monotone" dataKey="fee" stroke="#10B981" strokeWidth={3} fillOpacity={0.2} fill="#10B981" name="Fee Mensal (R$)" />
-                                    </AreaChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </Card>
-                    </div>
-                </div>
-            )}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {/* VH Chart */}
+                                <Card title="Valor Hora por Colaborador">
+                                    <div className="h-[250px] w-full pt-4">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <AreaChart data={dashboardData.collabData}>
+                                                <defs>
+                                                    <linearGradient id="colorVh" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#71717a" stopOpacity={0.1} />
+                                                        <stop offset="95%" stopColor="#71717a" stopOpacity={0} />
+                                                    </linearGradient>
+                                                </defs>
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
+                                                <XAxis dataKey="name" stroke="#a1a1aa" fontSize={10} axisLine={false} tickLine={false} />
+                                                <YAxis stroke="#a1a1aa" fontSize={10} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val}`} />
+                                                <Tooltip
+                                                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e4e4e7', borderRadius: '8px', fontSize: '10px' }}
+                                                    labelStyle={{ fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '4px' }}
+                                                />
+                                                <Area type="monotone" dataKey="vh" stroke="#3f3f46" strokeWidth={2} fillOpacity={1} fill="url(#colorVh)" name="R$/h" />
+                                            </AreaChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </Card>
 
-            {subTab === 'clients' && (
-                <div className="space-y-8">
-                    <div className="bg-app-surface border border-app-border rounded-[32px] overflow-hidden shadow-2xl">
-                        <div className="p-8 border-b border-app-border flex items-center justify-between bg-app-surface-2/30">
-                            <div>
-                                <h3 className="text-xl font-black uppercase text-app-text-strong tracking-tighter">Gestão de Rentabilidade</h3>
-                                <p className="text-[10px] font-bold text-app-text-muted uppercase tracking-widest mt-1">Análise individual de lucro por contrato.</p>
+                                {/* Profitability Chart */}
+                                <Card title="Ranking de Rentabilidade (Fee)">
+                                    <div className="h-[250px] w-full pt-4">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <AreaChart data={dashboardData.profitabilityData} layout="vertical">
+                                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(0,0,0,0.05)" />
+                                                <XAxis type="number" hide />
+                                                <YAxis dataKey="name" type="category" stroke="#a1a1aa" fontSize={10} width={80} axisLine={false} tickLine={false} />
+                                                <Tooltip contentStyle={{ backgroundColor: '#fff', border: '1px solid #e4e4e7', borderRadius: '8px', fontSize: '10px' }} />
+                                                <Area type="monotone" dataKey="fee" stroke="#10b981" strokeWidth={2} fillOpacity={0.1} fill="#10b981" name="Fee (R$)" />
+                                            </AreaChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </Card>
                             </div>
-                            <div className="flex bg-app-bg px-6 py-3 rounded-2xl border border-app-border gap-4 shadow-inner">
-                                <div className="text-center">
-                                    <span className="text-[9px] font-black text-app-text-muted uppercase block">Fee Médio</span>
-                                    <span className="text-sm font-black text-app-text-strong">{formatBRL(dashboardData.totalFees / (clients.filter(c => c.Status === 'Ativo').length || 1))}</span>
+                        </>
+                    )}
+
+                    {subTab === 'clients' && (
+                        <div className="space-y-6">
+                            <Card className="!p-0 overflow-hidden">
+                                <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+                                    <div>
+                                        <h3 className="text-sm font-bold uppercase text-zinc-900 dark:text-white tracking-tight">Rentabilidade por Contrato</h3>
+                                        <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-widest mt-0.5">Visão detalhada de faturamento.</p>
+                                    </div>
+                                    <Badge color="slate" className="h-9 px-4 uppercase text-[10px]">
+                                        Fee Médio: {formatBRL(dashboardData.totalFees / (clients.filter(c => c.Status === 'Ativo').length || 1))}
+                                    </Badge>
                                 </div>
-                            </div>
-                        </div>
 
-                        <TableView
-                            tab="CLIENTES" // Using CLIENTES tab as context for management
-                            data={clients.filter(c => c.Status === 'Ativo')}
-                            onUpdate={onUpdate}
-                            onDelete={() => { }} // Disabled in this view
-                            onArchive={() => { }} // Disabled in this view
-                            onAdd={() => { }} // Disabled in this view
-                            selection={selection}
-                            onSelect={onSelect}
-                            onClearSelection={() => { }}
-                            hideHeader={true}
-                        />
-                    </div>
+                                <TableView
+                                    tab="CLIENTES"
+                                    data={clients.filter(c => c.Status === 'Ativo')}
+                                    onUpdate={onUpdate}
+                                    onDelete={() => { }}
+                                    onArchive={() => { }}
+                                    onAdd={() => { }}
+                                    selection={selection}
+                                    onSelect={onSelect}
+                                    onClearSelection={() => { }}
+                                    hideHeader={true}
+                                />
+                            </Card>
 
-                    {/* SIMULATOR PANEL */}
-                    <Card title="Simulador de Lucratividade">
-                        <div className="p-8 grid grid-cols-1 lg:grid-cols-3 gap-10">
-                            <div className="space-y-6">
-                                <div className="space-y-2">
-                                    <label className="text-[9px] font-black text-app-text-muted uppercase tracking-widest pl-1">Fee Desejado</label>
-                                    <div className="relative">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-emerald-500">R$</span>
-                                        <input
-                                            type="number" value={simulator.fee}
-                                            onChange={e => setSimulator(prev => ({ ...prev, fee: Number(e.target.value) }))}
-                                            className="w-full h-14 bg-app-bg border border-app-border rounded-xl pl-10 pr-4 text-sm font-black text-app-text-strong focus:border-emerald-500/50 outline-none transition-all shadow-inner"
-                                        />
+                            {/* SIMULATOR PANEL */}
+                            <Card title="Simulador de Lucratividade">
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 py-2">
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Fee Desejado</label>
+                                            <div className="relative">
+                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-zinc-400">R$</span>
+                                                <input
+                                                    type="number" value={simulator.fee}
+                                                    onChange={e => setSimulator(prev => ({ ...prev, fee: Number(e.target.value) }))}
+                                                    className="w-full h-10 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg pl-8 pr-3 text-sm font-bold text-zinc-900 dark:text-white focus:border-zinc-500 outline-none transition-all shadow-inner"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Horas Estimadas</label>
+                                            <div className="relative">
+                                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-zinc-400 uppercase">H</span>
+                                                <input
+                                                    type="number" value={simulator.hours}
+                                                    onChange={e => setSimulator(prev => ({ ...prev, hours: Number(e.target.value) }))}
+                                                    className="w-full h-10 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 text-sm font-bold text-zinc-900 dark:text-white focus:border-zinc-500 outline-none transition-all shadow-inner"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 flex flex-col justify-center gap-1.5">
+                                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest opacity-70">Custo Op.</span>
+                                            <span className="text-lg font-bold text-rose-500">{formatBRL(simResult.cost)}</span>
+                                        </div>
+                                        <div className="bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-200/50 dark:border-emerald-500/20 rounded-xl p-5 flex flex-col justify-center gap-1.5 relative overflow-hidden group">
+                                            <Zap size={32} className="absolute -right-2 -bottom-2 text-emerald-500/10 group-hover:scale-110 transition-transform" />
+                                            <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Lucro Est.</span>
+                                            <span className="text-xl font-bold text-emerald-600">{formatBRL(simResult.profit)}</span>
+                                        </div>
+                                        <div className="bg-blue-50 dark:bg-blue-500/5 border border-blue-200/50 dark:border-blue-500/20 rounded-xl p-5 flex flex-col justify-center gap-1.5">
+                                            <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Margem Final</span>
+                                            <span className="text-xl font-bold text-blue-600">{simResult.margin.toFixed(1)}%</span>
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-[9px] font-black text-app-text-muted uppercase tracking-widest pl-1">Horas Mensais Estimadas</label>
-                                    <div className="relative">
-                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-blue-500 uppercase">H</span>
-                                        <input
-                                            type="number" value={simulator.hours}
-                                            onChange={e => setSimulator(prev => ({ ...prev, hours: Number(e.target.value) }))}
-                                            className="w-full h-14 bg-app-bg border border-app-border rounded-xl px-4 text-sm font-black text-app-text-strong focus:border-blue-500/50 outline-none transition-all shadow-inner"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="bg-app-bg/50 border border-app-border rounded-2xl p-6 flex flex-col justify-center gap-2">
-                                    <span className="text-[10px] font-black text-app-text-muted uppercase tracking-widest">Custo de Operação</span>
-                                    <span className="text-xl font-black text-rose-500">{formatBRL(simResult.cost)}</span>
-                                </div>
-                                <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-6 flex flex-col justify-center gap-2 relative overflow-hidden group">
-                                    <Zap size={40} className="absolute -right-4 -bottom-4 text-emerald-500/10 group-hover:scale-125 transition-transform" />
-                                    <span className="text-[10px] font-black text-emerald-500/80 uppercase tracking-widest">Lucro Estimado</span>
-                                    <span className="text-2xl font-black text-emerald-500">{formatBRL(simResult.profit)}</span>
-                                </div>
-                                <div className="bg-blue-500/5 border border-blue-500/10 rounded-2xl p-6 flex flex-col justify-center gap-2">
-                                    <span className="text-[10px] font-black text-blue-500/80 uppercase tracking-widest">Margem Final</span>
-                                    <span className="text-2xl font-black text-blue-500">{simResult.margin.toFixed(1)}%</span>
-                                </div>
-                            </div>
+                            </Card>
                         </div>
-                    </Card>
-                </div>
-            )}
+                    )}
 
-            {subTab === 'config' && (
-                <div className="space-y-8">
-                    <Card title="Equipe e Configuração VH">
-                        <div className="overflow-x-auto custom-scrollbar">
-                            <table className="w-full text-left border-separate border-spacing-0">
-                                <thead>
-                                    <tr className="bg-app-surface-2/30 uppercase text-[9px] font-black text-app-text-muted tracking-[0.2em] border-b border-app-border">
-                                        <th className="px-8 py-5">Colaborador</th>
-                                        <th className="px-6 py-5">Remuneração (Fixa)</th>
-                                        <th className="px-6 py-5 text-center">Horas Disponíveis</th>
-                                        <th className="px-10 py-5 text-right">Resultado VH</th>
-                                        <th className="px-8 py-5"></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {collaborators.map(c => (
-                                        <tr key={c.id} className="group hover:bg-app-surface transition-all border-b border-app-border/50">
-                                            <td className="px-8 py-5">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-sm font-black border border-blue-500/20">{c.Nome.charAt(0)}</div>
-                                                    <div>
-                                                        <span className="text-sm font-black text-app-text-strong uppercase truncate max-w-[140px] block leading-none mb-1">{c.Nome}</span>
-                                                        <span className="text-xs text-app-text-muted uppercase tracking-[0.2em] font-medium">{c.Cargo || 'Sem Cargo'}</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-5">
-                                                <div className="relative">
-                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-emerald-500">R$</span>
-                                                    <input
-                                                        type="number" value={c.Remuneracao}
-                                                        onChange={(e) => handleUpdateCollab(c.id, 'Remuneracao', e.target.value)}
-                                                        className="w-full bg-app-bg/50 border border-app-border pl-8 pr-4 py-2 rounded-xl font-mono text-sm font-black text-app-text-strong focus:outline-none focus:border-emerald-500/50 transition-all shadow-inner"
-                                                    />
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-5 text-center">
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <input
-                                                        type="number" value={c.HorasProdutivas}
-                                                        onChange={(e) => handleUpdateCollab(c.id, 'HorasProdutivas', e.target.value)}
-                                                        className="w-16 bg-app-bg/50 border border-app-border text-center font-mono text-sm font-black text-app-text-strong focus:outline-none focus:border-blue-500/50 px-2 py-2 rounded-xl transition-all shadow-inner"
-                                                    />
-                                                    <span className="text-[10px] font-black text-[#4B5563]">H</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-10 py-5 text-right">
-                                                <span className="inline-flex bg-blue-500/10 border border-blue-500/20 text-blue-500 font-mono font-black text-sm px-4 py-2 rounded-2xl shadow-lg shadow-blue-500/5">
-                                                    {formatBRL(c.calculatedVh || 0)}/h
-                                                </span>
-                                            </td>
-                                            <td className="px-8 py-5 text-center">
-                                                <button
-                                                    onClick={() => setCollaborators((prev: Colaborador[]) => prev.filter(p => p.id !== c.id))}
-                                                    className="w-10 h-10 rounded-2xl bg-rose-500/5 text-rose-500 hover:bg-rose-500 hover:text-white transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center shadow-xl"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            </td>
+                    {subTab === 'config' && (
+                        <Card className="!p-0 overflow-hidden">
+                            <div className="p-6 border-b border-zinc-100 dark:border-zinc-800">
+                                <h3 className="text-sm font-bold uppercase text-zinc-900 dark:text-white tracking-tight">Equipe e Custos</h3>
+                                <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-widest mt-0.5">Configuração individual de valor hora.</p>
+                            </div>
+                            
+                            <div className="overflow-x-auto custom-scrollbar">
+                                <table className="w-full text-left table-fixed border-separate border-spacing-0">
+                                    <thead>
+                                        <tr className="bg-zinc-50 dark:bg-zinc-800/30 uppercase text-[10px] font-bold text-zinc-500 tracking-wider">
+                                            <th className="px-6 py-3 border-b border-zinc-200 dark:border-zinc-800 w-[250px]">Colaborador</th>
+                                            <th className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">Remuneração</th>
+                                            <th className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 text-center">Horas</th>
+                                            <th className="px-6 py-3 border-b border-zinc-200 dark:border-zinc-800 text-right">Resultado VH</th>
+                                            <th className="px-6 py-3 border-b border-zinc-200 dark:border-zinc-800 w-[80px]"></th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div className="p-8 bg-app-bg/50 border-t border-app-border text-center">
-                            <div className="inline-flex items-center gap-3 bg-app-bg px-6 py-3 rounded-full border border-app-border shadow-xl">
-                                <Zap size={14} className="text-amber-500" />
-                                <p className="text-[10px] font-black text-[#4B5563] uppercase tracking-[0.3em]">
-                                    Engenharia VH: <span className="text-app-text-strong">(Custos + Remuneração) ÷ Horas</span>
-                                </p>
+                                    </thead>
+                                    <tbody>
+                                        {collaborators.map(c => (
+                                            <tr key={c.id} className="group hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-all">
+                                                <td className="px-6 py-4 border-b border-zinc-100 dark:border-zinc-800/50">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex items-center justify-center text-xs font-bold border border-zinc-200 dark:border-zinc-700">{c.Nome.charAt(0)}</div>
+                                                        <div className="min-w-0">
+                                                            <span className="text-xs font-bold text-zinc-900 dark:text-white truncate block">{c.Nome}</span>
+                                                            <span className="text-[9px] text-zinc-500 uppercase font-medium">{c.Cargo || 'Sem Cargo'}</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-4 border-b border-zinc-100 dark:border-zinc-800/50">
+                                                    <div className="relative">
+                                                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-zinc-400">R$</span>
+                                                        <input
+                                                            type="number" value={c.Remuneracao}
+                                                            onChange={(e) => handleUpdateCollab(c.id, 'Remuneracao', e.target.value)}
+                                                            className="w-full h-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 pl-7 pr-2 rounded-md font-mono text-xs font-bold text-zinc-900 dark:text-white focus:outline-none focus:border-zinc-500 transition-all shadow-sm"
+                                                        />
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-4 border-b border-zinc-100 dark:border-zinc-800/50 text-center">
+                                                    <div className="flex items-center justify-center gap-1.5">
+                                                        <input
+                                                            type="number" value={c.HorasProdutivas}
+                                                            onChange={(e) => handleUpdateCollab(c.id, 'HorasProdutivas', e.target.value)}
+                                                            className="w-12 h-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-center font-mono text-xs font-bold text-zinc-900 dark:text-white focus:outline-none focus:border-zinc-500 px-1 rounded-md transition-all shadow-sm"
+                                                        />
+                                                        <span className="text-[10px] font-bold text-zinc-400">H</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 border-b border-zinc-100 dark:border-zinc-800/50 text-right">
+                                                    <Badge color="slate" className="font-mono font-bold text-[11px] h-7 px-3">
+                                                        {formatBRL(c.calculatedVh || 0)}/h
+                                                    </Badge>
+                                                </td>
+                                                <td className="px-6 py-4 border-b border-zinc-100 dark:border-zinc-800/50 text-center">
+                                                    <button
+                                                        onClick={() => setCollaborators((prev: Colaborador[]) => prev.filter(p => p.id !== c.id))}
+                                                        className="w-8 h-8 rounded-lg text-zinc-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
-                        </div>
-                    </Card>
+
+                            <div className="p-6 bg-zinc-50/50 dark:bg-zinc-800/10 border-t border-zinc-100 dark:border-zinc-800 text-center">
+                                <span className="inline-flex items-center gap-2 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                                    <Info size={12} className="text-zinc-400" />
+                                    Cálculo VH: (Remuneração) ÷ Horas Produtivas
+                                </span>
+                            </div>
+                        </Card>
+                    )}
                 </div>
-            )}
+            </div>
         </div>
     );
 }
