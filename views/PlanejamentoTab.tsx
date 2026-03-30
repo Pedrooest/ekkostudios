@@ -929,14 +929,14 @@ export default function PlanejamentoTab({
                         </div>
 
                         <div className="p-8 border-b border-zinc-50 dark:border-zinc-800/50 shrink-0 bg-white dark:bg-zinc-900">
-                            <div className="relative group">
-                                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-blue-500 transition-colors" size={18} strokeWidth={2.5} />
+                            <div className="flex items-center gap-3 group bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-4 focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:border-blue-500/50 transition-all shadow-inner">
+                                <Search className="text-zinc-400 group-focus-within:text-blue-500 transition-colors shrink-0" size={18} strokeWidth={2.5} />
                                 <input
                                     type="text"
                                     placeholder="BUSCAR IDEIAS NO BANCO..."
                                     value={librarySearchTerm}
                                     onChange={(e) => setLibrarySearchTerm(e.target.value)}
-                                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-xs font-black uppercase rounded-2xl pl-14 pr-6 py-5 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 transition-all placeholder:text-zinc-300 dark:placeholder:text-zinc-600 tracking-widest shadow-inner"
+                                    className="flex-1 bg-transparent border-none outline-none text-xs font-black uppercase tracking-widest placeholder:text-zinc-300 dark:placeholder:text-zinc-600 text-zinc-900 dark:text-zinc-100"
                                 />
                             </div>
                         </div>

@@ -547,14 +547,14 @@ export function PlanningView({
                             </div>
 
                             <div className="p-4 border-b border-zinc-100 dark:border-zinc-800">
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={14} />
+                                <div className="flex items-center gap-2 group bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 focus-within:border-blue-500 transition-all">
+                                    <Search className="text-zinc-400 shrink-0" size={14} />
                                     <input
                                         type="text"
                                         placeholder="Pesquisar ideias..."
                                         value={librarySearchTerm}
                                         onChange={(e) => setLibrarySearchTerm(e.target.value)}
-                                        className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl pl-9 pr-4 py-2.5 text-xs font-medium focus:outline-none focus:border-blue-500 transition-all"
+                                        className="flex-1 bg-transparent border-none outline-none text-xs font-medium text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
                                     />
                                 </div>
                             </div>

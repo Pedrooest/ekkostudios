@@ -186,12 +186,12 @@ export function VhManagementView({
                                     <div className="space-y-4">
                                         <div>
                                             <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Fee Desejado</label>
-                                            <div className="relative">
-                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-zinc-400">R$</span>
+                                            <div className="flex items-center gap-1.5 w-full h-10 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 focus-within:border-zinc-500 transition-all shadow-inner">
+                                                <span className="text-[10px] font-bold text-zinc-400 shrink-0">R$</span>
                                                 <input
                                                     type="number" value={simulator.fee}
                                                     onChange={e => setSimulator(prev => ({ ...prev, fee: Number(e.target.value) }))}
-                                                    className="w-full h-10 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg pl-8 pr-3 text-sm font-bold text-zinc-900 dark:text-white focus:border-zinc-500 outline-none transition-all shadow-inner"
+                                                    className="flex-1 bg-transparent border-none outline-none text-sm font-bold text-zinc-900 dark:text-white min-w-0"
                                                 />
                                             </div>
                                         </div>
@@ -259,12 +259,12 @@ export function VhManagementView({
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-4 border-b border-zinc-100 dark:border-zinc-800/50">
-                                                    <div className="relative">
-                                                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-zinc-400">R$</span>
+                                                    <div className="flex items-center gap-1 w-full h-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-md px-2.5 focus-within:border-zinc-500 transition-all shadow-sm">
+                                                        <span className="text-[10px] font-bold text-zinc-400 shrink-0">R$</span>
                                                         <input
                                                             type="number" value={c.Remuneracao}
                                                             onChange={(e) => handleUpdateCollab(c.id, 'Remuneracao', e.target.value)}
-                                                            className="w-full h-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 pl-7 pr-2 rounded-md font-mono text-xs font-bold text-zinc-900 dark:text-white focus:outline-none focus:border-zinc-500 transition-all shadow-sm"
+                                                            className="flex-1 bg-transparent border-none outline-none font-mono text-xs font-bold text-zinc-900 dark:text-white min-w-0"
                                                         />
                                                     </div>
                                                 </td>

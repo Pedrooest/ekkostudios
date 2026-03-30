@@ -248,42 +248,42 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                 <div className="space-y-4">
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">RESPONSÁVEL</label>
-                    <div className="relative group">
-                      <Users size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 transition-colors group-focus-within:text-blue-500" />
+                    <div className="flex items-center gap-2 group w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 focus-within:border-blue-500/50 transition-all">
+                      <Users size={14} className="text-zinc-400 transition-colors group-focus-within:text-blue-500 shrink-0" />
                       <input 
                         type="text" 
                         value={selectedClient.Responsável || ''} 
                         onChange={(e) => handleUpdateField('Responsável', e.target.value)}
-                        className="w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl pl-11 pr-4 text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500/50 transition-all"
+                        className="flex-1 bg-transparent border-none outline-none text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 min-w-0"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">WHATSAPP</label>
-                    <div className="relative group">
-                      <Phone size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500" />
-                      <input 
-                        type="text" 
-                        value={selectedClient.WhatsApp || ''} 
-                        onChange={(e) => handleUpdateField('WhatsApp', e.target.value)}
-                        className="w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl pl-11 pr-4 text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition-all"
-                        placeholder="EX: +55 11 99999-9999"
-                      />
+                    <div className="flex items-center gap-2 group w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 focus-within:border-emerald-500/50 transition-all">
+                       <Phone size={14} className="text-emerald-500 shrink-0" />
+                       <input 
+                         type="text" 
+                         value={selectedClient.WhatsApp || ''} 
+                         onChange={(e) => handleUpdateField('WhatsApp', e.target.value)}
+                         className="flex-1 bg-transparent border-none outline-none text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 min-w-0"
+                         placeholder="EX: +55 11 99999-9999"
+                       />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">INSTAGRAM</label>
-                    <div className="relative group">
-                      <Instagram size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-rose-500" />
-                      <input 
-                        type="text" 
-                        value={selectedClient.Instagram || ''} 
-                        onChange={(e) => handleUpdateField('Instagram', e.target.value)}
-                        className="w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl pl-11 pr-4 text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-rose-500/50 transition-all"
-                        placeholder="EX: @USER"
-                      />
+                    <div className="flex items-center gap-2 group w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 focus-within:border-rose-500/50 transition-all">
+                       <Instagram size={14} className="text-rose-500 shrink-0" />
+                       <input 
+                         type="text" 
+                         value={selectedClient.Instagram || ''} 
+                         onChange={(e) => handleUpdateField('Instagram', e.target.value)}
+                         className="flex-1 bg-transparent border-none outline-none text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 min-w-0"
+                         placeholder="EX: @USER"
+                       />
                     </div>
                   </div>
                 </div>
@@ -298,15 +298,15 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                 <div className="space-y-4">
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">OBJETIVO PRINCIPAL</label>
-                    <div className="relative group">
-                      <Target size={14} className="absolute left-4 top-4 text-zinc-400 transition-colors group-focus-within:text-blue-500" />
-                      <textarea 
-                        value={selectedClient.Objetivo || ''} 
-                        onChange={(e) => handleUpdateField('Objetivo', e.target.value)}
-                        rows={3}
-                        className="w-full bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl pl-11 pr-4 py-3 text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500/50 transition-all resize-none"
-                        placeholder="EX: EXPANSÃO DE MARCA E CONVERSÃO EM HIGH-TICKET"
-                      />
+                    <div className="flex items-start gap-2 group w-full bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 py-3 focus-within:border-blue-500/50 transition-all">
+                       <Target size={14} className="text-zinc-400 transition-colors group-focus-within:text-blue-500 shrink-0 mt-0.5" />
+                       <textarea 
+                         value={selectedClient.Objetivo || ''} 
+                         onChange={(e) => handleUpdateField('Objetivo', e.target.value)}
+                         rows={3}
+                         className="flex-1 bg-transparent border-none outline-none text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 resize-none min-w-0"
+                         placeholder="EX: EXPANSÃO DE MARCA E CONVERSÃO EM HIGH-TICKET"
+                       />
                     </div>
                   </div>
 

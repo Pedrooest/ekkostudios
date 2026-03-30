@@ -321,12 +321,12 @@ export default function FinancasTab({ data = [], onAdd, onUpdate, onDelete, clie
                 <Card title="HISTÓRICO DE LANÇAMENTOS" className="!p-0 overflow-hidden">
                     <div className="p-5 border-b border-zinc-100 dark:border-zinc-800 flex flex-col xl:flex-row justify-between xl:items-center gap-4 bg-zinc-50/50 dark:bg-zinc-900/20">
                         <div className="flex flex-wrap items-center gap-3">
-                            <div className="relative w-full md:w-72 group">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-zinc-900 dark:group-focus-within:text-white transition-colors" size={14} />
+                            <div className="flex items-center gap-2 w-full md:w-72 group h-10 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3.5 focus-within:ring-4 focus-within:ring-zinc-500/10 transition-all shadow-sm">
+                                <Search className="text-zinc-400 group-focus-within:text-zinc-900 dark:group-focus-within:text-white transition-colors shrink-0" size={14} />
                                 <input 
                                     type="text" placeholder="BUSCAR LANÇAMENTO..."
                                     value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                                    className="w-full h-10 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl pl-9 pr-4 text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-4 focus:ring-zinc-500/10 transition-all shadow-sm font-sans"
+                                    className="flex-1 bg-transparent border-none outline-none text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 font-sans"
                                 />
                             </div>
                             <InputSelect 
@@ -446,24 +446,24 @@ export default function FinancasTab({ data = [], onAdd, onUpdate, onDelete, clie
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-[0.1em] text-zinc-400 ml-1">VALOR BRUTO</label>
-                                    <div className="relative group">
-                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-zinc-400 text-xs">R$</div>
+                                    <div className="flex items-center gap-2 group w-full h-12 bg-zinc-50 dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-2xl px-4 focus-within:border-zinc-900/10 dark:focus-within:border-white/10 transition-all">
+                                        <div className="font-black text-zinc-400 text-xs shrink-0">R$</div>
                                         <input 
                                             type="number" step="0.01" required
                                             value={formData.valor} onChange={e => setFormData({...formData, valor: e.target.value})}
-                                            className="w-full h-12 bg-zinc-50 dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-2xl pl-11 pr-4 text-xl font-black tabular-nums focus:border-zinc-900/10 dark:focus:border-white/10 outline-none transition-all placeholder-zinc-300 cursor-text"
+                                            className="flex-1 bg-transparent border-none outline-none text-xl font-black tabular-nums text-zinc-900 dark:text-zinc-100 placeholder-zinc-300 min-w-0 cursor-text"
                                             placeholder="0,00"
                                         />
                                     </div>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-[0.1em] text-zinc-400 ml-1">DATA EFETIVA</label>
-                                    <div className="relative">
-                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
+                                    <div className="flex items-center gap-2 w-full h-12 bg-zinc-50 dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-2xl px-4 focus-within:border-zinc-900/10 dark:focus-within:border-white/10 transition-all">
+                                        <Calendar className="text-zinc-400 shrink-0" size={16} />
                                         <input 
                                             type="date" required
                                             value={formData.data} onChange={e => setFormData({...formData, data: e.target.value})}
-                                            className="w-full h-12 bg-zinc-50 dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-2xl pl-11 pr-4 text-[11px] font-black uppercase outline-none focus:border-zinc-900/10 dark:focus:border-white/10 transition-all"
+                                            className="flex-1 bg-transparent border-none outline-none text-[11px] font-black uppercase text-zinc-900 dark:text-zinc-100 min-w-0"
                                         />
                                     </div>
                                 </div>
@@ -527,10 +527,10 @@ export default function FinancasTab({ data = [], onAdd, onUpdate, onDelete, clie
                 </div>
             )}
 
-            {/* QUICK FAB */}
+            {/* QUICK FAB - hidden on mobile to avoid overlap with global + NOVO FAB */}
             <button 
                 onClick={() => handleOpenModal('entrada')}
-                className="fixed bottom-8 right-8 z-[1100] w-16 h-16 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-2xl shadow-2xl flex items-center justify-center transition-all hover:scale-110 hover:-rotate-6 active:scale-90 group ring-4 ring-zinc-500/10 focus:outline-none"
+                className="hidden md:flex fixed bottom-8 right-8 z-[1100] w-16 h-16 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-2xl shadow-2xl items-center justify-center transition-all hover:scale-110 hover:-rotate-6 active:scale-90 group ring-4 ring-zinc-500/10 focus:outline-none"
             >
                 <Plus size={32} strokeWidth={3} />
             </button>

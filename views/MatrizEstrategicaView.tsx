@@ -191,14 +191,14 @@ export function MatrizEstrategicaView({
             />
           </div>
 
-          <div className="relative flex-1 group min-w-[200px]">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-zinc-900 dark:group-focus-within:text-zinc-100 transition-colors" size={14} />
+          <div className="flex items-center gap-2 flex-1 group min-w-[200px] h-10 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 focus-within:ring-2 focus-within:ring-zinc-500/10 focus-within:border-zinc-500 transition-all">
+            <Search className="text-zinc-400 group-focus-within:text-zinc-900 dark:group-focus-within:text-zinc-100 transition-colors shrink-0" size={14} />
             <input
               type="text"
               placeholder="Buscar por papéis, conteúdo..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full h-10 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl pl-9 pr-4 text-[11px] font-medium text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-500/10 focus:border-zinc-500 transition-all font-sans"
+              className="flex-1 bg-transparent border-none outline-none text-[11px] font-medium text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 font-sans"
             />
           </div>
           

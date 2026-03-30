@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { 
   List, LayoutGrid, Search, Plus, Trash2, Edit2, 
@@ -67,7 +67,18 @@ export function CoboView({
   clients, activeClient, onSelectClient,
   selection, onSelect, onClearSelection
 }: CoboViewProps) {
-  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>(window.innerWidth < 640 ? 'cards' : 'table');
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 640;
+      setIsMobile(mobile);
+      if (mobile) setViewMode('cards');
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCanal, setFilterCanal] = useState<string | null>(null);
   const [filterZona, setFilterZona] = useState<string | null>(null);
@@ -145,20 +156,23 @@ export function CoboView({
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg border border-zinc-200 dark:border-zinc-700">
-            <button
-              onClick={() => { playUISound('tap'); setViewMode('table'); }}
-              className={`p-1.5 rounded transition-all ${viewMode === 'table' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
-            >
-              <List size={16} />
-            </button>
-            <button
-              onClick={() => { playUISound('tap'); setViewMode('cards'); }}
-              className={`p-1.5 rounded transition-all ${viewMode === 'cards' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
-            >
-              <LayoutGrid size={16} />
-            </button>
-          </div>
+          {/* Toggle list/card — hidden on mobile (always cards) */}
+          {!isMobile && (
+            <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg border border-zinc-200 dark:border-zinc-700">
+              <button
+                onClick={() => { playUISound('tap'); setViewMode('table'); }}
+                className={`p-1.5 rounded transition-all ${viewMode === 'table' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+              >
+                <List size={16} />
+              </button>
+              <button
+                onClick={() => { playUISound('tap'); setViewMode('cards'); }}
+                className={`p-1.5 rounded transition-all ${viewMode === 'cards' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+              >
+                <LayoutGrid size={16} />
+              </button>
+            </div>
+          )}
 
           <Button onClick={onAdd} className="!h-10 !px-5 !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 !rounded-lg !text-[11px] !font-bold !uppercase shadow-lg shadow-zinc-500/10 transition-transform hover:scale-[1.02]">
             <Plus size={16} className="mr-2" /> Novo Registro
@@ -168,14 +182,14 @@ export function CoboView({
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1 group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-zinc-900 dark:group-focus-within:text-zinc-100 transition-colors" size={18} />
+        <div className="flex items-center gap-2 flex-1 group h-12 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 focus-within:ring-2 focus-within:ring-zinc-500/10 focus-within:border-zinc-500 transition-all">
+          <Search className="text-zinc-400 group-focus-within:text-zinc-900 dark:group-focus-within:text-zinc-100 transition-colors shrink-0" size={18} />
           <input
             type="text"
             placeholder="Buscar por canal, intenção ou formato..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full h-12 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl pl-11 pr-4 text-[11px] font-medium text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-zinc-500/10 focus:border-zinc-500 transition-all font-sans"
+            className="flex-1 bg-transparent border-none outline-none text-[11px] font-medium text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 font-sans"
           />
         </div>
 

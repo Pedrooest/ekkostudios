@@ -1451,12 +1451,12 @@ export default function App() {
               </button>
 
               <Button ref={exportButtonRef} variant="secondary" onClick={() => setIsExportModalOpen(true)} className="!rounded-xl !h-[38px] !px-4 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2 snap-start whitespace-nowrap">
-                <Download size={14} /> Exportar
+                <Download size={14} /> <span className="hidden sm:inline">Exportar</span>
               </Button>
 
               {/* Desktop Assistant (Hidden here as it's in the top bar for MD+) */}
               <Button variant="secondary" onClick={() => setIsAssistantOpen(true)} className="md:hidden !border-blue-600/30 hover:!border-blue-600 !text-blue-500 !rounded-xl !h-[38px] !px-4 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2 snap-start whitespace-nowrap">
-                <Sparkles size={14} /> Gemini
+                <Sparkles size={14} /> <span className="hidden sm:inline">Gemini</span>
               </Button>
             </div>
             {/* Visual fade indicators for scroll */}

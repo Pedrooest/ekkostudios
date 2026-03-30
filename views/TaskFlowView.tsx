@@ -240,14 +240,14 @@ export function TaskFlowView({
                         ))}
                     </div>
 
-                    <div className="relative group">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-zinc-900 dark:group-focus-within:text-white transition-colors" size={14} />
+                    <div className="flex items-center gap-2 group h-10 w-48 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 focus-within:ring-4 focus-within:ring-zinc-500/5 transition-all">
+                        <Search className="text-zinc-400 group-focus-within:text-zinc-900 dark:group-focus-within:text-white transition-colors shrink-0" size={14} />
                         <input
                             type="text"
                             value={globalSearch}
                             onChange={e => setGlobalSearch(e.target.value)}
                             placeholder="BUSCAR TAREFA..."
-                            className="w-48 h-10 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-xl pl-9 text-[10px] font-black uppercase tracking-widest outline-none focus:ring-4 focus:ring-zinc-500/5 transition-all"
+                            className="flex-1 bg-transparent border-none outline-none text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100"
                         />
                     </div>
 

@@ -214,14 +214,14 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                    <div className="relative group hidden sm:block">
-                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400 w-3.5 h-3.5" />
+                    <div className="flex items-center gap-2 group hidden sm:flex h-9 w-48 bg-zinc-100 dark:bg-zinc-800 rounded-lg px-2.5 focus-within:ring-2 focus-within:ring-zinc-500/20 transition-all shadow-inner">
+                        <Search className="text-zinc-400 w-3.5 h-3.5 shrink-0" />
                         <input
                             type="text"
                             placeholder="Buscar..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="h-9 w-48 pl-9 pr-3 bg-zinc-100 dark:bg-zinc-800 border-none rounded-lg text-xs font-medium focus:ring-2 focus:ring-zinc-500/20 transition-all shadow-inner"
+                            className="flex-1 bg-transparent border-none outline-none text-xs font-medium text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 min-w-0"
                         />
                     </div>
                     <Button
