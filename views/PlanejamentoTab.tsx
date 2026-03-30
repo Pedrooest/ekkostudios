@@ -633,7 +633,7 @@ export default function PlanejamentoTab({
                                                     </td>
                                                     <td className="px-8 py-5 max-w-[400px]">
                                                         <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 line-clamp-1 leading-relaxed italic">
-                                                            "{post.Conteúdo}"
+                                                            {post.Conteúdo}
                                                         </p>
                                                     </td>
                                                     <td className="px-8 py-5">
@@ -723,8 +723,8 @@ export default function PlanejamentoTab({
                                                         </div>
                                                     </div>
 
-                                                    <p className="text-sm font-bold text-zinc-900 dark:text-white leading-relaxed mb-6 line-clamp-3 italic">
-                                                        "{post.Conteúdo}"
+                                                    <p className="text-sm font-bold text-zinc-900 dark:text-white leading-relaxed mb-6 line-clamp-3">
+                                                        {post.Conteúdo}
                                                     </p>
 
                                                     <div className="flex items-center justify-between mt-auto pt-4 border-t border-zinc-50 dark:border-zinc-800/50">
@@ -743,8 +743,11 @@ export default function PlanejamentoTab({
                                         })}
 
                                         {colEvents.length === 0 && (
-                                            <div className="h-32 border-2 border-dashed border-zinc-100 dark:border-zinc-800/50 rounded-3xl flex items-center justify-center">
-                                                <span className="text-[10px] font-black text-zinc-300 dark:text-zinc-600 uppercase tracking-widest">Vazio</span>
+                                            <div className="flex flex-col items-center justify-center py-10 gap-3 border-2 border-dashed border-zinc-100 dark:border-zinc-800/50 rounded-3xl">
+                                                <div className="w-10 h-10 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-300 dark:text-zinc-600">
+                                                    <FolderOpen size={20} />
+                                                </div>
+                                                <span className="text-[10px] font-black text-zinc-300 dark:text-zinc-600 uppercase tracking-widest text-center">Nenhum conteúdo aqui ainda</span>
                                             </div>
                                         )}
                                     </div>

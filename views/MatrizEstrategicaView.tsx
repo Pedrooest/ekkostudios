@@ -234,7 +234,7 @@ export function MatrizEstrategicaView({
         /* TABLE MODE (Zinc Dense) */
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
           <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left border-collapse whitespace-nowrap table-fixed min-w-[1000px]">
+            <table className="w-full text-left border-collapse whitespace-nowrap min-w-[1100px]">
               <thead>
                 <tr className="bg-zinc-50/50 dark:bg-zinc-800/30 border-b border-zinc-100 dark:border-zinc-800">
                   <th className="px-6 py-4 w-12 text-center shrink-0">
@@ -248,14 +248,14 @@ export function MatrizEstrategicaView({
                       className="w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500/20" 
                     />
                   </th>
-                  {!activeClient && <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[150px]">Cliente</th>}
-                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[120px]">Rede Social</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[120px]">Função</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[20%]">Quem Fala</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[20%]">Papel Estratégico</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[20%]">Tipo de Conteúdo</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[20%]">Resultado</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right w-[100px]">Ações</th>
+                  {!activeClient && <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest min-w-[140px]">Cliente</th>}
+                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest min-w-[120px]">Rede Social</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest min-w-[180px]">Função</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest min-w-[180px]">Quem Fala</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest min-w-[200px]">Papel Estratégico</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest min-w-[200px]">Tipo de Conteúdo</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest min-w-[180px]">Resultado</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right min-w-[80px]">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -280,26 +280,26 @@ export function MatrizEstrategicaView({
                         <span className="text-[11px] font-bold text-zinc-900 dark:text-zinc-100 truncate block">{client?.Nome || 'Agência'}</span>
                       </td>
                     )}
-                    <td className="px-6 py-3">
-                        <div className="flex items-center gap-2 overflow-hidden">
+                    <td className="px-6 py-3 min-w-[120px]">
+                        <div className="flex items-center gap-2">
                           <div className="text-zinc-400 shrink-0">{getSocialIcon(row['Rede_Social'])}</div>
-                          <Badge color={getSocialColor(row['Rede_Social'])} className="!py-0 !text-[9px] !rounded-md !uppercase truncate">{row['Rede_Social'] || 'N/A'}</Badge>
+                          <Badge color={getSocialColor(row['Rede_Social'])} className="!py-0 !text-[9px] !rounded-md !uppercase whitespace-nowrap">{row['Rede_Social'] || 'N/A'}</Badge>
                         </div>
                     </td>
-                    <td className="px-6 py-3">
-                        <Badge color={getFuncaoColor(row['Função'])} className="!py-0 !text-[9px] !rounded-md !uppercase truncate w-full">{row['Função'] || 'N/A'}</Badge>
+                    <td className="px-6 py-3 min-w-[180px]" title={row['Função']}>
+                        <Badge color={getFuncaoColor(row['Função'])} className="!py-0 !text-[9px] !rounded-md !uppercase whitespace-nowrap">{row['Função'] || 'N/A'}</Badge>
                     </td>
-                    <td className="px-6 py-3 text-[11px] font-medium text-zinc-500 truncate" title={row['Quem fala']}>
-                      {row['Quem fala'] || '-'}
+                    <td className="px-6 py-3 min-w-[180px] text-[11px] font-medium text-zinc-500" title={row['Quem fala']}>
+                      <span className="block truncate max-w-[180px]">{row['Quem fala'] || '-'}</span>
                     </td>
-                    <td className="px-6 py-3 text-[11px] font-bold text-zinc-900 dark:text-zinc-100 truncate" title={row['Papel estratégico']}>
-                      {row['Papel estratégico'] || '-'}
+                    <td className="px-6 py-3 min-w-[200px] text-[11px] font-bold text-zinc-900 dark:text-zinc-100" title={row['Papel estratégico']}>
+                      <span className="block truncate max-w-[200px]">{row['Papel estratégico'] || '-'}</span>
                     </td>
-                    <td className="px-6 py-3 text-[11px] font-medium text-zinc-500 truncate" title={row['Tipo de conteúdo']}>
-                      {row['Tipo de conteúdo'] || '-'}
+                    <td className="px-6 py-3 min-w-[200px] text-[11px] font-medium text-zinc-500" title={row['Tipo de conteúdo']}>
+                      <span className="block truncate max-w-[200px]">{row['Tipo de conteúdo'] || '-'}</span>
                     </td>
-                    <td className="px-6 py-3 text-[11px] font-medium text-zinc-500 truncate" title={row['Resultado esperado']}>
-                      {row['Resultado esperado'] || '-'}
+                    <td className="px-6 py-3 min-w-[180px] text-[11px] font-medium text-zinc-500" title={row['Resultado esperado']}>
+                      <span className="block truncate max-w-[180px]">{row['Resultado esperado'] || '-'}</span>
                     </td>
                       <td className="px-6 py-3 text-right" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

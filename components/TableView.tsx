@@ -101,29 +101,31 @@ export function TableView({
 
     const isRDC = tab === 'RDC';
     const rdcHeader = (
-        <div className="p-4 md:p-6 border-b border-app-border flex flex-col gap-4 md:grid md:grid-cols-3 items-center bg-app-surface-2">
-            <div className="text-center md:text-left w-full">
-                <h3 className="font-bold text-app-text-strong text-xs uppercase tracking-widest">{ROTULOS_TABELAS['RDC']} (R×D×C)</h3>
-            </div>
-            <div className="flex justify-center w-full px-0 md:px-4">
-                {onSelectClient && (
-                    <div className="relative w-full max-w-md group">
-                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none z-10">
-                            <i className="fa-solid fa-user text-[10px] text-blue-500"></i>
-                        </div>
-                        <InputSelect
-                            value={activeClient ? activeClient.id : ""}
-                            onChange={(val) => onSelectClient && onSelectClient(val)}
-                            options={clients?.map((c) => ({ value: c.id, label: c.Nome })) || []}
-                            placeholder="Selecionar Cliente"
-                            className="w-full bg-app-bg text-app-text-strong text-xs font-bold uppercase py-3 pl-10 pr-10 rounded-xl border border-app-border outline-none transition-all shadow-lg text-center tracking-widest hover:border-blue-500"
-                        />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-4 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
+            <div className="flex items-center gap-4 flex-1">
+                <div className="w-12 h-12 bg-gradient-to-br from-rose-500 to-orange-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-rose-500/20 shrink-0">
+                    <i className="fa-solid fa-bolt text-lg" />
+                </div>
+                <div className="min-w-0">
+                    <div className="flex items-center gap-3">
+                        <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">VALIDAÇÃO RDC</h2>
+                        <span className="text-[10px] font-black text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 rounded-lg border border-zinc-200 dark:border-zinc-700">{filteredData.length} registros</span>
                     </div>
-                )}
+                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate">
+                        Análise de Resolução, Demanda e Competição
+                    </p>
+                </div>
             </div>
-            <div className="flex justify-center md:justify-end gap-4 items-center w-full">
+            <div className="flex items-center gap-3 shrink-0">
                 <DeletionBar count={selection.length} onDelete={() => onDelete(selection, tab)} onArchive={() => onArchive(selection, tab, true)} onClear={onClearSelection} />
-                {onAdd && <Button onClick={() => onAdd(tab)} className="hidden md:flex w-full md:w-auto !bg-blue-600 !text-white hover:!bg-blue-700 !border-none shadow-lg">+ Novo Registro</Button>}
+                {onAdd && (
+                    <button
+                        onClick={() => onAdd(tab)}
+                        className="flex items-center gap-2 h-10 px-5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest shadow-lg shadow-rose-500/20 transition-all hover:scale-[1.02]"
+                    >
+                        <Plus size={16} /> Novo Registro
+                    </button>
+                )}
             </div>
         </div>
     );
@@ -179,7 +181,12 @@ export function TableView({
                                 return (
                                     <th key={c} style={widthStyle} className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-zinc-500 border-b border-zinc-200 dark:border-zinc-700 whitespace-nowrap text-left">
                                         <div className="flex items-center gap-2 min-w-0">
-                                            <span className="truncate">{c}</span>
+                                            <span className="truncate">
+                                                {c === 'Rede_Social' ? 'Rede Social'
+                                                    : c === 'Tipo de conteudo' ? 'Tipo de Conteúdo'
+                                                    : c === 'Tipo de conteúdo' ? 'Tipo de Conteúdo'
+                                                    : c}
+                                            </span>
                                         </div>
                                     </th>
                                 );
@@ -385,7 +392,13 @@ function renderCell(tab: TipoTabela, row: any, col: string, update: Function, cl
         if (["Resolução (1–5)", "Demanda (1–5)", "Competição (1–5)"].includes(col)) {
             return (
                 <div className="flex justify-center">
-                    <Stepper value={parseInt(row[col]) || 0} onChange={(val) => update(row.id, tab, col, val)} min={1} max={5} className="border-none bg-[#0B0B0E]/30" />
+                    <Stepper
+                        value={parseInt(row[col]) || 0}
+                        onChange={(val) => update(row.id, tab, col, val)}
+                        min={1}
+                        max={5}
+                        className="border-none bg-[#0B0B0E]/30"
+                    />
                 </div>
             );
         }

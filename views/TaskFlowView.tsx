@@ -155,7 +155,12 @@ export function TaskFlowView({
     };
 
     const getEventosDoDia = (dateStr: string) => {
-        return filteredTasks.filter((t: any) => t.Data_Entrega === dateStr);
+        return filteredTasks.filter((t: any) => {
+            if (!t.Data_Entrega) return false;
+            // Normalize: handle ISO datetime strings like '2026-03-30T00:00:00'
+            const taskDate = String(t.Data_Entrega).split('T')[0];
+            return taskDate === dateStr;
+        });
     };
 
     const [activeDragTask, setActiveDragTask] = useState<any>(null);
@@ -459,7 +464,9 @@ export function TaskFlowView({
                                         <div
                                             key={idx}
                                             className={`p-2 border-r border-b border-zinc-200 dark:border-zinc-800 transition-all relative flex flex-col min-h-[140px] ${diaObj.isNextMonth || diaObj.isPrevMonth ? 'bg-zinc-50/50 dark:bg-zinc-900/20 opacity-40' :
-                                                isToday ? 'bg-zinc-100/50 dark:bg-zinc-800/30' : 'bg-transparent'
+                                                isToday ? 'bg-blue-50/60 dark:bg-blue-900/10' :
+                                                evts.length > 0 ? 'bg-zinc-50/80 dark:bg-zinc-800/20' :
+                                                'bg-transparent'
                                                 } hover:bg-zinc-50 dark:hover:bg-zinc-900/50 group`}
                                         >
                                             <div className="flex justify-between items-start mb-2 px-1">
@@ -471,28 +478,31 @@ export function TaskFlowView({
                                                 </button>
                                             </div>
 
-                                            <div className="flex-1 space-y-1.5 pb-1 overflow-y-auto custom-scrollbar-mini max-h-[160px]">
+                                            <div className="flex-1 space-y-1 pb-1 overflow-y-auto custom-scrollbar-mini max-h-[160px]">
                                                 {evts.map(Tarefa => {
                                                     const Cliente = clients.find((c: any) => c.id === Tarefa.Cliente_ID);
+                                                    const clientColor = Cliente?.['Cor (HEX)'] || '#3B82F6';
                                                     const isDone = Tarefa.Status === 'done' || Tarefa.Status === 'concluido';
+                                                    const statusObj = DEFAULT_TASK_STATUSES.find((s: any) => s.id === Tarefa.Status);
 
                                                     return (
                                                         <div
                                                             key={Tarefa.id}
                                                             onClick={() => onSelectTask(Tarefa.id)}
-                                                            className={`group relative p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 cursor-pointer overflow-hidden transition-all bg-white dark:bg-zinc-900 shadow-sm ${isDone ? 'opacity-40' : ''}`}
+                                                            title={Tarefa.Título}
+                                                            className={`group relative flex items-center gap-1.5 px-2 py-1 rounded-lg cursor-pointer transition-all hover:brightness-95 active:scale-[0.98] overflow-hidden shadow-sm ${isDone ? 'opacity-40' : ''}`}
+                                                            style={{
+                                                                backgroundColor: clientColor + '18',
+                                                                borderLeft: `3px solid ${clientColor}`,
+                                                            }}
                                                         >
-                                                            <div className="absolute left-0 top-0 bottom-0 w-1 opacity-60" style={{ backgroundColor: Cliente?.['Cor (HEX)'] || '#3B82F6' }} />
-                                                            <div className="pl-2 flex flex-col gap-0.5">
-                                                                <div className="flex justify-between items-center">
-                                                                    <span className="text-[7px] font-black uppercase tracking-[0.1em] text-zinc-400 truncate">
-                                                                        {Cliente?.Nome || 'AGÊNCIA'}
-                                                                    </span>
-                                                                </div>
-                                                                <div className={`text-[9px] font-black leading-tight uppercase tracking-tight line-clamp-2 ${isDone ? 'text-zinc-400 line-through' : 'text-zinc-900 dark:text-zinc-100'}`}>
-                                                                    {Tarefa.Título}
-                                                                </div>
-                                                            </div>
+                                                            <div
+                                                                className="w-1.5 h-1.5 rounded-full shrink-0"
+                                                                style={{ backgroundColor: statusObj?.cor || clientColor }}
+                                                            />
+                                                            <span className={`text-[9px] font-black leading-tight uppercase tracking-tight truncate flex-1 ${isDone ? 'text-zinc-400 line-through' : 'text-zinc-900 dark:text-zinc-100'}`}>
+                                                                {Tarefa.Título}
+                                                            </span>
                                                         </div>
                                                     );
                                                 })}

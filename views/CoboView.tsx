@@ -226,8 +226,8 @@ export function CoboView({
                   <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[15%]">Canal</th>
                   <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[15%]">Frequência</th>
                   <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[15%]">Zona</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[25%]">Intenção</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest w-[30%]">Formato</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest min-w-[180px]">Intenção</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest min-w-[180px]">Formato</th>
                   <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right w-[100px]">Ações</th>
                 </tr>
               </thead>
@@ -246,11 +246,15 @@ export function CoboView({
                     <td className="px-6 py-3">
                       <Badge color={getZonaColor(item.Zona) as any} className="truncate">{item.Zona}</Badge>
                     </td>
-                    <td className="px-6 py-3">
-                      <Badge color="slate" className="truncate">{item.Intenção}</Badge>
+                    <td className="px-6 py-3 min-w-[180px]">
+                      <div className="max-w-[180px] overflow-hidden">
+                        <Badge color="slate" className="truncate block">{item.Intenção}</Badge>
+                      </div>
                     </td>
-                    <td className="px-6 py-3">
-                      <Badge color="slate" className="truncate">{item.Formato}</Badge>
+                    <td className="px-6 py-3 min-w-[180px]">
+                      <div className="max-w-[180px] overflow-hidden">
+                        <Badge color="slate" className="truncate block">{item.Formato}</Badge>
+                      </div>
                     </td>
                     <td className="px-6 py-3 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
