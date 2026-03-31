@@ -41,8 +41,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({ onClic
 
 Button.displayName = 'Button';
 
-export const Card: React.FC<{ children: React.ReactNode; title?: string; extra?: React.ReactNode; className?: string; onClick?: (e: React.MouseEvent) => void }> = ({ children, title, extra, className = "", onClick }) => (
+export const Card: React.FC<{ children: React.ReactNode; title?: string; extra?: React.ReactNode; className?: string; onClick?: (e: React.MouseEvent) => void; id?: string }> = ({ children, title, extra, className = "", onClick, id }) => (
   <div 
+    id={id}
     onClick={onClick}
     className={`rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-4 ${onClick ? 'cursor-pointer active:scale-[0.99]' : ''} ${className}`}
   >
@@ -52,9 +53,7 @@ export const Card: React.FC<{ children: React.ReactNode; title?: string; extra?:
         {extra && <div className="flex items-center gap-2 shrink-0">{extra}</div>}
       </div>
     )}
-    <div className="flex-1">
-      {children}
-    </div>
+    {children}
   </div>
 );
 

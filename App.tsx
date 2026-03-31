@@ -726,10 +726,14 @@ export default function App() {
     else if (tab === 'PLANEJAMENTO') currentList = planejamento;
     else if (tab === 'FINANCAS') currentList = financas;
     else if (tab === 'TAREFAS') currentList = tasks;
+    else if (tab === 'CHECKLISTS') currentList = checklists;
     else if (tab === 'IA_HISTORY') currentList = iaHistory;
 
     const originalItem = currentList.find(i => i.id === id);
-    if (!originalItem) return;
+    if (!originalItem) {
+      console.warn(`[EKKO-SYNC] UPDATE_FAILED | Could not find original item for tab: ${tab} with ID: ${id}. Ensure currentList is mapped correctly.`);
+      return;
+    }
 
     let updated = { ...originalItem, [field]: value, updated_at: new Date().toISOString() };
 
@@ -843,15 +847,18 @@ export default function App() {
   }, [currentWorkspace, currentUser, addNotification, clients, rdc, matriz, cobo, planejamento, financas, tasks, iaHistory]);
 
   const handleAddRow = useCallback(async (tab: TipoTabela, initial: Partial<any> = {}): Promise<string> => {
+    console.log(`[EKKO-DIAGNOSTIC] handleAddRow started | Tab: ${tab} | WorkspaceID: ${currentWorkspace?.id} | initialData:`, initial);
+    
     // Permission Check
     const member = currentWorkspace?.membros_workspace?.find((m: any) => m.id_usuario === currentUser?.id);
     if (member && member.papel === 'viewer') {
       alert('Você tem permissão apenas de visualização.');
-      return;
+      return '';
     }
     if (!currentWorkspace) {
-      alert("Selecione um Workspace primeiro.");
-      return;
+      alert("Nenhum workspace selecionado. Selecione um Workspace primeiro.");
+      addNotification('error', 'Sem Workspace', 'Nenhum workspace selecionado. Selecione um Workspace primeiro.');
+      return '';
     }
     // Fix: Prevent creation of items with invalid Foreign Key if no clients exist
     if (clients.length === 0 && !['CLIENTES', 'DASHBOARD', 'VH', 'ORGANICKIA'].includes(tab)) {
@@ -880,6 +887,7 @@ export default function App() {
     } else if (tab === 'COBO') newItem = { id, Cliente_ID: defaultClientId, Canal: 'Instagram', Frequência: '', Público: '', Voz: '', Zona: '', Intenção: '', Formato: '', ...initial };
     else if (tab === 'MATRIZ') newItem = { id, Cliente_ID: defaultClientId, Rede_Social: 'Instagram', Função: 'Hub', "Quem fala": '', "Papel estratégico": '', "Tipo de conteúdo": '', "Resultado esperado": '', ...initial };
     else if (tab === 'RDC') newItem = { id, Cliente_ID: defaultClientId, "Ideia de Conteúdo": '', Rede_Social: 'Instagram', "Tipo de conteúdo": '', "Resolução (1–5)": 1, "Demanda (1–5)": 1, "Competição (1–5)": 1, "Score (R×D×C)": 1, Decisão: 'Preencha R/D/C', ...initial };
+    else if (tab === 'CHECKLISTS') newItem = { id, ...initial };
 
     if (newItem) {
       console.log(`[EKKO-SYNC] CREATE_TRIGGERED | Table: ${tab} | ID: ${id}`, newItem);

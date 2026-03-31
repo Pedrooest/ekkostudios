@@ -62,6 +62,8 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
     // Controle de Interface
     const [activeShootId, setActiveShootId] = useState<string | null>(null);
     const [isNewShootModalOpen, setIsNewShootModalOpen] = useState(false);
+    const [isCreating, setIsCreating] = useState(false);
+    const [createError, setCreateError] = useState('');
 
     // Formulário de Nova Gravação
     const [newShootData, setNewShootData] = useState({
@@ -70,6 +72,7 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
 
     // Estado para gerenciar os inputs de novos itens do checklist
     const [newItemTexts, setNewItemTexts] = useState<Record<string, string>>({});
+    const [addingItemToCategory, setAddingItemToCategory] = useState<string | null>(null);
     const [newSceneType, setNewSceneType] = useState<string>('Reels');
 
     const activeShoot = data.find(s => s.id === activeShootId);
@@ -78,7 +81,13 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
     // FUNÇÕES DE LÓGICA
     // ==========================================
     const handleCreateShoot = async () => {
-        if (!newShootData.client || !newShootData.date) return;
+        if (!newShootData.client || !newShootData.date) {
+            setCreateError('Selecione um cliente e uma data.');
+            return;
+        }
+        setCreateError('');
+        setIsCreating(true);
+        
         tryPlaySound('success');
 
         const newShoot = {
@@ -87,10 +96,26 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
             checklist: JSON.parse(JSON.stringify(DEFAULT_CHECKLIST))
         };
 
-        const id = await onAdd('CHECKLISTS', newShoot);
-        if (id) {
-            setIsNewShootModalOpen(false);
-            setNewShootData({ client: '', title: '', date: '', time: '', location: '', notes: '' });
+        try {
+            const id = await onAdd('CHECKLISTS', newShoot);
+            if (id) {
+                setIsNewShootModalOpen(false);
+                setNewShootData({ client: '', title: '', date: '', time: '', location: '', notes: '' });
+                // Limpar filtros caso existam para gartantir que o card apareça
+                setSearchQuery('');
+                
+                // Aguardar o React atualizar a DOM e scrollar até o card
+                setTimeout(() => {
+                    const el = document.getElementById(`shoot-card-${id}`);
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+            } else {
+                setCreateError('Falha ao criar a gravação. Verifique sua conexão.');
+            }
+        } catch (e: any) {
+            setCreateError('Erro interno: ' + e.message);
+        } finally {
+            setIsCreating(false);
         }
     };
 
@@ -135,15 +160,14 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
         onUpdate(shootId, 'CHECKLISTS', 'status', updatedShoot.status, true);
     };
 
-    const handleAddItem = (shootId: string, categoryId: string) => {
-        const text = newItemTexts[categoryId];
-        if (!text || !text.trim()) return;
+    const handleAddItem = (shootId: string, categoryId: string, itemText: string) => {
+        if (!itemText || !itemText.trim()) return;
 
         tryPlaySound('tap');
         const shoot = data.find(s => s.id === shootId);
         if (!shoot) return;
 
-        const newItem: any = { id: `item_${Date.now()}`, text: text.trim(), checked: false };
+        const newItem: any = { id: `item_${Date.now()}`, text: itemText.trim(), checked: false };
         if (categoryId === 'gravar') {
             newItem.type = newSceneType;
         }
@@ -159,16 +183,21 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
         const updatedShoot = updateShootStatus({ ...shoot, checklist: newChecklist });
         onUpdate(shootId, 'CHECKLISTS', 'checklist', updatedShoot.checklist, true);
         onUpdate(shootId, 'CHECKLISTS', 'status', updatedShoot.status, true);
-
-        // Limpa o input após adicionar
-        setNewItemTexts(prev => ({ ...prev, [categoryId]: '' }));
     };
 
     const handleRemoveItem = (shootId: string, categoryId: string, itemId: string) => {
-        tryPlaySound('close');
         const shoot = data.find(s => s.id === shootId);
         if (!shoot) return;
 
+        const category = shoot.checklist.find((c: any) => c.id === categoryId);
+        const item = category?.items.find((i: any) => i.id === itemId);
+
+        if (item && item.text.trim().length > 0) {
+            if (!window.confirm('Tem certeza que deseja remover este item?')) return;
+        }
+
+        tryPlaySound('close');
+        
         const newChecklist = shoot.checklist.map((cat: any) => {
             if (cat.id !== categoryId) return cat;
             return {
@@ -281,6 +310,12 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                                 className="w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm font-medium rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none transition-all shadow-sm"
                             />
                         </div>
+                        
+                        {createError && (
+                            <div className="p-3 bg-red-50 dark:bg-red-900/10 border-l-4 border-red-500 text-red-600 dark:text-red-400 text-xs font-bold rounded-r-lg">
+                                {createError}
+                            </div>
+                        )}
                     </div>
 
                     <div className="px-6 py-4 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-3 bg-zinc-50 dark:bg-zinc-800/30">
@@ -288,11 +323,15 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                             Cancelar
                         </Button>
                         <Button
-                            disabled={!newShootData.client || !newShootData.date}
+                            disabled={!newShootData.client || !newShootData.date || isCreating}
                             onClick={handleCreateShoot}
-                            className="h-10 px-6 font-bold uppercase tracking-widest shadow-lg !bg-blue-600 !text-white hover:!bg-blue-700 !border-none"
+                            className={`h-10 px-6 font-bold uppercase tracking-widest shadow-lg ${isCreating ? '!bg-blue-400 cursor-not-allowed opacity-80' : '!bg-blue-600 hover:!bg-blue-700'} !text-white !border-none transition-all flex items-center justify-center min-w-[160px]`}
                         >
-                            Criar Gravação
+                            {isCreating ? (
+                                <><i className="fa-solid fa-spinner animate-spin mr-2"></i> Criando...</>
+                            ) : (
+                                'Criar Gravação'
+                            )}
                         </Button>
                     </div>
                 </Card>
@@ -419,43 +458,67 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                                                 </button>
                                             </div>
                                         ))}
-                                    </div>
 
-                                    {/* Adicionar Footer */}
-                                    <div className="p-4 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
-                                        {isScene && (
-                                            <div className="mb-2">
-                                                <select 
-                                                    value={newSceneType} 
-                                                    onChange={(e) => setNewSceneType(e.target.value)}
-                                                    className="w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg h-8 text-[10px] font-bold uppercase text-zinc-600 dark:text-zinc-400 px-2 outline-none focus:border-purple-500 shadow-sm"
-                                                >
-                                                    <option>Feed/YouTube</option>
-                                                    <option>Reels</option>
-                                                    <option>B-Roll</option>
-                                                    <option>Entrevista</option>
-                                                    <option>Cena Específica</option>
-                                                </select>
+                                        {/* INLINE NEW ITEM INPUT */}
+                                        {addingItemToCategory === category.id && (
+                                            <div className={`group flex items-start gap-3 p-3 rounded-xl border bg-white dark:bg-zinc-900 border-${cColor}-300 dark:border-${cColor}-700 shadow-sm transition-all`}>
+                                                <div className="mt-0.5 shrink-0 transition-colors">
+                                                    <Square size={18} className="text-zinc-300 dark:text-zinc-600" />
+                                                </div>
+                                                <div className="flex-1 w-full flex flex-col gap-2">
+                                                    {isScene && (
+                                                        <select 
+                                                            value={newSceneType} 
+                                                            onChange={(e) => setNewSceneType(e.target.value)}
+                                                            className="w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg h-7 text-[10px] font-bold uppercase text-zinc-600 dark:text-zinc-400 px-2 outline-none focus:border-purple-500 shadow-sm"
+                                                        >
+                                                            <option>Feed/YouTube</option>
+                                                            <option>Reels</option>
+                                                            <option>B-Roll</option>
+                                                            <option>Entrevista</option>
+                                                            <option>Cena Específica</option>
+                                                        </select>
+                                                    )}
+                                                    <input 
+                                                        type="text" 
+                                                        autoFocus
+                                                        placeholder={isScene ? "+ Roteiro/Cena" : "Digite e aperte Enter..."}
+                                                        value={newItemTexts[category.id] || ''}
+                                                        onChange={(e) => setNewItemTexts({ ...newItemTexts, [category.id]: e.target.value })}
+                                                        onBlur={() => {
+                                                            if (newItemTexts[category.id]?.trim()) {
+                                                                handleAddItem(activeShoot.id, category.id, newItemTexts[category.id]);
+                                                            }
+                                                            setAddingItemToCategory(null);
+                                                            setNewItemTexts(prev => ({ ...prev, [category.id]: '' }));
+                                                        }}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter') {
+                                                                if (newItemTexts[category.id]?.trim()) {
+                                                                    handleAddItem(activeShoot.id, category.id, newItemTexts[category.id]);
+                                                                    setNewItemTexts(prev => ({ ...prev, [category.id]: '' }));
+                                                                } else {
+                                                                    setAddingItemToCategory(null);
+                                                                }
+                                                            } else if (e.key === 'Escape') {
+                                                                setAddingItemToCategory(null);
+                                                                setNewItemTexts(prev => ({ ...prev, [category.id]: '' }));
+                                                            }
+                                                        }}
+                                                        className="w-full bg-transparent border-none text-xs font-bold text-zinc-800 dark:text-zinc-200 outline-none p-0 focus:ring-0 placeholder:text-zinc-400"
+                                                    />
+                                                </div>
                                             </div>
                                         )}
-                                        <div className="flex items-center gap-2">
-                                            <input 
-                                                type="text" 
-                                                placeholder={isScene ? "+ Roteiro/Cena" : "+ Novo item..."}
-                                                value={newItemTexts[category.id] || ''}
-                                                onChange={(e) => setNewItemTexts({ ...newItemTexts, [category.id]: e.target.value })}
-                                                onKeyDown={(e) => e.key === 'Enter' && handleAddItem(activeShoot.id, category.id)}
-                                                className={`flex-1 h-9 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-xs font-bold text-zinc-800 dark:text-zinc-200 rounded-xl px-3 outline-none focus:ring-2 focus:ring-${cColor}-500/20 focus:border-${cColor}-500 transition-all shadow-sm`}
-                                            />
-                                            <Button 
-                                                variant="secondary" 
-                                                onClick={() => handleAddItem(activeShoot.id, category.id)}
-                                                disabled={!newItemTexts[category.id]?.trim()}
-                                                className={`!w-9 !h-9 !px-0 flex items-center justify-center !rounded-xl !border-zinc-200 dark:!border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-${cColor}-500 shadow-sm`}
+
+                                        {addingItemToCategory !== category.id && (
+                                            <button 
+                                                onClick={() => setAddingItemToCategory(category.id)}
+                                                className={`flex items-center gap-2 text-xs font-bold text-zinc-400 hover:text-${cColor}-500 py-2 transition-colors inline-block`}
                                             >
-                                                <Plus size={16}/>
-                                            </Button>
-                                        </div>
+                                                <Plus size={14} className="inline"/> Adicionar item
+                                            </button>
+                                        )}
                                     </div>
                                 </Card>
                             );
@@ -516,6 +579,7 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                             return (
                                 <Card 
                                     key={shoot.id} 
+                                    id={`shoot-card-${shoot.id}`}
                                     onClick={() => { tryPlaySound('tap'); setActiveShootId(shoot.id); }}
                                     className="cursor-pointer group flex flex-col sm:flex-row shadow-xl shadow-zinc-200/50 dark:shadow-none !border-zinc-200/50 dark:!border-zinc-800 bg-white dark:bg-zinc-900/80 transition-all hover:scale-[1.01] hover:shadow-2xl overflow-hidden p-0 rounded-[2rem]"
                                 >
