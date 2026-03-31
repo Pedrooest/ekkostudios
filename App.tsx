@@ -735,7 +735,12 @@ export default function App() {
       return;
     }
 
-    let updated = { ...originalItem, [field]: value, updated_at: new Date().toISOString() };
+    let updated = { ...originalItem, updated_at: new Date().toISOString() };
+    if (field === '__MULTIPLE__') {
+      updated = { ...updated, ...value };
+    } else {
+      updated[field] = value;
+    }
 
     // Notification Triggers
     if (tab === 'TAREFAS') {

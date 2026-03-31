@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import {
     Search, Plus, Calendar, Clock, MapPin,
-    Video, CheckCircle2, X, Trash2,
+    Video, CheckCircle2, X, Trash2, Check,
     Briefcase, AlertTriangle, ArrowLeft,
     CheckSquare, Square
 } from 'lucide-react';
@@ -74,6 +74,7 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
     const [newItemTexts, setNewItemTexts] = useState<Record<string, string>>({});
     const [addingItemToCategory, setAddingItemToCategory] = useState<string | null>(null);
     const [newSceneType, setNewSceneType] = useState<string>('Reels');
+    const [isSaving, setIsSaving] = useState(false);
 
     const activeShoot = data.find(s => s.id === activeShootId);
 
@@ -142,6 +143,12 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
         return { ...shoot, status: newStatus };
     };
 
+    const performSave = async (shootId: string, updatedShoot: any) => {
+        setIsSaving(true);
+        await onUpdate(shootId, 'CHECKLISTS', '__MULTIPLE__', { checklist: updatedShoot.checklist, status: updatedShoot.status }, true);
+        setTimeout(() => setIsSaving(false), 1000);
+    };
+
     const toggleChecklistItem = (shootId: string, categoryId: string, itemId: string) => {
         tryPlaySound('tap');
         const shoot = data.find(s => s.id === shootId);
@@ -156,8 +163,7 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
         });
 
         const updatedShoot = updateShootStatus({ ...shoot, checklist: newChecklist });
-        onUpdate(shootId, 'CHECKLISTS', 'checklist', updatedShoot.checklist, true);
-        onUpdate(shootId, 'CHECKLISTS', 'status', updatedShoot.status, true);
+        performSave(shootId, updatedShoot);
     };
 
     const handleAddItem = (shootId: string, categoryId: string, itemText: string) => {
@@ -181,8 +187,7 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
         });
 
         const updatedShoot = updateShootStatus({ ...shoot, checklist: newChecklist });
-        onUpdate(shootId, 'CHECKLISTS', 'checklist', updatedShoot.checklist, true);
-        onUpdate(shootId, 'CHECKLISTS', 'status', updatedShoot.status, true);
+        performSave(shootId, updatedShoot);
     };
 
     const handleRemoveItem = (shootId: string, categoryId: string, itemId: string) => {
@@ -207,8 +212,7 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
         });
 
         const updatedShoot = updateShootStatus({ ...shoot, checklist: newChecklist });
-        onUpdate(shootId, 'CHECKLISTS', 'checklist', updatedShoot.checklist, true);
-        onUpdate(shootId, 'CHECKLISTS', 'status', updatedShoot.status, true);
+        performSave(shootId, updatedShoot);
     };
 
     const calculateProgress = (checklist: any) => {
@@ -348,7 +352,7 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
         const isMasterReady = p.percentage === 100 && p.total > 0;
         const colorByCat: Record<string, string> = { 'blue': 'blue', 'green': 'emerald', 'purple': 'purple' };
         // Lógica de compatibilidade com categorias antigas ou novas
-        const ensureChecklistStructure = activeShoot.checklist && activeShoot.checklist.length === 3 ? activeShoot.checklist : DEFAULT_CHECKLIST.map((d, idx) => activeShoot.checklist[idx] ? activeShoot.checklist[idx] : d);
+        const ensureChecklistStructure = activeShoot.checklist && Array.isArray(activeShoot.checklist) && activeShoot.checklist.length === 3 ? activeShoot.checklist : DEFAULT_CHECKLIST.map((d, idx) => Array.isArray(activeShoot.checklist) && activeShoot.checklist[idx] ? activeShoot.checklist[idx] : d);
 
         return (
             <div className="absolute inset-0 bg-zinc-50 dark:bg-zinc-950 flex flex-col z-[40] animate-in fade-in duration-200">
@@ -361,8 +365,12 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                                 <span className="text-[8px] font-black uppercase tracking-widest leading-none">Voltar</span>
                              </div>
                          </div>
-                         <div className="min-w-0">
-                            <h2 className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-white uppercase tracking-tight truncate flex items-center gap-3">
+                         <div className="flex flex-col min-w-0 pr-2 relative">
+                             {/* Indicator de Salvando */}
+                             {isSaving && (
+                                <span className="absolute -top-3 left-0 text-[10px] font-bold text-emerald-500 uppercase flex items-center gap-1 animate-pulse"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Salvando</span>
+                             )}
+                             <h2 className="text-xl font-bold text-zinc-800 dark:text-zinc-100 truncate flex items-center gap-2">
                                 {activeShoot.title}
                             </h2>
                             <div className="flex items-center gap-3 mt-1.5 flex-wrap">
@@ -434,13 +442,17 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                                         {category.items.map((item: any) => (
                                             <div 
                                                 key={item.id}
-                                                className={`group flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${item.checked ? `bg-zinc-50 dark:bg-zinc-800/20 border-zinc-200 dark:border-zinc-800` : `bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 shadow-sm hover:border-${cColor}-300 dark:hover:border-${cColor}-700`}`}
-                                                onClick={() => toggleChecklistItem(activeShoot.id, category.id, item.id)}
+                                                className={`group flex items-start gap-3 p-3 rounded-xl border transition-all ${item.checked ? `bg-zinc-50 dark:bg-zinc-800/20 border-zinc-200 dark:border-zinc-800` : `bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 shadow-sm hover:border-${cColor}-300 dark:hover:border-${cColor}-700`}`}
                                             >
                                                 <div className="mt-0.5 shrink-0 transition-colors">
-                                                    {item.checked ? <CheckSquare size={18} className={`text-${cColor}-500 dark:text-${cColor}-400`} /> : <Square size={18} className="text-zinc-300 dark:text-zinc-600" />}
+                                                    <div
+                                                        onClick={(e) => { e.stopPropagation(); toggleChecklistItem(activeShoot.id, category.id, item.id); }}
+                                                        className={`w-5 h-5 rounded-[4px] border-2 flex items-center justify-center cursor-pointer shrink-0 transition-colors ${item.checked ? `bg-${cColor}-500 border-${cColor}-500` : `border-zinc-300 dark:border-zinc-600 hover:border-${cColor}-400`}`}
+                                                    >
+                                                        {item.checked && <Check size={12} strokeWidth={4} className="text-white" />}
+                                                    </div>
                                                 </div>
-                                                <div className="flex-1 min-w-0">
+                                                <div className="flex-1 min-w-0 pt-0.5">
                                                     <span className={`block text-xs font-bold transition-all ${item.checked ? 'text-zinc-400 dark:text-zinc-500 line-through' : 'text-zinc-800 dark:text-zinc-200'}`}>
                                                         {item.text}
                                                     </span>
@@ -452,9 +464,10 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                                                 </div>
                                                 <button 
                                                     onClick={(e) => { e.stopPropagation(); handleRemoveItem(activeShoot.id, category.id, item.id); }}
-                                                    className="opacity-0 group-hover:opacity-100 p-1.5 text-zinc-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-all"
+                                                    className="ml-auto p-1.5 rounded-lg text-zinc-300 hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-500/10 dark:hover:text-rose-500 transition-colors flex items-center justify-center shrink-0 mt-0.5"
+                                                    title="Excluir item"
                                                 >
-                                                    <Trash2 size={14} />
+                                                    <X size={14} strokeWidth={2.5}/>
                                                 </button>
                                             </div>
                                         ))}
