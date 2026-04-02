@@ -19,33 +19,27 @@ const tryPlaySound = (type: string) => {
 // ==========================================
 // TEMPLATE DE DIÁRIA DE GRAVAÇÃO
 // ==========================================
-const DEFAULT_CHECKLIST = [
-    {
-        id: 'levar', category: '📦 O QUE LEVAR', color: 'blue', items: [
-            { id: '101', text: 'Câmera Principal e Lentes', checked: false },
-            { id: '102', text: 'Tripé / Gimbal', checked: false },
-            { id: '103', text: 'Microfone de Lapela (Baterias 100%)', checked: false },
-            { id: '104', text: 'Cartões SD formatados', checked: false },
-            { id: '105', text: 'Baterias Extras Carregadas', checked: false },
-            { id: '106', text: 'Iluminação / LEDs', checked: false }
-        ]
-    },
-    {
-        id: 'trazer', category: '🔄 O QUE TRAZER DE VOLTA', color: 'green', items: [
-            { id: '201', text: 'Câmera e Lentes Completas', checked: false },
-            { id: '202', text: 'Tripé Guardado na Bolsa', checked: false },
-            { id: '203', text: 'Todos os cabos e microfones', checked: false },
-            { id: '204', text: 'Conferir Cartões SD de Backup', checked: false },
-            { id: '205', text: 'Carregadores de Parede', checked: false }
-        ]
-    },
-    {
-        id: 'gravar', category: '🎬 O QUE GRAVAR', color: 'purple', items: [
-            { id: '301', text: 'Institucional: Setup com 2 Câmeras', type: 'Feed/YouTube', checked: false },
-            { id: '302', text: 'Takes Rápidos / Bastidores do consultório', type: 'B-Roll', checked: false },
-            { id: '303', text: 'Vídeos de Resposta (Top 3 Dúvidas)', type: 'Reels', checked: false }
-        ]
-    }
+const DEFAULT_LEVAR = [
+    { id: '101', text: 'Câmera Principal e Lentes', checked: false },
+    { id: '102', text: 'Tripé / Gimbal', checked: false },
+    { id: '103', text: 'Microfone de Lapela (Baterias 100%)', checked: false },
+    { id: '104', text: 'Cartões SD formatados', checked: false },
+    { id: '105', text: 'Baterias Extras Carregadas', checked: false },
+    { id: '106', text: 'Iluminação / LEDs', checked: false }
+];
+
+const DEFAULT_TRAZER = [
+    { id: '201', text: 'Câmera e Lentes Completas', checked: false },
+    { id: '202', text: 'Tripé Guardado na Bolsa', checked: false },
+    { id: '203', text: 'Todos os cabos e microfones', checked: false },
+    { id: '204', text: 'Conferir Cartões SD de Backup', checked: false },
+    { id: '205', text: 'Carregadores de Parede', checked: false }
+];
+
+const DEFAULT_GRAVAR = [
+    { id: '301', text: 'Institucional: Setup com 2 Câmeras', type: 'Feed/YouTube', checked: false },
+    { id: '302', text: 'Takes Rápidos / Bastidores do consultório', type: 'B-Roll', checked: false },
+    { id: '303', text: 'Vídeos de Resposta (Top 3 Dúvidas)', type: 'Reels', checked: false }
 ];
 
 interface ChecklistsTabProps {
@@ -94,7 +88,9 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
         const newShoot = {
             ...newShootData,
             status: 'pending',
-            checklist: JSON.parse(JSON.stringify(DEFAULT_CHECKLIST))
+            itens_levar: JSON.parse(JSON.stringify(DEFAULT_LEVAR)),
+            itens_trazer: JSON.parse(JSON.stringify(DEFAULT_TRAZER)),
+            itens_gravar: JSON.parse(JSON.stringify(DEFAULT_GRAVAR))
         };
 
         try {
@@ -132,8 +128,11 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
             return { ...shoot, status: forcedStatus };
         }
         
-        const totalItems = shoot.checklist.reduce((acc: number, cat: any) => acc + cat.items.length, 0);
-        const checkedItems = shoot.checklist.reduce((acc: number, cat: any) => acc + cat.items.filter((i: any) => i.checked).length, 0);
+        const totalItems = (shoot.itens_levar?.length || 0) + (shoot.itens_trazer?.length || 0) + (shoot.itens_gravar?.length || 0);
+        const checkedItems = 
+            (shoot.itens_levar?.filter((i: any) => i.checked).length || 0) +
+            (shoot.itens_trazer?.filter((i: any) => i.checked).length || 0) +
+            (shoot.itens_gravar?.filter((i: any) => i.checked).length || 0);
 
         let newStatus = shoot.status;
         if (checkedItems === totalItems && totalItems > 0) newStatus = 'done';
@@ -145,7 +144,12 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
 
     const performSave = async (shootId: string, updatedShoot: any) => {
         setIsSaving(true);
-        await onUpdate(shootId, 'CHECKLISTS', '__MULTIPLE__', { checklist: updatedShoot.checklist, status: updatedShoot.status }, true);
+        await onUpdate(shootId, 'CHECKLISTS', '__MULTIPLE__', { 
+            itens_levar: updatedShoot.itens_levar,
+            itens_trazer: updatedShoot.itens_trazer,
+            itens_gravar: updatedShoot.itens_gravar,
+            status: updatedShoot.status 
+        }, true);
         setTimeout(() => setIsSaving(false), 1000);
     };
 
@@ -154,15 +158,12 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
         const shoot = data.find(s => s.id === shootId);
         if (!shoot) return;
 
-        const newChecklist = shoot.checklist.map((cat: any) => {
-            if (cat.id !== categoryId) return cat;
-            return {
-                ...cat,
-                items: cat.items.map((item: any) => item.id === itemId ? { ...item, checked: !item.checked } : item)
-            };
-        });
+        const field = categoryId === 'levar' ? 'itens_levar' : (categoryId === 'trazer' ? 'itens_trazer' : 'itens_gravar');
+        const newList = (shoot as any)[field].map((item: any) => 
+            item.id === itemId ? { ...item, checked: !item.checked } : item
+        );
 
-        const updatedShoot = updateShootStatus({ ...shoot, checklist: newChecklist });
+        const updatedShoot = updateShootStatus({ ...shoot, [field]: newList });
         performSave(shootId, updatedShoot);
     };
 
@@ -178,15 +179,10 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
             newItem.type = newSceneType;
         }
 
-        const newChecklist = shoot.checklist.map((cat: any) => {
-            if (cat.id !== categoryId) return cat;
-            return {
-                ...cat,
-                items: [...cat.items, newItem]
-            };
-        });
+        const field = categoryId === 'levar' ? 'itens_levar' : (categoryId === 'trazer' ? 'itens_trazer' : 'itens_gravar');
+        const newList = [...((shoot as any)[field] || []), newItem];
 
-        const updatedShoot = updateShootStatus({ ...shoot, checklist: newChecklist });
+        const updatedShoot = updateShootStatus({ ...shoot, [field]: newList });
         performSave(shootId, updatedShoot);
     };
 
@@ -194,8 +190,9 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
         const shoot = data.find(s => s.id === shootId);
         if (!shoot) return;
 
-        const category = shoot.checklist.find((c: any) => c.id === categoryId);
-        const item = category?.items.find((i: any) => i.id === itemId);
+        const field = categoryId === 'levar' ? 'itens_levar' : (categoryId === 'trazer' ? 'itens_trazer' : 'itens_gravar');
+        const list = (shoot as any)[field] || [];
+        const item = list.find((i: any) => i.id === itemId);
 
         if (item && item.text.trim().length > 0) {
             if (!window.confirm('Tem certeza que deseja remover este item?')) return;
@@ -203,22 +200,21 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
 
         tryPlaySound('close');
         
-        const newChecklist = shoot.checklist.map((cat: any) => {
-            if (cat.id !== categoryId) return cat;
-            return {
-                ...cat,
-                items: cat.items.filter((item: any) => item.id !== itemId)
-            };
-        });
+        const newList = list.filter((item: any) => item.id !== itemId);
 
-        const updatedShoot = updateShootStatus({ ...shoot, checklist: newChecklist });
+        const updatedShoot = updateShootStatus({ ...shoot, [field]: newList });
         performSave(shootId, updatedShoot);
     };
 
-    const calculateProgress = (checklist: any) => {
-        if (!checklist) return { total: 0, checked: 0, percentage: 0 };
-        const total = checklist.reduce((acc: number, cat: any) => acc + cat.items.length, 0);
-        const checked = checklist.reduce((acc: number, cat: any) => acc + cat.items.filter((i: any) => i.checked).length, 0);
+    const calculateProgress = (shoot: ChecklistShoot) => {
+        if (!shoot) return { total: 0, checked: 0, percentage: 0 };
+        
+        const total = (shoot.itens_levar?.length || 0) + (shoot.itens_trazer?.length || 0) + (shoot.itens_gravar?.length || 0);
+        const checked = 
+            (shoot.itens_levar?.filter((i: any) => i.checked).length || 0) +
+            (shoot.itens_trazer?.filter((i: any) => i.checked).length || 0) +
+            (shoot.itens_gravar?.filter((i: any) => i.checked).length || 0);
+            
         const percentage = total === 0 ? 0 : Math.round((checked / total) * 100);
         return { total, checked, percentage };
     };
@@ -348,11 +344,15 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
     const renderActiveShootView = () => {
         if (!activeShoot) return null;
 
-        const p = calculateProgress(activeShoot.checklist);
+        const p = calculateProgress(activeShoot);
         const isMasterReady = p.percentage === 100 && p.total > 0;
-        const colorByCat: Record<string, string> = { 'blue': 'blue', 'green': 'emerald', 'purple': 'purple' };
-        // Lógica de compatibilidade com categorias antigas ou novas
-        const ensureChecklistStructure = activeShoot.checklist && Array.isArray(activeShoot.checklist) && activeShoot.checklist.length === 3 ? activeShoot.checklist : DEFAULT_CHECKLIST.map((d, idx) => Array.isArray(activeShoot.checklist) && activeShoot.checklist[idx] ? activeShoot.checklist[idx] : d);
+        const colorByCat: Record<string, string> = { 'levar': 'blue', 'trazer': 'emerald', 'gravar': 'purple' };
+        
+        const checklistCategories = [
+            { id: 'levar', category: '📦 O QUE LEVAR', color: 'blue', items: activeShoot.itens_levar || [] },
+            { id: 'trazer', category: '🔄 O QUE TRAZER DE VOLTA', color: 'emerald', items: activeShoot.itens_trazer || [] },
+            { id: 'gravar', category: '🎬 O QUE GRAVAR', color: 'purple', items: activeShoot.itens_gravar || [] }
+        ];
 
         return (
             <div className="absolute inset-0 bg-zinc-50 dark:bg-zinc-950 flex flex-col z-[40] animate-in fade-in duration-200">
@@ -422,8 +422,8 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                 {/* 3 Columns Flex Layout */}
                 <div className="flex-1 overflow-x-hidden overflow-y-auto px-6 py-6 custom-scrollbar">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full items-start">
-                        {ensureChecklistStructure.map((category: any) => {
-                            const cColor = colorByCat[category.color] || 'blue'; // blue, emerald, purple
+                        {checklistCategories.map((category: any) => {
+                            const cColor = colorByCat[category.id] || 'blue'; // blue, emerald, purple
                             const isScene = category.id === 'gravar';
 
                             return (
@@ -464,7 +464,7 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                                                 </div>
                                                 <button 
                                                     onClick={(e) => { e.stopPropagation(); handleRemoveItem(activeShoot.id, category.id, item.id); }}
-                                                    className="ml-auto p-1.5 rounded-lg text-zinc-300 hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-500/10 dark:hover:text-rose-500 transition-colors flex items-center justify-center shrink-0 mt-0.5"
+                                                    className="ml-auto p-1.5 rounded-lg text-zinc-300 hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-500/10 dark:hover:text-rose-500 transition-all flex items-center justify-center shrink-0 mt-0.5 opacity-0 group-hover:opacity-100"
                                                     title="Excluir item"
                                                 >
                                                     <X size={14} strokeWidth={2.5}/>
@@ -585,7 +585,7 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                 <div className="max-w-7xl mx-auto">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {filteredShoots.map(shoot => {
-                            const p = calculateProgress(shoot.checklist);
+                            const p = calculateProgress(shoot);
                             const clientData = clients.find(c => c.Nome === shoot.client);
                             const clientColor = clientData?.['Cor (HEX)'] || '#6366f1';
                             
