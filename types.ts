@@ -24,7 +24,9 @@ export interface ChecklistShoot {
   location: string;
   notes: string;
   status: 'pending' | 'ready' | 'done';
-  checklist: any[];
+  itens_levar: any[];
+  itens_trazer: any[];
+  itens_gravar: any[];
   __archived?: boolean;
 }
 
@@ -102,13 +104,31 @@ export interface LancamentoFinancas {
   Categoria: string;
   Descrição: string;
   Valor: number;
-  Status?: 'pago' | 'pendente';
-  Recorrência?: 'Mensal' | 'Única';
+  Status?: 'Pago' | 'Pendente' | 'Atrasado';
+  Recorrência?: 'Mensal' | 'Anual' | 'Única';
   Data_Início?: string;
   Data_Fim?: string;
   Dia_Pagamento?: number;
   Observações?: string;
+  updated_at?: string;
+  created_at?: string;
   __archived?: boolean;
+}
+
+export interface RetiradaSocio {
+  id: string;
+  workspace_id: string;
+  socio: 1 | 2;
+  valor: number;
+  data: string;
+  mes_referencia: string;
+  observacao?: string;
+  updated_at?: string;
+  created_at?: string;
+}
+
+export interface ContratoMRR extends LancamentoFinancas {
+  // Já extende LancamentoFinancas, mas podemos adicionar campos específicos se necessário futuramente
 }
 
 export interface ItemChecklistTarefa {
@@ -172,8 +192,8 @@ export interface Tarefa {
   Anexos?: AnexoTarefa[];
   Comentarios: ComentarioTarefa[];
   Atividades: AtividadeTarefa[];
-  Criado_Em: string;
-  Atualizado_Em: string;
+  updated_at?: string;
+  created_at?: string;
   __archived?: boolean;
 }
 
@@ -240,7 +260,7 @@ export type BibliotecaConteudo = Record<string, string[]>;
 
 export type ModoVisaoTarefa = 'sidebar' | 'modal' | 'fullscreen';
 
-export type TipoTabela = 'DASHBOARD' | 'CLIENTES' | 'RDC' | 'MATRIZ' | 'COBO' | 'PLANEJAMENTO' | 'APROVACAO' | 'FINANCAS' | 'TAREFAS' | 'VH' | 'ORGANICKIA' | 'WHITEBOARD' | 'IA_HISTORY' | 'WORKSPACE' | 'CHECKLISTS';
+export type TipoTabela = 'DASHBOARD' | 'CLIENTES' | 'RDC' | 'MATRIZ' | 'COBO' | 'PLANEJAMENTO' | 'FINANCAS' | 'TAREFAS' | 'VH' | 'ORGANICKIA' | 'WHITEBOARD' | 'IA_HISTORY' | 'WORKSPACE' | 'CHECKLISTS';
 
 export interface ConfiguracaoApresentacao {
   nomeAgencia: string;

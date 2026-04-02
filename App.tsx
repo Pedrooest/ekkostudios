@@ -32,7 +32,6 @@ import { TaskFlowView, TaskDetailPanel } from './views/TaskFlowView';
 import FinancasTab from './views/FinancasView';
 import { VhManagementView } from './views/VhManagementView';
 import PlanejamentoTab from './views/PlanejamentoTab';
-import AprovacaoTab from './views/AprovacaoTab';
 import { CoboView } from './views/CoboView';
 import { TableView } from './components/TableView';
 import { generateId } from './utils/id';
@@ -96,8 +95,8 @@ const mergeItems = <T extends { id: string, updated_at?: string, Atualizado_Em?:
     } else {
       // Reconcile by updated_at or Atualizado_Em
       const localItem = merged[localIndex];
-      const remoteDate = (remoteItem.Atualizado_Em || remoteItem.updated_at) ? new Date(remoteItem.Atualizado_Em || remoteItem.updated_at!).getTime() : 0;
-      const localDate = (localItem.Atualizado_Em || localItem.updated_at) ? new Date(localItem.Atualizado_Em || localItem.updated_at!).getTime() : 0;
+      const remoteDate = (remoteItem.updated_at || remoteItem.Atualizado_Em) ? new Date(remoteItem.updated_at || remoteItem.Atualizado_Em!).getTime() : 0;
+      const localDate = (localItem.updated_at || localItem.Atualizado_Em) ? new Date(localItem.updated_at || localItem.Atualizado_Em!).getTime() : 0;
 
       if (remoteDate > localDate) {
         merged[localIndex] = remoteItem;
@@ -203,7 +202,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TipoTabela>('DASHBOARD');
   const [theme, setTheme] = useState<'dark' | 'light'>(() => (localStorage.getItem('theme') as 'dark' | 'light') || 'dark');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 1024);
-  const [tabOrder, setTabOrder] = useState<TipoTabela[]>(['DASHBOARD', 'CLIENTES', 'ORGANICKIA', 'RDC', 'MATRIZ', 'COBO', 'PLANEJAMENTO', 'APROVACAO', 'FINANCAS', 'TAREFAS', 'CHECKLISTS', 'VH', 'WHITEBOARD']);
+  const [tabOrder, setTabOrder] = useState<TipoTabela[]>(['DASHBOARD', 'CLIENTES', 'ORGANICKIA', 'RDC', 'MATRIZ', 'COBO', 'PLANEJAMENTO', 'FINANCAS', 'TAREFAS', 'CHECKLISTS', 'VH', 'WHITEBOARD']);
 
   const [clients, setClients] = useState<Cliente[]>([]);
   const [cobo, setCobo] = useState<ItemCobo[]>([]);
@@ -324,8 +323,35 @@ export default function App() {
       setRdc(prev => mergeItems(prev, data.rdc as ItemRdc[]));
       setPlanejamento(prev => mergeItems(prev, data.planning as ItemPlanejamento[]));
       setFinancas(prev => mergeItems(prev, data.financas as LancamentoFinancas[]));
-      setTasks(prev => mergeItems(prev, data.tasks as Tarefa[]));
-      setChecklists(prev => mergeItems(prev, data.checklists as ChecklistShoot[]));
+      
+      const safeParseArray = (val: any) => {
+        if (Array.isArray(val)) return val;
+        if (typeof val === 'string') {
+          try {
+            const parsed = JSON.parse(val);
+            return Array.isArray(parsed) ? parsed : [];
+          } catch { return []; }
+        }
+        return [];
+      };
+
+      const sanitizedTasks = (data.tasks as Tarefa[]).map(t => ({
+        ...t,
+        Checklist: safeParseArray(t.Checklist),
+        Anexos: safeParseArray(t.Anexos),
+        Comentarios: safeParseArray(t.Comentarios),
+        Atividades: safeParseArray(t.Atividades)
+      }));
+      setTasks(prev => mergeItems(prev, sanitizedTasks));
+      
+      const sanitizedChecklists = (data.checklists as ChecklistShoot[]).map(c => ({
+        ...c,
+        itens_levar: safeParseArray(c.itens_levar),
+        itens_trazer: safeParseArray(c.itens_trazer),
+        itens_gravar: safeParseArray(c.itens_gravar),
+      }));
+      setChecklists(prev => mergeItems(prev, sanitizedChecklists));
+      
       setCollaborators(prev => mergeItems(prev, data.collaborators as Colaborador[]));
     }
   }, []);
@@ -637,7 +663,7 @@ export default function App() {
       const p = JSON.parse(saved);
       if (p.tabOrder) {
         // Merge saved order with new tabs to ensure missing ones appear
-        const defaultOrder: TipoTabela[] = ['DASHBOARD', 'CLIENTES', 'ORGANICKIA', 'RDC', 'MATRIZ', 'COBO', 'PLANEJAMENTO', 'APROVACAO', 'FINANCAS', 'TAREFAS', 'CHECKLISTS', 'VH', 'WHITEBOARD'];
+        const defaultOrder: TipoTabela[] = ['DASHBOARD', 'CLIENTES', 'ORGANICKIA', 'RDC', 'MATRIZ', 'COBO', 'PLANEJAMENTO', 'FINANCAS', 'TAREFAS', 'CHECKLISTS', 'VH', 'WHITEBOARD'];
         const uniqueTabs = new Set([...p.tabOrder, ...defaultOrder]);
         setTabOrder(Array.from(uniqueTabs));
       }
@@ -871,14 +897,16 @@ export default function App() {
       return;
     }
     const id = generateId();
+    const now = new Date().toISOString();
+    const defaultProps = { id, updated_at: now, created_at: now };
     const defaultClientId = selectedClientIds.length === 1 ? selectedClientIds[0] : (clients[0]?.id || 'GERAL');
     let newItem: any = null;
 
-    if (tab === 'CLIENTES') newItem = { id, Nome: 'Novo Cliente', Nicho: '', Responsável: '', WhatsApp: '', Instagram: '', Objetivo: '', Observações: '', "Cor (HEX)": '#3B82F6', Status: 'Ativo', ...initial };
-    else if (tab === 'FINANCAS') newItem = { id, Lançamento: `FIN-${generateId().toUpperCase().slice(0, 4)}`, Data: new Date().toISOString().split('T')[0], Cliente_ID: defaultClientId, Tipo: 'Entrada', Categoria: 'Serviço', Descrição: 'Novo Lançamento', Valor: 0, Recorrência: 'Única', Data_Início: new Date().toISOString().split('T')[0], Data_Fim: '', Dia_Pagamento: 1, Observações: '', ...initial };
+    if (tab === 'CLIENTES') newItem = { ...defaultProps, Nome: 'Novo Cliente', Nicho: '', Responsável: '', WhatsApp: '', Instagram: '', Objetivo: '', Observações: '', "Cor (HEX)": '#3B82F6', Status: 'Ativo', ...initial };
+    else if (tab === 'FINANCAS') newItem = { ...defaultProps, Lançamento: `FIN-${generateId().toUpperCase().slice(0, 4)}`, Data: new Date().toISOString().split('T')[0], Cliente_ID: defaultClientId, Tipo: 'Entrada', Categoria: 'Serviço', Descrição: 'Novo Lançamento', Valor: 0, Recorrência: 'Única', Data_Início: new Date().toISOString().split('T')[0], Data_Fim: '', Dia_Pagamento: 1, Observações: '', ...initial };
     else if (tab === 'PLANEJAMENTO') {
       const date = initial.Data || new Date().toISOString().split('T')[0];
-      newItem = { id, Cliente_ID: initial.Cliente_ID || defaultClientId, Data: date, Hora: initial.Hora || '09:00', Conteúdo: initial.Conteúdo || '', Função: initial.Função || 'Hub', Rede_Social: initial.Rede_Social || 'Instagram', "Tipo de conteúdo": initial["Tipo de conteúdo"] || '', Intenção: initial.Intenção || 'Relacionamento', Canal: initial.Canal || '', Formato: initial.Formato || '', Zona: initial.Zona || 'Morna', "Quem fala": initial["Quem fala"] || '', "Status do conteúdo": 'Pendente', ...initial };
+      newItem = { ...defaultProps, Cliente_ID: initial.Cliente_ID || defaultClientId, Data: date, Hora: initial.Hora || '09:00', Conteúdo: initial.Conteúdo || '', Função: initial.Função || 'Hub', Rede_Social: initial.Rede_Social || 'Instagram', "Tipo de conteúdo": initial["Tipo de conteúdo"] || '', Intenção: initial.Intenção || 'Relacionamento', Canal: initial.Canal || '', Formato: initial.Formato || '', Zona: initial.Zona || 'Morna', "Quem fala": initial["Quem fala"] || '', "Status do conteúdo": 'Pendente', ...initial };
     } else if (tab === 'TAREFAS') {
       const resp = currentUser?.email || '';
       const activity: AtividadeTarefa = {
@@ -888,11 +916,11 @@ export default function App() {
         mensagem: 'criou a tarefa',
         timestamp: new Date().toISOString()
       };
-      newItem = { id, Task_ID: `Tarefa-${generateId().toUpperCase().slice(0, 4)}`, Cliente_ID: initial.Cliente_ID || defaultClientId, Título: initial.Título || 'Nova Tarefa', Área: initial.Área || 'Conteúdo', Status: initial.Status || 'todo', Prioridade: initial.Prioridade || 'Média', Responsável: resp, Data_Entrega: initial.Data_Entrega || new Date().toISOString().split('T')[0], Checklist: [], Anexos: [], Comentarios: [], Atividades: [activity], Criado_Em: new Date().toISOString(), Atualizado_Em: new Date().toISOString(), ...initial };
-    } else if (tab === 'COBO') newItem = { id, Cliente_ID: defaultClientId, Canal: 'Instagram', Frequência: '', Público: '', Voz: '', Zona: '', Intenção: '', Formato: '', ...initial };
-    else if (tab === 'MATRIZ') newItem = { id, Cliente_ID: defaultClientId, Rede_Social: 'Instagram', Função: 'Hub', "Quem fala": '', "Papel estratégico": '', "Tipo de conteúdo": '', "Resultado esperado": '', ...initial };
-    else if (tab === 'RDC') newItem = { id, Cliente_ID: defaultClientId, "Ideia de Conteúdo": '', Rede_Social: 'Instagram', "Tipo de conteúdo": '', "Resolução (1–5)": 1, "Demanda (1–5)": 1, "Competição (1–5)": 1, "Score (R×D×C)": 1, Decisão: 'Preencha R/D/C', ...initial };
-    else if (tab === 'CHECKLISTS') newItem = { id, ...initial };
+      newItem = { ...defaultProps, Task_ID: `Tarefa-${generateId().toUpperCase().slice(0, 4)}`, Cliente_ID: initial.Cliente_ID || defaultClientId, Título: initial.Título || 'Nova Tarefa', Área: initial.Área || 'Conteúdo', Status: initial.Status || 'todo', Prioridade: initial.Prioridade || 'Média', Responsável: resp, Data_Entrega: initial.Data_Entrega || new Date().toISOString().split('T')[0], Checklist: [], Anexos: [], Comentarios: [], Atividades: [activity], ...initial };
+    } else if (tab === 'COBO') newItem = { ...defaultProps, Cliente_ID: defaultClientId, Canal: 'Instagram', Frequência: '', Público: '', Voz: '', Zona: '', Intenção: '', Formato: '', ...initial };
+    else if (tab === 'MATRIZ') newItem = { ...defaultProps, Cliente_ID: defaultClientId, Rede_Social: 'Instagram', Função: 'Hub', "Quem fala": '', "Papel estratégico": '', "Tipo de conteúdo": '', "Resultado esperado": '', ...initial };
+    else if (tab === 'RDC') newItem = { ...defaultProps, Cliente_ID: defaultClientId, "Ideia de Conteúdo": '', Rede_Social: 'Instagram', "Tipo de conteúdo": '', "Resolução (1–5)": 1, "Demanda (1–5)": 1, "Competição (1–5)": 1, "Score (R×D×C)": 1, Decisão: 'Preencha R/D/C', ...initial };
+    else if (tab === 'CHECKLISTS') newItem = { ...defaultProps, ...initial };
 
     if (newItem) {
       console.log(`[EKKO-SYNC] CREATE_TRIGGERED | Table: ${tab} | ID: ${id}`, newItem);
@@ -920,12 +948,17 @@ export default function App() {
            return id;
         }
 
-        const error = await DatabaseService.syncItem(tableName, newItem, currentWorkspace.id);
-
-        if (error) {
+        try {
+          const error = await DatabaseService.syncItem(tableName, newItem, currentWorkspace.id);
+          if (error) throw error;
+          
+          if (tab === 'CLIENTES') addNotification('success', 'Cliente criado com sucesso', 'Um novo perfil de cliente foi adicionado.');
+          else if (tab === 'TAREFAS') addNotification('success', 'Nova tarefa adicionada', 'A tarefa foi criada no fluxo de trabalho.');
+          else addNotification('success', 'Item Criado', `Novo item adicionado em ${TABLE_LABELS[tab]}.`);
+        } catch (error: any) {
           console.error(`[EKKO-SYNC] CREATE_FAILURE | Table: ${tableName} | ID: ${id}`, error);
-          // Rollback local state (simple approach: remove it if we failed to save)
-          const filterFn = (prev: any[]) => prev.filter(i => i.id !== id);
+          // Rollback local state
+          const filterFn = (prev: any[]) => prev.filter((i: any) => i.id !== id);
           if (tab === 'CLIENTES') setClients(filterFn);
           else if (tab === 'FINANCAS') setFinancas(filterFn);
           else if (tab === 'PLANEJAMENTO') setPlanejamento(filterFn);
@@ -936,13 +969,10 @@ export default function App() {
           else if (tab === 'RDC') setRdc(filterFn);
 
           addNotification('error', 'Erro ao salvar', `Erro: ${error.message || JSON.stringify(error) || 'O registro não pôde ser criado no servidor.'}`);
-        } else {
-          if (tab === 'CLIENTES') addNotification('success', 'Cliente criado com sucesso', 'Um novo perfil de cliente foi adicionado.');
-          else if (tab === 'TAREFAS') addNotification('success', 'Nova tarefa adicionada', 'A tarefa foi criada no fluxo de trabalho.');
-          else addNotification('success', 'Item Criado', `Novo item adicionado em ${TABLE_LABELS[tab]}.`);
         }
       }
     }
+
     return id;
   }, [currentWorkspace, selectedClientIds, clients, currentUser, addNotification]);
 
@@ -1122,8 +1152,8 @@ export default function App() {
         id: generateId(),
         workspace_id: currentWorkspace.id,
         Task_ID: `Tarefa-${generateId().toUpperCase().slice(0, 4)}`,
-        Criado_Em: today,
-        Atualizado_Em: today,
+        created_at: today,
+        updated_at: today,
         Status: 'todo',
         Prioridade: 'Média',
         Checklist: [],
@@ -1262,7 +1292,7 @@ export default function App() {
           {[
             { label: 'Visão Geral', tabs: ['DASHBOARD', 'CLIENTES', 'ORGANICKIA'] },
             { label: 'Estratégia', tabs: ['RDC', 'MATRIZ', 'COBO'] },
-            { label: 'Execução', tabs: ['PLANEJAMENTO', 'APROVACAO', 'TAREFAS', 'CHECKLISTS'] },
+            { label: 'Execução', tabs: ['PLANEJAMENTO', 'TAREFAS', 'CHECKLISTS'] },
             { label: 'Gestão/Extras', tabs: ['FINANCAS', 'VH', 'WHITEBOARD'] }
           ].map((group, gIdx) => (
             <div key={group.label} className="space-y-1">
@@ -1446,7 +1476,7 @@ export default function App() {
         </header>
 
         {/* Action Controls (Mobile-friendly row) */}
-        {activeTab !== 'WHITEBOARD' && activeTab !== 'PLANEJAMENTO' && activeTab !== 'APROVACAO' && activeTab !== 'CHECKLISTS' && (
+        {activeTab !== 'WHITEBOARD' && activeTab !== 'PLANEJAMENTO' && activeTab !== 'CHECKLISTS' && (
           <div className="relative group/scroll">
             <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar px-4 sm:px-8 py-2 border-b border-app-border/40 lg:border-none no-scrollbar snap-x snap-mandatory">
               <button
@@ -1480,7 +1510,7 @@ export default function App() {
 
 
 
-        <div className={`flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar animate-fade bg-app-bg ${(activeTab === 'WHITEBOARD' || activeTab === 'CLIENTES' || activeTab === 'PLANEJAMENTO' || activeTab === 'APROVACAO' || activeTab === 'CHECKLISTS') ? 'p-0 overflow-hidden' : 'p-4 sm:p-6 pb-[calc(100px+env(safe-area-inset-bottom))] sm:pb-6'}`}>
+        <div className={`flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar animate-fade bg-app-bg ${(activeTab === 'WHITEBOARD' || activeTab === 'CLIENTES' || activeTab === 'PLANEJAMENTO' || activeTab === 'CHECKLISTS') ? 'p-0 overflow-hidden' : 'p-4 sm:p-6 pb-[calc(100px+env(safe-area-inset-bottom))] sm:pb-6'}`}>
           {activeTab === 'DASHBOARD' && <DashboardView clients={clients} tasks={currentTasks} financas={currentFinancas} planejamento={currentPlanejamento} rdc={currentRdc} />}
           {activeTab === 'CLIENTES' && <ClientesView clients={filterArchived(clients)} onUpdate={handleUpdate} onDelete={performDelete} onAdd={() => handleAddRow('CLIENTES')} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} />}
           {activeTab === 'RDC' && <TableView tab="RDC" data={currentRdc} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('RDC')} library={BibliotecaConteudo} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
@@ -1504,8 +1534,7 @@ export default function App() {
           )}
 
           {activeTab === 'PLANEJAMENTO' && <PlanejamentoTab data={currentPlanejamento} clients={clients} onUpdate={handleUpdate} onAdd={handleAddRow} rdc={currentRdc} matriz={matriz} cobo={cobo} tasks={currentTasks} iaHistory={iaHistory} setActiveTab={setActiveTab} performArchive={performArchive} performDelete={performDelete} library={BibliotecaConteudo} activeClientId={selectedClientIds.length === 1 ? selectedClientIds[0] : undefined} showArchived={showArchived} setShowArchived={setShowArchived} setIsClientFilterOpen={setIsClientFilterOpen} />}
-          {activeTab === 'APROVACAO' && <AprovacaoTab />}
-          {activeTab === 'FINANCAS' && <FinancasTab data={currentFinancas} onAdd={handleAddRow} onUpdate={handleUpdate} onDelete={performDelete} clients={clients} />}
+          {activeTab === 'FINANCAS' && <FinancasTab financas={currentFinancas} onAdd={(initial: any) => handleAddRow('FINANCAS', initial)} onUpdate={(id: any, field: any, value: any) => handleUpdate(id, 'FINANCAS', field, value)} onDelete={(ids: any) => performDelete(ids, 'FINANCAS')} clients={clients} currentWorkspace={currentWorkspace} />}
           {activeTab === 'TAREFAS' && <TaskFlowView tasks={currentTasks} clients={clients} collaborators={collaborators} activeViewId={activeTaskViewId} setActiveViewId={setActiveTaskViewId} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('TAREFAS')} onSelectTask={setSelectedTaskId} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
           {activeTab === 'CHECKLISTS' && <ChecklistsTab data={currentChecklists} onAdd={handleAddRow} onUpdate={handleUpdate} onDelete={performDelete} clients={clients} />}
           {activeTab === 'VH' && <VhManagementView clients={clients} collaborators={collaborators} setCollaborators={setCollaborators} onUpdate={handleUpdate} selection={selection} onSelect={toggleSelection} />}
@@ -1860,6 +1889,6 @@ export default function App() {
 }
 
 function getIcon(tab: TipoTabela) {
-  const icons: any = { DASHBOARD: 'fa-table-columns', CLIENTES: 'fa-address-card', ORGANICKIA: 'fa-robot', RDC: 'fa-bolt', MATRIZ: 'fa-chess-rook', COBO: 'fa-tower-cell', PLANEJAMENTO: 'fa-calendar-days', APROVACAO: 'fa-thumbs-up', FINANCAS: 'fa-coins', TAREFAS: 'fa-list-check', CHECKLISTS: 'fa-clipboard-check', VH: 'fa-hourglass', WHITEBOARD: 'fa-object-group' };
+  const icons: any = { DASHBOARD: 'fa-table-columns', CLIENTES: 'fa-address-card', ORGANICKIA: 'fa-robot', RDC: 'fa-bolt', MATRIZ: 'fa-chess-rook', COBO: 'fa-tower-cell', PLANEJAMENTO: 'fa-calendar-days', FINANCAS: 'fa-coins', TAREFAS: 'fa-list-check', CHECKLISTS: 'fa-clipboard-check', VH: 'fa-hourglass', WHITEBOARD: 'fa-object-group' };
   return icons[tab] || 'fa-folder';
 }

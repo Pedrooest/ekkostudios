@@ -243,8 +243,12 @@ export const DatabaseService = {
             payload.created_by = user.id;
         }
 
-        const { error } = await supabase.from(table).upsert(payload);
-        return error || null;
+        const { data, error } = await supabase.from(table).upsert(payload, { onConflict: 'id' }).select();
+        if (error) {
+            console.error('[DatabaseService.syncItem] Erro ao sincronizar:', error);
+            throw error;
+        }
+        return data ? null : new Error('Nenhum dado retornado no Upsert');
     },
 
     async updateItem(table: string, id: string, updates: any) {
@@ -259,7 +263,7 @@ export const DatabaseService = {
     },
 
     async fetchAllWorkspaceData(workspaceId: string) {
-        const [clients, cobo, matriz, rdc, planning, financas, tasks, collaborators, checklists] = await Promise.all([
+        const [clients, cobo, matriz, rdc, planning, financas, tasks, collaborators, checklists, retiradas] = await Promise.all([
             this.fetchData('clients', workspaceId),
             this.fetchData('cobo', workspaceId),
             this.fetchData('matriz_estrategica', workspaceId),
@@ -268,10 +272,24 @@ export const DatabaseService = {
             this.fetchData('financas', workspaceId),
             this.fetchData('tasks', workspaceId),
             this.fetchData('collaborators', workspaceId),
-            this.fetchData('checklists', workspaceId)
+            this.fetchData('checklists', workspaceId),
+            this.fetchData('retiradas_socios', workspaceId)
         ]);
+        
+        return { clients, cobo, matriz, rdc, planning, financas, tasks, collaborators, checklists, retiradas };
+    },
+    
+    // RETIRADAS SOCIOS
+    async fetchRetiradasSocios(workspaceId: string) {
+        return this.fetchData('retiradas_socios', workspaceId);
+    },
 
-        return { clients, cobo, matriz, rdc, planning, financas, tasks, collaborators, checklists };
+    async saveRetiradaSocio(data: any, workspaceId: string) {
+        return this.syncItem('retiradas_socios', data, workspaceId);
+    },
+
+    async deleteRetiradaSocio(id: string) {
+        return this.deleteItem('retiradas_socios', id);
     },
 
     // WHITEBOARD (Milanote)

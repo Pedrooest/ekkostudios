@@ -129,13 +129,6 @@ const TAB_TEMPLATES: Record<TipoTabela, ModeloApresentacao> = {
     subtitulo: 'Controle de equipamentos e diárias de produção.',
     proximoPasso: 'Garantir que todos os equipamentos estejam prontos.',
     chamadas: []
-  },
-  APROVACAO: {
-    aba: 'APROVACAO',
-    rotulo: 'Aprovação de Conteúdo',
-    subtitulo: 'Acompanhamento do pipeline de aprovação do cliente.',
-    proximoPasso: 'Solicitar feedback das peças prontas.',
-    chamadas: []
   }
 };
 

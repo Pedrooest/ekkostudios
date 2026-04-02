@@ -121,7 +121,6 @@ export const ROTULOS_TABELAS: Record<TipoTabela, string> = {
   MATRIZ: 'Matriz Estratégica',
   COBO: 'Canais (COBO)',
   PLANEJAMENTO: 'Planejamento',
-  APROVACAO: 'Aprovação',
   FINANCAS: 'Finanças',
   TAREFAS: 'Fluxo de Tarefas',
   VH: 'Gestão de VH',
