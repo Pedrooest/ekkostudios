@@ -75,6 +75,15 @@ export function MatrizEstrategicaView({
   const [filterCanal, setFilterCanal] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<any>(null);
 
+  // Escape listener for modal
+  React.useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setEditingItem(null);
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, []);
+
   const filteredData = useMemo(() => {
     return data.filter(item => {
       const matchesSearch = !searchTerm || 
@@ -110,7 +119,7 @@ export function MatrizEstrategicaView({
   }, [filteredData]);
 
   return (
-    <div className="space-y-6 animate-fade pb-20">
+    <div className="view-root p-4 sm:p-6 space-y-6 animate-fade pb-20 h-full overflow-y-auto custom-scrollbar">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm">
         <div className="flex items-center gap-4 flex-1">
@@ -145,7 +154,7 @@ export function MatrizEstrategicaView({
           </div>
 
           <Button onClick={() => { playUISound('tap'); onAdd(); }} className="!h-10 !px-5 !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 !rounded-lg !text-[11px] !font-bold !uppercase shadow-lg shadow-zinc-500/10 transition-transform hover:scale-[1.02]">
-            <Plus size={16} className="mr-2" /> Nova Entrada
+            <Plus size={16} className="mr-2 shrink-0" /> Nova Entrada
           </Button>
         </div>
       </div>
@@ -233,7 +242,7 @@ export function MatrizEstrategicaView({
       ) : viewMode === 'table' ? (
         /* TABLE MODE (Zinc Dense) */
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
-          <div className="overflow-x-auto custom-scrollbar">
+          <div className="table-responsive overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse whitespace-nowrap min-w-[1100px]">
               <thead>
                 <tr className="bg-zinc-50/50 dark:bg-zinc-800/30 border-b border-zinc-100 dark:border-zinc-800">

@@ -66,17 +66,39 @@ const mapToFrontend = (data: any, table: string) => {
 const mapToDB = (data: any, table: string) => {
     if (!data) return data;
     const mapa = MAPA_COLUNAS[table];
-    if (!mapa) return data;
-
+    
     const mapped: any = { ...data };
-    Object.entries(mapa).forEach(([dbKey, feKey]) => {
-        if (feKey in mapped) {
-            mapped[dbKey] = mapped[feKey];
-            if (dbKey !== feKey) {
-                delete mapped[feKey];
+    
+    if (mapa) {
+        Object.entries(mapa).forEach(([dbKey, feKey]) => {
+            if (feKey in mapped) {
+                mapped[dbKey] = mapped[feKey];
+                if (dbKey !== feKey) {
+                    delete mapped[feKey];
+                }
             }
-        }
-    });
+        });
+    }
+
+    // Ensure array fields for specific tables are never undefined
+    if (table === 'tasks') {
+        mapped.Checklist = mapped.Checklist || [];
+        mapped.Anexos = mapped.Anexos || [];
+        mapped.Comentarios = mapped.Comentarios || [];
+        mapped.Atividades = mapped.Atividades || [];
+    }
+    
+    if (table === 'checklists') {
+        mapped.itens_levar = mapped.itens_levar || [];
+        mapped.itens_trazer = mapped.itens_trazer || [];
+        mapped.itens_gravar = mapped.itens_gravar || [];
+    }
+
+    if (table === 'whiteboards') {
+        mapped.elements = mapped.elements || [];
+        mapped.connections = mapped.connections || [];
+    }
+
     return mapped;
 };
 
@@ -227,28 +249,40 @@ export const DatabaseService = {
     },
 
     async syncItem(table: string, item: any, workspaceId: string) {
-        if (!item.id) return new Error('ID ausente');
-
-        const user = (await supabase.auth.getUser()).data.user;
-        const dbItem = mapToDB(item, table);
-
-        const payload = {
-            ...dbItem,
-            workspace_id: workspaceId,
-            updated_by: user?.id,
-            updated_at: new Date().toISOString()
-        };
-
-        if (!payload.created_by && user) {
-            payload.created_by = user.id;
+        if (!item.id) {
+            console.error('[DatabaseService.syncItem] Blocked: Missing ID');
+            return new Error('ID ausente');
         }
 
-        const { data, error } = await supabase.from(table).upsert(payload, { onConflict: 'id' }).select();
-        if (error) {
-            console.error('[DatabaseService.syncItem] Erro ao sincronizar:', error);
-            throw error;
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            const dbItem = mapToDB(item, table);
+
+            const payload = {
+                ...dbItem,
+                workspace_id: workspaceId,
+                updated_by: user?.id,
+                updated_at: new Date().toISOString()
+            };
+
+            if (!payload.created_by && user) {
+                payload.created_by = user.id;
+            }
+
+            const { data, error } = await supabase.from(table).upsert(payload, { onConflict: 'id' }).select();
+            if (error) {
+                console.error(`[DatabaseService.syncItem] SQL_ERROR | Table: ${table} | ID: ${item.id}`, error);
+                return error;
+            }
+            if (!data || data.length === 0) {
+                console.warn(`[DatabaseService.syncItem] NO_DATA_RETURNED | Table: ${table} | ID: ${item.id}`);
+                return new Error('Nenhum dado retornado no Upsert');
+            }
+            return null;
+        } catch (err: any) {
+            console.error(`[DatabaseService.syncItem] FATAL_ERROR | Table: ${table} | ID: ${item.id}`, err);
+            return err;
         }
-        return data ? null : new Error('Nenhum dado retornado no Upsert');
     },
 
     async updateItem(table: string, id: string, updates: any) {

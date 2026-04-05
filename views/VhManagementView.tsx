@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
     TrendingUp, Users, DollarSign, Target, Plus, Zap, Trash2,
     Calculator, Info, LayoutDashboard, Settings
@@ -26,6 +26,17 @@ export function VhManagementView({
 }: VhManagementViewProps) {
     const [subTab, setSubTab] = useState<'dashboard' | 'clients' | 'config'>('dashboard');
     const [simulator, setSimulator] = useState({ fee: 0, hours: 0 });
+
+    // Listener para Tecla ESC
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                setSimulator({ fee: 0, hours: 0 }); // Limpa simulador ao sair
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     const formatBRL = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
@@ -64,13 +75,13 @@ export function VhManagementView({
     }, [simulator, collaborators]);
 
     return (
-        <div className="flex flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors">
+        <div className="view-root flex flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors">
             
             {/* SUB-NAVIGATION HEADER */}
             <div className="flex items-center justify-between flex-wrap gap-3 px-6 py-4 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900 shadow-sm">
-                        <TrendingUp size={16} />
+                        <TrendingUp size={16} className="shrink-0" />
                     </div>
                     <div>
                         <h2 className="text-lg font-semibold text-zinc-900 dark:text-white truncate">Gestão VH</h2>
@@ -90,7 +101,7 @@ export function VhManagementView({
                             className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all
                                 ${subTab === t.id ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
                         >
-                            <t.icon size={12} /> {t.label}
+                            <t.icon size={12} className="shrink-0" /> {t.label}
                         </button>
                     ))}
                 </div>
@@ -214,7 +225,7 @@ export function VhManagementView({
                                             <span className="text-lg font-bold text-rose-500">{formatBRL(simResult.cost)}</span>
                                         </div>
                                         <div className="bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-200/50 dark:border-emerald-500/20 rounded-xl p-5 flex flex-col justify-center gap-1.5 relative overflow-hidden group">
-                                            <Zap size={32} className="absolute -right-2 -bottom-2 text-emerald-500/10 group-hover:scale-110 transition-transform" />
+                                            <Zap size={32} className="absolute -right-2 -bottom-2 text-emerald-500/10 group-hover:scale-110 transition-transform shrink-0" />
                                             <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Lucro Est.</span>
                                             <span className="text-xl font-bold text-emerald-600">{formatBRL(simResult.profit)}</span>
                                         </div>
@@ -288,7 +299,7 @@ export function VhManagementView({
                                                         onClick={() => setCollaborators((prev: Colaborador[]) => prev.filter(p => p.id !== c.id))}
                                                         className="w-8 h-8 rounded-lg text-zinc-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center"
                                                     >
-                                                        <Trash2 size={16} />
+                                                        <Trash2 size={16} className="shrink-0" />
                                                     </button>
                                                 </td>
                                             </tr>
@@ -299,8 +310,7 @@ export function VhManagementView({
 
                             <div className="p-6 bg-zinc-50/50 dark:bg-zinc-800/10 border-t border-zinc-100 dark:border-zinc-800 text-center">
                                 <span className="inline-flex items-center gap-2 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-                                    <Info size={12} className="text-zinc-400" />
-                                    Cálculo VH: (Remuneração) ÷ Horas Produtivas
+                                    <Info size={14} className="shrink-0" /> O Valor Hora (VH) é calculado dividindo a remuneração pelas horas produtivas mensais.
                                 </span>
                             </div>
                         </Card>

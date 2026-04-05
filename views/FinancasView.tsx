@@ -90,6 +90,19 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
     
     const [editingId, setEditingId] = useState<string | null>(null);
     const [retiradas, setRetiradas] = useState<RetiradaSocio[]>([]);
+
+    // Escape listener for modals
+    useEffect(() => {
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                setIsModalOpen(false);
+                setIsWithdrawalModalOpen(false);
+                setIsContractModalOpen(false);
+            }
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, []);
     
     const [formData, setFormData] = useState({
         tipo: 'entrada',
@@ -468,12 +481,12 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
     const totalPendencias = pendencias.atrasadas.length + pendencias.vencendo.length + pendencias.aPagar.length;
 
     return (
-        <div className="flex-1 min-h-0 flex flex-col bg-white dark:bg-zinc-950 overflow-hidden animate-fade">
+        <div className="view-root flex-1 min-h-0 flex flex-col bg-white dark:bg-zinc-950 overflow-hidden animate-fade">
             {/* Header */}
             <div className="shrink-0 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 px-6 py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md sticky top-0 z-10">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
-                        <Wallet size={20} />
+                        <Wallet size={20} className="shrink-0" />
                     </div>
                     <div>
                         <h1 className="text-lg font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100">Financeiro Corporate</h1>
@@ -500,7 +513,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                         ))}
                     </div>
                     <Button onClick={() => handleOpenModal()} className="!h-[36px] px-4 shrink-0 !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 shadow-xl border-none">
-                        <Plus size={16} className="mr-2" /> Lancar
+                        <Plus size={16} className="mr-2 shrink-0" /> Lancar
                     </Button>
                 </div>
             </div>
@@ -547,7 +560,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                         className="bg-zinc-100 dark:bg-zinc-800 border-none rounded-xl text-xs font-bold text-zinc-700 dark:text-zinc-300 focus:ring-1 focus:ring-blue-500"
                                     />
                                 </div>
-                                <ArrowRight size={14} className="text-zinc-400" />
+                                <ArrowRight size={14} className="text-zinc-400 shrink-0" />
                                 <div className="flex items-center gap-2">
                                     <span className="text-[10px] font-black uppercase text-zinc-400">Até</span>
                                     <input 
@@ -640,7 +653,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                     <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 !p-0 rounded-3xl overflow-hidden flex flex-col h-[calc(100vh-200px)]">
                         <div className="p-5 border-b border-zinc-200 dark:border-zinc-800 flex flex-wrap gap-4 items-center bg-zinc-50/50 dark:bg-zinc-900/50">
                             <div className="flex-1 min-w-[200px] relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={14} />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 shrink-0" size={14} />
                                 <input 
                                     type="text" placeholder="Buscar LANÇAMENTO..."
                                     value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
@@ -657,7 +670,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                 {clients?.map((cl:any) => <option key={cl.id} value={cl.id}>{cl.Nome}</option>)}
                             </select>
                         </div>
-                        <div className="flex-1 overflow-auto custom-scrollbar">
+                        <div className="table-responsive flex-1 overflow-auto custom-scrollbar">
                             <table className="w-full text-left border-collapse table-fixed min-w-[800px]">
                                 <thead>
                                     <tr className="bg-zinc-50/80 dark:bg-zinc-900/40 text-[9px] font-black text-zinc-400 uppercase tracking-widest sticky top-0 backdrop-blur-sm z-10">
@@ -680,7 +693,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                                     <td className="px-6 py-4 text-[10px] font-black text-zinc-500">{new Date(tx.data).toLocaleDateString('pt-BR')}</td>
                                                     <td className="px-6 py-4">
                                                         <p className="text-xs font-black text-zinc-900 dark:text-white uppercase truncate">{tx.descricao}</p>
-                                                        {tx.frequencia !== 'unica' && <p className="text-[9px] text-indigo-500 font-bold mt-0.5"><Repeat size={10} className="inline mr-1"/>{tx.frequencia.toUpperCase()}</p>}
+                                                        {tx.frequencia !== 'unica' && <p className="text-[9px] text-indigo-500 font-bold mt-0.5"><Repeat size={10} className="inline mr-1 shrink-0"/>{tx.frequencia.toUpperCase()}</p>}
                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <Badge color="slate" className="!text-[9px] px-2 py-0.5 truncate max-w-[130px] block">

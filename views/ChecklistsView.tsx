@@ -56,6 +56,19 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
     // Controle de Interface
     const [activeShootId, setActiveShootId] = useState<string | null>(null);
     const [isNewShootModalOpen, setIsNewShootModalOpen] = useState(false);
+
+    // Escape listener para fechar modais/vistas
+    React.useEffect(() => {
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                if (isNewShootModalOpen) setIsNewShootModalOpen(false);
+                if (activeShootId) setActiveShootId(null);
+                setAddingItemToCategory(null);
+            }
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, [isNewShootModalOpen, activeShootId]);
     const [isCreating, setIsCreating] = useState(false);
     const [createError, setCreateError] = useState('');
 
@@ -238,77 +251,79 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                 <Card className="relative w-full max-w-lg bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 !p-0">
                     <div className="px-6 py-4 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/30 flex justify-between items-center">
                         <h2 className="text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2 uppercase tracking-widest">
-                            <Video size={18} /> Agendar Gravação
+                            <Video size={18} className="shrink-0" /> Agendar Gravação
                         </h2>
                         <button onClick={() => { tryPlaySound('close'); setIsNewShootModalOpen(false); }} className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700">
-                            <X size={16} />
+                            <X size={16} className="shrink-0" />
                         </button>
                     </div>
 
                     <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                        <div>
-                            <InputSelect
-                                label="* Cliente da Gravação"
-                                value={newShootData.client}
-                                onChange={(val) => setNewShootData({ ...newShootData, client: val })}
-                                options={clients.map(c => ({ value: c.Nome, label: c.Nome }))}
-                                placeholder="Selecione um cliente..."
-                                className="!h-10 border border-zinc-200 dark:border-zinc-700 w-full"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="text-xs font-black text-zinc-600 dark:text-zinc-400 mb-1.5 ml-1 block uppercase tracking-wide">Título / Tema</label>
-                            <input
-                                type="text"
-                                value={newShootData.title}
-                                onChange={(e) => setNewShootData({ ...newShootData, title: e.target.value })}
-                                placeholder="Ex: Captação Mês 04 + Institucional Externo"
-                                className="w-full h-10 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm font-medium rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-4">
                             <div>
-                                <label className="text-xs font-black text-zinc-600 dark:text-zinc-400 mb-1.5 ml-1 block uppercase tracking-wide">* Data Prevista</label>
+                                <InputSelect
+                                    label="* Cliente da Gravação"
+                                    value={newShootData.client}
+                                    onChange={(val) => setNewShootData({ ...newShootData, client: val })}
+                                    options={clients.map(c => ({ value: c.Nome, label: c.Nome }))}
+                                    placeholder="Selecione um cliente..."
+                                    className="!h-10 border border-zinc-200 dark:border-zinc-700 w-full"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="text-xs font-black text-zinc-600 dark:text-zinc-400 mb-1.5 ml-1 block uppercase tracking-wide">Título / Tema</label>
                                 <input
-                                    type="date"
-                                    value={newShootData.date}
-                                    onChange={(e) => setNewShootData({ ...newShootData, date: e.target.value })}
+                                    type="text"
+                                    value={newShootData.title}
+                                    onChange={(e) => setNewShootData({ ...newShootData, title: e.target.value })}
+                                    placeholder="Ex: Captação Mês 04 + Institucional Externo"
                                     className="w-full h-10 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm font-medium rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
                                 />
                             </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-xs font-black text-zinc-600 dark:text-zinc-400 mb-1.5 ml-1 block uppercase tracking-wide">* Data Prevista</label>
+                                    <input
+                                        type="date"
+                                        value={newShootData.date}
+                                        onChange={(e) => setNewShootData({ ...newShootData, date: e.target.value })}
+                                        className="w-full h-10 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm font-medium rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-black text-zinc-600 dark:text-zinc-400 mb-1.5 ml-1 block uppercase tracking-wide">Horário Início</label>
+                                    <input
+                                        type="time"
+                                        value={newShootData.time}
+                                        onChange={(e) => setNewShootData({ ...newShootData, time: e.target.value })}
+                                        className="w-full h-10 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm font-medium rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
+                                    />
+                                </div>
+                            </div>
+
                             <div>
-                                <label className="text-xs font-black text-zinc-600 dark:text-zinc-400 mb-1.5 ml-1 block uppercase tracking-wide">Horário Início</label>
+                                <label className="text-xs font-black text-zinc-600 dark:text-zinc-400 mb-1.5 ml-1 block uppercase tracking-wide">Endereço / Local</label>
                                 <input
-                                    type="time"
-                                    value={newShootData.time}
-                                    onChange={(e) => setNewShootData({ ...newShootData, time: e.target.value })}
+                                    type="text"
+                                    value={newShootData.location}
+                                    onChange={(e) => setNewShootData({ ...newShootData, location: e.target.value })}
+                                    placeholder="Consultório Matriz, Clínica Central..."
                                     className="w-full h-10 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm font-medium rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
                                 />
                             </div>
-                        </div>
 
-                        <div>
-                            <label className="text-xs font-black text-zinc-600 dark:text-zinc-400 mb-1.5 ml-1 block uppercase tracking-wide">Endereço / Local</label>
-                            <input
-                                type="text"
-                                value={newShootData.location}
-                                onChange={(e) => setNewShootData({ ...newShootData, location: e.target.value })}
-                                placeholder="Consultório Matriz, Clínica Central..."
-                                className="w-full h-10 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm font-medium rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="text-xs font-black text-zinc-600 dark:text-zinc-400 mb-1.5 ml-1 block uppercase tracking-wide">Observações Gerais</label>
-                            <textarea
-                                rows={3}
-                                value={newShootData.notes}
-                                onChange={(e) => setNewShootData({ ...newShootData, notes: e.target.value })}
-                                placeholder="Avisos importantes sobre a locação, contatos visuais..."
-                                className="w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm font-medium rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none transition-all shadow-sm"
-                            />
+                            <div>
+                                <label className="text-xs font-black text-zinc-600 dark:text-zinc-400 mb-1.5 ml-1 block uppercase tracking-wide">Observações Gerais</label>
+                                <textarea
+                                    rows={3}
+                                    value={newShootData.notes}
+                                    onChange={(e) => setNewShootData({ ...newShootData, notes: e.target.value })}
+                                    placeholder="Avisos importantes sobre a locação, contatos visuais..."
+                                    className="w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm font-medium rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none transition-all shadow-sm"
+                                />
+                            </div>
                         </div>
                         
                         {createError && (
@@ -328,7 +343,7 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                             className={`h-10 px-6 font-bold uppercase tracking-widest shadow-lg ${isCreating ? '!bg-blue-400 cursor-not-allowed opacity-80' : '!bg-blue-600 hover:!bg-blue-700'} !text-white !border-none transition-all flex items-center justify-center min-w-[160px]`}
                         >
                             {isCreating ? (
-                                <><i className="fa-solid fa-spinner animate-spin mr-2"></i> Criando...</>
+                                <><i className="fa-solid fa-spinner animate-spin mr-2 shrink-0"></i> Criando...</>
                             ) : (
                                 'Criar Gravação'
                             )}
@@ -355,13 +370,13 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
         ];
 
         return (
-            <div className="absolute inset-0 bg-zinc-50 dark:bg-zinc-950 flex flex-col z-[40] animate-in fade-in duration-200">
+            <div className="view-root absolute inset-0 bg-zinc-50 dark:bg-zinc-950 flex flex-col z-[40] animate-in fade-in duration-200" onKeyDown={(e) => e.key === 'Escape' && setActiveShootId(null)}>
                 {/* Internal Header */}
                 <div className="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm z-10 shrink-0">
                     <div className="flex items-center gap-4 min-w-0">
                          <div className="group cursor-pointer flex items-center gap-3 pr-4 border-r border-zinc-200 dark:border-zinc-800 transition-all hover:-translate-x-1" onClick={() => { tryPlaySound('close'); setActiveShootId(null); }}>
                              <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex flex-col items-center justify-center text-zinc-400 group-hover:bg-zinc-100 dark:group-hover:bg-zinc-700 dark:group-hover:border-zinc-600 transition-all shadow-sm">
-                                <ArrowLeft size={16} className="mb-0.5" />
+                                <ArrowLeft size={16} className="mb-0.5 shrink-0" />
                                 <span className="text-[8px] font-black uppercase tracking-widest leading-none">Voltar</span>
                              </div>
                          </div>
@@ -395,10 +410,10 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                                 }}
                                 className={`text-[10px] font-bold uppercase tracking-widest !h-9 !rounded-xl !border-none ${activeShoot.status === 'done' ? '!bg-zinc-100 dark:!bg-zinc-800 !text-zinc-500' : isMasterReady ? '!bg-emerald-500 hover:!bg-emerald-600 !text-white shadow-lg shadow-emerald-500/20 animate-pulse' : '!bg-blue-600 hover:!bg-blue-700 !text-white shadow-lg'}`}
                              >
-                                 <CheckCircle2 size={14} className="mr-1.5" /> 
+                                 <CheckCircle2 size={14} className="mr-1.5 shrink-0" /> 
                                  {activeShoot.status === 'done' ? 'Desconcluir Gravação' : 'Finalizar Gravação'}
                              </Button>
-                             <Button variant="danger" onClick={() => handleDeleteShoot(activeShoot.id)} className="h-9 w-9 p-0 flex items-center justify-center !rounded-xl shadow-sm"><Trash2 size={14}/></Button>
+                             <Button variant="danger" onClick={() => handleDeleteShoot(activeShoot.id)} className="h-9 w-9 p-0 flex items-center justify-center !rounded-xl shadow-sm"><Trash2 size={14} className="shrink-0"/></Button>
                         </div>
                     </div>
                 </div>
@@ -444,20 +459,22 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                                                 key={item.id}
                                                 className={`group flex items-start gap-3 p-3 rounded-xl border transition-all ${item.checked ? `bg-zinc-50 dark:bg-zinc-800/20 border-zinc-200 dark:border-zinc-800` : `bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 shadow-sm hover:border-${cColor}-300 dark:hover:border-${cColor}-700`}`}
                                             >
-                                                <div className="mt-0.5 shrink-0 transition-colors">
-                                                    <div
-                                                        onClick={(e) => { e.stopPropagation(); toggleChecklistItem(activeShoot.id, category.id, item.id); }}
-                                                        className={`w-5 h-5 rounded-[4px] border-2 flex items-center justify-center cursor-pointer shrink-0 transition-colors ${item.checked ? `bg-${cColor}-500 border-${cColor}-500` : `border-zinc-300 dark:border-zinc-600 hover:border-${cColor}-400`}`}
-                                                    >
-                                                        {item.checked && <Check size={12} strokeWidth={4} className="text-white" />}
-                                                    </div>
+                                                <div 
+                                                    onClick={() => toggleChecklistItem(activeShoot.id, category.id, item.id)}
+                                                    className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer shrink-0 transition-all ${
+                                                        item.checked 
+                                                            ? `bg-${cColor === 'emerald' ? 'emerald' : cColor === 'blue' ? 'blue' : 'purple'}-500 border-${cColor === 'emerald' ? 'emerald' : cColor === 'blue' ? 'blue' : 'purple'}-500 shadow-lg shadow-${cColor}-500/20` 
+                                                            : 'border-zinc-300 dark:border-zinc-600 hover:border-zinc-400 dark:hover:border-zinc-500'
+                                                    }`}
+                                                >
+                                                    {item.checked && <Check size={12} strokeWidth={4} className="text-white shrink-0" />}
                                                 </div>
                                                 <div className="flex-1 min-w-0 pt-0.5">
-                                                    <span className={`block text-xs font-bold transition-all ${item.checked ? 'text-zinc-400 dark:text-zinc-500 line-through' : 'text-zinc-800 dark:text-zinc-200'}`}>
+                                                    <span className={`block text-[11px] font-bold transition-all uppercase tracking-tight ${item.checked ? 'text-zinc-400 dark:text-zinc-500 line-through opacity-70' : 'text-zinc-800 dark:text-zinc-200'}`}>
                                                         {item.text}
                                                     </span>
                                                     {isScene && item.type && (
-                                                        <Badge color="slate" className={`mt-2 !text-[9px] !uppercase transition-all ${item.checked ? 'opacity-40 grayscale' : ''}`}>
+                                                        <Badge color="slate" className={`mt-2 !text-[8px] !font-black !uppercase transition-all tracking-widest ${item.checked ? 'opacity-40 grayscale' : ''}`}>
                                                             {item.type}
                                                         </Badge>
                                                     )}
@@ -467,7 +484,7 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                                                     className="ml-auto p-1.5 rounded-lg text-zinc-300 hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-500/10 dark:hover:text-rose-500 transition-all flex items-center justify-center shrink-0 mt-0.5 opacity-0 group-hover:opacity-100"
                                                     title="Excluir item"
                                                 >
-                                                    <X size={14} strokeWidth={2.5}/>
+                                                    <X size={14} strokeWidth={2.5} className="shrink-0"/>
                                                 </button>
                                             </div>
                                         ))}
@@ -476,7 +493,7 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                                         {addingItemToCategory === category.id && (
                                             <div className={`group flex items-start gap-3 p-3 rounded-xl border bg-white dark:bg-zinc-900 border-${cColor}-300 dark:border-${cColor}-700 shadow-sm transition-all`}>
                                                 <div className="mt-0.5 shrink-0 transition-colors">
-                                                    <Square size={18} className="text-zinc-300 dark:text-zinc-600" />
+                                                    <Square size={18} className="text-zinc-300 dark:text-zinc-600 shrink-0" />
                                                 </div>
                                                 <div className="flex-1 w-full flex flex-col gap-2">
                                                     {isScene && (
@@ -529,7 +546,7 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                                                 onClick={() => setAddingItemToCategory(category.id)}
                                                 className={`flex items-center gap-2 text-xs font-bold text-zinc-400 hover:text-${cColor}-500 py-2 transition-colors inline-block`}
                                             >
-                                                <Plus size={14} className="inline"/> Adicionar item
+                                                <Plus size={14} className="inline shrink-0"/> Adicionar item
                                             </button>
                                         )}
                                     </div>
@@ -543,7 +560,7 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
     };
 
     return (
-        <div className="flex flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors relative">
+        <div className="view-root flex flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors relative">
             
             {/* RENDER ACTIVE DIARY (If Open) */}
             {renderActiveShootView()}
@@ -552,7 +569,7 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
             <div className={`flex items-center justify-between flex-wrap gap-3 px-6 py-4 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 transition-opacity duration-300 ${activeShootId ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                 <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
-                        <Video size={20} />
+                        <Video size={20} className="shrink-0" />
                     </div>
                     <div>
                         <h2 className="text-xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">Gravações</h2>
@@ -575,7 +592,7 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                         onClick={() => { tryPlaySound('open'); setIsNewShootModalOpen(true); }}
                         className="h-10 px-5 text-[11px] font-bold uppercase tracking-widest bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-lg hover:scale-105 transition-transform !border-none"
                     >
-                        <Plus size={16} className="mr-1.5" /> Nova Gravação
+                        <Plus size={16} className="mr-1.5 shrink-0" /> Nova Gravação
                     </Button>
                 </div>
             </div>

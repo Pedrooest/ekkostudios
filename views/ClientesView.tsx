@@ -42,8 +42,15 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
 
   const closeDrawer = () => setSelectedClient(null);
 
+  React.useEffect(() => {
+    if (!selectedClient) return;
+    const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') closeDrawer(); };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [selectedClient, closeDrawer]);
+
   return (
-    <div className="flex flex-col h-full w-full animate-fade">
+    <div className="view-root flex flex-col h-full w-full animate-fade">
       
       {/* MODERN HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-6 py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 backdrop-blur-md sticky top-0 z-10">
@@ -64,7 +71,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
             {activeCount} Ativos
           </Badge>
           <Button onClick={onAdd} className="!h-10 px-4 !bg-blue-600 !text-white hover:!bg-blue-700 shadow-lg shadow-blue-500/20">
-            <Plus size={16} className="mr-2" /> Novo Cliente
+            <Plus size={16} className="mr-2 shrink-0" /> Novo Cliente
           </Button>
         </div>
       </div>
@@ -350,7 +357,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
               </button>
               
               <Button onClick={closeDrawer} className="flex-1 !h-14 !rounded-2xl !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 shadow-xl shadow-zinc-500/10">
-                <CheckCircle2 size={18} className="mr-2" /> SALVAR E FINALIZAR
+                <CheckCircle2 size={18} className="mr-2 shrink-0" /> SALVAR E FINALIZAR
               </Button>
             </div>
             

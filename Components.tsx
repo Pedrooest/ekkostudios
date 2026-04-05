@@ -2,6 +2,7 @@
 import React from 'react';
 import { BottomSheet } from './components/BottomSheet';
 import { playUISound } from './utils/uiSounds';
+import { X as XIcon } from 'lucide-react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'success';
@@ -31,7 +32,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({ onClic
         playUISound('tap');
         onClick?.(e);
       }}
-      className={`ios-btn px-6 py-2.5 rounded-lg font-bold tracking-tight transition-all flex items-center justify-center gap-2 text-xs uppercase letter-spacing-widest active:scale-[0.98] ${variants[variant]} ${disabled ? 'opacity-30 cursor-not-allowed' : ''} ${className}`}
+      className={`ios-btn min-h-[44px] px-6 py-2.5 rounded-lg font-bold tracking-tight transition-all flex items-center justify-center gap-2 text-xs uppercase letter-spacing-widest active:scale-[0.98] ${variants[variant]} ${disabled ? 'opacity-30 cursor-not-allowed' : ''} ${className} min-w-0`}
       {...props}
     >
       {children}
@@ -295,7 +296,7 @@ export const InputSelect: React.FC<{
       <div className={`flex items-center w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg h-10 transition-all focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 group px-3 gap-2 ${disabled ? 'opacity-50 cursor-not-allowed grayscale' : ''} ${className}`}>
         {Icon && (
           <div className="pointer-events-none text-zinc-400 w-4 h-4 flex items-center justify-center shrink-0 transition-colors group-focus-within:text-blue-500">
-            {typeof Icon === 'string' ? <i className={`fa-solid ${Icon} text-xs`}></i> : <Icon size={16} />}
+            {typeof Icon === 'string' ? <i className={`fa-solid ${Icon} text-xs shrink-0`}></i> : <Icon size={16} className="shrink-0" />}
           </div>
         )}
 
@@ -497,13 +498,19 @@ export const StatCard: React.FC<{
 };
 
 export const LibraryEditorModal: React.FC<{ library: any; onClose: () => void }> = ({ library, onClose }) => {
+  React.useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [onClose]);
+
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-zinc-900/50 backdrop-blur-sm p-4 pointer-events-auto text-left">
-      <div className="w-full h-full md:h-[80vh] md:max-w-4xl bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl flex flex-col">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-zinc-900/60 backdrop-blur-md p-4 pointer-events-auto text-left transition-all" onClick={onClose}>
+      <div className="w-full h-full md:h-[80vh] md:max-w-4xl bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl flex flex-col animate-ios-spring overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="h-20 flex items-center justify-between px-10 border-b border-app-border">
           <h3 className="text-xl font-bold uppercase text-app-text-strong">Biblioteca de Formatos</h3>
-          <button onClick={() => { playUISound('tap'); onClose(); }} className="ios-btn text-app-text-muted hover:text-app-text-strong">
-            <i className="fa-solid fa-xmark text-2xl"></i>
+          <button onClick={() => { playUISound('tap'); onClose(); }} className="ios-btn p-2 text-app-text-muted hover:text-app-text-strong transition-colors">
+            <XIcon size={24} />
           </button>
         </div>
         <div className="flex-1 overflow-y-auto p-10 custom-scrollbar space-y-10">
@@ -520,7 +527,7 @@ export const LibraryEditorModal: React.FC<{ library: any; onClose: () => void }>
             ))}
           </div>
         </div>
-        <div className="p-10 border-t border-app-border text-right">
+        <div className="p-10 border-t border-app-border text-right bg-zinc-50 dark:bg-zinc-900/50">
           <Button onClick={onClose}>Fechar</Button>
         </div>
       </div>
@@ -534,20 +541,18 @@ import { ROTULOS_TABELAS } from './constants';
 
 export const ReorderTabsModal: React.FC<{ tabOrder: TipoTabela[]; setTabOrder: (order: TipoTabela[]) => void; onClose: () => void }> = ({ tabOrder, onClose }) => {
   React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
   }, [onClose]);
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-zinc-900/50 backdrop-blur-sm p-4 pointer-events-auto text-left transition-all" onClick={onClose}>
-      <div className="w-full max-w-lg bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl p-8 flex flex-col relative" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-zinc-900/60 backdrop-blur-md p-4 animate-fade pointer-events-auto" onClick={onClose}>
+      <div className="w-full max-w-lg bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl p-8 flex flex-col relative animate-ios-spring" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold uppercase text-app-text-strong">Ordem das Abas</h3>
-          <button onClick={() => { playUISound('tap'); onClose(); }} className="ios-btn text-app-text-muted hover:text-app-text-strong transition-colors">
-            <i className="fa-solid fa-xmark text-xl"></i>
+          <button onClick={() => { playUISound('tap'); onClose(); }} className="ios-btn p-2 text-app-text-muted hover:text-app-text-strong transition-colors">
+            <XIcon size={20} />
           </button>
         </div>
         <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-2 mb-8 max-h-[50vh]">
@@ -571,12 +576,20 @@ export const ColorPickerModal: React.FC<{ target: { id: string; value: string };
     '#1E293B', '#64748B', '#94A3B8', '#CBD5E1'
   ];
 
+  React.useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [onClose]);
+
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-zinc-900/50 backdrop-blur-sm p-4 animate-fade pointer-events-auto" onClick={onClose}>
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl p-8 space-y-6 w-full max-w-sm transform transition-all scale-100" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-zinc-900/60 backdrop-blur-md p-4 animate-fade pointer-events-auto" onClick={onClose}>
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl p-8 space-y-6 w-full max-w-sm transform transition-all animate-ios-spring" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between gap-3">
           <h3 className="text-sm font-black uppercase text-app-text-strong tracking-widest truncate flex-1">Escolher Cor</h3>
-          <button onClick={() => { playUISound('tap'); onClose(); }} className="ios-btn text-app-text-muted hover:text-app-text-strong transition-colors"><i className="fa-solid fa-xmark text-xl"></i></button>
+          <button onClick={() => { playUISound('tap'); onClose(); }} className="ios-btn p-2 text-app-text-muted hover:text-app-text-strong transition-colors">
+            <XIcon size={20} />
+          </button>
         </div>
 
         <div className="grid grid-cols-4 gap-4">

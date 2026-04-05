@@ -216,13 +216,13 @@ export function TaskFlowView({
     };
 
     return (
-        <div className="flex flex-col h-full bg-white dark:bg-zinc-950 overflow-hidden animate-fade">
+        <div className="view-root flex flex-col h-full bg-white dark:bg-zinc-950 overflow-hidden animate-fade">
             {/* MODERN TOP HEADER */}
             <div className="shrink-0 flex items-center justify-between flex-wrap gap-4 px-6 py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md sticky top-0 z-10">
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900 shadow-lg shadow-zinc-500/10">
-                            <CheckSquare size={20} />
+                            <CheckSquare size={20} className="shrink-0" />
                         </div>
                         <div>
                             <h1 className="text-lg font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100">Tarefas</h1>
@@ -330,7 +330,7 @@ export function TaskFlowView({
                 {viewType === 'List' && (
                     <div className="h-full overflow-hidden flex flex-col bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm relative">
                         {/* Table Header Wrapper to keep it fixed */}
-                        <div className="overflow-hidden border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/50 backdrop-blur shrink-0 pr-[8px]">
+                        <div className="table-responsive overflow-hidden border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/50 backdrop-blur shrink-0 pr-[8px]">
                             <table className="w-full text-left border-collapse table-fixed">
                                 <thead>
                                     <tr>
@@ -349,7 +349,7 @@ export function TaskFlowView({
                                                 onClick={() => { if(sortField===col.id) setSortDesc(!sortDesc); else { setSortField(col.id); setSortDesc(false); } }}>
                                                 <div className="flex items-center gap-2">
                                                     {col.label}
-                                                    {sortField === col.id && (sortDesc ? <ArrowDown size={12} className="text-blue-600" /> : <ArrowUp size={12} className="text-blue-600" />)}
+                                                    {sortField === col.id && (sortDesc ? <ArrowDown size={12} className="text-blue-600 shrink-0" /> : <ArrowUp size={12} className="text-blue-600 shrink-0" />)}
                                                 </div>
                                             </th>
                                         ))}
@@ -359,7 +359,7 @@ export function TaskFlowView({
                         </div>
                         
                         {/* Table Body Scrollable */}
-                        <div className="flex-1 overflow-y-auto custom-scrollbar bg-white dark:bg-zinc-900">
+                        <div className="table-responsive flex-1 overflow-y-auto custom-scrollbar bg-white dark:bg-zinc-900">
                             <table className="w-full text-left border-collapse table-fixed">
                                 <tbody>
                                     {filteredTasks.map(Tarefa => {
@@ -558,7 +558,13 @@ export function TaskDetailPanel({
         if (viewMode !== 'sidebar') {
             setViewMode('sidebar');
         }
-    }, [viewMode, setViewMode]);
+        
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, [viewMode, setViewMode, onClose]);
 
     if (!t) return null;
 

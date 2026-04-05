@@ -84,19 +84,17 @@ import { ExportConfig } from './export/types';
 
 
 
-const mergeItems = <T extends { id: string, updated_at?: string, Atualizado_Em?: string }>(local: T[], remote: T[]): T[] => {
+const mergeItems = <T extends { id: string, updated_at?: string, created_at?: string, Atualizado_Em?: string }>(local: T[], remote: T[]): T[] => {
   const merged = [...local];
 
   remote.forEach(remoteItem => {
     const localIndex = merged.findIndex(i => i.id === remoteItem.id);
     if (localIndex === -1) {
-      // New item from remote
       merged.push(remoteItem);
     } else {
-      // Reconcile by updated_at or Atualizado_Em
       const localItem = merged[localIndex];
-      const remoteDate = (remoteItem.updated_at || remoteItem.Atualizado_Em) ? new Date(remoteItem.updated_at || remoteItem.Atualizado_Em!).getTime() : 0;
-      const localDate = (localItem.updated_at || localItem.Atualizado_Em) ? new Date(localItem.updated_at || localItem.Atualizado_Em!).getTime() : 0;
+      const remoteDate = new Date(remoteItem.updated_at || remoteItem.Atualizado_Em || remoteItem.created_at || 0).getTime();
+      const localDate = new Date(localItem.updated_at || localItem.Atualizado_Em || localItem.created_at || 0).getTime();
 
       if (remoteDate > localDate) {
         merged[localIndex] = remoteItem;
@@ -104,7 +102,6 @@ const mergeItems = <T extends { id: string, updated_at?: string, Atualizado_Em?:
     }
   });
 
-  console.log(`[EKKO-SYNC] MERGE_END | RESULT: ${merged.length}`);
   return merged;
 };
 
@@ -761,12 +758,14 @@ export default function App() {
       return;
     }
 
-    let updated = { ...originalItem, updated_at: new Date().toISOString() };
+    let updated = { ...originalItem };
     if (field === '__MULTIPLE__') {
       updated = { ...updated, ...value };
     } else {
       updated[field] = value;
     }
+    // Force updated_at to be the very last thing applied to ensure it's always current
+    updated.updated_at = new Date().toISOString();
 
     // Notification Triggers
     if (tab === 'TAREFAS') {
@@ -920,7 +919,7 @@ export default function App() {
     } else if (tab === 'COBO') newItem = { ...defaultProps, Cliente_ID: defaultClientId, Canal: 'Instagram', Frequência: '', Público: '', Voz: '', Zona: '', Intenção: '', Formato: '', ...initial };
     else if (tab === 'MATRIZ') newItem = { ...defaultProps, Cliente_ID: defaultClientId, Rede_Social: 'Instagram', Função: 'Hub', "Quem fala": '', "Papel estratégico": '', "Tipo de conteúdo": '', "Resultado esperado": '', ...initial };
     else if (tab === 'RDC') newItem = { ...defaultProps, Cliente_ID: defaultClientId, "Ideia de Conteúdo": '', Rede_Social: 'Instagram', "Tipo de conteúdo": '', "Resolução (1–5)": 1, "Demanda (1–5)": 1, "Competição (1–5)": 1, "Score (R×D×C)": 1, Decisão: 'Preencha R/D/C', ...initial };
-    else if (tab === 'CHECKLISTS') newItem = { ...defaultProps, ...initial };
+    else if (tab === 'CHECKLISTS') newItem = { ...defaultProps, itens_levar: [], itens_trazer: [], itens_gravar: [], ...initial };
 
     if (newItem) {
       console.log(`[EKKO-SYNC] CREATE_TRIGGERED | Table: ${tab} | ID: ${id}`, newItem);
@@ -1242,8 +1241,10 @@ export default function App() {
   }, [currentUser, currentWorkspace, addNotification]);
 
   const handleUpdateTask = async (taskId: string, updates: any) => {
-    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...updates } : t));
-    await DatabaseService.updateItem('tasks', taskId, updates);
+    const now = new Date().toISOString();
+    const fullUpdates = { ...updates, updated_at: now };
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...fullUpdates } : t));
+    await DatabaseService.updateItem('tasks', taskId, fullUpdates);
     addNotification('success', 'Tarefa Atualizada', 'As alterações do Quadro Branco foram salvas.');
   };
 

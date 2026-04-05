@@ -58,7 +58,7 @@ export function SystematicModelingView({
     }, [data, activeClient, days]);
 
     return (
-        <div className="flex flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors">
+        <div className="view-root flex flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors">
             {/* HEADER */}
             <div className="flex items-center justify-between flex-wrap gap-3 px-6 py-4 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
                 <div className="flex items-center gap-4">
@@ -93,8 +93,8 @@ export function SystematicModelingView({
             </div>
 
             {/* CONTENT */}
-            <div className="flex-1 overflow-auto p-6 custom-scrollbar">
-                <div className="hidden md:block">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
+                <div className="hidden md:block table-responsive overflow-x-auto">
                     <table className="w-full border-separate border-spacing-0 table-fixed min-w-[1000px]">
                         <thead>
                             <tr>

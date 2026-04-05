@@ -72,8 +72,21 @@ export default function PlanejamentoTab({
 
     const [sidebarView, setSidebarView] = useState<'edit' | 'banco' | null>(null);
     const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
-
     const [librarySearchTerm, setLibrarySearchTerm] = useState('');
+
+    // Escape listener for modals and sidebars
+    useEffect(() => {
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                setSidebarView(null);
+                setSelectedEventId(null);
+                setIsExportModalOpen(false);
+                setIsClientDropdownOpen(false);
+            }
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, []);
 
     // ----------------------------------------------------------------------
     // MEMOIZED DATA
@@ -323,7 +336,7 @@ export default function PlanejamentoTab({
     };
 
     return (
-        <div className={`${isDarkMode ? 'dark' : ''} h-screen overflow-hidden flex flex-col bg-zinc-50 dark:bg-[#09090b]`}>
+        <div className={`view-root ${isDarkMode ? 'dark' : ''} h-screen overflow-hidden flex flex-col bg-zinc-50 dark:bg-[#09090b]`}>
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10 font-sans w-full bg-transparent transition-colors relative">
 
                 {/* TOP ACTION BAR - ZINC STYLE */}
@@ -379,7 +392,7 @@ export default function PlanejamentoTab({
                             onClick={handleOpenExport}
                             className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-white rounded-2xl shadow-sm hover:border-blue-500/50 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 transition-all ios-btn text-[10px] font-black uppercase tracking-widest"
                         >
-                            <Download size={14} className="text-blue-500" /> EXPORTAR
+                            <Download size={14} className="text-blue-500 shrink-0" /> EXPORTAR
                         </button>
                         
                         <button
@@ -428,7 +441,7 @@ export default function PlanejamentoTab({
                             onClick={() => handleAddContent()} 
                             className="flex items-center gap-3 px-8 py-4 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-zinc-900/20 dark:shadow-white/5 transition-all ios-btn transform hover:-translate-y-1 active:translate-y-0"
                         >
-                            <Plus size={20} strokeWidth={3} /> NOVO CONTEÚDO
+                            <Plus size={20} strokeWidth={3} className="shrink-0" /> NOVO CONTEÚDO
                         </button>
                     </div>
                 </div>
@@ -570,7 +583,7 @@ export default function PlanejamentoTab({
                 {/* MODERN LIST VIEW */}
                 {viewMode === 'list' && (
                     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-2xl overflow-hidden max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="overflow-x-auto custom-scrollbar">
+                        <div className="table-responsive overflow-x-auto custom-scrollbar">
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 backdrop-blur-md">
@@ -619,7 +632,7 @@ export default function PlanejamentoTab({
                                                                 {post.Data ? new Date(post.Data + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '--'}
                                                             </span>
                                                             <div className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-400">
-                                                                <Clock size={10} strokeWidth={3} /> {post.Hora || '09:00'}
+                                                                <Clock size={10} strokeWidth={3} className="shrink-0" /> {post.Hora || '09:00'}
                                                             </div>
                                                         </div>
                                                     </td>
@@ -638,7 +651,7 @@ export default function PlanejamentoTab({
                                                     </td>
                                                     <td className="px-8 py-5">
                                                         <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl ${rede.bg} ${rede.text} border border-transparent shadow-sm group-hover:scale-105 transition-transform`}>
-                                                            <RedeIcon size={12} strokeWidth={3} />
+                                                            <RedeIcon size={12} strokeWidth={3} className="shrink-0" />
                                                             <span className="text-[10px] font-black uppercase tracking-[0.1em]">{post.Rede_Social || 'OUTRA'}</span>
                                                         </div>
                                                     </td>
@@ -649,19 +662,19 @@ export default function PlanejamentoTab({
                                                     </td>
                                                     <td className="px-8 py-5">
                                                         <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.15em] border ${statusStyle}`}>
-                                                            {post["Status do conteúdo"] === 'AGUARDANDO APROVAÇÃO' && <AlertCircle size={10} strokeWidth={3} />}
-                                                            {post["Status do conteúdo"] === 'PUBLICADO' && <CheckCircle2 size={10} strokeWidth={3} />}
-                                                            {post["Status do conteúdo"] === 'PRODUÇÃO' && <PlayCircle size={10} strokeWidth={3} />}
+                                                            {post["Status do conteúdo"] === 'AGUARDANDO APROVAÇÃO' && <AlertCircle size={10} strokeWidth={3} className="shrink-0" />}
+                                                            {post["Status do conteúdo"] === 'PUBLICADO' && <CheckCircle2 size={10} strokeWidth={3} className="shrink-0" />}
+                                                            {post["Status do conteúdo"] === 'PRODUÇÃO' && <PlayCircle size={10} strokeWidth={3} className="shrink-0" />}
                                                             {post["Status do conteúdo"]}
                                                         </div>
                                                     </td>
                                                     <td className="px-8 py-5 text-right">
                                                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
                                                             <button onClick={(e) => { e.stopPropagation(); openEditSidebar(post.id); }} className="p-2 hover:bg-white dark:hover:bg-zinc-700 rounded-xl text-zinc-400 hover:text-blue-600 transition-all shadow-sm">
-                                                                <Database size={16} />
+                                                                <Database size={16} className="shrink-0" />
                                                             </button>
                                                             <button onClick={(e) => { e.stopPropagation(); performDelete([post.id], 'PLANEJAMENTO'); }} className="p-2 hover:bg-white dark:hover:bg-zinc-700 rounded-xl text-zinc-400 hover:text-rose-600 transition-all shadow-sm">
-                                                                <Trash2 size={16} />
+                                                                <Trash2 size={16} className="shrink-0" />
                                                             </button>
                                                         </div>
                                                     </td>
@@ -716,10 +729,10 @@ export default function PlanejamentoTab({
 
                                                     <div className="flex items-center justify-between mb-4">
                                                         <div className={`flex items-center gap-2 px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider ${rede.bg} ${rede.text} shadow-sm`}>
-                                                            <rede.icon size={12} strokeWidth={3} /> {post.Rede_Social || 'OUTRA'}
+                                                            <rede.icon size={12} strokeWidth={3} className="shrink-0" /> {post.Rede_Social || 'OUTRA'}
                                                         </div>
                                                         <div className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-400">
-                                                            <Clock size={12} strokeWidth={3} /> {post.Hora || '09:00'}
+                                                            <Clock size={12} strokeWidth={3} className="shrink-0" /> {post.Hora || '09:00'}
                                                         </div>
                                                     </div>
 
@@ -735,7 +748,7 @@ export default function PlanejamentoTab({
                                                             </span>
                                                         </div>
                                                         <div className="p-1.5 bg-zinc-50 dark:bg-zinc-800 rounded-lg text-zinc-400 group-hover/k-card:text-blue-500 transition-colors">
-                                                            <Database size={12} />
+                                                            <Database size={12} className="shrink-0" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -745,7 +758,7 @@ export default function PlanejamentoTab({
                                         {colEvents.length === 0 && (
                                             <div className="flex flex-col items-center justify-center py-10 gap-3 border-2 border-dashed border-zinc-100 dark:border-zinc-800/50 rounded-3xl">
                                                 <div className="w-10 h-10 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-300 dark:text-zinc-600">
-                                                    <FolderOpen size={20} />
+                                                    <FolderOpen size={20} className="shrink-0" />
                                                 </div>
                                                 <span className="text-[10px] font-black text-zinc-300 dark:text-zinc-600 uppercase tracking-widest text-center">Nenhum conteúdo aqui ainda</span>
                                             </div>
@@ -769,20 +782,20 @@ export default function PlanejamentoTab({
                         <div className="px-8 py-7 border-b border-zinc-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl flex justify-between items-center shrink-0">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
-                                    <Database size={20} strokeWidth={2.5} />
+                                    <Database size={20} strokeWidth={2.5} className="shrink-0" />
                                 </div>
                                 <div>
                                     <h3 className="text-[11px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">Planejamento</h3>
                                     <p className="text-xs font-black text-zinc-900 dark:text-white uppercase tracking-widest">Detalhes do Item</p>
                                 </div>
                             </div>
-                            <button onClick={closeSidebar} className="p-2.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-xl transition-all bg-zinc-50 dark:bg-zinc-800 hover:scale-110 active:scale-95"><X size={20} strokeWidth={3} /></button>
+                            <button onClick={closeSidebar} className="p-2.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-xl transition-all bg-zinc-50 dark:bg-zinc-800 hover:scale-110 active:scale-95"><X size={20} strokeWidth={3} className="shrink-0" /></button>
                         </div>
 
                         <div className="p-8 flex-1 overflow-y-auto custom-scrollbar space-y-8 pb-32">
                             <div className="space-y-3">
                                 <label className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
-                                    <ImageIcon size={12} strokeWidth={3} /> Conteúdo Principal
+                                    <ImageIcon size={12} strokeWidth={3} className="shrink-0" /> Conteúdo Principal
                                 </label>
                                 <textarea
                                     rows={4}
@@ -797,7 +810,7 @@ export default function PlanejamentoTab({
                                 {/* CLIENTE */}
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
-                                        <User size={12} strokeWidth={3} /> Cliente
+                                        <User size={12} strokeWidth={3} className="shrink-0" /> Cliente
                                     </label>
                                     <div className="relative group">
                                         <input
@@ -813,7 +826,7 @@ export default function PlanejamentoTab({
                                             placeholder="Selecione..."
                                             className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl px-4 py-3 text-xs font-bold text-zinc-800 dark:text-zinc-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 outline-none transition-all uppercase"
                                         />
-                                        <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:rotate-180 transition-transform" />
+                                        <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:rotate-180 transition-transform shrink-0" />
                                         <datalist id={`clients-list-${selectedEvent?.id || 'new'}`}>
                                             {clients.map(c => <option key={c.id} value={c.Nome} />)}
                                         </datalist>
@@ -823,7 +836,7 @@ export default function PlanejamentoTab({
                                 {/* REDE SOCIAL */}
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
-                                        <MessageSquare size={12} strokeWidth={3} /> Rede
+                                        <MessageSquare size={12} strokeWidth={3} className="shrink-0" /> Rede
                                     </label>
                                     <div className="relative group">
                                         <select
@@ -841,14 +854,14 @@ export default function PlanejamentoTab({
                                             <option value="BLOG">Blog</option>
                                             <option value="OUTRA">Outra</option>
                                         </select>
-                                        <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none group-focus-within:rotate-180 transition-transform" />
+                                        <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none group-focus-within:rotate-180 transition-transform shrink-0" />
                                     </div>
                                 </div>
 
                                 {/* DATA */}
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
-                                        <CalendarIcon size={12} strokeWidth={3} /> Publicação
+                                        <CalendarIcon size={12} strokeWidth={3} className="shrink-0" /> Publicação
                                     </label>
                                     <input
                                         type="date"
@@ -861,7 +874,7 @@ export default function PlanejamentoTab({
                                 {/* HORA */}
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
-                                        <Clock size={12} strokeWidth={3} /> Horário
+                                        <Clock size={12} strokeWidth={3} className="shrink-0" /> Horário
                                     </label>
                                     <input
                                         type="time"
@@ -886,7 +899,7 @@ export default function PlanejamentoTab({
                                         <option value="PUBLICADO">PUBLICADO</option>
                                         <option value="CONCLUÍDO">CONCLUÍDO</option>
                                     </select>
-                                    <ChevronDown size={18} className="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none group-focus-within:rotate-180 transition-transform" />
+                                    <ChevronDown size={18} className="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none group-focus-within:rotate-180 transition-transform shrink-0" />
                                 </div>
                             </div>
 
@@ -909,7 +922,7 @@ export default function PlanejamentoTab({
                                 <button onClick={handleDeleteEvent} className="flex-1 py-3 bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all hover:bg-rose-500/20 hover:scale-105 active:scale-95 shadow-sm">Excluir</button>
                             </div>
                             <button onClick={closeSidebar} className="w-full py-5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-blue-500/20 transition-all hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-3">
-                                <Check size={20} strokeWidth={3} /> Salvar Alterações
+                                <Check size={20} strokeWidth={3} className="shrink-0" /> Salvar Alterações
                             </button>
                         </div>
                     </div>
@@ -921,14 +934,14 @@ export default function PlanejamentoTab({
                         <div className="px-8 py-7 border-b border-zinc-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl flex justify-between items-center shrink-0">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center">
-                                    <FolderOpen size={20} strokeWidth={2.5} />
+                                    <FolderOpen size={20} strokeWidth={2.5} className="shrink-0" />
                                 </div>
                                 <div>
                                     <h3 className="text-[11px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">Biblioteca</h3>
                                     <p className="text-xs font-black text-zinc-900 dark:text-white uppercase tracking-widest">Banco de Conteúdos</p>
                                 </div>
                             </div>
-                            <button onClick={closeSidebar} className="p-2.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-xl transition-all bg-zinc-50 dark:bg-zinc-800 hover:scale-110 active:scale-95"><X size={20} strokeWidth={3} /></button>
+                            <button onClick={closeSidebar} className="p-2.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-xl transition-all bg-zinc-50 dark:bg-zinc-800 hover:scale-110 active:scale-95"><X size={20} strokeWidth={3} className="shrink-0" /></button>
                         </div>
 
                         <div className="p-8 border-b border-zinc-50 dark:border-zinc-800/50 shrink-0 bg-white dark:bg-zinc-900">
@@ -947,7 +960,7 @@ export default function PlanejamentoTab({
                         {rdcLibrary.length === 0 ? (
                             <div className="flex-1 flex flex-col items-center justify-center p-12 opacity-30 gap-6">
                                 <div className="w-24 h-24 rounded-[2rem] bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex items-center justify-center text-zinc-300 dark:text-zinc-700 shadow-inner">
-                                    <FolderOpen size={40} strokeWidth={1.5} />
+                                    <FolderOpen size={40} strokeWidth={1.5} className="shrink-0" />
                                 </div>
                                 <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.3em] text-center max-w-[200px] leading-relaxed">
                                     Nenhuma ideia encontrada no banco para os filtros atuais
@@ -991,7 +1004,7 @@ export default function PlanejamentoTab({
                                                 {clients.find(c => c.id === item.Cliente_ID)?.Nome || 'GERAL'}
                                             </div>
                                             <div className="flex-1"></div>
-                                            <Copy size={12} className="text-zinc-300 group-hover:text-blue-500 transition-colors" />
+                                            <Copy size={12} className="text-zinc-300 group-hover:text-blue-500 transition-colors shrink-0" />
                                         </div>
                                         <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-relaxed italic">
                                             "{item['Ideia de Conteúdo']}"
@@ -999,7 +1012,7 @@ export default function PlanejamentoTab({
                                         <div className="mt-5 flex items-center justify-between pt-4 border-t border-zinc-50 dark:border-zinc-800/50">
                                             <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest px-3 py-1 bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-100 dark:border-zinc-700">{item['Tipo de conteúdo'] || 'Post Único'}</span>
                                             <div className="flex items-center gap-1.5 text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest group-hover:translate-x-1 transition-transform">
-                                                Usar Ideia <X className="rotate-45" size={10} strokeWidth={3} />
+                                                Usar Ideia <X className="rotate-45 shrink-0" size={10} strokeWidth={3} />
                                             </div>
                                         </div>
                                     </div>
@@ -1020,7 +1033,7 @@ export default function PlanejamentoTab({
                         <div className="px-10 py-8 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center shrink-0">
                             <div className="flex items-center gap-5">
                                 <div className="w-14 h-14 bg-blue-600 rounded-[1.5rem] flex items-center justify-center text-white shadow-2xl shadow-blue-500/30">
-                                    <Download size={28} strokeWidth={2.5} />
+                                    <Download size={28} strokeWidth={2.5} className="shrink-0" />
                                 </div>
                                 <div>
                                     <h3 className="text-[11px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.3em]">Exportação Premium</h3>
@@ -1039,7 +1052,7 @@ export default function PlanejamentoTab({
                                     </select>
                                 </div>
                                 <div className="h-10 w-px bg-zinc-200 dark:bg-zinc-800 mx-2 hidden lg:block"></div>
-                                <button onClick={() => setIsExportModalOpen(false)} disabled={isGenerating} className="p-3 text-zinc-400 hover:text-rose-500 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all hover:scale-110 active:scale-90"><X size={24} strokeWidth={3} /></button>
+                                <button onClick={() => setIsExportModalOpen(false)} disabled={isGenerating} className="p-3 text-zinc-400 hover:text-rose-500 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all hover:scale-110 active:scale-90"><X size={24} strokeWidth={3} className="shrink-0" /></button>
                             </div>
                         </div>
 
@@ -1098,7 +1111,7 @@ export default function PlanejamentoTab({
                                                                     <div className="absolute top-0 left-0 w-1.5 h-full" style={{ backgroundColor: style.hex }}></div>
                                                                     <div className="space-y-2">
                                                                         <div className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2" style={{ color: style.hex }}>
-                                                                            <Clock size={12} strokeWidth={3} /> {evt.Hora || '09:00'}
+                                                                            <Clock size={12} strokeWidth={3} className="shrink-0" /> {evt.Hora || '09:00'}
                                                                         </div>
                                                                         <div className="text-[13px] font-bold text-zinc-800 leading-snug break-words tracking-tight italic">
                                                                             "{evt.Conteúdo}"
@@ -1152,7 +1165,7 @@ export default function PlanejamentoTab({
                             <div className="flex gap-4 w-full sm:w-auto justify-end">
                                 <button onClick={() => setIsExportModalOpen(false)} disabled={isGenerating} className="px-8 py-4 text-[11px] font-black tracking-widest uppercase text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors disabled:opacity-50 hover:scale-105 active:scale-95">CANCELAR</button>
                                 <button onClick={handleRealDownload} disabled={isGenerating} className="flex items-center gap-3 px-10 py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-[1.5rem] text-[11px] tracking-[0.2em] uppercase font-black shadow-2xl shadow-blue-600/30 transition-all hover:scale-[1.05] active:scale-95 sm:w-80 justify-center">
-                                    {isGenerating ? <span className="flex items-center gap-3 animate-pulse"><Loader2 size={18} className="animate-spin" /> GERANDO ARQUIVO...</span> : <span className="flex items-center gap-3"><Download size={18} strokeWidth={3} /> EXPORTAR PLANEJAMENTO</span>}
+                                    {isGenerating ? <span className="flex items-center gap-3 animate-pulse"><Loader2 size={18} className="animate-spin shrink-0" /> GERANDO ARQUIVO...</span> : <span className="flex items-center gap-3"><Download size={18} strokeWidth={3} className="shrink-0" /> EXPORTAR PLANEJAMENTO</span>}
                                 </button>
                             </div>
                         </div>

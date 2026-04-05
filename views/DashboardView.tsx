@@ -80,13 +80,13 @@ export const DashboardView = React.memo(({ clients, tasks, financas, planejament
     };
 
     return (
-        <div className="space-y-6 animate-fade">
+        <div className="view-root p-4 sm:p-6 space-y-6 animate-fade h-full overflow-y-auto custom-scrollbar">
             {/* Standardized Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-1">
                 <div>
                     <h1 className="text-xl font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100 flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900">
-                            <Info size={18} />
+                        <div className="w-8 h-8 rounded-lg bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900 shadow-md">
+                            <Info size={18} className="shrink-0" />
                         </div>
                         Visão Geral
                     </h1>

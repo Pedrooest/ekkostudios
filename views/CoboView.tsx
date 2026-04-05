@@ -79,6 +79,15 @@ export function CoboView({
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Escape listener for modal
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setEditingItem(null);
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, []);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCanal, setFilterCanal] = useState<string | null>(null);
   const [filterZona, setFilterZona] = useState<string | null>(null);
@@ -137,12 +146,12 @@ export function CoboView({
   };
 
   return (
-    <div className="space-y-6 animate-fade pb-20">
+    <div className="view-root p-4 sm:p-6 space-y-6 animate-fade pb-20 h-full overflow-y-auto custom-scrollbar">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-zinc-900 dark:bg-zinc-100 rounded-xl flex items-center justify-center text-white dark:text-zinc-900 shadow-lg shadow-zinc-500/10">
-            <Zap size={24} />
+            <Zap size={24} className="shrink-0" />
           </div>
           <div>
             <div className="flex items-center gap-3">
@@ -175,7 +184,7 @@ export function CoboView({
           )}
 
           <Button onClick={onAdd} className="!h-10 !px-5 !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 !rounded-lg !text-[11px] !font-bold !uppercase shadow-lg shadow-zinc-500/10 transition-transform hover:scale-[1.02]">
-            <Plus size={16} className="mr-2" /> Novo Registro
+            <Plus size={16} className="mr-2 shrink-0" /> Novo Registro
           </Button>
         </div>
       </div>
@@ -219,7 +228,7 @@ export function CoboView({
       {/* Main Content */}
       {viewMode === 'table' ? (
         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
-          <div className="overflow-x-auto custom-scrollbar">
+          <div className="table-responsive overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse table-fixed min-w-[800px]">
               <thead>
                 <tr className="border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/30">

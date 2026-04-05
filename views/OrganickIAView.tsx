@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import {
     BrainCircuit, CheckCircle2, Mic, FileText, History as HistoryIcon,
     Trash2, Sparkles, Loader2, Copy, FileImage, MessageSquare,
@@ -57,6 +57,15 @@ export function OrganickIAView({
     const audioInputRef = useRef<HTMLInputElement>(null);
     const pdfInputRef = useRef<HTMLInputElement>(null);
     const [selection, setSelection] = useState<string[]>([]);
+
+    // Escape listener for modal
+    useEffect(() => {
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setIsImportModalOpen(false);
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, []);
 
     const selectedClient = useMemo(() => clients.find((c: any) => c.id === selectedClientId), [clients, selectedClientId]);
 
@@ -201,12 +210,12 @@ export function OrganickIAView({
     const filteredHistory = history.filter((h: any) => showArchived ? true : !h.__archived);
 
     return (
-        <div className="p-4 sm:p-6 space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto pb-20">
+        <div className="view-root p-4 sm:p-6 space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto pb-20 h-full overflow-y-auto custom-scrollbar">
             {/* CABEÇALHO */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center shadow-lg shadow-zinc-500/10">
-                        <BrainCircuit className="text-white dark:text-zinc-900" size={20} />
+                        <BrainCircuit className="text-white dark:text-zinc-900 shrink-0" size={20} />
                     </div>
                     <div>
                         <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">OrganickIA 2.0</h1>
@@ -220,7 +229,7 @@ export function OrganickIAView({
                 <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg">
-                            <User className="text-zinc-500" size={18} />
+                            <User className="text-zinc-500 shrink-0" size={18} />
                         </div>
                         <div>
                             <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Contexto do Cliente</p>
@@ -253,7 +262,7 @@ export function OrganickIAView({
                                         onClick={() => { playUISound('tap'); audioInputRef.current?.click(); }}
                                     >
                                         <div className="w-16 h-16 bg-white dark:bg-zinc-900 shadow-sm border border-zinc-200 dark:border-zinc-800 rounded-2xl flex items-center justify-center mb-4 text-zinc-600 dark:text-zinc-400 group-hover:scale-105 transition-transform">
-                                            <Mic size={28} />
+                                            <Mic size={28} className="shrink-0" />
                                         </div>
                                         <h3 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight mb-1">Pautas / Áudios</h3>
                                         <p className="text-[10px] text-zinc-500 font-medium uppercase mb-6">Mapeamento por Voz</p>
@@ -276,7 +285,7 @@ export function OrganickIAView({
                                         onClick={() => { playUISound('tap'); pdfInputRef.current?.click(); }}
                                     >
                                         <div className="w-16 h-16 bg-white dark:bg-zinc-900 shadow-sm border border-zinc-200 dark:border-zinc-800 rounded-2xl flex items-center justify-center mb-4 text-zinc-600 dark:text-zinc-400 group-hover:scale-105 transition-transform">
-                                            <FileText size={28} />
+                                            <FileText size={28} className="shrink-0" />
                                         </div>
                                         <h3 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight mb-1">Documentos PDF</h3>
                                         <p className="text-[10px] text-zinc-500 font-medium uppercase mb-6">Briefings e Relatórios</p>
@@ -297,7 +306,7 @@ export function OrganickIAView({
                                 <div className="p-4 bg-zinc-900 dark:bg-zinc-100 rounded-xl flex items-center justify-between">
                                     <div className="flex items-center gap-3 text-white dark:text-zinc-900">
                                         <div className="p-2 bg-white/10 rounded-lg">
-                                            <HistoryIcon size={18} />
+                                            <HistoryIcon size={18} className="shrink-0" />
                                         </div>
                                         <div>
                                             <p className="text-[10px] font-bold uppercase tracking-widest">Importação Recente</p>
@@ -318,7 +327,7 @@ export function OrganickIAView({
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                 <div className="flex items-center gap-3">
                                     <div className="p-2 bg-amber-50 dark:bg-amber-900/10 rounded-lg text-amber-500 border border-amber-100 dark:border-amber-900/20">
-                                        <Sparkles size={18} />
+                                        <Sparkles size={18} className="shrink-0" />
                                     </div>
                                     <div>
                                         <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">Cérebro Operacional</h4>
@@ -330,7 +339,7 @@ export function OrganickIAView({
                                     disabled={loading}
                                     className="!h-10 !px-6 !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 !rounded-lg !text-[11px] !font-bold !tracking-widest !uppercase"
                                 >
-                                    {loading ? <Loader2 size={16} className="animate-spin" /> : <BrainCircuit size={16} className="mr-2" />}
+                                    {loading ? <Loader2 size={16} className="animate-spin shrink-0" /> : <BrainCircuit size={16} className="mr-2 shrink-0" />}
                                     Compilar Briefing
                                 </Button>
                             </div>
@@ -349,7 +358,7 @@ export function OrganickIAView({
 
                                 {loading && (
                                     <div className="flex flex-col items-center gap-3 font-bold uppercase tracking-widest text-[10px]">
-                                        <Loader2 size={18} className="animate-spin text-zinc-500" />
+                                        <Loader2 size={18} className="animate-spin text-zinc-500 shrink-0" />
                                         <span>Processando dados estratégicos...</span>
                                     </div>
                                 )}
@@ -358,11 +367,11 @@ export function OrganickIAView({
                                     <div className="animate-in fade-in duration-300 space-y-4">
                                         <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-4">
                                             <div className="flex items-center gap-2 font-bold text-emerald-400 uppercase tracking-widest text-[10px]">
-                                                <CheckCircle2 size={12} /> Briefing Organick
+                                                <CheckCircle2 size={12} className="shrink-0" /> Briefing Organick
                                             </div>
                                             <div className="flex gap-2">
-                                                <button onClick={copyBriefing} className="p-1.5 text-zinc-500 hover:text-white transition-colors"><Copy size={14} /></button>
-                                                <button onClick={() => onGenerateSlide(briefing)} className="p-1.5 text-zinc-500 hover:text-white transition-colors"><FileImage size={14} /></button>
+                                                <button onClick={copyBriefing} className="p-1.5 text-zinc-500 hover:text-white transition-colors"><Copy size={14} className="shrink-0" /></button>
+                                                <button onClick={() => onGenerateSlide(briefing)} className="p-1.5 text-zinc-500 hover:text-white transition-colors"><FileImage size={14} className="shrink-0" /></button>
                                             </div>
                                         </div>
                                         <div className="max-h-[350px] overflow-y-auto custom-scrollbar font-sans pr-2 text-zinc-300">
@@ -377,7 +386,7 @@ export function OrganickIAView({
                                     {audioInsight && (
                                         <div className="p-4 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl space-y-2">
                                             <div className="flex items-center gap-2 uppercase tracking-widest font-bold text-zinc-400 text-[9px]">
-                                                <Mic size={12} /> Insight Áudio
+                                                <Mic size={12} className="shrink-0" /> Insight Áudio
                                             </div>
                                             <p className="text-[10px] text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed line-clamp-2">{audioInsight}</p>
                                         </div>
@@ -385,7 +394,7 @@ export function OrganickIAView({
                                     {pdfInsight && (
                                         <div className="p-4 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl space-y-2">
                                             <div className="flex items-center gap-2 uppercase tracking-widest font-bold text-zinc-400 text-[9px]">
-                                                <FileText size={12} /> Insight PDF
+                                                <FileText size={12} className="shrink-0" /> Insight PDF
                                             </div>
                                             <p className="text-[10px] text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed line-clamp-2">{pdfInsight}</p>
                                         </div>
@@ -400,7 +409,7 @@ export function OrganickIAView({
                         <div className="p-6 space-y-6">
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 rounded-xl bg-zinc-950 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900">
-                                    <MessageSquare size={22} />
+                                    <MessageSquare size={22} className="shrink-0" />
                                 </div>
                                 <div>
                                     <h3 className="text-xs font-bold uppercase text-zinc-900 dark:text-zinc-100 tracking-tight">Chat OrganickIA</h3>
@@ -425,7 +434,7 @@ export function OrganickIAView({
             <div className="space-y-8 pt-8">
                 <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-6">
                     <div className="flex items-center gap-3">
-                        <HistoryIcon className="text-zinc-400" size={18} />
+                        <HistoryIcon className="text-zinc-400 shrink-0" size={18} />
                         <h3 className="text-xs font-bold uppercase text-zinc-900 dark:text-zinc-100 tracking-tight">Histórico de Inteligência</h3>
                     </div>
                     <DeletionBar count={selection.length} onDelete={() => onDelete(selection, 'IA_HISTORY')} onArchive={() => onArchive(selection, 'IA_HISTORY', true)} onClear={() => setSelection([])} />
@@ -445,7 +454,7 @@ export function OrganickIAView({
 
                                 <div className="flex items-center gap-3 mb-4">
                                     <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500">
-                                        {item.type === 'SLIDE' ? <FileImage size={20} /> : <FileText size={20} />}
+                                        {item.type === 'SLIDE' ? <FileImage size={20} className="shrink-0" /> : <FileText size={20} className="shrink-0" />}
                                     </div>
                                     <div className="min-w-0">
                                         <h4 className="text-[11px] font-bold uppercase text-zinc-900 dark:text-zinc-100 tracking-tight truncate">{item.clientName}</h4>
@@ -468,10 +477,10 @@ export function OrganickIAView({
 
                                 <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex gap-2">
                                     <Button variant="secondary" className="flex-1 !h-8 !text-[9px] !font-bold !rounded-lg !uppercase" onClick={() => { if (item.type === 'SLIDE') { /* logic */ } else { setBriefing(item.content); window.scrollTo({ top: 0, behavior: 'smooth' }); } }}>
-                                        <Eye size={12} className="mr-1.5" /> Visualizar
+                                        <Eye size={12} className="mr-1.5 shrink-0" /> Visualizar
                                     </Button>
                                     <Button variant="secondary" className="!h-8 !w-8 !p-0 !rounded-lg" onClick={() => { playUISound('tap'); onArchive([item.id], 'IA_HISTORY', !item.__archived); }}>
-                                        {item.__archived ? <FolderOpen size={14} /> : <Box size={14} />}
+                                        {item.__archived ? <FolderOpen size={14} className="shrink-0" /> : <Box size={14} className="shrink-0" />}
                                     </Button>
                                 </div>
                             </div>
@@ -489,20 +498,20 @@ export function OrganickIAView({
                         <div className="px-6 py-4 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center bg-zinc-50 dark:bg-zinc-800/10">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center text-zinc-900 dark:text-zinc-100">
-                                    <Plus size={20} />
+                                    <Plus size={20} className="shrink-0" />
                                 </div>
                                 <div>
                                     <h3 className="text-sm font-bold uppercase text-zinc-900 dark:text-zinc-100 tracking-tight">Importação Estratégica</h3>
                                     <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Extração OrganickIA</p>
                                 </div>
                             </div>
-                            <button onClick={() => { playUISound('tap'); setIsImportModalOpen(false); }} className="p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-lg transition-all"><X size={20} /></button>
+                            <button onClick={() => { playUISound('tap'); setIsImportModalOpen(false); }} className="p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-lg transition-all"><X size={20} className="shrink-0" /></button>
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
                             <div className="bg-zinc-50 dark:bg-zinc-950/20 p-6 rounded-xl border border-zinc-100 dark:border-zinc-800">
                                 <h4 className="text-[10px] font-bold uppercase text-zinc-400 mb-4 tracking-widest flex items-center gap-2">
-                                    <User size={12} /> Cliente Detectado
+                                    <User size={12} className="shrink-0" /> Cliente Detectado
                                 </h4>
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                                     <div className="space-y-1">
@@ -522,7 +531,7 @@ export function OrganickIAView({
 
                             <div className="space-y-4">
                                 <h4 className="text-[10px] font-bold uppercase text-zinc-400 tracking-widest flex items-center gap-2 px-1">
-                                    <CheckCircle2 size={12} /> Selecionar Módulos
+                                    <CheckCircle2 size={12} className="shrink-0" /> Selecionar Módulos
                                 </h4>
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                     {[
@@ -539,7 +548,7 @@ export function OrganickIAView({
                                                     ? 'bg-zinc-900 dark:bg-zinc-100 border-zinc-900 dark:border-zinc-100 text-white dark:text-zinc-900 shadow-lg shadow-zinc-500/10'
                                                     : 'bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-800 text-zinc-400'}`}
                                         >
-                                            <tab.icon size={20} className={(importSelection as any)[tab.id] ? 'opacity-100' : 'opacity-40'} />
+                                            <tab.icon size={20} className={(importSelection as any)[tab.id] ? 'opacity-100 shrink-0' : 'opacity-40 shrink-0'} />
                                             <div className="text-lg font-bold leading-none">{tab.count || 0}</div>
                                             <div className="text-[9px] font-bold uppercase tracking-widest">{tab.label}</div>
                                         </div>
@@ -550,7 +559,7 @@ export function OrganickIAView({
                             {importPreview.pendencias && importPreview.pendencias.length > 0 && (
                                 <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20 p-5 rounded-xl">
                                     <h4 className="text-[10px] font-bold uppercase text-amber-600 dark:text-amber-400 tracking-widest flex items-center gap-2 mb-3">
-                                        <ShieldAlert size={14} /> Observações Importantes
+                                        <ShieldAlert size={14} className="shrink-0" /> Observações Importantes
                                     </h4>
                                     <ul className="space-y-2">
                                         {importPreview.pendencias.map((p: string, idx: number) => (

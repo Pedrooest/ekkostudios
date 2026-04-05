@@ -9,6 +9,19 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+.view-root {
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
+    padding-bottom: 80px; /* Safe space for bottom navigations */
+}
+
+.table-responsive {
+    overflow-x: auto;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+
 *,
 *::before,
 *::after {
