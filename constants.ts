@@ -117,6 +117,7 @@ export const OPCOES_PRIORIDADE = ["Urgente", "Alta", "Média", "Baixa"];
 export const ROTULOS_TABELAS: Record<TipoTabela, string> = {
   DASHBOARD: 'Dashboard',
   CLIENTES: 'Clientes',
+  REUNIOES: 'Reuniões',
   RDC: 'Validação RDC',
   MATRIZ: 'Matriz Estratégica',
   COBO: 'Canais (COBO)',
@@ -128,7 +129,9 @@ export const ROTULOS_TABELAS: Record<TipoTabela, string> = {
   WHITEBOARD: 'Quadro Branco',
   IA_HISTORY: 'Histórico IA',
   WORKSPACE: 'Workspace',
-  CHECKLISTS: 'Checklists'
+  CHECKLISTS: 'Checklists',
+  LEMBRETES: 'Lembretes',
+  RELATORIOS: 'Relatórios'
 };
 
 export const DIAS_SEMANA_BR = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];

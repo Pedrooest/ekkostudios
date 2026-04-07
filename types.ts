@@ -11,7 +11,41 @@ export interface Cliente {
   "Cor (HEX)": string;
   Status: 'Ativo' | 'Pausado' | 'Prospect';
   Fee: number;
+  links?: Array<{ titulo: string; url: string; categoria: string }>;
+  log_comunicacao?: Array<{ tipo: string; data: string; hora: string; descricao: string }>;
+  assets?: Array<{ nome: string; tipo: string; dados: string }>;
+  paleta_cores?: string[];
+  fontes?: string[];
+  tom_de_voz?: string;
+  metas?: Meta[];
   __archived?: boolean;
+}
+
+export interface Meta {
+  id: string;
+  titulo: string;
+  metrica: string;
+  valor_atual: number;
+  valor_meta: number;
+  periodo: 'Mensal' | 'Trimestral' | 'Anual';
+  status: 'No prazo' | 'Em risco' | 'Concluída';
+}
+
+export interface Reuniao {
+  id: string;
+  workspace_id: string;
+  cliente_id: string;
+  titulo: string;
+  data: string;
+  hora: string;
+  formato: 'Presencial' | 'Online' | 'Híbrido';
+  participantes: string;
+  pauta: string;
+  decisoes: string;
+  proximos_passos: Array<{ id: string; checkbox: boolean; texto: string; responsavel: string; prazo: string }>;
+  status: 'Agendada' | 'Realizada' | 'Cancelada';
+  created_at: string;
+  updated_at: string;
 }
 
 
@@ -260,7 +294,7 @@ export type BibliotecaConteudo = Record<string, string[]>;
 
 export type ModoVisaoTarefa = 'sidebar' | 'modal' | 'fullscreen';
 
-export type TipoTabela = 'DASHBOARD' | 'CLIENTES' | 'RDC' | 'MATRIZ' | 'COBO' | 'PLANEJAMENTO' | 'FINANCAS' | 'TAREFAS' | 'VH' | 'ORGANICKIA' | 'WHITEBOARD' | 'IA_HISTORY' | 'WORKSPACE' | 'CHECKLISTS';
+export type TipoTabela = 'DASHBOARD' | 'CLIENTES' | 'REUNIOES' | 'RDC' | 'MATRIZ' | 'COBO' | 'PLANEJAMENTO' | 'FINANCAS' | 'TAREFAS' | 'VH' | 'ORGANICKIA' | 'WHITEBOARD' | 'IA_HISTORY' | 'WORKSPACE' | 'CHECKLISTS' | 'LEMBRETES' | 'RELATORIOS';
 
 export interface ConfiguracaoApresentacao {
   nomeAgencia: string;
@@ -381,5 +415,23 @@ export interface WhiteboardConnection {
   from: string;
   to: string;
   parentId?: string;
+}
+
+export type LembreteTipo = 'Post' | 'Reunião' | 'Pagamento' | 'Tarefa' | 'Contrato' | 'Outro';
+
+export interface Lembrete {
+  id: string;
+  workspace_id: string;
+  titulo: string;
+  data: string;
+  hora?: string;
+  tipo: LembreteTipo;
+  cliente_id?: string;
+  descricao?: string;
+  concluido: boolean;
+  auto_gerado: boolean;
+  auto_id?: string;
+  created_at: string;
+  updated_at: string;
 }
 

@@ -28,9 +28,11 @@ import { SystematicModelingView } from './views/SystematicModelingView';
 import { OrganickIAView } from './views/OrganickIAView';
 import { MatrizEstrategicaView } from './views/MatrizEstrategicaView';
 import ChecklistsTab from './views/ChecklistsView';
+import { ReunioesView } from './views/ReunioesView';
+import RelatoriosView from './views/RelatoriosView';
+import { VhManagementView } from './views/VhManagementView';
 import { TaskFlowView, TaskDetailPanel } from './views/TaskFlowView';
 import FinancasTab from './views/FinancasView';
-import { VhManagementView } from './views/VhManagementView';
 import PlanejamentoTab from './views/PlanejamentoTab';
 import { CoboView } from './views/CoboView';
 import { TableView } from './components/TableView';
@@ -43,12 +45,13 @@ import {
   Cliente, ItemCobo, ItemMatrizEstrategica, ItemRdc, ItemPlanejamento,
   LancamentoFinancas, Tarefa, TipoTabela, ModoVisaoTarefa,
   VhConfig, BibliotecaConteudo, Colaborador, ItemChecklistTarefa, ConfiguracaoApresentacao, AnexoTarefa, AtividadeTarefa, NotificacaoApp, PerfilUsuario, DadosModelagemSistematica,
-  Workspace, MembroWorkspace, ChecklistShoot
+  Workspace, MembroWorkspace, ChecklistShoot, Reuniao, Meta, Lembrete, LembreteTipo
 } from './types';
 import { DatabaseService } from './DatabaseService';
 import { WorkspaceSelector } from './WorkspaceSelector';
 import { WorkspaceManagerFullscreen } from './components/WorkspaceManagerFullscreen';
 import { NewWorkspaceModal } from './components/NewWorkspaceModal';
+import { LembreteModal } from './components/LembreteModal';
 import { initAudio, playUISound } from './utils/uiSounds';
 
 
@@ -178,6 +181,7 @@ const RDC_FORMATS: Record<string, string[]> = {
 const getTableName = (tab: string): string | null => {
   switch (tab) {
     case 'CLIENTES': return 'clients';
+    case 'REUNIOES': return 'reunioes';
     case 'RDC': return 'rdc';
     case 'MATRIZ': return 'matriz_estrategica';
     case 'COBO': return 'cobo';
@@ -186,6 +190,7 @@ const getTableName = (tab: string): string | null => {
     case 'TAREFAS': return 'tasks';
     case 'CHECKLISTS': return 'checklists';
     case 'VH': return 'collaborators';
+    case 'LEMBRETES': return 'lembretes';
     default: return null;
   }
 };
@@ -199,7 +204,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TipoTabela>('DASHBOARD');
   const [theme, setTheme] = useState<'dark' | 'light'>(() => (localStorage.getItem('theme') as 'dark' | 'light') || 'dark');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 1024);
-  const [tabOrder, setTabOrder] = useState<TipoTabela[]>(['DASHBOARD', 'CLIENTES', 'ORGANICKIA', 'RDC', 'MATRIZ', 'COBO', 'PLANEJAMENTO', 'FINANCAS', 'TAREFAS', 'CHECKLISTS', 'VH', 'WHITEBOARD']);
+  const [tabOrder, setTabOrder] = useState<TipoTabela[]>(['DASHBOARD', 'CLIENTES', 'REUNIOES', 'ORGANICKIA', 'RDC', 'MATRIZ', 'COBO', 'PLANEJAMENTO', 'FINANCAS', 'VH', 'RELATORIOS', 'WHITEBOARD', 'CHECKLISTS']);
 
   const [clients, setClients] = useState<Cliente[]>([]);
   const [cobo, setCobo] = useState<ItemCobo[]>([]);
@@ -209,6 +214,8 @@ export default function App() {
   const [financas, setFinancas] = useState<LancamentoFinancas[]>([]);
   const [tasks, setTasks] = useState<Tarefa[]>([]);
   const [checklists, setChecklists] = useState<ChecklistShoot[]>([]);
+  const [reunioes, setReunioes] = useState<Reuniao[]>([]);
+  const [lembretes, setLembretes] = useState<Lembrete[]>([]);
   const [systematicModeling, setSystematicModeling] = useState<DadosModelagemSistematica>({});
 
   const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
@@ -238,6 +245,9 @@ export default function App() {
   const [notificacoes, setNotificacoes] = useState<NotificacaoApp[]>([]);
   const [toasts, setToasts] = useState<NotificacaoApp[]>([]);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [activeNotifTab, setActiveNotifTab] = useState<'notificacoes' | 'lembretes'>('notificacoes');
+  const [isLembreteModalOpen, setIsLembreteModalOpen] = useState(false);
+  const [editingLembrete, setEditingLembrete] = useState<Lembrete | null>(null);
   const exportButtonRef = useRef<HTMLButtonElement>(null);
   const mobileExportButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -247,6 +257,11 @@ export default function App() {
 
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isSettingsFullscreenOpen, setIsSettingsFullscreenOpen] = useState(false);
+
+  const pendingRemindersCount = useMemo(() => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    return lembretes.filter(l => !l.concluido && (l.data <= todayStr)).length;
+  }, [lembretes]);
   const [activeSettingsTab, setActiveSettingsTab] = useState<'configuracoes' | 'pessoas'>('configuracoes');
   const [isNewWorkspaceModalOpen, setIsNewWorkspaceModalOpen] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
@@ -350,8 +365,113 @@ export default function App() {
       setChecklists(prev => mergeItems(prev, sanitizedChecklists));
       
       setCollaborators(prev => mergeItems(prev, data.collaborators as Colaborador[]));
+      setReunioes(prev => mergeItems(prev, (data.reunioes || []) as Reuniao[]));
+      setLembretes(prev => mergeItems(prev, (data.lembretes || []) as Lembrete[]));
     }
   }, []);
+
+  const generateAutoReminders = useCallback(async () => {
+    if (!currentWorkspace || tasks.length === 0) return;
+
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    
+    const in3Days = new Date(today);
+    in3Days.setDate(today.getDate() + 3);
+    const in3DaysStr = in3Days.toISOString().split('T')[0];
+
+    const newReminders: Partial<Lembrete>[] = [];
+
+    // 1. Tarefas vencendo amanhã
+    tasks.forEach(t => {
+      if (t.Data_Entrega === tomorrowStr && t.Status !== 'done') {
+        newReminders.push({
+          titulo: `Tarefa "${t.Título}" vence amanhã`,
+          data: todayStr,
+          tipo: 'Tarefa',
+          cliente_id: t.Cliente_ID,
+          auto_gerado: true,
+          auto_id: `task_vence_tomorrow:${t.id}`
+        });
+      }
+    });
+
+    // 2. Posts para hoje
+    const postsHoje = planejamento.filter(p => p.Data === todayStr && p["Status do conteúdo"] !== 'Concluído');
+    if (postsHoje.length > 0) {
+      newReminders.push({
+        titulo: `${postsHoje.length} posts para publicar hoje`,
+        data: todayStr,
+        tipo: 'Post',
+        auto_gerado: true,
+        auto_id: `posts_hoje:${todayStr}`
+      });
+    }
+
+    // 3. Contas a vencer em 3 dias
+    financas.forEach(f => {
+      if (f.Data === in3DaysStr && f.Status === 'Pendente') {
+        newReminders.push({
+          titulo: `Conta "${f.Lançamento}" vence em 3 dias`,
+          data: todayStr,
+          tipo: 'Pagamento',
+          cliente_id: f.Cliente_ID,
+          auto_gerado: true,
+          auto_id: `financa_vence_3d:${f.id}`
+        });
+      }
+    });
+
+    // 4. MRR / Contratos em 5 dias (Dia_Pagamento)
+    const dayToday = today.getDate();
+    financas.filter(f => (f.Tipo === 'Assinatura' || f.Tipo === 'Entrada') && f.Dia_Pagamento).forEach(f => {
+        const diaPag = Number(f.Dia_Pagamento);
+        const diff = (diaPag - dayToday + 31) % 31;
+        if (diff >= 0 && diff <= 5) {
+            newReminders.push({
+                titulo: `Cobrança de cliente em ${diff} dias: ${f.Lançamento}`,
+                data: todayStr,
+                tipo: 'Contrato',
+                cliente_id: f.Cliente_ID,
+                auto_gerado: true,
+                auto_id: `mrr_cobranca_5d:${f.id}:${today.getMonth()}`
+            });
+        }
+    });
+
+    // Sync
+    for (const rem of newReminders) {
+        if (!lembretes.some(l => l.auto_id === rem.auto_id)) {
+            const fullRem: Lembrete = {
+                id: generateId(),
+                workspace_id: currentWorkspace.id,
+                titulo: rem.titulo!,
+                data: rem.data!,
+                hora: '09:00',
+                tipo: rem.tipo as any,
+                cliente_id: rem.cliente_id,
+                descricao: '',
+                concluido: false,
+                auto_gerado: true,
+                auto_id: rem.auto_id,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            };
+            await DatabaseService.syncItem('lembretes', fullRem, currentWorkspace.id);
+            setLembretes(prev => [...prev, fullRem]);
+        }
+    }
+  }, [currentWorkspace, tasks, planejamento, financas, lembretes]);
+
+  useEffect(() => {
+    if (currentUser && currentWorkspace && tasks.length > 0) {
+      const timer = setTimeout(generateAutoReminders, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [currentUser, currentWorkspace?.id, tasks.length > 0]);
 
   const { isExporting, exportExcel, exportPng, exportPdf } = useExport();
 
@@ -750,6 +870,8 @@ export default function App() {
     else if (tab === 'FINANCAS') currentList = financas;
     else if (tab === 'TAREFAS') currentList = tasks;
     else if (tab === 'CHECKLISTS') currentList = checklists;
+    else if (tab === 'REUNIOES') currentList = reunioes;
+    else if (tab === 'LEMBRETES') currentList = lembretes;
     else if (tab === 'IA_HISTORY') currentList = iaHistory;
 
     const originalItem = currentList.find(i => i.id === id);
@@ -839,6 +961,7 @@ export default function App() {
     else if (tab === 'CHECKLISTS') setChecklists(updateFn as any);
     else if (tab === 'COBO') setCobo(updateFn);
     else if (tab === 'MATRIZ') setMatriz(updateFn);
+    else if (tab === 'REUNIOES') setReunioes(updateFn);
     else if (tab === 'IA_HISTORY') setIaHistory(updateFn);
 
     // Sync to Backend
@@ -901,7 +1024,7 @@ export default function App() {
     const defaultClientId = selectedClientIds.length === 1 ? selectedClientIds[0] : (clients[0]?.id || 'GERAL');
     let newItem: any = null;
 
-    if (tab === 'CLIENTES') newItem = { ...defaultProps, Nome: 'Novo Cliente', Nicho: '', Responsável: '', WhatsApp: '', Instagram: '', Objetivo: '', Observações: '', "Cor (HEX)": '#3B82F6', Status: 'Ativo', ...initial };
+    if (tab === 'CLIENTES') newItem = { ...defaultProps, Nome: 'Novo Cliente', Nicho: '', Responsável: '', WhatsApp: '', Instagram: '', Objetivo: '', Observações: '', "Cor (HEX)": '#3B82F6', Status: 'Ativo', links: [], log_comunicacao: [], assets: [], paleta_cores: [], fontes: [], tom_de_voz: '', ...initial };
     else if (tab === 'FINANCAS') newItem = { ...defaultProps, Lançamento: `FIN-${generateId().toUpperCase().slice(0, 4)}`, Data: new Date().toISOString().split('T')[0], Cliente_ID: defaultClientId, Tipo: 'Entrada', Categoria: 'Serviço', Descrição: 'Novo Lançamento', Valor: 0, Recorrência: 'Única', Data_Início: new Date().toISOString().split('T')[0], Data_Fim: '', Dia_Pagamento: 1, Observações: '', ...initial };
     else if (tab === 'PLANEJAMENTO') {
       const date = initial.Data || new Date().toISOString().split('T')[0];
@@ -920,6 +1043,8 @@ export default function App() {
     else if (tab === 'MATRIZ') newItem = { ...defaultProps, Cliente_ID: defaultClientId, Rede_Social: 'Instagram', Função: 'Hub', "Quem fala": '', "Papel estratégico": '', "Tipo de conteúdo": '', "Resultado esperado": '', ...initial };
     else if (tab === 'RDC') newItem = { ...defaultProps, Cliente_ID: defaultClientId, "Ideia de Conteúdo": '', Rede_Social: 'Instagram', "Tipo de conteúdo": '', "Resolução (1–5)": 1, "Demanda (1–5)": 1, "Competição (1–5)": 1, "Score (R×D×C)": 1, Decisão: 'Preencha R/D/C', ...initial };
     else if (tab === 'CHECKLISTS') newItem = { ...defaultProps, itens_levar: [], itens_trazer: [], itens_gravar: [], ...initial };
+    else if (tab === 'REUNIOES') newItem = { ...defaultProps, Cliente_ID: initial.Cliente_ID || defaultClientId, Título: initial.Título || 'Nova Reunião', Data: initial.Data || new Date().toISOString().split('T')[0], Hora: initial.Hora || '10:00', Formato: 'Online', Participantes: '', Pauta: '', Decisões: '', Proximos_Passos: [], Status: 'Agendada', ...initial };
+    else if (tab === 'LEMBRETES') newItem = { ...defaultProps, Título: 'Novo Lembrete', Data: new Date().toISOString().split('T')[0], Hora: '09:00', Tipo: 'Tarefa', Cliente_ID: initial.Cliente_ID || null, Descrição: '', Concluído: false, Auto_Gerado: false, ...initial };
 
     if (newItem) {
       console.log(`[EKKO-SYNC] CREATE_TRIGGERED | Table: ${tab} | ID: ${id}`, newItem);
@@ -933,6 +1058,8 @@ export default function App() {
       else if (tab === 'COBO') setCobo(prev => [...prev, newItem]);
       else if (tab === 'MATRIZ') setMatriz(prev => [...prev, newItem]);
       else if (tab === 'RDC') setRdc(prev => [...prev, newItem]);
+      else if (tab === 'REUNIOES') setReunioes(prev => [...prev, newItem]);
+      else if (tab === 'LEMBRETES') setLembretes(prev => [...prev, newItem]);
 
       const tableName = getTableName(tab);
       if (tableName && currentWorkspace) {
@@ -1000,6 +1127,8 @@ export default function App() {
     if (tab === 'FINANCAS') setFinancas(prev => prev.filter(f => !ids.includes(f.id)));
     if (tab === 'TAREFAS') setTasks(prev => prev.filter(t => !ids.includes(t.id)));
     if (tab === 'CHECKLISTS') setChecklists(prev => prev.filter(c => !ids.includes(c.id)));
+    if (tab === 'REUNIOES') setReunioes(prev => prev.filter(r => !ids.includes(r.id)));
+    if (tab === 'LEMBRETES') setLembretes(prev => prev.filter(l => !ids.includes(l.id)));
     if (tab === 'IA_HISTORY') setIaHistory(prev => prev.filter(h => !ids.includes(h.id)));
     setSelection([]);
 
@@ -1240,6 +1369,21 @@ export default function App() {
     // Add other action handlers as needed
   }, [currentUser, currentWorkspace, addNotification]);
 
+  const handleSaveLembrete = async (data: Partial<Lembrete>) => {
+    if (!currentWorkspace) return;
+    
+    if (data.id) {
+       // Update
+       await handleUpdate(data.id, 'LEMBRETES', '__MULTIPLE__', data);
+    } else {
+       // Create
+       const id = await handleAddRow('LEMBRETES', data);
+       console.log("Lembrete criado com ID:", id);
+    }
+    setIsLembreteModalOpen(false);
+    setEditingLembrete(null);
+  };
+
   const handleUpdateTask = async (taskId: string, updates: any) => {
     const now = new Date().toISOString();
     const fullUpdates = { ...updates, updated_at: now };
@@ -1291,10 +1435,10 @@ export default function App() {
         <nav className="flex-1 py-4 px-2 space-y-6 overflow-y-auto custom-scrollbar flex flex-col">
           {/* GRUPOS DE ABAS */}
           {[
-            { label: 'Visão Geral', tabs: ['DASHBOARD', 'CLIENTES', 'ORGANICKIA'] },
+            { label: 'Visão Geral', tabs: ['DASHBOARD', 'CLIENTES', 'REUNIOES', 'ORGANICKIA'] },
             { label: 'Estratégia', tabs: ['RDC', 'MATRIZ', 'COBO'] },
             { label: 'Execução', tabs: ['PLANEJAMENTO', 'TAREFAS', 'CHECKLISTS'] },
-            { label: 'Gestão/Extras', tabs: ['FINANCAS', 'VH', 'WHITEBOARD'] }
+            { label: 'Gestão/Extras', tabs: ['FINANCAS', 'VH', 'RELATORIOS', 'WHITEBOARD'] }
           ].map((group, gIdx) => (
             <div key={group.label} className="space-y-1">
               {!sidebarCollapsed && (
@@ -1388,8 +1532,10 @@ export default function App() {
                 className="ios-btn p-2.5 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 dark:border-white/5 dark:bg-white/5 dark:text-zinc-400 dark:hover:text-white transition-colors active:scale-90 relative"
               >
                 <Bell size={18} />
-                {notificacoes.some(n => !n.lida) && (
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-app-bg"></span>
+                {(notificacoes.some(n => !n.lida) || pendingRemindersCount > 0) && (
+                  <span className={`absolute top-2 right-2 w-4 h-4 ${pendingRemindersCount > 0 ? 'bg-red-500' : 'bg-blue-500'} rounded-full border-2 border-app-bg text-[8px] font-black text-white flex items-center justify-center`}>
+                    {pendingRemindersCount > 0 ? pendingRemindersCount : ''}
+                  </span>
                 )}
               </button>
 
@@ -1401,43 +1547,119 @@ export default function App() {
                 align="end"
               >
                 <div className="bg-app-surface border border-app-border rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden pointer-events-auto">
-                  <div className="p-5 border-b border-app-border flex justify-between items-center bg-app-surface-2/50 backdrop-blur-md">
-                    <span className="text-[11px] font-black uppercase text-app-text-strong tracking-[0.2em]">Notificações</span>
-                    <button
-                      onClick={() => {
-                        playUISound('tap');
-                        setNotificacoes(prev => prev.map(n => ({ ...n, lida: true })));
-                      }}
-                      className="ios-btn text-[9px] font-black uppercase text-blue-500 hover:text-app-text-strong transition-all"
+                  {/* TABS HEADER */}
+                  <div className="p-2 border-b border-app-border flex bg-app-surface-2/50 backdrop-blur-md">
+                    <button 
+                      onClick={() => { playUISound('tap'); setActiveNotifTab('notificacoes'); }}
+                      className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${activeNotifTab === 'notificacoes' ? 'bg-white dark:bg-zinc-800 text-app-text-strong shadow-sm' : 'text-app-text-muted hover:text-app-text-strong'}`}
                     >
-                      Limpar Tudo
+                      Notificações
+                    </button>
+                    <button 
+                      onClick={() => { playUISound('tap'); setActiveNotifTab('lembretes'); }}
+                      className={`flex-1 py-5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2 ${activeNotifTab === 'lembretes' ? 'bg-white dark:bg-zinc-800 text-app-text-strong shadow-sm' : 'text-app-text-muted hover:text-app-text-strong'}`}
+                    >
+                      Lembretes
+                      {pendingRemindersCount > 0 && <span className="w-4 h-4 bg-red-500 rounded-full text-[8px] flex items-center justify-center text-white">{pendingRemindersCount}</span>}
                     </button>
                   </div>
+
                   <div className="max-h-[450px] overflow-y-auto custom-scrollbar bg-app-surface">
-                    {notificacoes.length === 0 ? (
-                      <div className="p-12 text-center opacity-20">
-                        <BellOff size={40} className="mx-auto mb-4" />
-                        <p className="text-[10px] font-black uppercase tracking-widest">Silêncio absoluto</p>
+                    {activeNotifTab === 'notificacoes' ? (
+                      <div className="divide-y divide-app-border/50">
+                        <div className="p-3 flex justify-between items-center bg-app-bg/30">
+                           <span className="text-[8px] font-bold uppercase text-app-text-muted tracking-widest">Recentes</span>
+                           <button onClick={() => setNotificacoes(prev => prev.map(n => ({...n, lida: true})))} className="text-[8px] font-black uppercase text-blue-500">Limpar</button>
+                        </div>
+                        {notificacoes.length === 0 ? (
+                          <div className="p-12 text-center opacity-20">
+                            <BellOff size={40} className="mx-auto mb-4" />
+                            <p className="text-[10px] font-black uppercase tracking-widest">Nada por enquanto</p>
+                          </div>
+                        ) : (
+                          notificacoes.map(n => (
+                            <div key={n.id} className={`p-4 hover:bg-app-bg transition-all cursor-pointer group ${!n.lida ? 'bg-blue-500/5' : ''}`}>
+                              <div className="flex gap-3">
+                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 border ${n.tipo === 'success' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                                  n.tipo === 'warning' ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                                  }`}>
+                                  {n.tipo === 'success' ? <CheckCircle2 size={14} /> : n.tipo === 'warning' ? <AlertTriangle size={14} /> : <Info size={14} />}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex justify-between items-baseline mb-0.5">
+                                    <p className="text-[10px] font-black text-app-text-strong uppercase truncate">{n.titulo}</p>
+                                    <span className="text-[7px] font-bold text-app-text-muted uppercase">{new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                  </div>
+                                  <p className="text-[9px] font-medium text-app-text-muted leading-snug uppercase line-clamp-2">{n.mensagem}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        )}
                       </div>
                     ) : (
-                      notificacoes.map(n => (
-                        <div key={n.id} className={`p-5 border-b border-app-border/50 hover:bg-app-bg transition-all cursor-pointer group ${!n.lida ? 'bg-blue-500/5' : ''}`}>
-                          <div className="flex gap-4">
-                            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 border ${n.tipo === 'success' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                              n.tipo === 'warning' ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
-                              }`}>
-                              {n.tipo === 'success' ? <CheckCircle2 size={16} /> : n.tipo === 'warning' ? <AlertTriangle size={16} /> : <Info size={16} />}
-                            </div>
-                            <div className="flex-1 space-y-1">
-                              <div className="flex justify-between items-baseline">
-                                <p className="text-[11px] font-black text-app-text-strong uppercase tracking-tight">{n.titulo}</p>
-                                <span className="text-[8px] font-bold text-[#334155] uppercase">{new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                              </div>
-                              <p className="text-[10px] font-medium text-app-text-muted leading-relaxed uppercase tracking-tight">{n.mensagem}</p>
-                            </div>
-                          </div>
+                      <div className="divide-y divide-app-border/50">
+                        <div className="p-3 flex justify-between items-center bg-app-bg/30 sticky top-0 z-10 backdrop-blur-md">
+                           <span className="text-[8px] font-bold uppercase text-app-text-muted tracking-widest">Meus Lembretes</span>
+                           <button onClick={() => { playUISound('tap'); setIsLembreteModalOpen(true); setEditingLembrete(null); }} className="text-[8px] font-black uppercase text-app-accent-blue bg-app-accent-blue/10 px-2 py-1 rounded-md hover:bg-app-accent-blue/20 transition-all">+ Criar</button>
                         </div>
-                      ))
+                        
+                        {lembretes.length === 0 ? (
+                           <div className="p-12 text-center opacity-20">
+                              <CalendarDays size={40} className="mx-auto mb-4" />
+                              <p className="text-[10px] font-black uppercase tracking-widest">Sem lembretes</p>
+                           </div>
+                        ) : (
+                          [...lembretes]
+                            .sort((a,b) => b.data.localeCompare(a.data))
+                            .map(l => {
+                               const isToday = l.data === new Date().toISOString().split('T')[0];
+                               const isOverdue = l.data < new Date().toISOString().split('T')[0] && !l.concluido;
+                               
+                               return (
+                                 <div key={l.id} className={`p-4 transition-all group relative ${l.concluido ? 'opacity-50' : ''} ${isToday && !l.concluido ? 'border-l-4 border-blue-500 bg-blue-500/5' : ''} ${isOverdue ? 'border-l-4 border-red-500 bg-red-500/5' : ''}`}>
+                                    <div className="flex gap-3">
+                                       <button 
+                                          onClick={(e) => { e.stopPropagation(); playUISound('tap'); handleUpdate(l.id, 'LEMBRETES', 'concluido', !l.concluido); }}
+                                          className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${l.concluido ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-app-border hover:border-app-text-strong'}`}
+                                       >
+                                          {l.concluido && <CheckIcon size={12} />}
+                                       </button>
+                                       
+                                       <div className="flex-1 min-w-0 cursor-pointer" onClick={() => { setEditingLembrete(l); setIsLembreteModalOpen(true); }}>
+                                          <div className="flex justify-between items-start mb-0.5">
+                                             <p className={`text-[10px] font-black uppercase tracking-tight ${l.concluido ? 'line-through' : 'text-app-text-strong'} ${isOverdue ? 'text-red-500' : ''}`}>
+                                                {l.titulo}
+                                             </p>
+                                             <div className="flex items-center gap-2">
+                                                {l.auto_gerado && <span className="text-[6px] font-black bg-zinc-100 dark:bg-white/5 text-app-text-muted px-1 py-0.5 rounded uppercase">AUTO</span>}
+                                                <button onClick={(e) => { e.stopPropagation(); playUISound('tap'); performDelete([l.id], 'LEMBRETES'); }} className="opacity-0 group-hover:opacity-100 text-app-text-muted hover:text-red-500 transition-all">
+                                                   <Trash2 size={10} />
+                                                </button>
+                                             </div>
+                                          </div>
+                                          
+                                          <div className="flex items-center gap-2 mt-1">
+                                             <span className="text-[7px] font-black uppercase text-app-text-muted border border-app-border/50 px-1.5 py-0.5 rounded flex items-center gap-1">
+                                                <i className={`fa-solid ${l.tipo === 'Post' ? 'fa-share-nodes' : l.tipo === 'Reunião' ? 'fa-handshake' : l.tipo === 'Pagamento' ? 'fa-money-bill-wave' : l.tipo === 'Tarefa' ? 'fa-list-check' : 'fa-file-signature'} text-[6px]`}></i>
+                                                {l.tipo}
+                                             </span>
+                                             <span className={`text-[7px] font-bold uppercase ${isOverdue ? 'text-red-500' : 'text-app-text-muted'}`}>
+                                                {new Date(l.data + 'T00:00:00').toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'})} {l.hora && `às ${l.hora}`}
+                                             </span>
+                                             {l.cliente_id && (
+                                               <span className="text-[7px] font-black text-app-accent-blue bg-app-accent-blue/10 px-1 rounded uppercase truncate max-w-[80px]">
+                                                  {clients.find(c => c.id === l.cliente_id)?.Nome || 'Cliente'}
+                                               </span>
+                                             )}
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                               );
+                            })
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1514,6 +1736,7 @@ export default function App() {
         <div className={`flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar animate-fade bg-app-bg ${(activeTab === 'WHITEBOARD' || activeTab === 'CLIENTES' || activeTab === 'PLANEJAMENTO' || activeTab === 'CHECKLISTS') ? 'p-0 overflow-hidden' : 'p-4 sm:p-6 pb-[calc(100px+env(safe-area-inset-bottom))] sm:pb-6'}`}>
           {activeTab === 'DASHBOARD' && <DashboardView clients={clients} tasks={currentTasks} financas={currentFinancas} planejamento={currentPlanejamento} rdc={currentRdc} setActiveTab={setActiveTab} perfilUsuario={perfilUsuario} />}
           {activeTab === 'CLIENTES' && <ClientesView clients={filterArchived(clients)} onUpdate={handleUpdate} onDelete={performDelete} onAdd={() => handleAddRow('CLIENTES')} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} />}
+          {activeTab === 'REUNIOES' && <ReunioesView reunioes={reunioes} clients={clients} onUpdate={handleUpdate} onDelete={performDelete} onAdd={() => handleAddRow('REUNIOES')} />}
           {activeTab === 'RDC' && <TableView tab="RDC" data={currentRdc} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('RDC')} library={BibliotecaConteudo} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
           {activeTab === 'MATRIZ' && <MatrizEstrategicaView data={currentMatriz} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('MATRIZ')} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
 
@@ -1538,7 +1761,8 @@ export default function App() {
           {activeTab === 'FINANCAS' && <FinancasTab financas={currentFinancas} onAdd={(initial: any) => handleAddRow('FINANCAS', initial)} onUpdate={(id: any, field: any, value: any) => handleUpdate(id, 'FINANCAS', field, value)} onDelete={(ids: any) => performDelete(ids, 'FINANCAS')} clients={clients} currentWorkspace={currentWorkspace} />}
           {activeTab === 'TAREFAS' && <TaskFlowView tasks={currentTasks} clients={clients} collaborators={collaborators} activeViewId={activeTaskViewId} setActiveViewId={setActiveTaskViewId} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('TAREFAS')} onSelectTask={setSelectedTaskId} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
           {activeTab === 'CHECKLISTS' && <ChecklistsTab data={currentChecklists} onAdd={handleAddRow} onUpdate={handleUpdate} onDelete={performDelete} clients={clients} />}
-          {activeTab === 'VH' && <VhManagementView clients={clients} collaborators={collaborators} setCollaborators={setCollaborators} onUpdate={handleUpdate} selection={selection} onSelect={toggleSelection} />}
+          { activeTab === 'VH' && <VhManagementView clients={clients} collaborators={collaborators} setCollaborators={setCollaborators} onUpdate={handleUpdate} selection={selection} onSelect={toggleSelection} tasks={currentTasks} financas={currentFinancas} /> }
+          { activeTab === 'RELATORIOS' && <RelatoriosView clients={clients} planejamento={planejamento} tasks={tasks} financas={financas} rdc={rdc} /> }
           {activeTab === 'ORGANICKIA' && <OrganickIAView
             clients={clients}
             cobo={cobo}
@@ -1860,6 +2084,24 @@ export default function App() {
         </div>
       )}
 
+      {isLembreteModalOpen && (
+        <LembreteModal
+          lembrete={editingLembrete}
+          clients={clients}
+          onClose={() => { setIsLembreteModalOpen(false); setEditingLembrete(null); }}
+          onSave={handleSaveLembrete}
+        />
+      )}
+
+      {isLembreteModalOpen && (
+        <LembreteModal
+          lembrete={editingLembrete}
+          clients={clients}
+          onClose={() => { setIsLembreteModalOpen(false); setEditingLembrete(null); }}
+          onSave={handleSaveLembrete}
+        />
+      )}
+
       {/* Toast notificacoes */}
       <div className="fixed top-4 right-4 z-[200] flex flex-col items-end gap-2 pointer-events-none">
         {toasts.map(t => (
@@ -1890,6 +2132,6 @@ export default function App() {
 }
 
 function getIcon(tab: TipoTabela) {
-  const icons: any = { DASHBOARD: 'fa-table-columns', CLIENTES: 'fa-address-card', ORGANICKIA: 'fa-robot', RDC: 'fa-bolt', MATRIZ: 'fa-chess-rook', COBO: 'fa-tower-cell', PLANEJAMENTO: 'fa-calendar-days', FINANCAS: 'fa-coins', TAREFAS: 'fa-list-check', CHECKLISTS: 'fa-clipboard-check', VH: 'fa-hourglass', WHITEBOARD: 'fa-object-group' };
+  const icons: any = { DASHBOARD: 'fa-table-columns', CLIENTES: 'fa-address-card', REUNIOES: 'fa-handshake', ORGANICKIA: 'fa-robot', RDC: 'fa-bolt', MATRIZ: 'fa-chess-rook', COBO: 'fa-tower-cell', PLANEJAMENTO: 'fa-calendar-days', FINANCAS: 'fa-coins', TAREFAS: 'fa-list-check', CHECKLISTS: 'fa-clipboard-check', VH: 'fa-hourglass', WHITEBOARD: 'fa-object-group', RELATORIOS: 'fa-file-invoice' };
   return icons[tab] || 'fa-folder';
 }

@@ -1,6 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { Button, Badge, Card, InputSelect } from '../Components';
-import { Users, Search, Plus, X, Phone, Instagram, Target, Palette, Trash2, CheckCircle2 } from 'lucide-react';
+import { 
+  Users, Search, Plus, X, Phone, Instagram, Target, Palette, Trash2, CheckCircle2, 
+  Globe, Youtube, Music, Linkedin, Pin, Video, MessageCircle, Folder, FileText, 
+  Figma, Brush, Music2, Swords, Star, Link, Handshake, Mail, StickyNote, 
+  ChevronDown, ChevronUp, Download, Calendar, Clock, Image as ImageIcon, File
+} from 'lucide-react';
 
 interface ClientesViewProps {
   clients: any[];
@@ -10,10 +15,70 @@ interface ClientesViewProps {
   onOpenColorPicker?: (id: string, val: string) => void;
 }
 
+const toBase64 = (file: File): Promise<string> => 
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
+
+const ICON_MAP: Record<string, any> = {
+  // Links
+  'Site': Globe, 'Instagram': Instagram, 'YouTube': Youtube, 'TikTok': Music, 
+  'LinkedIn': Linkedin, 'Pinterest': Pin, 'Kwai': Video, 'WhatsApp': MessageCircle, 
+  'Google Drive': Folder, 'Notion': FileText, 'Figma': Figma, 'Canva': Brush, 
+  'Spotify': Music2, 'Concorrente': Swords, 'Referência': Star, 'Outro': Link,
+  // Logs
+  'Reunião': Handshake, 'Email': Mail, 'Ligação': Phone, 'Anotação': StickyNote
+};
+
+const Accordion: React.FC<{ 
+  title: string; 
+  icon: any; 
+  count?: number; 
+  isOpen: boolean; 
+  onToggle: () => void; 
+  children: React.ReactNode 
+}> = ({ title, icon: Icon, count, isOpen, onToggle, children }) => (
+  <div className="border border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden bg-white dark:bg-zinc-900 shadow-sm transition-all">
+    <button 
+      onClick={onToggle}
+      className="w-full flex items-center justify-between p-5 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors group"
+    >
+      <div className="flex items-center gap-4">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${isOpen ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500'}`}>
+          <Icon size={18} />
+        </div>
+        <div className="text-left">
+          <h3 className={`text-xs font-black uppercase tracking-widest ${isOpen ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-500'}`}>{title}</h3>
+          {count !== undefined && <span className="text-[10px] font-bold text-zinc-400">{count} {count === 1 ? 'item' : 'itens'}</span>}
+        </div>
+      </div>
+      <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-transform duration-300 ${isOpen ? 'rotate-180 bg-zinc-100 dark:bg-zinc-800' : ''}`}>
+        <ChevronDown size={14} className="text-zinc-400" />
+      </div>
+    </button>
+    
+    <div className={`transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+      <div className="p-6 pt-0 border-t border-zinc-50 dark:border-zinc-800/50">
+        {children}
+      </div>
+    </div>
+  </div>
+);
+
 export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, onOpenColorPicker }: ClientesViewProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'Todos' | 'Ativo' | 'Inativo'>('Todos');
   const [selectedClient, setSelectedClient] = useState<any | null>(null);
+  const [activeAccordion, setActiveAccordion] = useState<string>('Dados Principais');
+  const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+  const [newLogEntry, setNewLogEntry] = useState({ tipo: 'WhatsApp', data: new Date().toISOString().split('T')[0], hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }), descricao: '' });
+  const [newLinkEntry, setNewLinkEntry] = useState({ titulo: '', url: '', categoria: 'Site' });
+  const [isAddingLink, setIsAddingLink] = useState(false);
+  const [isAddingMeta, setIsAddingMeta] = useState(false);
+  const [newMetaEntry, setNewMetaEntry] = useState({ id: '', titulo: '', metrica: '', valor_atual: 0, valor_meta: 0, periodo: 'Mensal' as const, status: 'No prazo' as const });
 
   const filteredClients = useMemo(() => {
     return clients.filter(c => {
@@ -200,15 +265,16 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
             </div>
 
             {/* Drawer Body Form */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-8">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-4">
               
-              <div className="space-y-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-1 h-3 bg-blue-500 rounded-full"></div>
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Dados Principais</span>
-                </div>
-
-                <div className="space-y-4">
+              {/* ACORDEÃO — SEÇÃO 1: DADOS PRINCIPAIS */}
+              <Accordion 
+                title="Dados Principais" 
+                icon={Users} 
+                isOpen={activeAccordion === 'Dados Principais'}
+                onToggle={() => setActiveAccordion(activeAccordion === 'Dados Principais' ? '' : 'Dados Principais')}
+              >
+                <div className="space-y-4 pt-4">
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">NOME DA MARCA</label>
                     <input 
@@ -243,16 +309,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                       />
                     </div>
                   </div>
-                </div>
-              </div>
 
-              <div className="space-y-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-1 h-3 bg-emerald-500 rounded-full"></div>
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Contato & Social</span>
-                </div>
-
-                <div className="space-y-4">
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">RESPONSÁVEL</label>
                     <div className="flex items-center gap-2 group w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 focus-within:border-blue-500/50 transition-all">
@@ -266,43 +323,530 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">WHATSAPP</label>
-                    <div className="flex items-center gap-2 group w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 focus-within:border-emerald-500/50 transition-all">
-                       <Phone size={14} className="text-emerald-500 shrink-0" />
-                       <input 
-                         type="text" 
-                         value={selectedClient.WhatsApp || ''} 
-                         onChange={(e) => handleUpdateField('WhatsApp', e.target.value)}
-                         className="flex-1 bg-transparent border-none outline-none text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 min-w-0"
-                         placeholder="EX: +55 11 99999-9999"
-                       />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">WHATSAPP</label>
+                      <div className="flex items-center gap-2 group w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 focus-within:border-emerald-500/50 transition-all">
+                         <Phone size={14} className="text-emerald-500 shrink-0" />
+                         <input 
+                           type="text" 
+                           value={selectedClient.WhatsApp || ''} 
+                           onChange={(e) => handleUpdateField('WhatsApp', e.target.value)}
+                           className="flex-1 bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 min-w-0"
+                           placeholder="EX: +55 11 99999-9999"
+                         />
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">INSTAGRAM</label>
-                    <div className="flex items-center gap-2 group w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 focus-within:border-rose-500/50 transition-all">
-                       <Instagram size={14} className="text-rose-500 shrink-0" />
-                       <input 
-                         type="text" 
-                         value={selectedClient.Instagram || ''} 
-                         onChange={(e) => handleUpdateField('Instagram', e.target.value)}
-                         className="flex-1 bg-transparent border-none outline-none text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 min-w-0"
-                         placeholder="EX: @USER"
-                       />
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">INSTAGRAM</label>
+                      <div className="flex items-center gap-2 group w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 focus-within:border-rose-500/50 transition-all">
+                         <Instagram size={14} className="text-rose-500 shrink-0" />
+                         <input 
+                           type="text" 
+                           value={selectedClient.Instagram || ''} 
+                           onChange={(e) => handleUpdateField('Instagram', e.target.value)}
+                           className="flex-1 bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 min-w-0"
+                           placeholder="EX: @USER"
+                         />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              </Accordion>
 
-              <div className="space-y-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-1 h-3 bg-indigo-500 rounded-full"></div>
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Estratégia & Branding</span>
+              {/* SEÇÃO 1 — LINKS E REFERÊNCIAS */}
+              <Accordion 
+                title="Links e Referências" 
+                icon={Link} 
+                count={(selectedClient.links || []).length}
+                isOpen={activeAccordion === 'Links'} 
+                onToggle={() => setActiveAccordion(activeAccordion === 'Links' ? '' : 'Links')}
+              >
+                <div className="space-y-4 pt-4">
+                  <div className="space-y-3">
+                    {(selectedClient.links || []).map((link: any, idx: number) => {
+                      const Icon = ICON_MAP[link.categoria] || Link;
+                      return (
+                        <div key={idx} className="flex items-center gap-3 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl group border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700 transition-all">
+                          <div className="w-8 h-8 rounded-lg bg-white dark:bg-zinc-800 flex items-center justify-center text-zinc-400 shadow-sm">
+                            <Icon size={14} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <a href={link.url} target="_blank" rel="noopener noreferrer" className="block text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100 truncate hover:text-blue-500 transition-colors">
+                              {link.titulo || 'Link sem título'}
+                            </a>
+                            <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter">{link.categoria}</span>
+                          </div>
+                          <button 
+                            onClick={() => {
+                              const newList = selectedClient.links.filter((_: any, i: number) => i !== idx);
+                              handleUpdateField('links', newList);
+                            }}
+                            className="w-8 h-8 flex items-center justify-center rounded-lg text-rose-500 opacity-0 group-hover:opacity-100 hover:bg-rose-500/10 transition-all"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {isAddingLink ? (
+                    <div className="p-4 bg-zinc-50 dark:bg-zinc-800/80 rounded-2xl border-2 border-blue-500/20 space-y-3 animate-fade">
+                      <input 
+                        type="text" 
+                        placeholder="TÍTULO DO LINK"
+                        value={newLinkEntry.titulo}
+                        onChange={e => setNewLinkEntry({ ...newLinkEntry, titulo: e.target.value })}
+                        className="w-full h-10 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100"
+                      />
+                      <input 
+                        type="url" 
+                        placeholder="URL (HTTP://...)"
+                        value={newLinkEntry.url}
+                        onChange={e => setNewLinkEntry({ ...newLinkEntry, url: e.target.value })}
+                        className="w-full h-10 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 text-[10px] font-bold text-zinc-900 dark:text-zinc-100"
+                      />
+                      <InputSelect 
+                        value={newLinkEntry.categoria}
+                        onChange={val => setNewLinkEntry({ ...newLinkEntry, categoria: val })}
+                        options={['Site', 'Instagram', 'YouTube', 'TikTok', 'LinkedIn', 'Pinterest', 'Kwai', 'WhatsApp', 'Google Drive', 'Notion', 'Figma', 'Canva', 'Spotify', 'Concorrente', 'Referência', 'Outro']}
+                        className="!h-10"
+                      />
+                      <div className="flex gap-2">
+                        <Button onClick={() => setIsAddingLink(false)} variant="ghost" className="flex-1 !h-10">Cancelar</Button>
+                        <Button 
+                          onClick={() => {
+                            if (!newLinkEntry.url) return;
+                            const newList = [...(selectedClient.links || []), newLinkEntry];
+                            handleUpdateField('links', newList);
+                            setNewLinkEntry({ titulo: '', url: '', categoria: 'Site' });
+                            setIsAddingLink(false);
+                          }}
+                          className="flex-1 !h-10 !bg-blue-600 !text-white"
+                        >
+                          Salvar Link
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={() => setIsAddingLink(true)}
+                      className="w-full h-11 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl flex items-center justify-center gap-2 text-zinc-400 hover:text-blue-500 hover:border-blue-500/30 transition-all text-[10px] font-black uppercase tracking-widest"
+                    >
+                      <Plus size={14} /> Adicionar Link
+                    </button>
+                  )}
                 </div>
+              </Accordion>
 
-                <div className="space-y-4">
+              {/* SEÇÃO 2 — LOG DE COMUNICAÇÃO */}
+              <Accordion 
+                title="Log de Comunicação" 
+                icon={MessageCircle} 
+                count={(selectedClient.log_comunicacao || []).length}
+                isOpen={activeAccordion === 'Log'} 
+                onToggle={() => setActiveAccordion(activeAccordion === 'Log' ? '' : 'Log')}
+              >
+                <div className="space-y-4 pt-4">
+                  <div className="relative space-y-6 before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-px before:bg-zinc-100 dark:before:bg-zinc-800">
+                    {(selectedClient.log_comunicacao || []).sort((a: any, b: any) => new Date(b.data + ' ' + b.hora).getTime() - new Date(a.data + ' ' + a.hora).getTime()).map((log: any, idx: number) => {
+                      const Icon = ICON_MAP[log.tipo] || StickyNote;
+                      return (
+                        <div key={idx} className="relative pl-12 group">
+                          <div className="absolute left-0 top-0 w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-400 z-10 group-hover:scale-110 transition-transform">
+                            <Icon size={14} />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[9px] font-black uppercase tracking-widest text-zinc-900 dark:text-white bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md">{log.tipo}</span>
+                              <span className="text-[9px] font-bold text-zinc-400">{new Date(log.data + ' ' + log.hora).toLocaleDateString('pt-BR')} {log.hora}</span>
+                            </div>
+                            <p className="text-[10px] font-medium text-zinc-600 dark:text-zinc-400 leading-relaxed italic border-l-2 border-zinc-100 dark:border-zinc-800 pl-3 mt-1">
+                              "{log.descricao}"
+                            </p>
+                            <button 
+                              onClick={() => {
+                                const newList = selectedClient.log_comunicacao.filter((_: any, i: number) => i !== idx);
+                                handleUpdateField('log_comunicacao', newList);
+                              }}
+                              className="self-end text-[8px] font-black uppercase tracking-widest text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity mt-1"
+                            >
+                              Excluir Log
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <button 
+                    onClick={() => setIsLogModalOpen(true)}
+                    className="w-full h-11 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-zinc-500/10 active:scale-95 transition-all"
+                  >
+                    <Plus size={14} /> Registrar Interação
+                  </button>
+                </div>
+              </Accordion>
+
+              {/* SEÇÃO 3 — BANCO DE ASSETS */}
+              <Accordion 
+                title="Banco de Assets" 
+                icon={Folder} 
+                count={(selectedClient.assets || []).length}
+                isOpen={activeAccordion === 'Assets'} 
+                onToggle={() => setActiveAccordion(activeAccordion === 'Assets' ? '' : 'Assets')}
+              >
+                <div className="space-y-4 pt-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    {(selectedClient.assets || []).map((asset: any, idx: number) => {
+                      const isImg = asset.tipo === 'Foto' || asset.tipo === 'Logo' || asset.tipo === 'Paleta';
+                      return (
+                        <div key={idx} className="group relative aspect-square rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 overflow-hidden flex flex-col items-center justify-center p-3 text-center transition-all hover:shadow-xl hover:-translate-y-1">
+                          {isImg ? (
+                            <img src={asset.dados} alt={asset.nome} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" />
+                          ) : (
+                            <File size={32} className="text-zinc-300 mb-2 group-hover:scale-110 transition-transform" />
+                          )}
+                          
+                          <div className="relative z-10 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center gap-2">
+                             <span className="text-[9px] font-black uppercase tracking-tighter text-zinc-900 dark:text-white line-clamp-1 px-2">{asset.nome}</span>
+                             <div className="flex gap-1">
+                               <a 
+                                 href={asset.dados} 
+                                 download={asset.nome}
+                                 className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-colors"
+                               >
+                                 <Download size={14} />
+                               </a>
+                               <button 
+                                 onClick={() => {
+                                   const newList = selectedClient.assets.filter((_: any, i: number) => i !== idx);
+                                   handleUpdateField('assets', newList);
+                                 }}
+                                 className="w-8 h-8 rounded-lg bg-rose-600 text-white flex items-center justify-center hover:bg-rose-700 transition-colors"
+                               >
+                                 <Trash2 size={14} />
+                               </button>
+                             </div>
+                          </div>
+                          
+                          {!isImg && <span className="absolute bottom-3 text-[8px] font-black uppercase tracking-widest text-zinc-400">{asset.nome}</span>}
+                          <Badge color="blue" className="absolute top-2 left-2 !text-[7px] !px-1.5 !py-0 !rounded-md shadow-sm">{asset.tipo}</Badge>
+                        </div>
+                      );
+                    })}
+
+                    <label className="aspect-square border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-zinc-400 hover:text-blue-500 hover:border-blue-500/30 transition-all cursor-pointer bg-zinc-50/50 dark:bg-zinc-900/20 group">
+                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                        <Plus size={18} />
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-widest px-4 text-center">Upload Asset</span>
+                      <input 
+                        type="file" 
+                        className="hidden" 
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          if (file.size > 1 * 1024 * 1024) {
+                            alert('Arquivo muito grande. Máximo permitido: 1MB');
+                            return;
+                          }
+                          const base64 = await toBase64(file);
+                          const tipo = file.type.startsWith('image/') ? 'Foto' : 'Documento';
+                          const newList = [...(selectedClient.assets || []), { nome: file.name, tipo, dados: base64 }];
+                          handleUpdateField('assets', newList);
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+              </Accordion>
+
+              {/* SEÇÃO 4 — IDENTIDADE VISUAL */}
+              <Accordion 
+                title="Identidade Visual" 
+                icon={Palette} 
+                isOpen={activeAccordion === 'Identidade'} 
+                onToggle={() => setActiveAccordion(activeAccordion === 'Identidade' ? '' : 'Identidade')}
+              >
+                <div className="space-y-6 pt-4">
+                  {/* Paleta */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">PALETA ESTRATÉGICA (MAX 6)</label>
+                    <div className="grid grid-cols-6 gap-2">
+                      {Array.from({ length: 6 }).map((_, idx) => {
+                        const color = (selectedClient.paleta_cores || [])[idx] || '';
+                        return (
+                          <div key={idx} className="relative group">
+                            <div 
+                              className={`aspect-square rounded-xl border-2 ${color ? 'border-zinc-100 dark:border-zinc-800' : 'border-dashed border-zinc-200 dark:border-zinc-800'} overflow-hidden relative shadow-sm`}
+                              style={{ backgroundColor: color }}
+                            >
+                              <input 
+                                type="color" 
+                                value={color || '#ffffff'}
+                                onChange={(e) => {
+                                  const newList = [...(selectedClient.paleta_cores || [])];
+                                  newList[idx] = e.target.value.toUpperCase();
+                                  handleUpdateField('paleta_cores', newList);
+                                }}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                              />
+                            </div>
+                            <input 
+                              type="text" 
+                              value={color.replace('#', '')}
+                              placeholder="HEX"
+                              onChange={(e) => {
+                                const val = e.target.value.toUpperCase().replace('#', '');
+                                if (val.length <= 6) {
+                                  const newList = [...(selectedClient.paleta_cores || [])];
+                                  newList[idx] = '#' + val;
+                                  handleUpdateField('paleta_cores', newList);
+                                }
+                              }}
+                              className="w-full mt-1 bg-transparent border-none text-center text-[8px] font-black uppercase tracking-tighter text-zinc-400 outline-none"
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Fontes */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">FONTES USADAS (MAX 3)</label>
+                    <div className="space-y-2">
+                      {Array.from({ length: 3 }).map((_, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-black text-zinc-400 border border-zinc-100 dark:border-zinc-700">
+                            {idx + 1}
+                          </div>
+                          <input 
+                            type="text" 
+                            placeholder="NOME DA FONTE (EX: INTER)"
+                            value={(selectedClient.fontes || [])[idx] || ''}
+                            onChange={(e) => {
+                              const newList = [...(selectedClient.fontes || [])];
+                              newList[idx] = e.target.value;
+                              handleUpdateField('fontes', newList);
+                            }}
+                            className="flex-1 h-9 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-lg px-3 text-[10px] font-bold uppercase tracking-widest text-zinc-900 dark:text-white outline-none focus:border-blue-500/30 transition-all"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Tom de Voz */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">TOM DE VOZ / PERSONALIDADE</label>
+                    <textarea 
+                      rows={3}
+                      value={selectedClient.tom_de_voz || ''}
+                      onChange={(e) => handleUpdateField('tom_de_voz', e.target.value)}
+                      placeholder="DESCREVA A VOZ DA MARCA: EX: FORMAL, AUTORITÁRIA, DIVERTIDA..."
+                      className="w-full p-4 bg-zinc-50 dark:bg-zinc-800/50 border-2 border-zinc-100 dark:border-zinc-800 rounded-2xl text-[10px] font-medium text-zinc-900 dark:text-zinc-100 outline-none focus:border-blue-500/30 transition-all resize-none"
+                    />
+                  </div>
+                </div>
+              </Accordion>
+
+              {/* SEÇÃO 5 — 🎯 METAS E OKRS */}
+              <Accordion 
+                title="Metas e OKRs" 
+                icon={Target} 
+                count={(selectedClient.metas || []).length}
+                isOpen={activeAccordion === 'Metas'} 
+                onToggle={() => setActiveAccordion(activeAccordion === 'Metas' ? '' : 'Metas')}
+              >
+                <div className="space-y-6 pt-4">
+                  <div className="space-y-4">
+                    {(selectedClient.metas || []).map((meta: any, idx: number) => {
+                      const progress = Math.min(100, Math.max(0, (meta.valor_atual / (meta.valor_meta || 1)) * 100));
+                      return (
+                        <div key={idx} className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-100 dark:border-zinc-800 group transition-all hover:border-blue-500/30">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <h4 className="text-[11px] font-black uppercase tracking-tight text-zinc-900 dark:text-white">{meta.titulo}</h4>
+                                <Badge color={meta.status === 'No prazo' ? 'blue' : meta.status === 'Concluída' ? 'green' : 'red'} className="!text-[7px] !px-1.5 !py-0 !rounded-md">
+                                  {meta.status}
+                                </Badge>
+                              </div>
+                              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">{meta.metrica} • {meta.periodo}</p>
+                            </div>
+                            <button 
+                              onClick={() => {
+                                const newList = selectedClient.metas.filter((_: any, i: number) => i !== idx);
+                                handleUpdateField('metas', newList);
+                              }}
+                              className="text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-end">
+                              <span className="text-[10px] font-black text-blue-500">{progress.toFixed(0)}%</span>
+                              <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter">
+                                {meta.valor_atual} / {meta.valor_meta}
+                              </span>
+                            </div>
+                            <div className="h-2 w-full bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
+                              <div 
+                                className="h-full bg-blue-500 transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(59,130,246,0.2)]" 
+                                style={{ width: `${progress}%` }}
+                              />
+                            </div>
+                            <div className="flex items-center gap-2 pt-2">
+                               <button 
+                                 onClick={() => {
+                                   const newList = [...selectedClient.metas];
+                                   newList[idx].valor_atual = Math.max(0, newList[idx].valor_atual - 1);
+                                   handleUpdateField('metas', newList);
+                                 }}
+                                 className="w-7 h-7 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-500 hover:text-blue-500 transition-colors shadow-sm"
+                               >
+                                 <Plus size={10} className="rotate-45" />
+                               </button>
+                               <button 
+                                 onClick={() => {
+                                   const newList = [...selectedClient.metas];
+                                   newList[idx].valor_atual = newList[idx].valor_atual + 1;
+                                   if (newList[idx].valor_atual >= newList[idx].valor_meta) {
+                                       newList[idx].status = 'Concluída';
+                                   }
+                                   handleUpdateField('metas', newList);
+                                 }}
+                                 className="w-7 h-7 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-500 hover:text-blue-500 transition-colors shadow-sm"
+                               >
+                                 <Plus size={10} />
+                               </button>
+                               <input 
+                                 type="number"
+                                 value={meta.valor_atual}
+                                 onChange={(e) => {
+                                   const newList = [...selectedClient.metas];
+                                   newList[idx].valor_atual = Number(e.target.value);
+                                   handleUpdateField('metas', newList);
+                                 }}
+                                 className="flex-1 h-7 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-2 text-[9px] font-black outline-none text-center"
+                               />
+                               <select 
+                                 value={meta.status}
+                                 onChange={(e) => {
+                                   const newList = [...selectedClient.metas];
+                                   newList[idx].status = e.target.value;
+                                   handleUpdateField('metas', newList);
+                                 }}
+                                 className="h-7 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-1 text-[8px] font-black uppercase outline-none"
+                               >
+                                 <option value="No prazo">NO PRAZO</option>
+                                 <option value="Em risco">EM RISCO</option>
+                                 <option value="Concluída">CONCLUÍDA</option>
+                               </select>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {isAddingMeta ? (
+                    <div className="p-6 rounded-[28px] bg-white dark:bg-zinc-900 border-2 border-blue-500/20 space-y-5 shadow-2xl animate-in slide-in-from-top-2 duration-300">
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Meta / Objetivo</label>
+                        <input 
+                          type="text" 
+                          placeholder="EX: FATURAMENTO MENSAL"
+                          value={newMetaEntry.titulo}
+                          onChange={e => setNewMetaEntry({ ...newMetaEntry, titulo: e.target.value })}
+                          className="w-full h-11 bg-zinc-50 dark:bg-zinc-800 border-none rounded-xl px-4 text-[10px] font-bold uppercase focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Métrica (EX: R$, Unid)</label>
+                          <input 
+                            type="text" 
+                            value={newMetaEntry.metrica}
+                            placeholder="EX: REAIS"
+                            onChange={e => setNewMetaEntry({ ...newMetaEntry, metrica: e.target.value })}
+                            className="w-full h-11 bg-zinc-50 dark:bg-zinc-800 border-none rounded-xl px-4 text-[10px] font-bold uppercase"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Periodicidade</label>
+                          <select 
+                            value={newMetaEntry.periodo}
+                            onChange={e => setNewMetaEntry({ ...newMetaEntry, periodo: e.target.value as any })}
+                            className="w-full h-11 bg-zinc-50 dark:bg-zinc-800 border-none rounded-xl px-4 text-[10px] font-bold uppercase"
+                          >
+                            <option value="Mensal">Mensal</option>
+                            <option value="Trimestral">Trimestral</option>
+                            <option value="Anual">Anual</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Valor Meta</label>
+                          <input 
+                            type="number" 
+                            value={newMetaEntry.valor_meta}
+                            onChange={e => setNewMetaEntry({ ...newMetaEntry, valor_meta: Number(e.target.value) })}
+                            className="w-full h-11 bg-zinc-50 dark:bg-zinc-800 border-none rounded-xl px-4 text-[10px] font-bold"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Valor Atual</label>
+                          <input 
+                            type="number" 
+                            value={newMetaEntry.valor_atual}
+                            onChange={e => setNewMetaEntry({ ...newMetaEntry, valor_atual: Number(e.target.value) })}
+                            className="w-full h-11 bg-zinc-50 dark:bg-zinc-800 border-none rounded-xl px-4 text-[10px] font-bold"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex gap-2 pt-2">
+                        <Button onClick={() => setIsAddingMeta(false)} variant="ghost" className="flex-1 !h-12 !rounded-xl text-[10px] uppercase font-black">Cancelar</Button>
+                        <Button 
+                          onClick={() => {
+                            if (!newMetaEntry.titulo || !newMetaEntry.valor_meta) return;
+                            const newList = [...(selectedClient.metas || []), { ...newMetaEntry, id: Date.now().toString() }];
+                            handleUpdateField('metas', newList);
+                            setNewMetaEntry({ id: '', titulo: '', metrica: '', valor_atual: 0, valor_meta: 0, periodo: 'Mensal', status: 'No prazo' });
+                            setIsAddingMeta(false);
+                          }}
+                          className="flex-[2] !h-12 !rounded-xl !bg-blue-600 !text-white text-[10px] uppercase font-black shadow-lg shadow-blue-500/20"
+                        >
+                          Salvar Objetivo
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={() => setIsAddingMeta(true)}
+                      className="w-full h-12 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl flex items-center justify-center gap-2 text-zinc-400 hover:text-blue-500 hover:border-blue-500/30 transition-all text-[10px] font-black uppercase tracking-widest group bg-zinc-50/30 dark:bg-zinc-900/10"
+                    >
+                      <Plus size={16} className="group-hover:rotate-90 transition-transform" /> Adicionar Meta Estratégica
+                    </button>
+                  )}
+                </div>
+              </Accordion>
+
+              {/* ANTIGO QUADRO DE ESTRATÉGIA — INTEGRADO AO ACORDEÃO */}
+              <Accordion 
+                title="Estratégia & Cor UI" 
+                icon={Target} 
+                isOpen={activeAccordion === 'EstrategiaUI'} 
+                onToggle={() => setActiveAccordion(activeAccordion === 'EstrategiaUI' ? '' : 'EstrategiaUI')}
+              >
+                <div className="space-y-6 pt-4">
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">OBJETIVO PRINCIPAL</label>
                     <div className="flex items-start gap-2 group w-full bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 py-3 focus-within:border-blue-500/50 transition-all">
@@ -311,14 +855,14 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                          value={selectedClient.Objetivo || ''} 
                          onChange={(e) => handleUpdateField('Objetivo', e.target.value)}
                          rows={3}
-                         className="flex-1 bg-transparent border-none outline-none text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 resize-none min-w-0"
-                         placeholder="EX: EXPANSÃO DE MARCA E CONVERSÃO EM HIGH-TICKET"
+                         className="flex-1 bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 resize-none min-w-0"
+                         placeholder="EX: EXPANSÃO DE MARCA"
                        />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">COR IDENTITÁRIA</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">COR IDENTITÁRIA (APP UI)</label>
                     <div 
                       className="flex items-center gap-4 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-2xl px-5 py-4 cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-600 transition-all group"
                       onClick={() => onOpenColorPicker && onOpenColorPicker(selectedClient.id, selectedClient['Cor (HEX)'] || '#3B82F6')}
@@ -328,17 +872,15 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                         style={{ backgroundColor: selectedClient['Cor (HEX)'] || '#3B82F6' }}
                       ></div>
                       <div className="flex-1">
-                        <span className="text-sm font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-widest">{selectedClient['Cor (HEX)'] || '#3B82F6'}</span>
-                        <div className="flex items-center gap-2 mt-0.5 opacity-40">
-                          <Palette size={10} />
-                          <p className="text-[9px] font-bold uppercase tracking-widest">Brand UI Color</p>
-                        </div>
+                        <span className="text-sm font-black text-zinc-900 dark:text-zinc-100">{selectedClient['Cor (HEX)'] || '#3B82F6'}</span>
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 mt-0.5">Brand UI Color</p>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              </Accordion>
 
+              <div className="h-4"></div>
             </div>
 
             {/* Drawer Footer */}
@@ -361,6 +903,94 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
               </Button>
             </div>
             
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE REGISTRO DE LOG */}
+      {isLogModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[32px] shadow-2xl overflow-hidden animate-scale-up">
+            <div className="p-8 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-800/30">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center shadow-lg">
+                  <Handshake size={20} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-zinc-900 dark:text-white">Registrar Interação</h3>
+                  <p className="text-[10px] font-bold text-zinc-400 mt-0.5">Histórico de comunicação com o cliente</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsLogModalOpen(false)}
+                className="w-10 h-10 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center text-zinc-400 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-8 space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">TIPO DE CONTATO</label>
+                  <InputSelect 
+                    value={newLogEntry.tipo}
+                    onChange={val => setNewLogEntry({ ...newLogEntry, tipo: val })}
+                    options={['WhatsApp', 'Reunião', 'Email', 'Ligação', 'Anotação']}
+                    className="!h-12"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">DATA / HORA</label>
+                  <div className="flex gap-2">
+                    <input 
+                      type="date" 
+                      value={newLogEntry.data}
+                      onChange={e => setNewLogEntry({ ...newLogEntry, data: e.target.value })}
+                      className="flex-1 h-12 bg-zinc-50 dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-white outline-none focus:border-blue-500/30"
+                    />
+                    <input 
+                      type="time" 
+                      value={newLogEntry.hora}
+                      onChange={e => setNewLogEntry({ ...newLogEntry, hora: e.target.value })}
+                      className="w-24 h-12 bg-zinc-50 dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-white outline-none focus:border-blue-500/30"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">DESCRIÇÃO DA INTERAÇÃO</label>
+                <textarea 
+                  rows={4}
+                  value={newLogEntry.descricao}
+                  onChange={e => setNewLogEntry({ ...newLogEntry, descricao: e.target.value })}
+                  placeholder="O QUE FOI CONVERSADO OU DECIDIDO?"
+                  className="w-full p-5 bg-zinc-50 dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-[24px] text-[10px] font-medium text-zinc-900 dark:text-zinc-100 outline-none focus:border-blue-500/30 transition-all resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="p-8 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/30 flex gap-4">
+              <Button onClick={() => setIsLogModalOpen(false)} variant="ghost" className="flex-1 !h-14 !rounded-2xl">Cancelar</Button>
+              <Button 
+                onClick={() => {
+                  if (!newLogEntry.descricao) return;
+                  const newList = [...(selectedClient.log_comunicacao || []), newLogEntry];
+                  handleUpdateField('log_comunicacao', newList);
+                  setNewLogEntry({ 
+                    tipo: 'WhatsApp', 
+                    data: new Date().toISOString().split('T')[0], 
+                    hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }), 
+                    descricao: '' 
+                  });
+                  setIsLogModalOpen(false);
+                }}
+                className="flex-[2] !h-14 !rounded-2xl !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 shadow-xl shadow-zinc-500/10"
+              >
+                REGISTRAR NO HISTÓRICO
+              </Button>
+            </div>
           </div>
         </div>
       )}

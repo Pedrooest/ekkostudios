@@ -1,15 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
     TrendingUp, Users, DollarSign, Target, Plus, Zap, Trash2,
-    Calculator, Info, LayoutDashboard, Settings
+    Calculator, Info, LayoutDashboard, Settings, BarChart3, Clock
 } from 'lucide-react';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-    ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell
+    ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, BarChart, Bar
 } from 'recharts';
 import { Card, StatCard, Button, InputSelect, Badge } from '../Components';
 import { TableView } from '../components/TableView';
-import { Colaborador, Cliente } from '../types';
+import { Colaborador, Cliente, Tarefa, LancamentoFinancas } from '../types';
 
 interface VhManagementViewProps {
     clients: Cliente[];
@@ -18,25 +18,16 @@ interface VhManagementViewProps {
     onUpdate: (id: string, table: string, field: string, value: any, silent?: boolean) => void;
     selection: string[];
     onSelect: (id: string) => void;
+    tasks: Tarefa[];
+    financas: LancamentoFinancas[];
 }
 
 export function VhManagementView({
     clients, collaborators, setCollaborators, onUpdate,
-    selection, onSelect
+    selection, onSelect, tasks, financas
 }: VhManagementViewProps) {
     const [subTab, setSubTab] = useState<'dashboard' | 'clients' | 'config'>('dashboard');
     const [simulator, setSimulator] = useState({ fee: 0, hours: 0 });
-
-    // Listener para Tecla ESC
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
-                setSimulator({ fee: 0, hours: 0 }); // Limpa simulador ao sair
-            }
-        };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, []);
 
     const formatBRL = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
@@ -45,7 +36,8 @@ export function VhManagementView({
     };
 
     const dashboardData = useMemo(() => {
-        const totalFees = clients.filter(c => c.Status === 'Ativo').reduce((acc, cur) => acc + (Number(cur.Fee) || 0), 0);
+        const activeClients = clients.filter(c => c.Status === 'Ativo');
+        const totalFees = activeClients.reduce((acc, cur) => acc + (Number(cur.Fee) || 0), 0);
         const totalCosts = collaborators.reduce((acc, cur) => acc + (Number(cur.Remuneracao) || 0), 0);
         const profit = totalFees - totalCosts;
         const margin = totalFees > 0 ? (profit / totalFees) * 100 : 0;
@@ -56,13 +48,42 @@ export function VhManagementView({
             remuneracao: Number(c.Remuneracao) || 0
         }));
 
-        const profitabilityData = clients.filter(c => c.Status === 'Ativo').map(c => ({
+        const profitabilityData = activeClients.map(c => ({
             name: c.Nome,
             fee: Number(c.Fee) || 0
         })).sort((a, b) => b.fee - a.fee).slice(0, 5);
 
         return { totalFees, totalCosts, profit, margin, collabData, profitabilityData };
     }, [clients, collaborators]);
+
+    // Cálculo real de rentabilidade por cliente
+    const clientMetrics = useMemo(() => {
+        return clients.filter(c => c.Status === 'Ativo').map(client => {
+            const clientTasks = tasks.filter(t => t.Cliente_ID === client.id);
+            
+            // Somar custo baseado nas horas gastas e VH do responsável
+            const totalCost = clientTasks.reduce((acc, task) => {
+                const responsible = collaborators.find(col => col.Nome === task.Responsável);
+                const vh = responsible?.calculatedVh || 0;
+                return acc + ((Number(task.Tempo_Gasto_H) || 0) * vh);
+            }, 0);
+
+            const totalHours = clientTasks.reduce((acc, task) => acc + (Number(task.Tempo_Gasto_H) || 0), 0);
+            const fee = Number(client.Fee) || 0;
+            const profit = fee - totalCost;
+            const margin = fee > 0 ? (profit / fee) * 100 : 0;
+
+            return {
+                id: client.id,
+                name: client.Nome,
+                fee,
+                cost: totalCost,
+                profit,
+                margin,
+                hours: totalHours
+            };
+        }).sort((a, b) => b.margin - a.margin);
+    }, [clients, tasks, collaborators]);
 
     const simResult = useMemo(() => {
         const avgVh = collaborators.length > 0
@@ -147,16 +168,23 @@ export function VhManagementView({
                                 </Card>
 
                                 {/* Profitability Chart */}
-                                <Card title="Ranking de Rentabilidade (Fee)">
+                                <Card title="Margem por Cliente (%)">
                                     <div className="h-[250px] w-full pt-4">
                                         <ResponsiveContainer width="100%" height="100%">
-                                            <AreaChart data={dashboardData.profitabilityData} layout="vertical">
-                                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(0,0,0,0.05)" />
-                                                <XAxis type="number" hide />
-                                                <YAxis dataKey="name" type="category" stroke="#a1a1aa" fontSize={10} width={80} axisLine={false} tickLine={false} />
-                                                <Tooltip contentStyle={{ backgroundColor: '#fff', border: '1px solid #e4e4e7', borderRadius: '8px', fontSize: '10px' }} />
-                                                <Area type="monotone" dataKey="fee" stroke="#10b981" strokeWidth={2} fillOpacity={0.1} fill="#10b981" name="Fee (R$)" />
-                                            </AreaChart>
+                                            <BarChart data={clientMetrics.slice(0, 8)}>
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.01)" />
+                                                <XAxis dataKey="name" stroke="#a1a1aa" fontSize={10} axisLine={false} tickLine={false} />
+                                                <YAxis stroke="#a1a1aa" fontSize={10} axisLine={false} tickLine={false} tickFormatter={(val) => `${val}%`} />
+                                                <Tooltip 
+                                                    cursor={{ fill: 'rgba(0,0,0,0.02)' }}
+                                                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e4e4e7', borderRadius: '8px', fontSize: '10px' }} 
+                                                />
+                                                <Bar dataKey="margin" name="Margem" radius={[4, 4, 0, 0]}>
+                                                    {clientMetrics.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={entry.margin > 50 ? '#10b981' : entry.margin > 20 ? '#3b82f6' : '#f43f5e'} />
+                                                    ))}
+                                                </Bar>
+                                            </BarChart>
                                         </ResponsiveContainer>
                                     </div>
                                 </Card>
@@ -169,26 +197,55 @@ export function VhManagementView({
                             <Card className="!p-0 overflow-hidden">
                                 <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
                                     <div>
-                                        <h3 className="text-sm font-bold uppercase text-zinc-900 dark:text-white tracking-tight">Rentabilidade por Contrato</h3>
-                                        <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-widest mt-0.5">Visão detalhada de faturamento.</p>
+                                        <h3 className="text-sm font-bold uppercase text-zinc-900 dark:text-white tracking-tight">Rentabilidade Real por Contrato</h3>
+                                        <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-widest mt-0.5">Calculado com base nas horas registradas em tarefas.</p>
                                     </div>
-                                    <Badge color="slate" className="h-9 px-4 uppercase text-[10px]">
-                                        Fee Médio: {formatBRL(dashboardData.totalFees / (clients.filter(c => c.Status === 'Ativo').length || 1))}
-                                    </Badge>
+                                    <div className="flex items-center gap-4">
+                                        <div className="text-right">
+                                            <p className="text-[9px] font-black uppercase text-zinc-400">Total Alocado</p>
+                                            <p className="text-xs font-bold text-zinc-900 dark:text-white">{clientMetrics.reduce((acc, c) => acc + c.hours, 0).toFixed(1)}h</p>
+                                        </div>
+                                        <Badge color="blue" className="h-9 px-4 uppercase text-[10px] flex items-center justify-center">
+                                            Melhor Margem: {Math.max(...clientMetrics.map(c => c.margin)).toFixed(1)}%
+                                        </Badge>
+                                    </div>
                                 </div>
 
-                                <TableView
-                                    tab="CLIENTES"
-                                    data={clients.filter(c => c.Status === 'Ativo')}
-                                    onUpdate={onUpdate}
-                                    onDelete={() => { }}
-                                    onArchive={() => { }}
-                                    onAdd={() => { }}
-                                    selection={selection}
-                                    onSelect={onSelect}
-                                    onClearSelection={() => { }}
-                                    hideHeader={true}
-                                />
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left">
+                                        <thead>
+                                            <tr className="bg-zinc-50 dark:bg-zinc-800/30 uppercase text-[10px] font-bold text-zinc-500 tracking-wider">
+                                                <th className="px-6 py-4">Cliente</th>
+                                                <th className="px-6 py-4">Fee Mensal</th>
+                                                <th className="px-6 py-4">Custo Ops (H)</th>
+                                                <th className="px-6 py-4">Lucro Bruto</th>
+                                                <th className="px-6 py-4 text-right">Margem</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                                            {clientMetrics.map(metric => (
+                                                <tr key={metric.id} className="group hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-all font-mono text-xs">
+                                                    <td className="px-6 py-4 font-sans font-bold text-zinc-900 dark:text-white">{metric.name}</td>
+                                                    <td className="px-6 py-4 text-zinc-600 dark:text-zinc-400">{formatBRL(metric.fee)}</td>
+                                                    <td className="px-6 py-4 text-zinc-600 dark:text-zinc-400">
+                                                        <div className="flex flex-col">
+                                                            <span>{formatBRL(metric.cost)}</span>
+                                                            <span className="text-[9px] font-black uppercase text-zinc-400 flex items-center gap-1"><Clock size={10} /> {metric.hours.toFixed(1)}h</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className={`px-6 py-4 font-bold ${metric.profit > 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                                        {formatBRL(metric.profit)}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        <Badge color={metric.margin > 50 ? 'emerald' : metric.margin > 20 ? 'blue' : 'red'}>
+                                                            {metric.margin.toFixed(1)}%
+                                                        </Badge>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </Card>
 
                             {/* SIMULATOR PANEL */}
@@ -290,7 +347,7 @@ export function VhManagementView({
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 border-b border-zinc-100 dark:border-zinc-800/50 text-right">
-                                                    <Badge color="slate" className="font-mono font-bold text-[11px] h-7 px-3">
+                                                    <Badge color="blue" className="font-mono font-bold text-[11px] h-7 px-3">
                                                         {formatBRL(c.calculatedVh || 0)}/h
                                                     </Badge>
                                                 </td>
@@ -307,7 +364,7 @@ export function VhManagementView({
                                     </tbody>
                                 </table>
                             </div>
-
+ 
                             <div className="p-6 bg-zinc-50/50 dark:bg-zinc-800/10 border-t border-zinc-100 dark:border-zinc-800 text-center">
                                 <span className="inline-flex items-center gap-2 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
                                     <Info size={14} className="shrink-0" /> O Valor Hora (VH) é calculado dividindo a remuneração pelas horas produtivas mensais.

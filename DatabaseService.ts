@@ -2,7 +2,7 @@ import { supabase } from './supabase';
 import {
     Cliente, ItemCobo, ItemMatrizEstrategica, ItemRdc, ItemPlanejamento,
     LancamentoFinancas, Tarefa, Colaborador, VhConfig, DadosModelagemSistematica,
-    Workspace, MembroWorkspace, Convite
+    Workspace, MembroWorkspace, Convite, Lembrete
 } from './types';
 
 // Mapeamento de nomes de colunas do Banco para nomes em Português nas Interfaces
@@ -59,6 +59,19 @@ const mapToFrontend = (data: any, table: string) => {
         mapped.perfis = data.profiles; // Profiles already match
         delete mapped.profiles;
     }
+    if (table === 'clients') {
+        mapped.links = mapped.links || [];
+        mapped.log_comunicacao = mapped.log_comunicacao || [];
+        mapped.assets = mapped.assets || [];
+        mapped.paleta_cores = mapped.paleta_cores || [];
+        mapped.fontes = mapped.fontes || [];
+        mapped.tom_de_voz = mapped.tom_de_voz || '';
+        mapped.metas = mapped.metas || [];
+    }
+
+    if (table === 'reunioes') {
+        mapped.proximos_passos = mapped.proximos_passos || [];
+    }
 
     return mapped;
 };
@@ -97,6 +110,20 @@ const mapToDB = (data: any, table: string) => {
     if (table === 'whiteboards') {
         mapped.elements = mapped.elements || [];
         mapped.connections = mapped.connections || [];
+    }
+
+    if (table === 'clients') {
+        mapped.links = mapped.links || [];
+        mapped.log_comunicacao = mapped.log_comunicacao || [];
+        mapped.assets = mapped.assets || [];
+        mapped.paleta_cores = mapped.paleta_cores || [];
+        mapped.fontes = mapped.fontes || [];
+        mapped.tom_de_voz = mapped.tom_de_voz || '';
+        mapped.metas = mapped.metas || [];
+    }
+
+    if (table === 'reunioes') {
+        mapped.proximos_passos = mapped.proximos_passos || [];
     }
 
     return mapped;
@@ -297,7 +324,7 @@ export const DatabaseService = {
     },
 
     async fetchAllWorkspaceData(workspaceId: string) {
-        const [clients, cobo, matriz, rdc, planning, financas, tasks, collaborators, checklists, retiradas] = await Promise.all([
+        const [clients, cobo, matriz, rdc, planning, financas, tasks, collaborators, checklists, retiradas, reunioes, lembretes] = await Promise.all([
             this.fetchData('clients', workspaceId),
             this.fetchData('cobo', workspaceId),
             this.fetchData('matriz_estrategica', workspaceId),
@@ -307,10 +334,12 @@ export const DatabaseService = {
             this.fetchData('tasks', workspaceId),
             this.fetchData('collaborators', workspaceId),
             this.fetchData('checklists', workspaceId),
-            this.fetchData('retiradas_socios', workspaceId)
+            this.fetchData('retiradas_socios', workspaceId),
+            this.fetchData('reunioes', workspaceId),
+            this.fetchData('lembretes', workspaceId)
         ]);
         
-        return { clients, cobo, matriz, rdc, planning, financas, tasks, collaborators, checklists, retiradas };
+        return { clients, cobo, matriz, rdc, planning, financas, tasks, collaborators, checklists, retiradas, reunioes, lembretes };
     },
     
     // RETIRADAS SOCIOS
