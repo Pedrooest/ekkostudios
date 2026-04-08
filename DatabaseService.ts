@@ -33,6 +33,29 @@ const MAPA_COLUNAS: Record<string, Record<string, string>> = {
     }
 };
 
+const VALID_FIELDS: Record<string, string[]> = {
+    clients: ['id', 'workspace_id', 'Nome', 'Nicho', 'Responsável', 'WhatsApp', 'Instagram', 'Objetivo', 'Observações', 'Cor (HEX)', 'Status', 'updated_at', 'links', 'log_comunicacao', 'assets', 'paleta_cores', 'fontes', 'tom_de_voz', 'metas'],
+    tasks: ['id', 'workspace_id', 'Task_ID', 'Cliente_ID', 'Título', 'Área', 'Status', 'Prioridade', 'Responsável', 'Data_Entrega', 'Checklist', 'Anexos', 'Comentarios', 'Atividades', 'Criado_Em', 'updated_at', 'Tempo_Gasto_H'],
+    financas: ['id', 'workspace_id', 'Lançamento', 'Data', 'Cliente_ID', 'Tipo', 'Categoria', 'Descrição', 'Valor', 'Recorrência', 'Data_Início', 'Data_Fim', 'Dia_Pagamento', 'Observações', 'Status', 'updated_at', '_origem_id', '_auto_gerado'],
+    rdc: ['id', 'workspace_id', 'Cliente_ID', 'Ideia de Conteúdo', 'Rede_Social', 'Tipo de conteúdo', 'Resolução (1–5)', 'Demanda (1–5)', 'Competição (1–5)', 'Score (R×D×C)', 'Decisão', 'updated_at'],
+    cobo: ['id', 'workspace_id', 'Cliente_ID', 'Canal', 'Frequência', 'Público', 'Voz', 'Zona', 'Intenção', 'Formato', 'updated_at'],
+    matriz_estrategica: ['id', 'workspace_id', 'Cliente_ID', 'Rede_Social', 'Função', 'Quem fala', 'Papel estratégico', 'Tipo de conteúdo', 'Resultado esperado', 'updated_at'],
+    planejamento: ['id', 'workspace_id', 'Cliente_ID', 'Data', 'Hora', 'Conteúdo', 'Função', 'Rede_Social', 'Tipo de conteúdo', 'Intenção', 'Canal', 'Formato', 'Zona', 'Quem fala', 'Status do conteúdo', 'updated_at'],
+    collaborators: ['id', 'workspace_id', 'Nome', 'Cargo', 'valorHora', 'horasMensais', 'updated_at'],
+    checklists: ['id', 'workspace_id', 'titulo', 'data', 'cliente_id', 'local', 'observacoes', 'status', 'itens_levar', 'itens_trazer', 'itens_gravar', 'updated_at'],
+    reunioes: ['id', 'workspace_id', 'cliente_id', 'titulo', 'data', 'hora', 'formato', 'participantes', 'pauta', 'decisoes', 'proximos_passos', 'status', 'updated_at'],
+    lembretes: ['id', 'workspace_id', 'titulo', 'data', 'hora', 'tipo', 'cliente_id', 'descricao', 'concluido', 'auto_gerado', 'updated_at'],
+    retiradas_socios: ['id', 'workspace_id', 'socio', 'valor', 'data', 'mes_referencia', 'observacao', 'updated_at'],
+};
+
+export const sanitizeForTable = (tableName: string, item: any) => {
+    const validFields = VALID_FIELDS[tableName];
+    if (!validFields) return item;
+    return Object.fromEntries(
+        Object.entries(item).filter(([key]) => validFields.includes(key))
+    );
+};
+
 const mapToFrontend = (data: any, table: string) => {
     if (!data) return data;
     if (Array.isArray(data)) return data.map(item => mapToFrontend(item, table));
@@ -296,7 +319,8 @@ export const DatabaseService = {
                 payload.created_by = user.id;
             }
 
-            const { data, error } = await supabase.from(table).upsert(payload, { onConflict: 'id' }).select();
+            const sanitized = sanitizeForTable(table, payload);
+            const { data, error } = await supabase.from(table).upsert(sanitized, { onConflict: 'id' }).select();
             if (error) {
                 console.error(`[DatabaseService.syncItem] SQL_ERROR | Table: ${table} | ID: ${item.id}`, error);
                 return error;

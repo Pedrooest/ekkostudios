@@ -329,13 +329,6 @@ export default function App() {
   const loadWorkspaceData = useCallback(async (wsId: string) => {
     const data = await DatabaseService.fetchAllWorkspaceData(wsId);
     if (data) {
-      setClients(prev => mergeItems(prev, data.clients as Cliente[]));
-      setCobo(prev => mergeItems(prev, data.cobo as ItemCobo[]));
-      setMatriz(prev => mergeItems(prev, data.matriz as ItemMatrizEstrategica[]));
-      setRdc(prev => mergeItems(prev, data.rdc as ItemRdc[]));
-      setPlanejamento(prev => mergeItems(prev, data.planning as ItemPlanejamento[]));
-      setFinancas(prev => mergeItems(prev, data.financas as LancamentoFinancas[]));
-      
       const safeParseArray = (val: any) => {
         if (Array.isArray(val)) return val;
         if (typeof val === 'string') {
@@ -347,23 +340,39 @@ export default function App() {
         return [];
       };
 
-      const sanitizedTasks = (data.tasks as Tarefa[]).map(t => ({
+      const parsedClients = (data.clients as Cliente[]).map(c => ({
+        ...c,
+        links: safeParseArray(c.links),
+        log_comunicacao: safeParseArray(c.log_comunicacao),
+        assets: safeParseArray(c.assets),
+        paleta_cores: safeParseArray(c.paleta_cores),
+        fontes: safeParseArray(c.fontes),
+        metas: safeParseArray(c.metas),
+      }));
+
+      const parsedTasks = (data.tasks as Tarefa[]).map(t => ({
         ...t,
         Checklist: safeParseArray(t.Checklist),
         Anexos: safeParseArray(t.Anexos),
         Comentarios: safeParseArray(t.Comentarios),
         Atividades: safeParseArray(t.Atividades)
       }));
-      setTasks(prev => mergeItems(prev, sanitizedTasks));
-      
-      const sanitizedChecklists = (data.checklists as ChecklistShoot[]).map(c => ({
+
+      const parsedChecklists = (data.checklists as ChecklistShoot[]).map(c => ({
         ...c,
         itens_levar: safeParseArray(c.itens_levar),
         itens_trazer: safeParseArray(c.itens_trazer),
         itens_gravar: safeParseArray(c.itens_gravar),
       }));
-      setChecklists(prev => mergeItems(prev, sanitizedChecklists));
-      
+
+      setClients(prev => mergeItems(prev, parsedClients));
+      setCobo(prev => mergeItems(prev, data.cobo as ItemCobo[]));
+      setMatriz(prev => mergeItems(prev, data.matriz as ItemMatrizEstrategica[]));
+      setRdc(prev => mergeItems(prev, data.rdc as ItemRdc[]));
+      setPlanejamento(prev => mergeItems(prev, data.planning as ItemPlanejamento[]));
+      setFinancas(prev => mergeItems(prev, data.financas as LancamentoFinancas[]));
+      setTasks(prev => mergeItems(prev, parsedTasks));
+      setChecklists(prev => mergeItems(prev, parsedChecklists));
       setCollaborators(prev => mergeItems(prev, data.collaborators as Colaborador[]));
       setReunioes(prev => mergeItems(prev, (data.reunioes || []) as Reuniao[]));
       setLembretes(prev => mergeItems(prev, (data.lembretes || []) as Lembrete[]));

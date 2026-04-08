@@ -7,14 +7,17 @@ import {
     ChevronDown, Repeat, CalendarClock, Calendar, CheckCircle2,
     PieChart as PieChartIcon, TrendingUp, TrendingDown, Building, 
     AlertTriangle, Check, Layers, User, ArrowRight, History, 
-    Save, PieChart as PieChartLucide, TrendingUp as TrendingUpLucide
+    Save, PieChart as PieChartLucide, TrendingUp as TrendingUpLucide,
+    Sparkles
 } from 'lucide-react';
 import { 
     BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
     PieChart, Pie, Cell, Legend, AreaChart, Area, 
     LineChart, Line, CartesianGrid 
 } from 'recharts';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { StatCard, Badge, Button, InputSelect, Card } from '../Components';
+import { generateId } from '../utils/id';
 
 // ==========================================
 // UTILS
@@ -76,10 +79,150 @@ interface RetiradaSocio {
 }
 
 // ==========================================
+// CALENDAR COMPONENT
+// ==========================================
+const CalendarView: React.FC<{ 
+    transactions: any[], 
+    onOpenModal: (tx?: any) => void 
+}> = ({ transactions, onOpenModal }) => {
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const [selectedDay, setSelectedDay] = useState<string | null>(null);
+
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+
+    const monthName = currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
+    
+    const firstDayOfMonth = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    const days = Array.from({ length: 42 }, (_, i) => {
+        const day = i - firstDayOfMonth + 1;
+        if (day <= 0 || day > daysInMonth) return null;
+        return day;
+    });
+
+    const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+    const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
+
+    const getDayTransactions = (day: number) => {
+        const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+        return transactions.filter(t => t.data === dateStr);
+    };
+
+    return (
+        <div className="flex flex-col lg:flex-row gap-6 h-full min-h-[600px] animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex-1 bg-white dark:bg-zinc-900 rounded-[32px] border border-zinc-200 dark:border-zinc-800 shadow-xl overflow-hidden flex flex-col">
+                <div className="p-8 flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800">
+                    <h3 className="text-xl font-black text-zinc-900 dark:text-white tracking-tight">{monthName}</h3>
+                    <div className="flex items-center gap-2">
+                        <button onClick={prevMonth} className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-blue-500 transition-all active:scale-90"><ChevronLeft size={18} /></button>
+                        <button onClick={() => setCurrentDate(new Date())} className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all">Hoje</button>
+                        <button onClick={nextMonth} className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-blue-500 transition-all active:scale-90"><ChevronRight size={18} /></button>
+                    </div>
+                </div>
+                
+                <div className="grid grid-cols-7 border-b border-zinc-100 dark:border-zinc-800">
+                    {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(d => (
+                        <div key={d} className="py-4 text-center text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">{d}</div>
+                    ))}
+                </div>
+
+                <div className="flex-1 grid grid-cols-7 grid-rows-6">
+                    {days.map((day, i) => {
+                        if (day === null) return <div key={`empty-${i}`} className="border-r border-b border-zinc-50 dark:border-zinc-800/50 bg-zinc-50/30 dark:bg-zinc-900/10"></div>;
+                        
+                        const dayTxs = getDayTransactions(day);
+                        const isToday = new Date().toDateString() === new Date(year, month, day).toDateString();
+                        const dateKey = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+                        const isSelected = selectedDay === dateKey;
+
+                        return (
+                            <div 
+                                key={day} 
+                                onClick={() => setSelectedDay(dateKey)}
+                                className={`group border-r border-b border-zinc-100 dark:border-zinc-800 p-2 min-h-[100px] transition-all cursor-pointer hover:bg-blue-50/30 dark:hover:bg-blue-500/5 ${isSelected ? 'bg-blue-50/50 dark:bg-blue-500/10' : ''}`}
+                            >
+                                <div className="flex justify-between items-start mb-2">
+                                    <span className={`text-xs font-black w-7 h-7 flex items-center justify-center rounded-lg transition-all ${isToday ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white'}`}>
+                                        {day}
+                                    </span>
+                                </div>
+                                <div className="space-y-1">
+                                    {dayTxs.slice(0, 3).map(t => (
+                                        <div 
+                                            key={t.id} 
+                                            className={`truncate px-2 py-1 rounded-md text-[9px] font-bold border ${
+                                                t.tipo === 'entrada' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 
+                                                t.tipo === 'saida' ? 'bg-rose-500/10 text-rose-600 border-rose-500/20' : 
+                                                'bg-indigo-500/10 text-indigo-600 border-indigo-500/20'
+                                            }`}
+                                        >
+                                            {t.descricao}
+                                        </div>
+                                    ))}
+                                    {dayTxs.length > 3 && (
+                                        <div className="text-[8px] font-black text-zinc-400 pl-1">+{dayTxs.length - 3} itens</div>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            <div className="w-full lg:w-[320px] space-y-4">
+                <Card title={selectedDay ? `Dia ${selectedDay.split('-')[2]}/${selectedDay.split('-')[1]}` : "Selecione um dia"} className="shadow-xl bg-white dark:bg-zinc-900 rounded-[32px] border-zinc-200 dark:border-zinc-800">
+                    <div className="p-2 space-y-3">
+                        {selectedDay ? (
+                            <>
+                                {getDayTransactions(parseInt(selectedDay.split('-')[2])).length > 0 ? (
+                                    getDayTransactions(parseInt(selectedDay.split('-')[2])).map(t => (
+                                        <div 
+                                            key={t.id} 
+                                            onClick={() => onOpenModal(t.raw)}
+                                            className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 hover:border-blue-500/50 transition-all cursor-pointer group"
+                                        >
+                                            <div className="flex justify-between items-start gap-2 mb-2">
+                                                <Badge color={t.tipo === 'entrada' ? 'green' : t.tipo === 'saida' ? 'red' : 'indigo'}>{t.categoria}</Badge>
+                                                <span className="text-xs font-black text-zinc-900 dark:text-white tabular-nums">{formatBRL(t.valor)}</span>
+                                            </div>
+                                            <p className="text-[10px] font-bold text-zinc-500 group-hover:text-blue-500 transition-colors line-clamp-2 uppercase">{t.descricao}</p>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="py-12 text-center">
+                                        <div className="w-12 h-12 rounded-full bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center mx-auto mb-4">
+                                            <CalendarClock size={20} className="text-zinc-300" />
+                                        </div>
+                                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Nenhum lançamento</p>
+                                        <Button 
+                                            onClick={() => onOpenModal({ Data: selectedDay })}
+                                            className="mt-4 !h-10 !bg-blue-600/10 !text-blue-600 !border !border-blue-600/20 hover:!bg-blue-600 hover:!text-white !text-[10px]"
+                                        >
+                                            Novo Item
+                                        </Button>
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="py-20 text-center text-zinc-400">
+                                <i className="fa-solid fa-calendar-day mb-3 text-2xl opacity-20"></i>
+                                <p className="text-[10px] font-black uppercase tracking-widest">Escolha uma data para ver detalhes</p>
+                            </div>
+                        )}
+                    </div>
+                </Card>
+            </div>
+        </div>
+    );
+};
+
+// ==========================================
 // MAIN COMPONENT
 // ==========================================
 export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, clients, currentWorkspace }: any) {
-    const [activeInternalTab, setActiveInternalTab] = useState<'VISAO_GERAL' | 'LANCAMENTOS' | 'SOCIOS' | 'MRR' | 'PENDENCIAS'>('VISAO_GERAL');
+    const [activeInternalTab, setActiveInternalTab] = useState<'VISAO_GERAL' | 'LANCAMENTOS' | 'CALENDARIO' | 'SOCIOS' | 'MRR' | 'PENDENCIAS'>('VISAO_GERAL');
     const workspaceId = currentWorkspace?.id || 'default';
     const configKey = `ekko_socios_${workspaceId}`;
 
@@ -164,6 +307,50 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
             socio2: { nome: 'Sócio 2', percentual: 50 }
         };
     });
+    
+    // ==========================================
+    // RECURRENCE ENGINE
+    // ==========================================
+    useEffect(() => {
+        if (!financas.length || !onAdd) return;
+
+        const hoje = new Date();
+        const mesAtual = hoje.toISOString().slice(0, 7); // '2026-04'
+        
+        const recorrentes = financas.filter((l: any) => 
+            l.Recorrência !== 'Única' && 
+            l.Recorrência && 
+            l.Data &&
+            !l._origem_id // Apenas lançamentos "pai"
+        );
+
+        recorrentes.forEach((l: any) => {
+            const diaCobranca = l.Dia_Pagamento || new Date(l.Data + 'T12:00:00').getDate();
+            const dataGerada = `${mesAtual}-${String(diaCobranca).padStart(2, '0')}`;
+
+            // Se a data gerada for no futuro do mês (ex: hoje é dia 5, vencimento dia 15), ainda geramos
+            // Se for no passado do mês e não existe, geramos também.
+
+            const jaExiste = financas.some((x: any) => 
+                x.Data === dataGerada && 
+                x.Descrição === l.Descrição && 
+                (x._origem_id === l.id || x.id === l.id)
+            );
+
+            if (!jaExiste) {
+                const novoLancamento = {
+                    ...l,
+                    id: generateId(),
+                    Data: dataGerada,
+                    Status: 'Pendente',
+                    _origem_id: l.id,
+                    _auto_gerado: true,
+                    workspace_id: workspaceId
+                };
+                onAdd(novoLancamento);
+            }
+        });
+    }, [workspaceId, financas.length]); // Executa ao carregar ou trocar workspace
 
     useEffect(() => {
         localStorage.setItem(configKey, JSON.stringify(sociosConfig));
@@ -205,6 +392,9 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                 status: t.Status || 'Pendente',
                 frequencia: t.Recorrência === 'Mensal' ? 'mensal' : t.Recorrência === 'Anual' ? 'anual' : 'unica',
                 clienteId: t.Cliente_ID || '',
+                _origem_id: t._origem_id,
+                _auto_gerado: !!t._auto_gerado,
+                diaPagamento: t.Dia_Pagamento,
                 raw: t,
                 __archived: !!t.__archived
             };
@@ -383,7 +573,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                 frequencia: tx.frequencia,
                 clienteId: tx.clienteId,
                 dataFim: '',
-                diaPagamento: ''
+                diaPagamento: tx.diaPagamento ? tx.diaPagamento.toString() : ''
             });
         } else {
             setEditingId(null);
@@ -416,7 +606,8 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
             Data: formData.data,
             Status: formData.status === 'pago' ? 'Pago' : formData.status === 'pendente' ? 'Pendente' : formData.status,
             Recorrência: formData.frequencia === 'unica' ? 'Única' : formData.frequencia === 'mensal' ? 'Mensal' : 'Anual',
-            Cliente_ID: formData.clienteId || null
+            Cliente_ID: formData.clienteId || null,
+            Dia_Pagamento: formData.diaPagamento ? parseInt(formData.diaPagamento) : null
         };
 
         if (editingId) {
@@ -430,7 +621,28 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
     };
 
     const handleDelete = (id: string) => {
-        if (confirm('Deseja realmente excluir?')) {
+        const tx = transactions.find(t => t.id === id);
+        if (!tx) return;
+
+        const isRecorrente = tx.frequencia !== 'unica';
+        
+        if (isRecorrente) {
+            const msg = "ESTE É UM LANÇAMENTO RECORRENTE.\n\n" +
+                        "Clique em OK para excluir ESTE E TODOS OS FILHOS vinculados.\n" +
+                        "Clique em CANCELAR para excluir APENAS este lançamento (ou cancelar a ação).";
+            
+            if (window.confirm(msg)) {
+                tryPlaySound('close');
+                const idsParaExcluir = transactions
+                    .filter(t => t.id === tx.id || t._origem_id === tx.id)
+                    .map(t => t.id);
+                
+                if (onDelete) onDelete(idsParaExcluir);
+                return;
+            }
+        }
+
+        if (window.confirm('Deseja realmente excluir este lançamento?')) {
             tryPlaySound('close');
             if (onDelete) onDelete([id]);
         }
@@ -647,6 +859,17 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
 
 
                 {/* ===============================================================
+                    TAB: CALENDÁRIO
+                =============================================================== */}
+                {activeInternalTab === 'CALENDARIO' && (
+                    <CalendarView 
+                        transactions={transactions} 
+                        onOpenModal={handleOpenModal} 
+                    />
+                )}
+
+
+                {/* ===============================================================
                     TAB 2: LANÇAMENTOS
                 =============================================================== */}
                 {activeInternalTab === 'LANCAMENTOS' && (
@@ -675,12 +898,13 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                 <thead>
                                     <tr className="bg-zinc-50/80 dark:bg-zinc-900/40 text-[9px] font-black text-zinc-400 uppercase tracking-widest sticky top-0 backdrop-blur-sm z-10">
                                         <th className="px-6 py-4 w-[110px]">Data</th>
+                                        <th className="px-6 py-4 w-[60px]">Dia</th>
                                         <th className="px-6 py-4">Descrição</th>
                                         <th className="px-6 py-4 w-[160px]">Cliente</th>
                                         <th className="px-6 py-4 w-[120px]">Categoria</th>
                                         <th className="px-6 py-4 w-[110px]">Valor</th>
                                         <th className="px-6 py-4 w-[110px] text-center">Status</th>
-                                        <th className="px-6 py-4 w-[90px] text-center">Ações</th>
+                                        <th className="px-6 py-4 w-[100px] text-center">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
@@ -690,9 +914,15 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                             const isAtrasado = tx.status !== 'Pago' && tx.data < new Date().toISOString().split('T')[0];
                                             return (
                                                 <tr key={tx.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 group transition-colors">
-                                                    <td className="px-6 py-4 text-[10px] font-black text-zinc-500">{new Date(tx.data).toLocaleDateString('pt-BR')}</td>
+                                                    <td className="px-6 py-4 text-[10px] font-black text-zinc-500">{new Date(tx.data + 'T12:00:00').toLocaleDateString('pt-BR')}</td>
+                                                    <td className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                                                        {new Date(tx.data + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')}
+                                                    </td>
                                                     <td className="px-6 py-4">
-                                                        <p className="text-xs font-black text-zinc-900 dark:text-white uppercase truncate">{tx.descricao}</p>
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="text-xs font-black text-zinc-900 dark:text-white uppercase truncate">{tx.descricao}</p>
+                                                            {tx._auto_gerado && <span title="Gerado Automaticamente" className="p-1 rounded-full bg-blue-500/10 text-blue-500"><Sparkles size={10}/></span>}
+                                                        </div>
                                                         {tx.frequencia !== 'unica' && <p className="text-[9px] text-indigo-500 font-bold mt-0.5"><Repeat size={10} className="inline mr-1 shrink-0"/>{tx.frequencia.toUpperCase()}</p>}
                                                     </td>
                                                     <td className="px-6 py-4">
@@ -707,13 +937,26 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
-                                                        <Badge color={tx.status === 'Pago' ? 'emerald' : isAtrasado ? 'rose' : 'orange'} className="!text-[9px]">
-                                                            {tx.status.toUpperCase()}
-                                                        </Badge>
+                                                        <button 
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                onUpdate(tx.id, null, { ...tx.raw, Status: tx.status === 'Pago' ? 'Pendente' : 'Pago' });
+                                                            }}
+                                                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all border ${
+                                                                tx.status === 'Pago' 
+                                                                    ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' 
+                                                                    : isAtrasado 
+                                                                        ? 'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                                                                        : 'bg-zinc-100 text-zinc-400 border-zinc-200 dark:bg-zinc-800 dark:border-zinc-700'
+                                                            }`}
+                                                        >
+                                                            {tx.status === 'Pago' ? <Check size={10}/> : <Clock size={10}/>}
+                                                            {tx.status}
+                                                        </button>
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
                                                         <div className="flex justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <button onClick={() => handleOpenModal(tx)} className="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-500"><Edit3 size={14} /></button>
+                                                            <button onClick={() => handleOpenModal(tx.raw)} className="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-500"><Edit3 size={14} /></button>
                                                             <button onClick={() => handleDelete(tx.id)} className="p-1.5 rounded-md hover:bg-rose-100 dark:hover:bg-rose-500/20 text-rose-500"><Trash2 size={14} /></button>
                                                         </div>
                                                     </td>
@@ -723,6 +966,35 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                     }
                                 </tbody>
                             </table>
+                        </div>
+                        {/* Tabela Footer: Totais Rápidos */}
+                        <div className="p-6 bg-zinc-50 dark:bg-zinc-900/50 border-t border-zinc-100 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-6">
+                            <div className="flex items-center gap-8">
+                                <div>
+                                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.15em] mb-1">Total Entradas</p>
+                                    <p className="text-sm font-black text-emerald-500 tabular-nums">
+                                        {formatBRL(financasFiltradas.filter(t => t.tipo === 'entrada').reduce((acc, t) => acc + t.valor, 0))}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.15em] mb-1">Total Saídas</p>
+                                    <p className="text-sm font-black text-rose-500 tabular-nums">
+                                        {formatBRL(financasFiltradas.filter(t => t.tipo === 'saida' || t.tipo === 'assinatura').reduce((acc, t) => acc + t.valor, 0))}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="bg-white dark:bg-zinc-800 px-6 py-3 rounded-2xl border border-zinc-200 dark:border-zinc-700 shadow-sm">
+                                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.15em] mb-1">Saldo Líquido do Período</p>
+                                <p className={`text-xl font-black tabular-nums ${
+                                    financasFiltradas.filter(t => t.tipo === 'entrada').reduce((acc, t) => acc + t.valor, 0) - 
+                                    financasFiltradas.filter(t => t.tipo === 'saida' || t.tipo === 'assinatura').reduce((acc, t) => acc + t.valor, 0) >= 0 ? 'text-zinc-900 dark:text-white' : 'text-rose-500'
+                                }`}>
+                                    {formatBRL(
+                                        financasFiltradas.filter(t => t.tipo === 'entrada').reduce((acc, t) => acc + t.valor, 0) - 
+                                        financasFiltradas.filter(t => t.tipo === 'saida' || t.tipo === 'assinatura').reduce((acc, t) => acc + t.valor, 0)
+                                    )}
+                                </p>
+                            </div>
                         </div>
                     </Card>
                 )}
@@ -1159,19 +1431,29 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                             <p className="text-[9px] font-bold text-zinc-500 uppercase mb-1">CICLO</p>
                                             <InputSelect value={formData.frequencia} onChange={v => setFormData({...formData, frequencia: v})} options={[{value:'mensal', label:'MENSAL'}, {value:'anual', label:'ANUAL'}]} className="!h-10 !rounded-xl !text-[10px] !font-black" />
                                         </div>
+                                        <div>
+                                            <p className="text-[9px] font-bold text-zinc-500 uppercase mb-1">DIA VENCIMENTO</p>
+                                            <input 
+                                                type="number" min="1" max="31"
+                                                value={formData.diaPagamento}
+                                                onChange={e => setFormData({...formData, diaPagamento: e.target.value})}
+                                                placeholder="Ex: 10"
+                                                className="w-full h-10 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 text-[10px] font-black focus:border-indigo-500 outline-none"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             )}
 
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                                 <label className="text-[10px] font-black uppercase tracking-[0.1em] text-zinc-400 ml-1">CATEGORIA</label>
-                                <div className="flex flex-wrap gap-2">
-                                    {CATEGORIAS[formData.tipo]?.map(c => (
-                                        <button key={c} type="button" onClick={() => setFormData({...formData, categoria: c})} className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border-2 transition-all ${formData.categoria === c ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 border-transparent shadow-lg scale-105' : 'bg-transparent border-zinc-200 dark:border-zinc-700 text-zinc-500 hover:border-zinc-400'}`}>
-                                            {c}
-                                        </button>
-                                    ))}
-                                </div>
+                                <InputSelect 
+                                    editable
+                                    value={formData.categoria} 
+                                    onChange={v => setFormData({...formData, categoria: v})} 
+                                    options={CATEGORIAS[formData.tipo]?.map(c => ({value: c, label: c})) || []} 
+                                    className="!rounded-2xl !h-14 !bg-zinc-50 dark:!bg-zinc-800 border-2 !border-zinc-100 dark:!border-zinc-800 !text-xs !font-black !uppercase"
+                                />
                             </div>
                         </form>
 

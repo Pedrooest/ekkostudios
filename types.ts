@@ -144,6 +144,8 @@ export interface LancamentoFinancas {
   Data_Fim?: string;
   Dia_Pagamento?: number;
   Observações?: string;
+  _origem_id?: string;
+  _auto_gerado?: boolean;
   updated_at?: string;
   created_at?: string;
   __archived?: boolean;
