@@ -30,22 +30,86 @@ const MAPA_COLUNAS: Record<string, Record<string, string>> = {
     },
     tasks: {
         Activities: 'Atividades'
+    },
+    checklists: {
+        cliente_id: 'client',
+        titulo: 'title',
+        data: 'date',
+        local: 'location',
+        observacoes: 'notes'
     }
 };
 
 const VALID_FIELDS: Record<string, string[]> = {
-    clients: ['id', 'workspace_id', 'Nome', 'Nicho', 'Responsável', 'WhatsApp', 'Instagram', 'Objetivo', 'Observações', 'Cor (HEX)', 'Status', 'updated_at', 'links', 'log_comunicacao', 'assets', 'paleta_cores', 'fontes', 'tom_de_voz', 'metas'],
-    tasks: ['id', 'workspace_id', 'Task_ID', 'Cliente_ID', 'Título', 'Área', 'Status', 'Prioridade', 'Responsável', 'Data_Entrega', 'Checklist', 'Anexos', 'Comentarios', 'Atividades', 'Criado_Em', 'updated_at', 'Tempo_Gasto_H'],
-    financas: ['id', 'workspace_id', 'Lançamento', 'Data', 'Cliente_ID', 'Tipo', 'Categoria', 'Descrição', 'Valor', 'Recorrência', 'Data_Início', 'Data_Fim', 'Dia_Pagamento', 'Observações', 'Status', 'updated_at', '_origem_id', '_auto_gerado'],
-    rdc: ['id', 'workspace_id', 'Cliente_ID', 'Ideia de Conteúdo', 'Rede_Social', 'Tipo de conteúdo', 'Resolução (1–5)', 'Demanda (1–5)', 'Competição (1–5)', 'Score (R×D×C)', 'Decisão', 'updated_at'],
-    cobo: ['id', 'workspace_id', 'Cliente_ID', 'Canal', 'Frequência', 'Público', 'Voz', 'Zona', 'Intenção', 'Formato', 'updated_at'],
-    matriz_estrategica: ['id', 'workspace_id', 'Cliente_ID', 'Rede_Social', 'Função', 'Quem fala', 'Papel estratégico', 'Tipo de conteúdo', 'Resultado esperado', 'updated_at'],
-    planejamento: ['id', 'workspace_id', 'Cliente_ID', 'Data', 'Hora', 'Conteúdo', 'Função', 'Rede_Social', 'Tipo de conteúdo', 'Intenção', 'Canal', 'Formato', 'Zona', 'Quem fala', 'Status do conteúdo', 'updated_at'],
-    collaborators: ['id', 'workspace_id', 'Nome', 'Cargo', 'valorHora', 'horasMensais', 'updated_at'],
-    checklists: ['id', 'workspace_id', 'titulo', 'data', 'cliente_id', 'local', 'observacoes', 'status', 'itens_levar', 'itens_trazer', 'itens_gravar', 'updated_at'],
-    reunioes: ['id', 'workspace_id', 'cliente_id', 'titulo', 'data', 'hora', 'formato', 'participantes', 'pauta', 'decisoes', 'proximos_passos', 'status', 'updated_at'],
-    lembretes: ['id', 'workspace_id', 'titulo', 'data', 'hora', 'tipo', 'cliente_id', 'descricao', 'concluido', 'auto_gerado', 'updated_at'],
-    retiradas_socios: ['id', 'workspace_id', 'socio', 'valor', 'data', 'mes_referencia', 'observacao', 'updated_at'],
+    financas: [
+        'id', 'workspace_id', 'Lançamento', 'Data', 'Cliente_ID', 'Tipo',
+        'Categoria', 'Descrição', 'Valor', 'Recorrência', 'Data_Início',
+        'Data_Fim', 'Dia_Pagamento', 'Observações', 'Status', 'updated_at',
+        '_auto_gerado', '_origem_id', '__archived', 'created_at', 'created_by', 'updated_by'
+    ],
+    clients: [
+        'id', 'workspace_id', 'Nome', 'Nicho', 'Responsável', 'WhatsApp',
+        'Instagram', 'Objetivo', 'Observações', 'Cor (HEX)', 'Status',
+        'updated_at', 'links', 'log_comunicacao', 'assets', 'paleta_cores',
+        'fontes', 'tom_de_voz', 'metas', 'Fee', '__archived', 'created_at', 'created_by', 'updated_by'
+    ],
+    tasks: [
+        'id', 'workspace_id', 'Task_ID', 'Cliente_ID', 'Título', 'Descrição', 
+        'Área', 'Status', 'Prioridade', 'Responsável', 'Data_Entrega', 'Hora_Entrega',
+        'Checklist', 'Anexos', 'Comentarios', 'Atividades', 'Criado_Em', 'updated_at',
+        'Tempo_Gasto_H', 'Tags', 'Estimativa_H', 'Relacionado_A', 'Relacionado_ID',
+        'Relacionado_Conteudo', '__archived', 'created_at', 'created_by', 'updated_by'
+    ],
+    rdc: [
+        'id', 'workspace_id', 'Cliente_ID', 'Ideia de Conteúdo', 'Rede_Social',
+        'Tipo de conteúdo', 'Resolução (1–5)', 'Demanda (1–5)',
+        'Competição (1–5)', 'Score (R×D×C)', 'Decisão', 'updated_at',
+        '__archived', 'created_at', 'created_by', 'updated_by'
+    ],
+    cobo: [
+        'id', 'workspace_id', 'Cliente_ID', 'Canal', 'Frequência', 'Público',
+        'Voz', 'Zona', 'Intenção', 'Formato', 'updated_at',
+        '__archived', 'created_at', 'created_by', 'updated_by'
+    ],
+    matriz_estrategica: [
+        'id', 'workspace_id', 'Cliente_ID', 'Rede_Social', 'Função',
+        'Quem fala', 'Papel estratégico', 'Tipo de conteúdo',
+        'Resultado esperado', 'updated_at',
+        '__archived', 'created_at', 'created_by', 'updated_by'
+    ],
+    planejamento: [
+        'id', 'workspace_id', 'Cliente_ID', 'Data', 'Hora', 'Conteúdo',
+        'Função', 'Rede_Social', 'Tipo de conteúdo', 'Intenção', 'Canal',
+        'Formato', 'Zona', 'Quem fala', 'Status do conteúdo', 'updated_at',
+        '__archived', 'created_at', 'created_by', 'updated_by'
+    ],
+    collaborators: [
+        'id', 'workspace_id', 'Nome', 'Cargo', 'valorHora',
+        'horasMensais', 'updated_at',
+        '__archived', 'created_at', 'created_by', 'updated_by'
+    ],
+    checklists: [
+        'id', 'workspace_id', 'titulo', 'data', 'cliente_id', 'local',
+        'observacoes', 'status', 'itens_levar', 'itens_trazer',
+        'itens_gravar', 'updated_at', 'time',
+        '__archived', 'created_at', 'created_by', 'updated_by'
+    ],
+    reunioes: [
+        'id', 'workspace_id', 'cliente_id', 'titulo', 'data', 'hora',
+        'formato', 'participantes', 'pauta', 'decisoes',
+        'proximos_passos', 'status', 'updated_at',
+        '__archived', 'created_at', 'created_by', 'updated_by'
+    ],
+    lembretes: [
+        'id', 'workspace_id', 'titulo', 'data', 'hora', 'tipo',
+        'cliente_id', 'descricao', 'concluido', 'auto_gerado', 'updated_at',
+        '__archived', 'created_at', 'created_by', 'updated_by'
+    ],
+    retiradas_socios: [
+        'id', 'workspace_id', 'socio', 'valor', 'data',
+        'mes_referencia', 'observacao', 'updated_at',
+        '__archived', 'created_at', 'created_by', 'updated_by'
+    ],
 };
 
 export const sanitizeForTable = (tableName: string, item: any) => {
@@ -61,41 +125,60 @@ const mapToFrontend = (data: any, table: string) => {
     if (Array.isArray(data)) return data.map(item => mapToFrontend(item, table));
 
     const mapa = MAPA_COLUNAS[table];
-    if (!mapa) return data;
-
     const mapped: any = { ...data };
-    Object.entries(mapa).forEach(([dbKey, feKey]) => {
-        if (dbKey in mapped) {
-            mapped[feKey] = mapped[dbKey];
-            if (dbKey !== feKey) {
-                delete mapped[dbKey];
-            }
-        }
-    });
+    
+    // Fallback Helpers
+    const safeArray = (val: any) => Array.isArray(val) ? val : [];
+    const safeStr = (val: any) => typeof val === 'string' ? val : '';
 
-    // Recursively map joined objects
+    if (mapa) {
+        Object.entries(mapa).forEach(([dbKey, feKey]) => {
+            if (dbKey in mapped) {
+                mapped[feKey] = mapped[dbKey];
+                if (dbKey !== feKey) delete mapped[dbKey];
+            }
+        });
+    }
+
+    // JSONB Parsing with fallbacks
+    if (table === 'clients') {
+        mapped.links = safeArray(mapped.links);
+        mapped.log_comunicacao = safeArray(mapped.log_comunicacao);
+        mapped.assets = safeArray(mapped.assets);
+        mapped.paleta_cores = safeArray(mapped.paleta_cores);
+        mapped.fontes = safeArray(mapped.fontes);
+        mapped.tom_de_voz = safeStr(mapped.tom_de_voz);
+        mapped.metas = safeArray(mapped.metas);
+    }
+
+    if (table === 'tasks') {
+        mapped.Checklist = safeArray(mapped.Checklist);
+        mapped.Anexos = safeArray(mapped.Anexos);
+        mapped.Comentarios = safeArray(mapped.Comentarios);
+        mapped.Atividades = safeArray(mapped.Atividades);
+    }
+
+    if (table === 'checklists') {
+        mapped.itens_levar = safeArray(mapped.itens_levar);
+        mapped.itens_trazer = safeArray(mapped.itens_trazer);
+        mapped.itens_gravar = safeArray(mapped.itens_gravar);
+    }
+
+    if (table === 'reunioes') {
+        mapped.proximos_passos = safeArray(mapped.proximos_passos);
+    }
+
+    // Workspace specific mapping
     if (table === 'workspaces' && data.workspace_members) {
         mapped.membros_workspace = mapToFrontend(data.workspace_members, 'workspace_members');
         delete mapped.workspace_members;
     }
+
     if (table === 'workspace_members' && data.profiles) {
-        mapped.perfis = data.profiles; // Profiles already match
+        mapped.perfis = data.profiles; 
         delete mapped.profiles;
     }
-    if (table === 'clients') {
-        mapped.links = mapped.links || [];
-        mapped.log_comunicacao = mapped.log_comunicacao || [];
-        mapped.assets = mapped.assets || [];
-        mapped.paleta_cores = mapped.paleta_cores || [];
-        mapped.fontes = mapped.fontes || [];
-        mapped.tom_de_voz = mapped.tom_de_voz || '';
-        mapped.metas = mapped.metas || [];
-    }
-
-    if (table === 'reunioes') {
-        mapped.proximos_passos = mapped.proximos_passos || [];
-    }
-
+    
     return mapped;
 };
 
