@@ -27,7 +27,25 @@ interface MatrizEstrategicaViewProps {
   selection: string[];
   onSelect: (id: string) => void;
   onClearSelection: () => void;
+  savingStatus?: Record<string, 'saving' | 'success' | 'error'>;
 }
+
+const SavingIndicator = ({ status }: { status?: 'saving' | 'success' | 'error' }) => {
+  if (!status) return null;
+  return (
+    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none z-10 animate-fade">
+      {status === 'saving' && (
+        <div className="w-3 h-3 border-2 border-zinc-500/30 border-t-zinc-500 rounded-full animate-spin"></div>
+      )}
+      {status === 'success' && (
+        <CheckCircle2 size={12} className="text-emerald-500" />
+      )}
+      {status === 'error' && (
+        <i className="fa-solid fa-circle-exclamation text-[10px] text-rose-500"></i>
+      )}
+    </div>
+  );
+};
 
 const getSocialIcon = (canal: string) => {
   if (!canal) return <Globe size={14} />;
@@ -68,7 +86,8 @@ const getFuncaoColor = (funcao: string): any => {
 export function MatrizEstrategicaView({
   data, onUpdate, onDelete, onArchive, onAdd,
   clients, activeClient, onSelectClient,
-  selection, onSelect, onClearSelection
+  selection, onSelect, onClearSelection,
+  savingStatus = {}
 }: MatrizEstrategicaViewProps) {
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [searchTerm, setSearchTerm] = useState('');
@@ -289,26 +308,32 @@ export function MatrizEstrategicaView({
                         <span className="text-[11px] font-bold text-zinc-900 dark:text-zinc-100 truncate block">{client?.Nome || 'Agência'}</span>
                       </td>
                     )}
-                    <td className="px-6 py-3 min-w-[120px]">
+                    <td className="px-6 py-3 min-w-[120px] relative">
                         <div className="flex items-center gap-2">
                           <div className="text-zinc-400 shrink-0">{getSocialIcon(row['Rede_Social'])}</div>
                           <Badge color={getSocialColor(row['Rede_Social'])} className="!py-0 !text-[9px] !rounded-md !uppercase whitespace-nowrap">{row['Rede_Social'] || 'N/A'}</Badge>
                         </div>
+                        <SavingIndicator status={savingStatus[`MATRIZ:${row.id}:Rede_Social`]} />
                     </td>
-                    <td className="px-6 py-3 min-w-[180px]" title={row['Função']}>
+                    <td className="px-6 py-3 min-w-[180px] relative" title={row['Função']}>
                         <Badge color={getFuncaoColor(row['Função'])} className="!py-0 !text-[9px] !rounded-md !uppercase whitespace-nowrap">{row['Função'] || 'N/A'}</Badge>
+                        <SavingIndicator status={savingStatus[`MATRIZ:${row.id}:Função`]} />
                     </td>
-                    <td className="px-6 py-3 min-w-[180px] text-[11px] font-medium text-zinc-500" title={row['Quem fala']}>
+                    <td className="px-6 py-3 min-w-[180px] text-[11px] font-medium text-zinc-500 relative" title={row['Quem fala']}>
                       <span className="block truncate max-w-[180px]">{row['Quem fala'] || '-'}</span>
+                      <SavingIndicator status={savingStatus[`MATRIZ:${row.id}:Quem fala`]} />
                     </td>
-                    <td className="px-6 py-3 min-w-[200px] text-[11px] font-bold text-zinc-900 dark:text-zinc-100" title={row['Papel estratégico']}>
+                    <td className="px-6 py-3 min-w-[200px] text-[11px] font-bold text-zinc-900 dark:text-zinc-100 relative" title={row['Papel estratégico']}>
                       <span className="block truncate max-w-[200px]">{row['Papel estratégico'] || '-'}</span>
+                      <SavingIndicator status={savingStatus[`MATRIZ:${row.id}:Papel estratégico`]} />
                     </td>
-                    <td className="px-6 py-3 min-w-[200px] text-[11px] font-medium text-zinc-500" title={row['Tipo de conteúdo']}>
+                    <td className="px-6 py-3 min-w-[200px] text-[11px] font-medium text-zinc-500 relative" title={row['Tipo de conteúdo']}>
                       <span className="block truncate max-w-[200px]">{row['Tipo de conteúdo'] || '-'}</span>
+                      <SavingIndicator status={savingStatus[`MATRIZ:${row.id}:Tipo de conteúdo`]} />
                     </td>
-                    <td className="px-6 py-3 min-w-[180px] text-[11px] font-medium text-zinc-500" title={row['Resultado esperado']}>
+                    <td className="px-6 py-3 min-w-[180px] text-[11px] font-medium text-zinc-500 relative" title={row['Resultado esperado']}>
                       <span className="block truncate max-w-[180px]">{row['Resultado esperado'] || '-'}</span>
+                      <SavingIndicator status={savingStatus[`MATRIZ:${row.id}:Resultado esperado`]} />
                     </td>
                       <td className="px-6 py-3 text-right" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

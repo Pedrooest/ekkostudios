@@ -157,7 +157,7 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
 
     const performSave = async (shootId: string, updatedShoot: any) => {
         setIsSaving(true);
-        await onUpdate(shootId, 'CHECKLISTS', '__MULTIPLE__', { 
+        await onUpdate(shootId, 'CHECKLISTS', null, { 
             itens_levar: updatedShoot.itens_levar,
             itens_trazer: updatedShoot.itens_trazer,
             itens_gravar: updatedShoot.itens_gravar,

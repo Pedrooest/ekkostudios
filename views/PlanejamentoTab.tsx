@@ -32,6 +32,23 @@ const tryPlaySound = (type: any) => {
     }
 };
 
+const SavingIndicator = ({ status }: { status?: 'saving' | 'success' | 'error' }) => {
+    if (!status) return null;
+    return (
+        <div className="absolute right-3 top-2 flex items-center gap-1.5 pointer-events-none z-10 animate-fade">
+            {status === 'saving' && (
+                <div className="w-3.5 h-3.5 border-2 border-zinc-500/30 border-t-zinc-500 rounded-full animate-spin"></div>
+            )}
+            {status === 'success' && (
+                <CheckCircle2 size={14} className="text-emerald-500" />
+            )}
+            {status === 'error' && (
+                <AlertCircle size={14} className="text-rose-500" />
+            )}
+        </div>
+    );
+};
+
 interface PlanejamentoTabProps {
     data: any[];
     clients: any[];
@@ -50,12 +67,14 @@ interface PlanejamentoTabProps {
     showArchived?: boolean;
     setShowArchived?: (val: boolean) => void;
     setIsClientFilterOpen?: (val: boolean) => void;
+    savingStatus?: Record<string, 'saving' | 'success' | 'error'>;
 }
 
 export default function PlanejamentoTab({
     data = [], clients = [], onUpdate, onAdd, rdc = [], matriz, cobo,
     tasks, iaHistory, setActiveTab, performArchive, performDelete, library,
-    activeClientId, showArchived, setShowArchived, setIsClientFilterOpen
+    activeClientId, showArchived, setShowArchived, setIsClientFilterOpen,
+    savingStatus = {}
 }: PlanejamentoTabProps) {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [activeTab, setActiveTabLocal] = useState('ALL');
@@ -797,13 +816,21 @@ export default function PlanejamentoTab({
                                 <label className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                     <ImageIcon size={12} strokeWidth={3} className="shrink-0" /> Conteúdo Principal
                                 </label>
-                                <textarea
-                                    rows={4}
-                                    value={selectedEvent?.Conteúdo || ''}
-                                    onChange={(e) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Conteúdo', e.target.value)}
-                                    placeholder="Escreva o conteúdo aqui..."
-                                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 text-xl font-black text-zinc-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 transition-all resize-none shadow-inner italic"
-                                />
+                                <div className="relative">
+                                    <textarea
+                                        rows={4}
+                                        defaultValue={selectedEvent?.Conteúdo || ''}
+                                        key={`content-${selectedEvent?.id}`}
+                                        onBlur={(e) => {
+                                            if (selectedEvent && e.target.value !== selectedEvent.Conteúdo) {
+                                                onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Conteúdo', e.target.value);
+                                            }
+                                        }}
+                                        placeholder="Escreva o conteúdo aqui..."
+                                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 text-xl font-black text-zinc-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 transition-all resize-none shadow-inner italic"
+                                    />
+                                    <SavingIndicator status={savingStatus[`PLANEJAMENTO:${selectedEvent?.id}:Conteúdo`]} />
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-6">
@@ -905,13 +932,21 @@ export default function PlanejamentoTab({
 
                             <div className="space-y-3">
                                 <label className="text-[11px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em] ml-1">Observações Táticas</label>
-                                <textarea
-                                    rows={5}
-                                    value={selectedEvent?.Observações || ''}
-                                    onChange={(e) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Observações', e.target.value)}
-                                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 text-xs font-bold text-zinc-800 dark:text-zinc-300 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 outline-none transition-all resize-none shadow-sm"
-                                    placeholder="Adicione notas, links de referências, briefings..."
-                                />
+                                <div className="relative">
+                                    <textarea
+                                        rows={5}
+                                        defaultValue={selectedEvent?.Observações || ''}
+                                        key={`obs-${selectedEvent?.id}`}
+                                        onBlur={(e) => {
+                                            if (selectedEvent && e.target.value !== selectedEvent.Observações) {
+                                                onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Observações', e.target.value);
+                                            }
+                                        }}
+                                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 text-xs font-bold text-zinc-800 dark:text-zinc-300 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 outline-none transition-all resize-none shadow-sm"
+                                        placeholder="Adicione notas, links de referências, briefings..."
+                                    />
+                                    <SavingIndicator status={savingStatus[`PLANEJAMENTO:${selectedEvent?.id}:Observações`]} />
+                                </div>
                             </div>
                         </div>
 

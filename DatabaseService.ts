@@ -26,17 +26,88 @@ const MAPA_COLUNAS: Record<string, Record<string, string>> = {
         role: 'papel'
     },
     financas: {
-        Lancamento_ID: 'Lançamento'
+        Lancamento_ID: 'Lançamento',
+        Tipo: 'tipo',
+        Categoria: 'categoria',
+        Descrição: 'descricao',
+        Valor: 'valor',
+        Data: 'data',
+        Status: 'status',
+        Recorrência: 'frequencia',
+        Cliente_ID: 'clienteId',
+        Dia_Pagamento: 'diaPagamento'
     },
     tasks: {
-        Activities: 'Atividades'
+        Activities: 'Atividades',
+        Task_ID: 'id', // Mapping database Task_ID to frontend id if needed
+        Cliente_ID: 'clienteId',
+        Título: 'titulo',
+        Descrição: 'descricao',
+        Área: 'area',
+        Status: 'status',
+        Prioridade: 'prioridade',
+        Responsável: 'responsavel',
+        Data_Entrega: 'dataEntrega',
+        Hora_Entrega: 'horaEntrega',
+        Tempo_Gasto_H: 'tempoGasto',
+        Estimativa_H: 'estimativa',
+        Relacionado_A: 'relacionadoA',
+        Relacionado_ID: 'relacionadoId',
+        Relacionado_Conteudo: 'relacionadoConteudo'
+    },
+    rdc: {
+        Cliente_ID: 'clienteId',
+        "Ideia de Conteúdo": 'ideia',
+        Rede_Social: 'redeSocial',
+        "Tipo de conteúdo": 'tipoConteudo',
+        "Resolução (1–5)": 'resolucao',
+        "Demanda (1–5)": 'demanda',
+        "Competição (1–5)": 'competicao',
+        "Score (R×D×C)": 'score',
+        Decisão: 'decisao'
+    },
+    cobo: {
+        Cliente_ID: 'clienteId',
+        Canal: 'canal',
+        Frequência: 'frequencia',
+        Público: 'publico',
+        Voz: 'voz',
+        Zona: 'zona',
+        Intenção: 'intencao',
+        Formato: 'formato'
+    },
+    matriz_estrategica: {
+        Cliente_ID: 'clienteId',
+        Rede_Social: 'redeSocial',
+        Função: 'funcao',
+        "Quem fala": 'quemFala',
+        "Papel estratégico": 'papelEstrategico',
+        "Tipo de conteúdo": 'tipoConteudo',
+        "Resultado esperado": 'resultadoEsperado'
+    },
+    planejamento: {
+        Cliente_ID: 'clienteId',
+        Data: 'data',
+        Hora: 'hora',
+        Conteúdo: 'conteudo',
+        Função: 'funcao',
+        Rede_Social: 'redeSocial',
+        "Tipo de conteúdo": 'tipoConteudo',
+        Intenção: 'intencao',
+        Canal: 'canal',
+        Formato: 'formato',
+        Zona: 'zona',
+        "Quem fala": 'quemFala',
+        "Status do conteúdo": 'status'
     },
     checklists: {
         cliente_id: 'client',
         titulo: 'title',
         data: 'date',
         local: 'location',
-        observacoes: 'notes'
+        observacoes: 'notes',
+        hora: 'time',
+        status: 'status'
     }
 };
 
@@ -63,35 +134,13 @@ const VALID_FIELDS: Record<string, string[]> = {
     rdc: [
         'id', 'workspace_id', 'Cliente_ID', 'Ideia de Conteúdo', 'Rede_Social',
         'Tipo de conteúdo', 'Resolução (1–5)', 'Demanda (1–5)',
-        'Competição (1–5)', 'Score (R×D×C)', 'Decisão', 'updated_at',
-        '__archived', 'created_at', 'created_by', 'updated_by'
-    ],
-    cobo: [
-        'id', 'workspace_id', 'Cliente_ID', 'Canal', 'Frequência', 'Público',
-        'Voz', 'Zona', 'Intenção', 'Formato', 'updated_at',
-        '__archived', 'created_at', 'created_by', 'updated_by'
-    ],
-    matriz_estrategica: [
-        'id', 'workspace_id', 'Cliente_ID', 'Rede_Social', 'Função',
-        'Quem fala', 'Papel estratégico', 'Tipo de conteúdo',
-        'Resultado esperado', 'updated_at',
-        '__archived', 'created_at', 'created_by', 'updated_by'
-    ],
-    planejamento: [
-        'id', 'workspace_id', 'Cliente_ID', 'Data', 'Hora', 'Conteúdo',
-        'Função', 'Rede_Social', 'Tipo de conteúdo', 'Intenção', 'Canal',
-        'Formato', 'Zona', 'Quem fala', 'Status do conteúdo', 'updated_at',
-        '__archived', 'created_at', 'created_by', 'updated_by'
-    ],
-    collaborators: [
-        'id', 'workspace_id', 'Nome', 'Cargo', 'valorHora',
         'horasMensais', 'updated_at',
         '__archived', 'created_at', 'created_by', 'updated_by'
     ],
     checklists: [
         'id', 'workspace_id', 'titulo', 'data', 'cliente_id', 'local',
         'observacoes', 'status', 'itens_levar', 'itens_trazer',
-        'itens_gravar', 'updated_at', 'time',
+        'itens_gravar', 'updated_at', 'hora',
         '__archived', 'created_at', 'created_by', 'updated_by'
     ],
     reunioes: [
@@ -110,6 +159,26 @@ const VALID_FIELDS: Record<string, string[]> = {
         'mes_referencia', 'observacao', 'updated_at',
         '__archived', 'created_at', 'created_by', 'updated_by'
     ],
+    cobo: [
+        'id', 'workspace_id', 'Cliente_ID', 'Canal', 'Frequência',
+        'Público', 'Voz', 'Zona', 'Intenção', 'Formato', 'updated_at',
+        '__archived', 'created_at', 'created_by', 'updated_by'
+    ],
+    matriz_estrategica: [
+        'id', 'workspace_id', 'Cliente_ID', 'Rede_Social', 'Função',
+        'Quem fala', 'Papel estratégico', 'Tipo de conteúdo', 'Resultado esperado',
+        'updated_at', '__archived', 'created_at', 'created_by', 'updated_by'
+    ],
+    planejamento: [
+        'id', 'workspace_id', 'Cliente_ID', 'Data', 'Hora', 'Conteúdo',
+        'Função', 'Rede_Social', 'Tipo de conteúdo', 'Intenção', 'Canal',
+        'Formato', 'Zona', 'Quem fala', 'Status do conteúdo', 'updated_at',
+        '__archived', 'created_at', 'created_by', 'updated_by'
+    ],
+    collaborators: [
+        'id', 'workspace_id', 'Nome', 'Cargo', 'Remuneracao', 'HorasProdutivas',
+        'calculatedVh', 'updated_at', '__archived', 'created_at', 'created_by', 'updated_by'
+    ]
 };
 
 export const sanitizeForTable = (tableName: string, item: any) => {
@@ -420,8 +489,15 @@ export const DatabaseService = {
     },
 
     async updateItem(table: string, id: string, updates: any) {
+        const { data: { user } } = await supabase.auth.getUser();
         const dbUpdates = mapToDB(updates, table);
-        const { error } = await supabase.from(table).update({ ...dbUpdates, updated_at: new Date().toISOString() }).eq('id', id);
+        const payload = { 
+            ...dbUpdates, 
+            updated_by: user?.id,
+            updated_at: new Date().toISOString() 
+        };
+        const sanitized = sanitizeForTable(table, payload);
+        const { error } = await supabase.from(table).update(sanitized).eq('id', id);
         return error || null;
     },
 

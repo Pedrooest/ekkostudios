@@ -9,11 +9,26 @@ import {
 
 interface ClientesViewProps {
   clients: any[];
-  onUpdate: (tab: string, id: string, field: string, value: any) => void;
-  onDelete: (ids: string[], tab: string) => void;
+  onUpdate: (id: string, tab: any, field: string, value: any) => void;
+  onDelete: (ids: string[], tab: any) => void;
   onAdd: () => void;
   onOpenColorPicker?: (id: string, val: string) => void;
+  savingStatus?: Record<string, 'saving' | 'success' | 'error'>;
 }
+
+const SavingIndicator = ({ status }: { status?: 'saving' | 'success' | 'error' }) => {
+  if (!status) return null;
+  return (
+    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none z-10 animate-fade">
+      {status === 'saving' && (
+        <div className="w-3 h-3 border-2 border-zinc-400/30 border-t-zinc-400 rounded-full animate-spin"></div>
+      )}
+      {status === 'success' && (
+        <CheckCircle2 size={12} className="text-emerald-500" />
+      )}
+    </div>
+  );
+};
 
 const toBase64 = (file: File): Promise<string> => 
   new Promise((resolve, reject) => {
@@ -68,7 +83,7 @@ const Accordion: React.FC<{
   </div>
 );
 
-export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, onOpenColorPicker }: ClientesViewProps) => {
+export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, onOpenColorPicker, savingStatus = {} }: ClientesViewProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'Todos' | 'Ativo' | 'Inativo'>('Todos');
   const [selectedClient, setSelectedClient] = useState<any | null>(null);
@@ -100,9 +115,23 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
 
   const handleUpdateField = (field: string, value: any) => {
     if (!selectedClient) return;
-    onUpdate('CLIENTES', selectedClient.id, field, value);
+    onUpdate(selectedClient.id, 'CLIENTES', field, value);
     // Optimistic update for the drawer
     setSelectedClient({ ...selectedClient, [field]: value });
+  };
+
+  const [localState, setLocalState] = React.useState<any>(null);
+  React.useEffect(() => {
+    if (selectedClient && (!localState || localState.id !== selectedClient.id)) {
+      setLocalState(selectedClient);
+    }
+  }, [selectedClient]);
+
+  const handleBlur = (field: string) => {
+    if (!selectedClient || !localState) return;
+    if (localState[field] !== selectedClient[field]) {
+      handleUpdateField(field, localState[field]);
+    }
   };
 
   const closeDrawer = () => setSelectedClient(null);
@@ -275,25 +304,29 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                 onToggle={() => setActiveAccordion(activeAccordion === 'Dados Principais' ? '' : 'Dados Principais')}
               >
                 <div className="space-y-4 pt-4">
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 relative">
                     <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">NOME DA MARCA</label>
                     <input 
                       type="text" 
-                      value={selectedClient.Nome || ''} 
-                      onChange={(e) => handleUpdateField('Nome', e.target.value)}
-                      className="w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500/50 transition-all"
+                      value={localState?.Nome || ''} 
+                      onChange={(e) => setLocalState({ ...localState, Nome: e.target.value })}
+                      onBlur={() => handleBlur('Nome')}
+                      className="w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500/50 transition-all pr-10"
                     />
+                    <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:Nome`]} />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
+                    <div className="space-y-1.5 relative">
                       <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">NICHO</label>
                       <input 
                         type="text" 
-                        value={selectedClient.Nicho || ''} 
-                        onChange={(e) => handleUpdateField('Nicho', e.target.value)}
-                        className="w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500/50 transition-all"
+                        value={localState?.Nicho || ''} 
+                        onChange={(e) => setLocalState({ ...localState, Nicho: e.target.value })}
+                        onBlur={() => handleBlur('Nicho')}
+                        className="w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500/50 transition-all pr-10"
                       />
+                      <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:Nicho`]} />
                     </div>
                     
                     <div className="space-y-1.5">
@@ -310,48 +343,52 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 relative">
                     <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">RESPONSÁVEL</label>
                     <div className="flex items-center gap-2 group w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 focus-within:border-blue-500/50 transition-all">
                       <Users size={14} className="text-zinc-400 transition-colors group-focus-within:text-blue-500 shrink-0" />
                       <input 
                         type="text" 
-                        value={selectedClient.Responsável || ''} 
-                        onChange={(e) => handleUpdateField('Responsável', e.target.value)}
-                        className="flex-1 bg-transparent border-none outline-none text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 min-w-0"
+                        value={localState?.Responsável || ''} 
+                        onChange={(e) => setLocalState({ ...localState, Responsável: e.target.value })}
+                        onBlur={() => handleBlur('Responsável')}
+                        className="flex-1 bg-transparent border-none outline-none text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 min-w-0 pr-6"
                       />
                     </div>
+                    <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:Responsável`]} />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
+                    <div className="space-y-1.5 relative">
                       <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">WHATSAPP</label>
                       <div className="flex items-center gap-2 group w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 focus-within:border-emerald-500/50 transition-all">
                          <Phone size={14} className="text-emerald-500 shrink-0" />
                          <input 
                            type="text" 
-                           value={selectedClient.WhatsApp || ''} 
-                           onChange={(e) => handleUpdateField('WhatsApp', e.target.value)}
-                           className="flex-1 bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 min-w-0"
+                           value={localState?.WhatsApp || ''} 
+                           onChange={(e) => setLocalState({ ...localState, WhatsApp: e.target.value })}
+                           onBlur={() => handleBlur('WhatsApp')}
+                           className="flex-1 bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 min-w-0 pr-6"
                            placeholder="EX: +55 11 99999-9999"
                          />
                       </div>
+                      <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:WhatsApp`]} />
                     </div>
 
-                    <div className="space-y-1.5">
+                    <div className="space-y-1.5 relative">
                       <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">INSTAGRAM</label>
                       <div className="flex items-center gap-2 group w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 focus-within:border-rose-500/50 transition-all">
                          <Instagram size={14} className="text-rose-500 shrink-0" />
                          <input 
                            type="text" 
-                           value={selectedClient.Instagram || ''} 
-                           onChange={(e) => handleUpdateField('Instagram', e.target.value)}
-                           className="flex-1 bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 min-w-0"
+                           value={localState?.Instagram || ''} 
+                           onChange={(e) => setLocalState({ ...localState, Instagram: e.target.value })}
+                           onBlur={() => handleBlur('Instagram')}
+                           className="flex-1 bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 min-w-0 pr-6"
                            placeholder="EX: @USER"
                          />
                       </div>
+                      <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:Instagram`]} />
                     </div>
-                  </div>
                 </div>
               </Accordion>
 
@@ -573,7 +610,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
               >
                 <div className="space-y-6 pt-4">
                   {/* Paleta */}
-                  <div className="space-y-2">
+                  <div className="space-y-2 relative">
                     <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">PALETA ESTRATÉGICA (MAX 6)</label>
                     <div className="grid grid-cols-6 gap-2">
                       {Array.from({ length: 6 }).map((_, idx) => {
@@ -613,10 +650,11 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                         );
                       })}
                     </div>
+                    <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:paleta_cores`]} />
                   </div>
 
                   {/* Fontes */}
-                  <div className="space-y-2">
+                  <div className="space-y-2 relative">
                     <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">FONTES USADAS (MAX 3)</label>
                     <div className="space-y-2">
                       {Array.from({ length: 3 }).map((_, idx) => (
@@ -627,29 +665,33 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                           <input 
                             type="text" 
                             placeholder="NOME DA FONTE (EX: INTER)"
-                            value={(selectedClient.fontes || [])[idx] || ''}
+                            value={(localState?.fontes || [])[idx] || ''}
                             onChange={(e) => {
-                              const newList = [...(selectedClient.fontes || [])];
+                              const newList = [...(localState?.fontes || [])];
                               newList[idx] = e.target.value;
-                              handleUpdateField('fontes', newList);
+                              setLocalState({ ...localState, fontes: newList });
                             }}
+                            onBlur={() => handleBlur('fontes')}
                             className="flex-1 h-9 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-lg px-3 text-[10px] font-bold uppercase tracking-widest text-zinc-900 dark:text-white outline-none focus:border-blue-500/30 transition-all"
                           />
                         </div>
                       ))}
                     </div>
+                    <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:fontes`]} />
                   </div>
 
                   {/* Tom de Voz */}
-                  <div className="space-y-2">
+                  <div className="space-y-2 relative">
                     <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">TOM DE VOZ / PERSONALIDADE</label>
                     <textarea 
                       rows={3}
-                      value={selectedClient.tom_de_voz || ''}
-                      onChange={(e) => handleUpdateField('tom_de_voz', e.target.value)}
+                      value={localState?.tom_de_voz || ''}
+                      onChange={(e) => setLocalState({ ...localState, tom_de_voz: e.target.value })}
+                      onBlur={() => handleBlur('tom_de_voz')}
                       placeholder="DESCREVA A VOZ DA MARCA: EX: FORMAL, AUTORITÁRIA, DIVERTIDA..."
-                      className="w-full p-4 bg-zinc-50 dark:bg-zinc-800/50 border-2 border-zinc-100 dark:border-zinc-800 rounded-2xl text-[10px] font-medium text-zinc-900 dark:text-zinc-100 outline-none focus:border-blue-500/30 transition-all resize-none"
+                      className="w-full p-4 bg-zinc-50 dark:bg-zinc-800/50 border-2 border-zinc-100 dark:border-zinc-800 rounded-2xl text-[10px] font-medium text-zinc-900 dark:text-zinc-100 outline-none focus:border-blue-500/30 transition-all resize-none pr-10"
                     />
+                    <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:tom_de_voz`]} />
                   </div>
                 </div>
               </Accordion>
@@ -847,18 +889,20 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                 onToggle={() => setActiveAccordion(activeAccordion === 'EstrategiaUI' ? '' : 'EstrategiaUI')}
               >
                 <div className="space-y-6 pt-4">
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 relative">
                     <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">OBJETIVO PRINCIPAL</label>
                     <div className="flex items-start gap-2 group w-full bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 py-3 focus-within:border-blue-500/50 transition-all">
                        <Target size={14} className="text-zinc-400 transition-colors group-focus-within:text-blue-500 shrink-0 mt-0.5" />
                        <textarea 
-                         value={selectedClient.Objetivo || ''} 
-                         onChange={(e) => handleUpdateField('Objetivo', e.target.value)}
+                         value={localState?.Objetivo || ''} 
+                         onChange={(e) => setLocalState({ ...localState, Objetivo: e.target.value })}
+                         onBlur={() => handleBlur('Objetivo')}
                          rows={3}
-                         className="flex-1 bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 resize-none min-w-0"
+                         className="flex-1 bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 resize-none min-w-0 pr-6"
                          placeholder="EX: EXPANSÃO DE MARCA"
                        />
                     </div>
+                    <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:Objetivo`]} />
                   </div>
 
                   <div className="space-y-1.5">

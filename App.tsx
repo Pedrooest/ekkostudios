@@ -248,6 +248,19 @@ export default function App() {
   const [activeNotifTab, setActiveNotifTab] = useState<'notificacoes' | 'lembretes'>('notificacoes');
   const [isLembreteModalOpen, setIsLembreteModalOpen] = useState(false);
   const [editingLembrete, setEditingLembrete] = useState<Lembrete | null>(null);
+  
+  // Track persistence status: { "tab:id:field": "saving" | "success" | "error" }
+  const [savingStatus, setSavingStatus] = useState<Record<string, 'saving' | 'success' | 'error'>>({});
+
+  const clearSavingStatus = useCallback((key: string) => {
+    setTimeout(() => {
+      setSavingStatus(prev => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+    }, 2000);
+  }, []);
   const exportButtonRef = useRef<HTMLButtonElement>(null);
   const mobileExportButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -869,6 +882,9 @@ export default function App() {
       return;
     }
 
+    const key = `${tab}:${id}:${field}`;
+    setSavingStatus(prev => ({ ...prev, [key]: 'saving' }));
+
     // Identificar a lista correta
     let currentList: any[] = [];
     if (tab === 'CLIENTES') currentList = clients;
@@ -882,10 +898,13 @@ export default function App() {
     else if (tab === 'REUNIOES') currentList = reunioes;
     else if (tab === 'LEMBRETES') currentList = lembretes;
     else if (tab === 'IA_HISTORY') currentList = iaHistory;
+    else if (tab === 'VH') currentList = collaborators;
 
     const originalItem = currentList.find(i => i.id === id);
     if (!originalItem) {
       console.warn(`[EKKO-SYNC] UPDATE_FAILED | Could not find original item for tab: ${tab} with ID: ${id}. Ensure currentList is mapped correctly.`);
+      setSavingStatus(prev => ({ ...prev, [key]: 'error' }));
+      clearSavingStatus(key);
       return;
     }
 
@@ -981,6 +1000,8 @@ export default function App() {
            const queue = JSON.parse(localStorage.getItem('ekko_offline_queue') || '[]');
            queue.push({ action: 'UPDATE', tableName, data: updated, workspaceId: currentWorkspace.id });
            localStorage.setItem('ekko_offline_queue', JSON.stringify(queue));
+           setSavingStatus(prev => ({ ...prev, [key]: 'success' }));
+           clearSavingStatus(key);
            return;
         }
 
@@ -989,6 +1010,7 @@ export default function App() {
 
         if (error) {
           console.error(`[EKKO-SYNC] UPDATE_FAILURE | Table: ${tableName} | ID: ${id}`, error);
+          setSavingStatus(prev => ({ ...prev, [key]: 'error' }));
           addNotification('error', 'Falha ao salvar', `Erro: ${error.message || JSON.stringify(error) || 'Não foi possível sincronizar as alterações.'}`);
           // Reverte o snapshot anterior caso o backend falhe
           if (tab === 'CLIENTES') setClients(revertFn);
@@ -1000,13 +1022,15 @@ export default function App() {
           else if (tab === 'COBO') setCobo(revertFn);
           else if (tab === 'MATRIZ') setMatriz(revertFn);
           else if (tab === 'IA_HISTORY') setIaHistory(revertFn);
-        } else if (!skipLog) {
-          // Success notification (optional, maybe too noisy)
-          // addNotification('success', 'Alterações salvas', `O campo ${field} foi atualizado.`);
+          else if (tab === 'VH') setCollaborators(revertFn);
+          clearSavingStatus(key);
+        } else {
+          setSavingStatus(prev => ({ ...prev, [key]: 'success' }));
+          clearSavingStatus(key);
         }
       }
     }
-  }, [currentWorkspace, currentUser, addNotification, clients, rdc, matriz, cobo, planejamento, financas, tasks, iaHistory]);
+  }, [currentWorkspace, currentUser, addNotification, clients, rdc, matriz, cobo, planejamento, financas, tasks, iaHistory, clearSavingStatus]);
 
   const handleAddRow = useCallback(async (tab: TipoTabela, initial: Partial<any> = {}): Promise<string> => {
     console.log(`[EKKO-DIAGNOSTIC] handleAddRow started | Tab: ${tab} | WorkspaceID: ${currentWorkspace?.id} | initialData:`, initial);
@@ -1744,10 +1768,10 @@ export default function App() {
 
         <div className={`flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar animate-fade bg-app-bg ${(activeTab === 'WHITEBOARD' || activeTab === 'CLIENTES' || activeTab === 'PLANEJAMENTO' || activeTab === 'CHECKLISTS') ? 'p-0 overflow-hidden' : 'p-4 sm:p-6 pb-[calc(100px+env(safe-area-inset-bottom))] sm:pb-6'}`}>
           {activeTab === 'DASHBOARD' && <DashboardView clients={clients} tasks={currentTasks} financas={currentFinancas} planejamento={currentPlanejamento} rdc={currentRdc} setActiveTab={setActiveTab} perfilUsuario={perfilUsuario} />}
-          {activeTab === 'CLIENTES' && <ClientesView clients={filterArchived(clients)} onUpdate={handleUpdate} onDelete={performDelete} onAdd={() => handleAddRow('CLIENTES')} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} />}
-          {activeTab === 'REUNIOES' && <ReunioesView reunioes={reunioes} clients={clients} onUpdate={handleUpdate} onDelete={performDelete} onAdd={() => handleAddRow('REUNIOES')} />}
-          {activeTab === 'RDC' && <TableView tab="RDC" data={currentRdc} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('RDC')} library={BibliotecaConteudo} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
-          {activeTab === 'MATRIZ' && <MatrizEstrategicaView data={currentMatriz} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('MATRIZ')} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
+          {activeTab === 'CLIENTES' && <ClientesView clients={filterArchived(clients)} onUpdate={handleUpdate} onDelete={performDelete} onAdd={() => handleAddRow('CLIENTES')} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} savingStatus={savingStatus} />}
+          {activeTab === 'REUNIOES' && <ReunioesView reunioes={reunioes} clients={clients} onUpdate={handleUpdate} onDelete={performDelete} onAdd={() => handleAddRow('REUNIOES')} savingStatus={savingStatus} />}
+          {activeTab === 'RDC' && <TableView tab="RDC" data={currentRdc} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('RDC')} library={BibliotecaConteudo} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} savingStatus={savingStatus} />}
+          {activeTab === 'MATRIZ' && <MatrizEstrategicaView data={currentMatriz} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('MATRIZ')} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} savingStatus={savingStatus} />}
 
 
           {activeTab === 'COBO' && (
@@ -1763,14 +1787,15 @@ export default function App() {
               selection={selection}
               onSelect={toggleSelection}
               onClearSelection={() => setSelection([])}
+              savingStatus={savingStatus}
             />
           )}
 
-          {activeTab === 'PLANEJAMENTO' && <PlanejamentoTab data={currentPlanejamento} clients={clients} onUpdate={handleUpdate} onAdd={handleAddRow} rdc={currentRdc} matriz={matriz} cobo={cobo} tasks={currentTasks} iaHistory={iaHistory} setActiveTab={setActiveTab} performArchive={performArchive} performDelete={performDelete} library={BibliotecaConteudo} activeClientId={selectedClientIds.length === 1 ? selectedClientIds[0] : undefined} showArchived={showArchived} setShowArchived={setShowArchived} setIsClientFilterOpen={setIsClientFilterOpen} />}
-          {activeTab === 'FINANCAS' && <FinancasTab financas={currentFinancas} onAdd={(initial: any) => handleAddRow('FINANCAS', initial)} onUpdate={(id: any, field: any, value: any) => handleUpdate(id, 'FINANCAS', field, value)} onDelete={(ids: any) => performDelete(ids, 'FINANCAS')} clients={clients} currentWorkspace={currentWorkspace} />}
-          {activeTab === 'TAREFAS' && <TaskFlowView tasks={currentTasks} clients={clients} collaborators={collaborators} activeViewId={activeTaskViewId} setActiveViewId={setActiveTaskViewId} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('TAREFAS')} onSelectTask={setSelectedTaskId} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} />}
-          {activeTab === 'CHECKLISTS' && <ChecklistsTab data={currentChecklists} onAdd={handleAddRow} onUpdate={handleUpdate} onDelete={performDelete} clients={clients} />}
-          { activeTab === 'VH' && <VhManagementView clients={clients} collaborators={collaborators} setCollaborators={setCollaborators} onUpdate={handleUpdate} selection={selection} onSelect={toggleSelection} tasks={currentTasks} financas={currentFinancas} /> }
+          {activeTab === 'PLANEJAMENTO' && <PlanejamentoTab data={currentPlanejamento} clients={clients} onUpdate={handleUpdate} onAdd={handleAddRow} rdc={currentRdc} matriz={matriz} cobo={cobo} tasks={currentTasks} iaHistory={iaHistory} setActiveTab={setActiveTab} performArchive={performArchive} performDelete={performDelete} library={BibliotecaConteudo} activeClientId={selectedClientIds.length === 1 ? selectedClientIds[0] : undefined} showArchived={showArchived} setShowArchived={setShowArchived} setIsClientFilterOpen={setIsClientFilterOpen} savingStatus={savingStatus} />}
+          {activeTab === 'FINANCAS' && <FinancasTab financas={currentFinancas} onAdd={(initial: any) => handleAddRow('FINANCAS', initial)} onUpdate={(id: any, field: any, value: any) => handleUpdate(id, 'FINANCAS', field, value)} onDelete={(ids: any) => performDelete(ids, 'FINANCAS')} clients={clients} currentWorkspace={currentWorkspace} savingStatus={savingStatus} />}
+          {activeTab === 'TAREFAS' && <TaskFlowView tasks={currentTasks} clients={clients} collaborators={collaborators} activeViewId={activeTaskViewId} setActiveViewId={setActiveTaskViewId} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('TAREFAS')} onSelectTask={setSelectedTaskId} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} savingStatus={savingStatus} />}
+          {activeTab === 'CHECKLISTS' && <ChecklistsTab data={currentChecklists} onAdd={handleAddRow} onUpdate={handleUpdate} onDelete={performDelete} clients={clients} savingStatus={savingStatus} />}
+          { activeTab === 'VH' && <VhManagementView clients={clients} collaborators={collaborators} setCollaborators={setCollaborators} onUpdate={handleUpdate} selection={selection} onSelect={toggleSelection} tasks={currentTasks} financas={currentFinancas} savingStatus={savingStatus} /> }
           { activeTab === 'RELATORIOS' && <RelatoriosView clients={clients} planejamento={planejamento} tasks={tasks} financas={financas} rdc={rdc} /> }
           {activeTab === 'ORGANICKIA' && <OrganickIAView
             clients={clients}

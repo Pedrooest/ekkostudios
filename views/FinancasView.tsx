@@ -218,10 +218,24 @@ const CalendarView: React.FC<{
     );
 };
 
+const SavingIndicator = ({ status }: { status?: 'saving' | 'success' | 'error' }) => {
+    if (!status) return null;
+    return (
+        <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none z-10 animate-fade">
+            {status === 'saving' && (
+                <div className="w-2.5 h-2.5 border-2 border-zinc-400/30 border-t-zinc-400 rounded-full animate-spin"></div>
+            )}
+            {status === 'success' && (
+                <Check size={10} className="text-emerald-500" />
+            )}
+        </div>
+    );
+};
+
 // ==========================================
 // MAIN COMPONENT
 // ==========================================
-export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, clients, currentWorkspace }: any) {
+export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, clients, currentWorkspace, savingStatus = {} }: any) {
     const [activeInternalTab, setActiveInternalTab] = useState<'VISAO_GERAL' | 'LANCAMENTOS' | 'CALENDARIO' | 'SOCIOS' | 'MRR' | 'PENDENCIAS'>('VISAO_GERAL');
     const workspaceId = currentWorkspace?.id || 'default';
     const configKey = `ekko_socios_${workspaceId}`;
@@ -598,22 +612,25 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
         if (!formData.valor || !formData.descricao) return;
 
         tryPlaySound('success');
-        const dbItem = {
-            Tipo: formData.tipo === 'entrada' ? 'Entrada' : formData.tipo === 'assinatura' ? 'Assinatura' : 'Saída',
-            Categoria: formData.categoria || 'Geral',
-            Descrição: formData.descricao,
-            Valor: parseNumericValue(formData.valor),
-            Data: formData.data,
-            Status: formData.status === 'pago' ? 'Pago' : formData.status === 'pendente' ? 'Pendente' : formData.status,
-            Recorrência: formData.frequencia === 'unica' ? 'Única' : formData.frequencia === 'mensal' ? 'Mensal' : 'Anual',
-            Cliente_ID: formData.clienteId || null,
-            Dia_Pagamento: formData.diaPagamento ? parseInt(formData.diaPagamento) : null
+        
+        // Usar as chaves do frontend (camelCase) para consistência
+        const updatedObject = {
+            tipo: formData.tipo,
+            categoria: formData.categoria || 'Geral',
+            descricao: formData.descricao,
+            valor: parseNumericValue(formData.valor),
+            data: formData.data,
+            status: formData.status === 'pago' ? 'Pago' : formData.status === 'pendente' ? 'Pendente' : formData.status,
+            frequencia: formData.frequencia,
+            clienteId: formData.clienteId || null,
+            diaPagamento: formData.diaPagamento ? parseInt(formData.diaPagamento) : null
         };
 
         if (editingId) {
-            if (onUpdate) await onUpdate(editingId, null, dbItem);
+            // Bulk update passando null no campo
+            if (onUpdate) await onUpdate(editingId, null, updatedObject);
         } else {
-            if (onAdd) await onAdd(dbItem);
+            if (onAdd) await onAdd(updatedObject);
         }
 
         setIsModalOpen(false);
@@ -936,11 +953,11 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                                             {tx.tipo === 'entrada' ? '+' : '-'}{formatBRL(tx.valor)}
                                                         </span>
                                                     </td>
-                                                    <td className="px-6 py-4 text-center">
+                                                    <td className="px-6 py-4 text-center relative">
                                                         <button 
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
-                                                                onUpdate(tx.id, null, { ...tx.raw, Status: tx.status === 'Pago' ? 'Pendente' : 'Pago' });
+                                                                onUpdate(tx.id, 'FINANCAS', 'Status', tx.status === 'Pago' ? 'Pendente' : 'Pago');
                                                             }}
                                                             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all border ${
                                                                 tx.status === 'Pago' 
@@ -953,6 +970,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                                             {tx.status === 'Pago' ? <Check size={10}/> : <Clock size={10}/>}
                                                             {tx.status}
                                                         </button>
+                                                        <SavingIndicator status={savingStatus[`FINANCAS:${tx.id}:Status`]} />
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
                                                         <div className="flex justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">

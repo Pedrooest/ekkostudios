@@ -52,7 +52,7 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
   }, [reunioes, searchTerm, clientFilter, monthFilter]);
 
   const handleStatusChange = (meeting: Reuniao, newStatus: Reuniao['status']) => {
-    onUpdate('REUNIOES', meeting.id, 'status', newStatus);
+    onUpdate(meeting.id, 'REUNIOES', 'status', newStatus);
   };
 
   const getStatusBadge = (status: Reuniao['status']) => {
@@ -351,11 +351,11 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
                   <div className="space-y-4">
                      <div className="space-y-2">
                         <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Pauta</label>
-                        <textarea value={selectedMeeting.pauta} onChange={(e) => onUpdate('REUNIOES', selectedMeeting.id, 'pauta', e.target.value)} rows={4} className="w-full p-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-2xl text-xs" />
+                        <textarea value={selectedMeeting.pauta} onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'pauta', e.target.value)} rows={4} className="w-full p-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-2xl text-xs" />
                      </div>
                      <div className="space-y-2">
                         <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Decisões</label>
-                        <textarea value={selectedMeeting.decisoes} onChange={(e) => onUpdate('REUNIOES', selectedMeeting.id, 'decisoes', e.target.value)} rows={4} className="w-full p-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-2xl text-xs" />
+                        <textarea value={selectedMeeting.decisoes} onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'decisoes', e.target.value)} rows={4} className="w-full p-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-2xl text-xs" />
                      </div>
                   </div>
                 </div>
@@ -383,7 +383,7 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
                                 onClick={() => {
                                   const newSteps = [...selectedMeeting.proximos_passos];
                                   newSteps[idx].checkbox = !newSteps[idx].checkbox;
-                                  onUpdate('REUNIOES', selectedMeeting.id, 'proximos_passos', newSteps);
+                                  onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps);
                                 }}
                                 className={`mt-0.5 h-4 w-4 rounded border flex items-center justify-center text-[8px] ${step.checkbox ? 'bg-green-500 border-green-500 text-white' : 'border-zinc-300'}`}
                               >
@@ -395,16 +395,16 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
                                 onChange={(e) => {
                                   const newSteps = [...selectedMeeting.proximos_passos];
                                   newSteps[idx].texto = e.target.value;
-                                  onUpdate('REUNIOES', selectedMeeting.id, 'proximos_passos', newSteps);
+                                  onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps);
                                 }}
                                 className={`flex-1 bg-transparent border-none p-0 text-[11px] font-bold focus:ring-0 ${step.checkbox ? 'text-zinc-400 line-through' : ''}`}
                                 placeholder="Ação..."
                               />
                            </div>
                            <div className="flex items-center gap-3">
-                              <input type="text" value={step.responsavel} onChange={(e) => { const newSteps = [...selectedMeeting.proximos_passos]; newSteps[idx].responsavel = e.target.value; onUpdate('REUNIOES', selectedMeeting.id, 'proximos_passos', newSteps); }} className="flex-1 bg-zinc-50 dark:bg-zinc-800 rounded-lg p-2 text-[8px] font-black uppercase tracking-widest border-none" placeholder="QUEM" />
-                              <input type="text" value={step.prazo} onChange={(e) => { const newSteps = [...selectedMeeting.proximos_passos]; newSteps[idx].prazo = e.target.value; onUpdate('REUNIOES', selectedMeeting.id, 'proximos_passos', newSteps); }} className="flex-1 bg-zinc-50 dark:bg-zinc-800 rounded-lg p-2 text-[8px] font-black uppercase tracking-widest border-none" placeholder="QUANDO" />
-                              <button onClick={() => { const newSteps = selectedMeeting.proximos_passos.filter((_, i) => i !== idx); onUpdate('REUNIOES', selectedMeeting.id, 'proximos_passos', newSteps); }} className="text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <input type="text" value={step.responsavel} onChange={(e) => { const newSteps = [...selectedMeeting.proximos_passos]; newSteps[idx].responsavel = e.target.value; onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps); }} className="flex-1 bg-zinc-50 dark:bg-zinc-800 rounded-lg p-2 text-[8px] font-black uppercase tracking-widest border-none" placeholder="QUEM" />
+                              <input type="text" value={step.prazo} onChange={(e) => { const newSteps = [...selectedMeeting.proximos_passos]; newSteps[idx].prazo = e.target.value; onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps); }} className="flex-1 bg-zinc-50 dark:bg-zinc-800 rounded-lg p-2 text-[8px] font-black uppercase tracking-widest border-none" placeholder="QUANDO" />
+                              <button onClick={() => { const newSteps = selectedMeeting.proximos_passos.filter((_, i) => i !== idx); onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps); }} className="text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
                                  <Trash2 size={12} />
                               </button>
                            </div>

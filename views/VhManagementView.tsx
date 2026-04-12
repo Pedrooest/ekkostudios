@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
     TrendingUp, Users, DollarSign, Target, Plus, Zap, Trash2,
-    Calculator, Info, LayoutDashboard, Settings, BarChart3, Clock
+    Calculator, Info, LayoutDashboard, Settings, BarChart3, Clock, Check
 } from 'lucide-react';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -11,20 +11,28 @@ import { Card, StatCard, Button, InputSelect, Badge } from '../Components';
 import { TableView } from '../components/TableView';
 import { Colaborador, Cliente, Tarefa, LancamentoFinancas } from '../types';
 
-interface VhManagementViewProps {
-    clients: Cliente[];
-    collaborators: Colaborador[];
-    setCollaborators: any;
-    onUpdate: (id: string, table: string, field: string, value: any, silent?: boolean) => void;
-    selection: string[];
-    onSelect: (id: string) => void;
     tasks: Tarefa[];
     financas: LancamentoFinancas[];
+    savingStatus?: Record<string, 'saving' | 'success' | 'error'>;
 }
+
+const SavingIndicator = ({ status }: { status?: 'saving' | 'success' | 'error' }) => {
+    if (!status) return null;
+    return (
+        <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none z-10 animate-fade">
+            {status === 'saving' && (
+                <div className="w-2 h-2 border-2 border-zinc-400/30 border-t-zinc-400 rounded-full animate-spin"></div>
+            )}
+            {status === 'success' && (
+                <Check size={10} className="text-emerald-500" />
+            )}
+        </div>
+    );
+};
 
 export function VhManagementView({
     clients, collaborators, setCollaborators, onUpdate,
-    selection, onSelect, tasks, financas
+    selection, onSelect, tasks, financas, savingStatus = {}
 }: VhManagementViewProps) {
     const [subTab, setSubTab] = useState<'dashboard' | 'clients' | 'config'>('dashboard');
     const [simulator, setSimulator] = useState({ fee: 0, hours: 0 });
@@ -32,7 +40,10 @@ export function VhManagementView({
     const formatBRL = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
     const handleUpdateCollab = (id: string, field: string, value: any) => {
+        // Optimistic local update
         setCollaborators((prev: Colaborador[]) => prev.map(c => c.id === id ? { ...c, [field]: value } : c));
+        // Sync to backend
+        onUpdate(id, 'VH', field, value);
     };
 
     const dashboardData = useMemo(() => {
@@ -327,23 +338,35 @@ export function VhManagementView({
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-4 border-b border-zinc-100 dark:border-zinc-800/50">
-                                                    <div className="flex items-center gap-1 w-full h-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-md px-2.5 focus-within:border-zinc-500 transition-all shadow-sm">
+                                                    <div className="flex items-center gap-1 w-full h-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-md px-2.5 focus-within:border-zinc-500 transition-all shadow-sm relative">
                                                         <span className="text-[10px] font-bold text-zinc-400 shrink-0">R$</span>
                                                         <input
-                                                            type="number" value={c.Remuneracao}
-                                                            onChange={(e) => handleUpdateCollab(c.id, 'Remuneracao', e.target.value)}
+                                                            type="number" 
+                                                            defaultValue={c.Remuneracao}
+                                                            onBlur={(e) => {
+                                                                if (e.target.value !== String(c.Remuneracao)) {
+                                                                    handleUpdateCollab(c.id, 'Remuneracao', e.target.value);
+                                                                }
+                                                            }}
                                                             className="flex-1 bg-transparent border-none outline-none font-mono text-xs font-bold text-zinc-900 dark:text-white min-w-0"
                                                         />
+                                                        <SavingIndicator status={savingStatus[`VH:${c.id}:Remuneracao`]} />
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-4 border-b border-zinc-100 dark:border-zinc-800/50 text-center">
-                                                    <div className="flex items-center justify-center gap-1.5">
+                                                    <div className="flex items-center justify-center gap-1.5 relative">
                                                         <input
-                                                            type="number" value={c.HorasProdutivas}
-                                                            onChange={(e) => handleUpdateCollab(c.id, 'HorasProdutivas', e.target.value)}
+                                                            type="number" 
+                                                            defaultValue={c.HorasProdutivas}
+                                                            onBlur={(e) => {
+                                                                if (e.target.value !== String(c.HorasProdutivas)) {
+                                                                    handleUpdateCollab(c.id, 'HorasProdutivas', e.target.value);
+                                                                }
+                                                            }}
                                                             className="w-12 h-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-center font-mono text-xs font-bold text-zinc-900 dark:text-white focus:outline-none focus:border-zinc-500 px-1 rounded-md transition-all shadow-sm"
                                                         />
                                                         <span className="text-[10px] font-bold text-zinc-400">H</span>
+                                                        <SavingIndicator status={savingStatus[`VH:${c.id}:HorasProdutivas`]} />
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 border-b border-zinc-100 dark:border-zinc-800/50 text-right">

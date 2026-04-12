@@ -28,7 +28,25 @@ interface CoboViewProps {
   selection: string[];
   onSelect: (id: string) => void;
   onClearSelection: () => void;
+  savingStatus?: Record<string, 'saving' | 'success' | 'error'>;
 }
+
+const SavingIndicator = ({ status }: { status?: 'saving' | 'success' | 'error' }) => {
+  if (!status) return null;
+  return (
+    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none z-10 animate-fade">
+      {status === 'saving' && (
+        <div className="w-3 h-3 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
+      )}
+      {status === 'success' && (
+        <CheckCircle2 size={12} className="text-emerald-500" />
+      )}
+      {status === 'error' && (
+        <AlertCircle size={12} className="text-rose-500" />
+      )}
+    </div>
+  );
+};
 
 const getSocialIcon = (canal: string) => {
   const c = canal.toLowerCase();
@@ -65,7 +83,8 @@ const getZonaColor = (zona: string) => {
 export function CoboView({
   data, onUpdate, onDelete, onArchive, onAdd,
   clients, activeClient, onSelectClient,
-  selection, onSelect, onClearSelection
+  selection, onSelect, onClearSelection,
+  savingStatus = {}
 }: CoboViewProps) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
   const [viewMode, setViewMode] = useState<'table' | 'cards'>(window.innerWidth < 640 ? 'cards' : 'table');
@@ -243,27 +262,34 @@ export function CoboView({
               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                 {filteredData.map(item => (
                   <tr key={item.id} className="group hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
-                    <td className="px-6 py-3" title={item.Canal}>
+                    <td className="px-6 py-3 relative" title={item.Canal}>
                       <div className="flex items-center gap-3 overflow-hidden">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-500 border border-zinc-200 dark:border-zinc-700 shrink-0">
                           {getSocialIcon(item.Canal)}
                         </div>
                         <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight truncate min-w-0">{item.Canal}</span>
                       </div>
+                      <SavingIndicator status={savingStatus[`COBO:${item.id}:Canal`]} />
                     </td>
-                    <td className="px-6 py-3 text-xs font-medium text-zinc-500 truncate" title={item.Frequência}>{item.Frequência}</td>
-                    <td className="px-6 py-3">
+                    <td className="px-6 py-3 text-xs font-medium text-zinc-500 truncate relative" title={item.Frequência}>
+                      {item.Frequência}
+                      <SavingIndicator status={savingStatus[`COBO:${item.id}:Frequência`]} />
+                    </td>
+                    <td className="px-6 py-3 relative">
                       <Badge color={getZonaColor(item.Zona) as any} className="truncate">{item.Zona}</Badge>
+                      <SavingIndicator status={savingStatus[`COBO:${item.id}:Zona`]} />
                     </td>
-                    <td className="px-6 py-3 min-w-[180px]">
+                    <td className="px-6 py-3 min-w-[180px] relative">
                       <div className="max-w-[180px] overflow-hidden">
                         <Badge color="slate" className="truncate block">{item.Intenção}</Badge>
                       </div>
+                      <SavingIndicator status={savingStatus[`COBO:${item.id}:Intenção`]} />
                     </td>
-                    <td className="px-6 py-3 min-w-[180px]">
+                    <td className="px-6 py-3 min-w-[180px] relative">
                       <div className="max-w-[180px] overflow-hidden">
                         <Badge color="slate" className="truncate block">{item.Formato}</Badge>
                       </div>
+                      <SavingIndicator status={savingStatus[`COBO:${item.id}:Formato`]} />
                     </td>
                     <td className="px-6 py-3 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -289,8 +315,9 @@ export function CoboView({
               
               <div className="flex justify-between items-start mb-6 relative z-10">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-500 border border-zinc-200 dark:border-zinc-700 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-500 border border-zinc-200 dark:border-zinc-700 shadow-sm relative">
                     {getSocialIcon(item.Canal)}
+                    <SavingIndicator status={savingStatus[`COBO:${item.id}:Canal`]} />
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">{item.Canal}</h4>
@@ -308,29 +335,35 @@ export function CoboView({
               </div>
 
               <div className="grid grid-cols-2 gap-y-4 gap-x-6 relative z-10">
-                <div className="space-y-1">
+                <div className="space-y-1 relative">
                   <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Frequência</p>
                   <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">{item.Frequência}</p>
+                  <SavingIndicator status={savingStatus[`COBO:${item.id}:Frequência`]} />
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 relative">
                   <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Zona</p>
                   <Badge color={getZonaColor(item.Zona) as any}>{item.Zona}</Badge>
+                  <SavingIndicator status={savingStatus[`COBO:${item.id}:Zona`]} />
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 relative">
                   <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Voz</p>
                   <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">{item.Voz}</p>
+                  <SavingIndicator status={savingStatus[`COBO:${item.id}:Voz`]} />
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 relative">
                   <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Público</p>
                   <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">{item.Público}</p>
+                  <SavingIndicator status={savingStatus[`COBO:${item.id}:Público`]} />
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 relative">
                   <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Intenção</p>
                   <Badge color="slate" className="w-fit">{item.Intenção}</Badge>
+                  <SavingIndicator status={savingStatus[`COBO:${item.id}:Intenção`]} />
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 relative">
                   <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Formato</p>
                   <Badge color="slate" className="w-fit">{item.Formato}</Badge>
+                  <SavingIndicator status={savingStatus[`COBO:${item.id}:Formato`]} />
                 </div>
               </div>
             </div>

@@ -31,12 +31,31 @@ interface TableViewProps {
     activeClient?: Cliente | null;
     onSelectClient?: (id: string) => void;
     hideHeader?: boolean;
+    savingStatus?: Record<string, 'saving' | 'success' | 'error'>;
 }
+
+const SavingIndicator = ({ status }: { status?: 'saving' | 'success' | 'error' }) => {
+    if (!status) return null;
+    return (
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none z-10 animate-fade">
+            {status === 'saving' && (
+                <div className="w-3 h-3 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
+            )}
+            {status === 'success' && (
+                <i className="fa-solid fa-check text-[10px] text-emerald-500"></i>
+            )}
+            {status === 'error' && (
+                <i className="fa-solid fa-circle-exclamation text-[10px] text-rose-500"></i>
+            )}
+        </div>
+    );
+};
 
 export function TableView({
     tab, data, onUpdate, onDelete, onArchive, onAdd,
     clients = [], library = {}, selection, onSelect, onClearSelection,
-    onOpenColorPicker, activeCategory, activeClient, onSelectClient, hideHeader
+    onOpenColorPicker, activeCategory, activeClient, onSelectClient, hideHeader,
+    savingStatus = {}
 }: TableViewProps) {
     const [mobileActionRow, setMobileActionRow] = useState<any>(null);
 
@@ -209,6 +228,7 @@ export function TableView({
                                 onDelete={onDelete}
                                 selection={selection}
                                 onSelect={onSelect}
+                                savingStatus={savingStatus}
                             />
                         ))}
                     </tbody>
@@ -269,7 +289,7 @@ export function TableView({
                                                             <div key={col}>
                                                                 <label className="text-[9px] font-black uppercase text-[#4B5563] tracking-widest block mb-2">{col}</label>
                                                                 <div className="text-sm">
-                                                                    {renderCell(tab, row, col, onUpdate, clients, library, onOpenColorPicker)}
+                                                                    {renderCell(tab, row, col, onUpdate, clients, library, onOpenColorPicker, savingStatus)}
                                                                 </div>
                                                             </div>
                                                         ))}
@@ -283,7 +303,7 @@ export function TableView({
                                                 <div key={col}>
                                                     <label className="text-[9px] font-black uppercase text-[#4B5563] tracking-widest block mb-2">{col}</label>
                                                     <div className="text-sm">
-                                                        {renderCell(tab, row, col, onUpdate, clients, library, onOpenColorPicker)}
+                                                        {renderCell(tab, row, col, onUpdate, clients, library, onOpenColorPicker, savingStatus)}
                                                     </div>
                                                 </div>
                                             ))}
@@ -325,7 +345,7 @@ export function TableView({
     );
 };
 
-function TableRow({ row, tab, cols, onUpdate, clients, library, onOpenColorPicker, onArchive, onDelete, selection, onSelect }: any) {
+function TableRow({ row, tab, cols, onUpdate, clients, library, onOpenColorPicker, onArchive, onDelete, selection, onSelect, savingStatus }: any) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const isRDC = tab === 'RDC';
 
@@ -346,7 +366,7 @@ function TableRow({ row, tab, cols, onUpdate, clients, library, onOpenColorPicke
                 }
                 return (
                     <td key={col} className="px-3 py-2.5 text-sm align-middle min-w-0" style={widthStyle}>
-                        {renderCell(tab, row, col, onUpdate, clients, library, onOpenColorPicker)}
+                        {renderCell(tab, row, col, onUpdate, clients, library, onOpenColorPicker, savingStatus)}
                     </td>
                 );
             })}
@@ -379,19 +399,40 @@ function TableRow({ row, tab, cols, onUpdate, clients, library, onOpenColorPicke
     );
 };
 
-function renderCell(tab: TipoTabela, row: any, col: string, update: Function, clients: Cliente[] = [], library: BibliotecaConteudo = {}, onOpenColorPicker?: Function) {
-    const common = "w-full bg-transparent border-none text-sm text-zinc-900 dark:text-zinc-100 pointer-events-auto outline-none transition-all focus:text-blue-600 dark:focus:text-blue-400 truncate max-w-[200px] placeholder:text-zinc-400";
+function renderCell(tab: TipoTabela, row: any, col: string, update: Function, clients: Cliente[] = [], library: BibliotecaConteudo = {}, onOpenColorPicker?: Function, savingStatus: Record<string, any> = {}) {
+    const key = `${tab}:${row.id}:${col}`;
+    const status = savingStatus[key];
+    
+    // Local state for text components to enable responsive typing with onBlur sync
+    const [localValue, setLocalValue] = React.useState<string>(row[col] || '');
+    
+    // Synchronize local value when row data changes (e.g. from server)
+    React.useEffect(() => {
+        setLocalValue(row[col] || '');
+    }, [row[col]]);
+
+    const common = `w-full bg-transparent border-none text-sm text-zinc-900 dark:text-zinc-100 pointer-events-auto outline-none transition-all focus:text-blue-600 dark:focus:text-blue-400 truncate max-w-[200px] placeholder:text-zinc-400 ${status === 'saving' ? 'opacity-50' : ''}`;
 
     if (tab === 'RDC') {
-        if (col === 'Rede_Social') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={REDES_SOCIAIS_RDC} className={common} placeholder="Selecione..." label={col} />);
+        if (col === 'Rede_Social') return (
+            <div className="relative">
+                <InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={REDES_SOCIAIS_RDC} className={common} placeholder="Selecione..." label={col} />
+                <SavingIndicator status={status} />
+            </div>
+        );
         if (col === 'Tipo de conteúdo') {
             const social = row['Rede_Social'] || 'Instagram';
             const formats = FORMATOS_RDC[social] || [];
-            return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={formats} className={common} placeholder="-- Selecione --" label={col} />);
+            return (
+                <div className="relative">
+                    <InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={formats} className={common} placeholder="-- Selecione --" label={col} />
+                    <SavingIndicator status={status} />
+                </div>
+            );
         }
         if (["Resolução (1–5)", "Demanda (1–5)", "Competição (1–5)"].includes(col)) {
             return (
-                <div className="flex justify-center">
+                <div className="flex justify-center relative">
                     <Stepper
                         value={parseInt(row[col]) || 0}
                         onChange={(val) => update(row.id, tab, col, val)}
@@ -399,6 +440,7 @@ function renderCell(tab: TipoTabela, row: any, col: string, update: Function, cl
                         max={5}
                         className="border-none bg-[#0B0B0E]/30"
                     />
+                    <SavingIndicator status={status} />
                 </div>
             );
         }
@@ -415,68 +457,158 @@ function renderCell(tab: TipoTabela, row: any, col: string, update: Function, cl
         if (col === 'Ideia de Conteúdo') {
             return (
                 <div className="relative group/cell">
-                    <input type="text" value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={`${common} w-full truncate focus:text-app-text-strong transition-all`} placeholder="Descreva a ideia..." />
+                    <input 
+                        type="text" 
+                        value={localValue} 
+                        onChange={e => setLocalValue(e.target.value)}
+                        onBlur={() => localValue !== row[col] && update(row.id, tab, col, localValue)}
+                        onKeyDown={e => e.key === 'Enter' && (e.target as any).blur()}
+                        className={`${common} w-full truncate focus:text-app-text-strong transition-all`} 
+                        placeholder="Descreva a ideia..." 
+                    />
+                    <SavingIndicator status={status} />
                 </div>
             );
         }
     }
 
     if (tab === 'COBO') {
-        if (col === 'Canal') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={OPCOES_CANAL_COBO} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
-        if (col === 'Frequência') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={OPCOES_FREQUENCIA_COBO} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
-        if (col === 'Público') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={OPCOES_PUBLICO_COBO} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
-        if (col === 'Voz') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={OPCOES_VOZ_COBO} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
-        if (col === 'Zona') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={OPCOES_ZONA_COBO} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
-        if (col === 'Intenção') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={OPCOES_INTENCAO_COBO} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
-        if (col === 'Formato') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={OPCOES_FORMATO_COBO} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
+        const optionsMap: any = {
+            'Canal': OPCOES_CANAL_COBO,
+            'Frequência': OPCOES_FREQUENCIA_COBO,
+            'Público': OPCOES_PUBLICO_COBO,
+            'Voz': OPCOES_VOZ_COBO,
+            'Zona': OPCOES_ZONA_COBO,
+            'Intenção': OPCOES_INTENCAO_COBO,
+            'Formato': OPCOES_FORMATO_COBO
+        };
+        if (optionsMap[col]) return (
+            <div className="relative">
+                <InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={optionsMap[col]} className={common} placeholder="-- Selecione --" label={col} editable={true} />
+                <SavingIndicator status={status} />
+            </div>
+        );
     }
 
     if (tab === 'MATRIZ') {
-        if (col === 'Função') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={OPCOES_FUNCAO_MATRIZ} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
-        if (col === 'Quem fala') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={OPCOES_QUEM_FALA_MATRIZ} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
-        if (col === 'Papel estratégico') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={OPCOES_PAPEL_ESTRATEGICO_MATRIZ} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
-        if (col === 'Tipo de conteúdo') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={OPCOES_TIPO_CONTEUDO_MATRIZ} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
-        if (col === 'Resultado esperado') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={OPCOES_RESULTADO_ESPERADO_MATRIZ} className={common} placeholder="-- Selecione --" label={col} editable={true} />);
+        const optionsMap: any = {
+            'Função': OPCOES_FUNCAO_MATRIZ,
+            'Quem fala': OPCOES_QUEM_FALA_MATRIZ,
+            'Papel estratégico': OPCOES_PAPEL_ESTRATEGICO_MATRIZ,
+            'Tipo de conteúdo': OPCOES_TIPO_CONTEUDO_MATRIZ,
+            'Resultado esperado': OPCOES_RESULTADO_ESPERADO_MATRIZ
+        };
+        if (optionsMap[col]) return (
+            <div className="relative">
+                <InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={optionsMap[col]} className={common} placeholder="-- Selecione --" label={col} editable={true} />
+                <SavingIndicator status={status} />
+            </div>
+        );
     }
 
-    if (col === 'Cliente_ID' && tab !== 'FINANCAS') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={[{ value: "GERAL", label: "AGÊNCIA" }, ...clients.map(c => ({ value: c.id, label: c.Nome }))]} className={common} placeholder="AGÊNCIA" label={col} />);
-    if (col === 'Tipo' && tab === 'FINANCAS') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={OPCOES_TIPO_FINANCAS} className={common} placeholder="Selecione..." label={col} />);
+    if (col === 'Cliente_ID' && tab !== 'FINANCAS') return (
+        <div className="relative">
+            <InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={[{ value: "GERAL", label: "AGÊNCIA" }, ...clients.map(c => ({ value: c.id, label: c.Nome }))]} className={common} placeholder="AGÊNCIA" label={col} />
+            <SavingIndicator status={status} />
+        </div>
+    );
+    
+    if (col === 'Tipo' && tab === 'FINANCAS') return (
+        <div className="relative">
+            <InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={OPCOES_TIPO_FINANCAS} className={common} placeholder="Selecione..." label={col} />
+            <SavingIndicator status={status} />
+        </div>
+    );
 
     if (tab === 'FINANCAS') {
         const isSub = row.Tipo === 'Assinatura';
-        if (col === 'Recorrência') return isSub ? (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={["Mensal", "Única"]} className={common} placeholder="Selecione..." label={col} />) : null;
-        if (col === 'Dia_Pagamento') return isSub ? (<input type="number" min="1" max="31" value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={common} />) : null;
-        if (col === 'Data_Início' || col === 'Data_Fim') return isSub ? (<input type="date" value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={common} />) : null;
-        if (col === 'Observações' && row.Tipo === 'Entrada') return (<InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={OPCOES_SERVICOS_FINANCAS} className={common} placeholder="-- Serviço --" label={col} />);
+        if (col === 'Recorrência') return isSub ? (
+            <div className="relative">
+                <InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={["Mensal", "Única"]} className={common} placeholder="Selecione..." label={col} />
+                <SavingIndicator status={status} />
+            </div>
+        ) : null;
+        if (col === 'Dia_Pagamento') return isSub ? (
+            <div className="relative">
+                <input type="number" min="1" max="31" value={localValue} onChange={e => setLocalValue(e.target.value)} onBlur={() => update(row.id, tab, col, localValue)} className={common} />
+                <SavingIndicator status={status} />
+            </div>
+        ) : null;
+        if (col === 'Data_Início' || col === 'Data_Fim') return isSub ? (
+            <div className="relative">
+                <input type="date" value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={common} />
+                <SavingIndicator status={status} />
+            </div>
+        ) : null;
+        if (col === 'Observações' && row.Tipo === 'Entrada') return (
+            <div className="relative">
+                <InputSelect value={row[col]} onChange={val => update(row.id, tab, col, val)} options={OPCOES_SERVICOS_FINANCAS} className={common} placeholder="-- Serviço --" label={col} />
+                <SavingIndicator status={status} />
+            </div>
+        );
     }
 
     if (col === 'Cor (HEX)') {
         return (
-            <div onClick={() => onOpenColorPicker && onOpenColorPicker(row.id, row[col])} className="flex items-center gap-2 cursor-pointer group pointer-events-auto select-none">
-                <div className="w-6 h-6 rounded-full border border-white/20 shadow-sm transition-transform group-hover:scale-110" style={{ backgroundColor: row[col] }}></div>
+            <div onClick={() => onOpenColorPicker && onOpenColorPicker(row.id, row[col])} className="flex items-center gap-2 cursor-pointer group pointer-events-auto select-none relative">
+                <div className={`w-6 h-6 rounded-full border border-white/20 shadow-sm transition-transform group-hover:scale-110 ${status === 'saving' ? 'animate-pulse' : ''}`} style={{ backgroundColor: row[col] }}></div>
                 <span className="text-[10px] uppercase font-bold text-app-text-muted group-hover:text-app-text-strong transition-colors">{row[col]}</span>
+                <div className="absolute -right-4">
+                    <SavingIndicator status={status} />
+                </div>
             </div>
         );
     }
 
     if (tab === 'FINANCAS' && col === 'Valor') {
-        return (<input type="number" step="0.01" value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={common} placeholder="0.00" />);
+        return (
+            <div className="relative">
+                <input 
+                    type="number" 
+                    step="0.01" 
+                    value={localValue} 
+                    onChange={e => setLocalValue(e.target.value)} 
+                    onBlur={() => update(row.id, tab, col, localValue)}
+                    onKeyDown={e => e.key === 'Enter' && (e.target as any).blur()}
+                    className={common} 
+                    placeholder="0.00" 
+                />
+                <SavingIndicator status={status} />
+            </div>
+        );
     }
 
     if (col === 'Conteúdo') {
         return (
-            <textarea
-                value={row[col]}
-                onChange={e => update(row.id, tab, col, e.target.value)}
-                className={`${common} min-w-[300px] h-auto min-h-[40px] resize-y overflow-hidden leading-relaxed whitespace-pre-wrap`}
-                placeholder="Escreva o conteúdo..."
-                style={{ height: 'auto' }}
-                rows={1}
-                onInput={(e: any) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
-            />
+            <div className="relative">
+                <textarea
+                    value={localValue}
+                    onChange={e => setLocalValue(e.target.value)}
+                    onBlur={() => update(row.id, tab, col, localValue)}
+                    className={`${common} min-w-[300px] h-auto min-h-[40px] resize-y overflow-hidden leading-relaxed whitespace-pre-wrap`}
+                    placeholder="Escreva o conteúdo..."
+                    style={{ height: 'auto' }}
+                    rows={1}
+                    onInput={(e: any) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+                />
+                <SavingIndicator status={status} />
+            </div>
         );
     }
 
     const inputType = (col === 'Data' || col === 'Data_Entrega') ? 'date' : col === 'Hora' ? 'time' : 'text';
-    return (<input type={inputType} value={row[col]} onChange={e => update(row.id, tab, col, e.target.value)} className={common} placeholder="..." />);
+    return (
+        <div className="relative">
+            <input 
+                type={inputType} 
+                value={inputType === 'text' ? localValue : row[col]} 
+                onChange={e => inputType === 'text' ? setLocalValue(e.target.value) : update(row.id, tab, col, e.target.value)} 
+                onBlur={() => inputType === 'text' && localValue !== row[col] && update(row.id, tab, col, localValue)}
+                onKeyDown={e => e.key === 'Enter' && (e.target as any).blur()}
+                className={common} 
+                placeholder="..." 
+            />
+            <SavingIndicator status={status} />
+        </div>
+    );
 }

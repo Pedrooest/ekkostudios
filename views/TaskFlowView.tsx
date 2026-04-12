@@ -9,7 +9,7 @@ import {
     List, LayoutGrid, Calendar as LucideCalendar, Search, Filter,
     ArrowUpDown, Plus, Clock, MessageSquare, Box, ExternalLink,
     X, Trash2, Zap, LayoutDashboard, Image as ImageIcon, CheckCircle2, FileText, ShieldAlert, Eye, History as HistoryIcon, Loader2, User,
-    Columns, CalendarDays, ChevronLeft, ChevronRight, CheckSquare, ArrowUp, ArrowDown
+    Columns, CalendarDays, ChevronLeft, ChevronRight, CheckSquare, ArrowUp, ArrowDown, Check
 } from 'lucide-react';
 import { getCalendarDays, MONTH_NAMES_BR, WEEKDAYS_BR_SHORT } from '../utils/calendarUtils';
 import { Card, Button, DeletionBar, Badge } from '../Components';
@@ -37,7 +37,22 @@ interface TaskFlowViewProps {
     selection: string[];
     onSelect: (id: string) => void;
     onClearSelection: () => void;
+    savingStatus?: Record<string, 'saving' | 'success' | 'error'>;
 }
+
+const SavingIndicator = ({ status }: { status?: 'saving' | 'success' | 'error' }) => {
+    if (!status) return null;
+    return (
+        <div className="flex items-center gap-1 pointer-events-none z-10 animate-fade">
+            {status === 'saving' && (
+                <div className="w-2.5 h-2.5 border-2 border-zinc-400/30 border-t-zinc-400 rounded-full animate-spin"></div>
+            )}
+            {status === 'success' && (
+                <Check size={12} className="text-emerald-500" />
+            )}
+        </div>
+    );
+};
 
 function DroppableColumn({ id, children }: { id: string, children: React.ReactNode }) {
     const { setNodeRef, isOver } = useDroppable({
@@ -90,8 +105,14 @@ function SortableTaskCard({ Tarefa, clients, getPriorityInfo, onSelectTask, sele
                 <div className={`flex items-center gap-2 text-[9px] font-black uppercase tracking-widest ${isOverdue ? 'text-rose-600' : 'text-zinc-400'}`}>
                     {Tarefa.Data_Entrega ? <span className="flex items-center gap-1.5"><Clock size={10} /> {Tarefa.Data_Entrega}</span> : <span className="flex items-center gap-1.5 opacity-30"><Clock size={10} /> S/ DATA</span>}
                 </div>
-                <div className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center text-[9px] font-black border border-zinc-200 dark:border-zinc-800 transition-all shrink-0">
-                    {Tarefa.Responsável?.slice(0, 1).toUpperCase() || '?'}
+                <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center text-[9px] font-black border border-zinc-200 dark:border-zinc-800 transition-all shrink-0">
+                        {Tarefa.Responsável?.slice(0, 1).toUpperCase() || '?'}
+                    </div>
+                    {/* Visual indicator for task updates (like status change via drag & drop) */}
+                    {Object.keys(savingStatus || {}).some(k => k.startsWith(`TAREFAS:${Tarefa.id}:`)) && (
+                        <SavingIndicator status={Object.entries(savingStatus || {}).find(([k]) => k.startsWith(`TAREFAS:${Tarefa.id}:`))?.[1]} />
+                    )}
                 </div>
             </div>
         </div>
@@ -114,10 +135,9 @@ function TaskCardOverlay({ Tarefa, clients, getPriorityInfo, statusCor }: any) {
     );
 }
 
-export function TaskFlowView({
     tasks, clients, collaborators, activeViewId, setActiveViewId,
     onUpdate, onDelete, onArchive, onAdd, onSelectTask,
-    selection, onSelect, onClearSelection
+    selection, onSelect, onClearSelection, savingStatus = {}
 }: TaskFlowViewProps) {
     const [globalSearch, setGlobalSearch] = useState('');
     const [sortField, setSortField] = useState<string>('Data_Entrega');
@@ -301,6 +321,7 @@ export function TaskFlowView({
                                                     onSelectTask={onSelectTask} 
                                                     selection={selection} 
                                                     statusCor={status.cor} 
+                                                    savingStatus={savingStatus}
                                                 />
                                             ))}
                                         </SortableContext>
@@ -540,12 +561,13 @@ interface TaskDetailPanelProps {
     onAdd: (table: string, initialData?: any) => void;
     viewMode: 'sidebar' | 'modal';
     setViewMode: (mode: 'sidebar' | 'modal') => void;
+    savingStatus?: Record<string, 'saving' | 'success' | 'error'>;
 }
 
 export function TaskDetailPanel({
     taskId, tasks, clients, collaborators, onClose,
     onUpdate, onArchive, onDelete, onAdd,
-    viewMode, setViewMode
+    viewMode, setViewMode, savingStatus = {}
 }: TaskDetailPanelProps) {
     const t = tasks.find((Tarefa: Tarefa) => Tarefa.id === taskId);
     const [newCheckItem, setNewCheckItem] = useState('');
@@ -670,13 +692,16 @@ export function TaskDetailPanel({
                     onBlur={e => onUpdate(t.id, 'TAREFAS', 'Título', e.target.value)}
                     placeholder="TÍTULO DA TAREFA"
                 />
+                <div className="absolute right-6 top-[72px]">
+                    <SavingIndicator status={savingStatus[`TAREFAS:${t.id}:Título`]} />
+                </div>
             </div>
 
 
             <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
                 {/* METRICS GRID */}
                 <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col gap-2 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors shadow-sm group">
+                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col gap-2 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors shadow-sm group relative">
                         <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                             <HistoryIcon size={12} className="text-zinc-400" /> Status
                         </label>
@@ -687,8 +712,11 @@ export function TaskDetailPanel({
                         >
                             {DEFAULT_TASK_STATUSES.map(s => <option key={s.id} value={s.id}>{s.rotulo}</option>)}
                         </select>
+                        <div className="absolute top-2 right-2">
+                            <SavingIndicator status={savingStatus[`TAREFAS:${t.id}:Status`]} />
+                        </div>
                     </div>
-                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col gap-2 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors shadow-sm group">
+                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col gap-2 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors shadow-sm group relative">
                         <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                             <ShieldAlert size={12} className="text-zinc-400" /> Prioridade
                         </label>
@@ -699,21 +727,27 @@ export function TaskDetailPanel({
                         >
                             {PRIORIDADE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                         </select>
+                        <div className="absolute top-2 right-2">
+                            <SavingIndicator status={savingStatus[`TAREFAS:${t.id}:Prioridade`]} />
+                        </div>
                     </div>
-                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col gap-2 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors shadow-sm group">
+                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col gap-2 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors shadow-sm group relative">
                         <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                             <User size={12} className="text-zinc-400" /> Responsável
                         </label>
                         <select
-                            value={t.Responsável}
+                            value={t.Responsável || ''}
                             onChange={e => onUpdate(t.id, 'TAREFAS', 'Responsável', e.target.value)}
                             className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-[11px] font-bold text-zinc-900 dark:text-zinc-100 uppercase focus:ring-1 focus:ring-zinc-400 p-2 cursor-pointer outline-none transition-all"
                         >
                             <option value="">Sem Resp.</option>
                             {collaborators.map((c: any) => <option key={c.id} value={c.Nome}>{c.Nome}</option>)}
                         </select>
+                        <div className="absolute top-2 right-2">
+                            <SavingIndicator status={savingStatus[`TAREFAS:${t.id}:Responsável`]} />
+                        </div>
                     </div>
-                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col gap-2 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors shadow-sm group">
+                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col gap-2 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors shadow-sm group relative">
                         <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                             <Clock size={12} className="text-zinc-400" /> Entrega
                         </label>
@@ -723,11 +757,14 @@ export function TaskDetailPanel({
                             onChange={e => onUpdate(t.id, 'TAREFAS', 'Data_Entrega', e.target.value)}
                             className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-[11px] font-bold text-zinc-900 dark:text-zinc-100 uppercase focus:ring-1 focus:ring-zinc-400 p-2 cursor-pointer outline-none transition-all"
                         />
+                        <div className="absolute top-2 right-2">
+                            <SavingIndicator status={savingStatus[`TAREFAS:${t.id}:Data_Entrega`]} />
+                        </div>
                     </div>
                 </div>
 
                 {/* DESCRIPTION */}
-                <section>
+                <section className="relative">
                     <div className="flex items-center mb-4 border-b border-zinc-200 dark:border-zinc-800 pb-2">
                         <h4 className="text-[10px] font-black uppercase text-zinc-900 dark:text-zinc-100 tracking-[0.2em] flex items-center gap-2">
                             <FileText size={14} className="text-zinc-400" /> Descrição Estratégica
@@ -740,6 +777,9 @@ export function TaskDetailPanel({
                         onBlur={e => onUpdate(t.id, 'TAREFAS', 'Descrição', e.target.value)}
                         placeholder="DESCREVA OS DETALHES TÁTICOS, LINKS E PAUTAS..."
                     />
+                    <div className="absolute top-2 right-2">
+                        <SavingIndicator status={savingStatus[`TAREFAS:${t.id}:Descrição`]} />
+                    </div>
                 </section>
 
                 {/* CHECKLIST */}

@@ -96,9 +96,14 @@ export function useDataHandlers({
     const originalItem = currentList.find(i => i.id === id);
     if (!originalItem) return;
 
-    let updated = { ...originalItem, [field]: value, updated_at: new Date().toISOString() };
+    let updated: any;
+    if (!field) {
+      updated = { ...originalItem, ...value, updated_at: new Date().toISOString() };
+    } else {
+      updated = { ...originalItem, [field]: value, updated_at: new Date().toISOString() };
+    }
 
-    if (tab === 'TAREFAS') {
+    if (tab === 'TAREFAS' && field) {
       if (field === 'Prioridade' && value === 'URGENTE') {
         addNotification('warning', 'Tarefa Urgente', `A tarefa "${originalItem.Título || 'Sem Título'}" foi marcada como URGENCIAL.`);
       }
@@ -107,9 +112,10 @@ export function useDataHandlers({
       }
     }
 
-    if (['Nome', 'Título', 'Conteúdo', 'Descrição'].includes(field) && !value) {
+    if (field && ['Nome', 'Título', 'Conteúdo', 'Descrição'].includes(field) && !value) {
       addNotification('error', 'Campo inválido — revise', `O campo ${field} não pode ficar vazio.`);
     }
+
 
     if (tab === 'FINANCAS' && (field === 'Valor')) {
       updated.Valor = parseNumericValue(value);
