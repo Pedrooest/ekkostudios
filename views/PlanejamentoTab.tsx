@@ -16,9 +16,11 @@ import {
     MoreHorizontal,
     Calendar as CalendarIcon,
     AlertCircle,
-    CheckCircle2,
-    PlayCircle
+    PlayCircle,
+    CalendarCheck,
+    CalendarPlus
 } from 'lucide-react';
+import { useGoogleCalendar } from '../hooks/useGoogleCalendar';
 
 // ==========================================
 // FUNÇÕES AUXILIARES DE SOM
@@ -92,6 +94,10 @@ export default function PlanejamentoTab({
     const [sidebarView, setSidebarView] = useState<'edit' | 'banco' | null>(null);
     const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
     const [librarySearchTerm, setLibrarySearchTerm] = useState('');
+    
+    // Google Calendar
+    const { isConnected, login, disconnect, createEvent } = useGoogleCalendar();
+    const [exportProgress, setExportProgress] = useState<{ current: number; total: number } | null>(null);
 
     // Escape listener for modals and sidebars
     useEffect(() => {
@@ -344,6 +350,66 @@ export default function PlanejamentoTab({
         closeSidebar();
     };
 
+    const handleExportToGoogle = async (event: any) => {
+        if (!isConnected) {
+            login();
+            return;
+        }
+
+        tryPlaySound('tap');
+        const client = clients.find(c => c.id === event.Cliente_ID);
+        const result = await createEvent({
+            titulo: `[EKKO] ${event.Conteúdo} - ${event.Rede_Social}`,
+            descricao: `Cliente: ${client?.Nome || 'Geral'} | Formato: ${event.Formato || event['Tipo de conteúdo']} | Zona: ${event.Zona || ''}`,
+            data: event.Data,
+            hora: event.Hora,
+            cliente: client?.Nome
+        });
+
+        if (result && result.id) {
+            onUpdate(event.id, 'PLANEJAMENTO', 'google_event_id', result.id);
+            tryPlaySound('success');
+            // Show a temporary success state or notification if needed
+        }
+    };
+
+    const handleBulkExportToGoogle = async () => {
+        if (!isConnected) {
+            login();
+            return;
+        }
+
+        const toExport = filteredData.filter(e => !e.google_event_id);
+        if (toExport.length === 0) {
+            alert('Todos os conteúdos visíveis já foram exportados ou não há conteúdos para exportar.');
+            return;
+        }
+
+        if (!confirm(`Deseja exportar ${toExport.length} conteúdos para o Google Agenda?`)) return;
+
+        setExportProgress({ current: 0, total: toExport.length });
+        
+        for (let i = 0; i < toExport.length; i++) {
+            const event = toExport[i];
+            const client = clients.find(c => c.id === event.Cliente_ID);
+            const result = await createEvent({
+                titulo: `[EKKO] ${event.Conteúdo} - ${event.Rede_Social}`,
+                descricao: `Cliente: ${client?.Nome || 'Geral'} | Formato: ${event.Formato || event['Tipo de conteúdo']} | Zona: ${event.Zona || ''}`,
+                data: event.Data,
+                hora: event.Hora,
+                cliente: client?.Nome
+            });
+
+            if (result && result.id) {
+                onUpdate(event.id, 'PLANEJAMENTO', 'google_event_id', result.id);
+            }
+            setExportProgress(prev => prev ? { ...prev, current: i + 1 } : null);
+        }
+
+        tryPlaySound('success');
+        setTimeout(() => setExportProgress(null), 3000);
+    };
+
     // Helper render for client header
     const renderClientHeader = () => {
         if (globalClientFilter !== 'Todos Clientes') return globalClientFilter;
@@ -356,6 +422,19 @@ export default function PlanejamentoTab({
 
     return (
         <div className={`view-root ${isDarkMode ? 'dark' : ''} h-screen overflow-hidden flex flex-col bg-zinc-50 dark:bg-[#09090b]`}>
+            {/* GOOGLE CALENDAR PROGRESS BAR */}
+            {exportProgress && (
+                <div className="absolute top-0 left-0 w-full h-1 bg-zinc-200 dark:bg-zinc-800 z-[1000]">
+                    <div 
+                        className="h-full bg-blue-600 transition-all duration-300 shadow-[0_0_10px_rgba(37,99,235,0.5)]"
+                        style={{ width: `${(exportProgress.current / exportProgress.total) * 100}%` }}
+                    ></div>
+                    <div className="absolute top-2 right-4 bg-white dark:bg-zinc-900 px-3 py-1 rounded-full border border-zinc-200 dark:border-zinc-800 shadow-sm text-[9px] font-black uppercase tracking-widest text-zinc-500">
+                        Exportando: {exportProgress.current}/{exportProgress.total}
+                    </div>
+                </div>
+            )}
+
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10 font-sans w-full bg-transparent transition-colors relative">
 
                 {/* TOP ACTION BAR - ZINC STYLE */}
@@ -413,6 +492,31 @@ export default function PlanejamentoTab({
                         >
                             <Download size={14} className="text-blue-500 shrink-0" /> EXPORTAR
                         </button>
+
+                        <div className="h-8 w-px bg-zinc-200 dark:bg-zinc-800 mx-1"></div>
+
+                        {isConnected ? (
+                            <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+                                <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                                    <CalendarCheck size={14} /> Agenda Conectada
+                                </span>
+                                <button 
+                                    onClick={disconnect}
+                                    className="p-1 hover:bg-emerald-500/20 rounded-lg text-emerald-600 transition-colors"
+                                    title="Desconectar Agenda"
+                                >
+                                    <X size={12} strokeWidth={3} />
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => login()}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 rounded-2xl shadow-sm hover:border-blue-500/50 hover:text-blue-600 transition-all ios-btn text-[10px] font-black uppercase tracking-widest"
+                            >
+                                <img src="https://www.google.com/favicon.ico" className="w-3.5 h-3.5 grayscale opacity-70 group-hover:grayscale-0" alt="" />
+                                Conectar Agenda
+                            </button>
+                        )}
                         
                         <button
                             onClick={() => { tryPlaySound('tap'); setIsDarkMode(!isDarkMode); }}
@@ -455,6 +559,14 @@ export default function PlanejamentoTab({
                             className="group flex items-center gap-3 px-6 py-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-blue-500/50 text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all ios-shadow ios-btn"
                         >
                             <Database size={18} className="transition-transform group-hover:rotate-12" /> BANCO DE CONTEÚDO
+                        </button>
+                        <button 
+                            onClick={handleBulkExportToGoogle} 
+                            disabled={exportProgress !== null}
+                            className="group flex items-center gap-3 px-6 py-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/50 text-zinc-600 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all ios-shadow ios-btn disabled:opacity-50"
+                        >
+                            <CalendarPlus size={18} className="transition-transform group-hover:scale-110" /> 
+                            {exportProgress ? 'EXPORTANDO...' : 'EXPORTAR TODOS'}
                         </button>
                         <button 
                             onClick={() => handleAddContent()} 
@@ -580,6 +692,15 @@ export default function PlanejamentoTab({
                                                         <div className="text-[10px] font-bold leading-tight text-zinc-800 dark:text-zinc-200 line-clamp-2">
                                                             {evento.Conteúdo}
                                                         </div>
+
+                                                        {/* Google Calendar Individual Export Overlay */}
+                                                        <button 
+                                                            onClick={(e) => { e.stopPropagation(); handleExportToGoogle(evento); }}
+                                                            className={`absolute top-1 right-1 p-1 rounded-md transition-all opacity-0 group-hover/card:opacity-100 ${evento.google_event_id ? 'bg-emerald-500 text-white' : 'bg-white/80 dark:bg-zinc-800/80 text-zinc-400 hover:text-blue-500'}`}
+                                                            title={evento.google_event_id ? "Exportado para Google Agenda" : "Exportar para Google Agenda"}
+                                                        >
+                                                            {evento.google_event_id ? <CalendarCheck size={12} /> : <CalendarPlus size={12} />}
+                                                        </button>
                                                     </div>
                                                 )
                                             })}
@@ -689,6 +810,9 @@ export default function PlanejamentoTab({
                                                     </td>
                                                     <td className="px-8 py-5 text-right">
                                                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
+                                                            <button onClick={(e) => { e.stopPropagation(); handleExportToGoogle(post); }} className={`p-2 rounded-xl transition-all shadow-sm ${post.google_event_id ? 'text-emerald-500 bg-emerald-500/5' : 'text-zinc-400 hover:text-emerald-600 hover:bg-white dark:hover:bg-zinc-700'}`} title="Exportar para Google Agenda">
+                                                                {post.google_event_id ? <CalendarCheck size={16} /> : <CalendarPlus size={16} />}
+                                                            </button>
                                                             <button onClick={(e) => { e.stopPropagation(); openEditSidebar(post.id); }} className="p-2 hover:bg-white dark:hover:bg-zinc-700 rounded-xl text-zinc-400 hover:text-blue-600 transition-all shadow-sm">
                                                                 <Database size={16} className="shrink-0" />
                                                             </button>
@@ -766,8 +890,16 @@ export default function PlanejamentoTab({
                                                                 {client?.Nome || 'Geral'}
                                                             </span>
                                                         </div>
-                                                        <div className="p-1.5 bg-zinc-50 dark:bg-zinc-800 rounded-lg text-zinc-400 group-hover/k-card:text-blue-500 transition-colors">
-                                                            <Database size={12} className="shrink-0" />
+                                                        <div className="flex items-center gap-2">
+                                                            <button 
+                                                                onClick={(e) => { e.stopPropagation(); handleExportToGoogle(post); }}
+                                                                className={`p-1.5 rounded-lg transition-colors ${post.google_event_id ? 'text-emerald-500 bg-emerald-500/5' : 'text-zinc-400 hover:text-emerald-500'}`}
+                                                            >
+                                                                {post.google_event_id ? <CalendarCheck size={14} /> : <CalendarPlus size={14} />}
+                                                            </button>
+                                                            <div className="p-1.5 bg-zinc-50 dark:bg-zinc-800 rounded-lg text-zinc-400 group-hover/k-card:text-blue-500 transition-colors">
+                                                                <Database size={12} className="shrink-0" />
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>

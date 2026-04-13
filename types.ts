@@ -126,6 +126,7 @@ export interface ItemPlanejamento {
   CTA?: string;
   Fonte_Origem?: 'RDC' | 'Estratégia' | 'COBO' | 'Tarefa' | 'IA' | 'Manual' | 'Gemini';
   Origem_ID?: string;
+  google_event_id?: string;
   __archived?: boolean;
 }
 

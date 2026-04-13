@@ -173,7 +173,7 @@ const VALID_FIELDS: Record<string, string[]> = {
         'id', 'workspace_id', 'Cliente_ID', 'Data', 'Hora', 'Conteúdo',
         'Função', 'Rede_Social', 'Tipo de conteúdo', 'Intenção', 'Canal',
         'Formato', 'Zona', 'Quem fala', 'Status do conteúdo', 'updated_at',
-        '__archived', 'created_at', 'created_by', 'updated_by'
+        'google_event_id', '__archived', 'created_at', 'created_by', 'updated_by'
     ],
     collaborators: [
         'id', 'workspace_id', 'Nome', 'Cargo', 'Remuneracao', 'HorasProdutivas',
