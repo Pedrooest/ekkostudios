@@ -11,6 +11,13 @@ import { Card, StatCard, Button, InputSelect, Badge } from '../Components';
 import { TableView } from '../components/TableView';
 import { Colaborador, Cliente, Tarefa, LancamentoFinancas } from '../types';
 
+interface VhManagementViewProps {
+    clients: Cliente[];
+    collaborators: Colaborador[];
+    setCollaborators: (collabs: any) => void;
+    onUpdate: (id: string, table: string, field: string, value: any) => void;
+    selection: string[];
+    onSelect: (id: string) => void;
     tasks: Tarefa[];
     financas: LancamentoFinancas[];
     savingStatus?: Record<string, 'saving' | 'success' | 'error'>;

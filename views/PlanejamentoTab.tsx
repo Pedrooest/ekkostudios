@@ -3,23 +3,22 @@ import {
     Download, Plus, Search, Clock, User, Check, X,
     Filter, Image as ImageIcon, Archive, Database,
     ChevronLeft, ChevronRight, FolderOpen, Copy, Trash2,
-    ChevronDown, Moon, Sun, Loader2, LayoutGrid, Columns, List
-} from 'lucide-react';
-import { playUISound } from '../utils/uiSounds';
-import { getCalendarDays, MONTH_NAMES_BR, WEEKDAYS_BR_SHORT } from '../utils/calendarUtils';
-import { 
-    Instagram, 
-    Youtube, 
-    Video, 
-    Linkedin, 
-    MessageSquare, 
+    ChevronDown, Moon, Sun, Loader2, LayoutGrid, Columns, List,
+    Instagram,
+    Youtube,
+    Video,
+    Linkedin,
+    MessageSquare,
     MoreHorizontal,
     Calendar as CalendarIcon,
     AlertCircle,
     PlayCircle,
     CalendarCheck,
-    CalendarPlus
+    CalendarPlus,
+    CheckCircle2
 } from 'lucide-react';
+import { playUISound } from '../utils/uiSounds';
+import { getCalendarDays, MONTH_NAMES_BR, WEEKDAYS_BR_SHORT } from '../utils/calendarUtils';
 import { useGoogleCalendar } from '../hooks/useGoogleCalendar';
 import { sendEmail, templates } from '../utils/emailService';
 import { DatabaseService } from '../DatabaseService';

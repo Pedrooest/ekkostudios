@@ -68,7 +68,7 @@ function DroppableColumn({ id, children }: { id: string, children: React.ReactNo
     );
 }
 
-function SortableTaskCard({ Tarefa, clients, getPriorityInfo, onSelectTask, selection, statusCor }: any) {
+function SortableTaskCard({ Tarefa, clients, getPriorityInfo, onSelectTask, selection, statusCor, savingStatus }: any) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
         id: Tarefa.id,
         data: { type: 'Task', task: Tarefa }
@@ -113,7 +113,7 @@ function SortableTaskCard({ Tarefa, clients, getPriorityInfo, onSelectTask, sele
                     </div>
                     {/* Visual indicator for task updates (like status change via drag & drop) */}
                     {Object.keys(savingStatus || {}).some(k => k.startsWith(`TAREFAS:${Tarefa.id}:`)) && (
-                        <SavingIndicator status={Object.entries(savingStatus || {}).find(([k]) => k.startsWith(`TAREFAS:${Tarefa.id}:`))?.[1]} />
+                        <SavingIndicator status={Object.entries(savingStatus || {}).find(([k]) => k.startsWith(`TAREFAS:${Tarefa.id}:`))?.[1] as any} />
                     )}
                 </div>
             </div>
@@ -137,6 +137,7 @@ function TaskCardOverlay({ Tarefa, clients, getPriorityInfo, statusCor }: any) {
     );
 }
 
+export function TaskFlowView({
     tasks, clients, collaborators, activeViewId, setActiveViewId,
     onUpdate, onDelete, onArchive, onAdd, onSelectTask,
     selection, onSelect, onClearSelection, savingStatus = {}

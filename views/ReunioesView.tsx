@@ -10,9 +10,10 @@ import { Reuniao, Cliente } from '../types';
 interface ReunioesViewProps {
   reunioes: Reuniao[];
   clients: Cliente[];
-  onUpdate: (tab: string, id: string, field: string, value: any) => void;
-  onDelete: (ids: string[], tab: string) => void;
+  onUpdate: (id: string, table: string, field: string, value: any, skipLog?: boolean) => void;
+  onDelete: (ids: string[], table: string) => void;
   onAdd: (initial?: any) => void;
+  savingStatus?: Record<string, 'saving' | 'success' | 'error'>;
 }
 
 export const ReunioesView: React.FC<ReunioesViewProps> = ({ 
@@ -20,7 +21,8 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
   clients, 
   onUpdate, 
   onDelete, 
-  onAdd 
+  onAdd,
+  savingStatus = {}
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [clientFilter, setClientFilter] = useState('Todos');

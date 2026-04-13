@@ -129,6 +129,27 @@ const TAB_TEMPLATES: Record<TipoTabela, ModeloApresentacao> = {
     subtitulo: 'Controle de equipamentos e diárias de produção.',
     proximoPasso: 'Garantir que todos os equipamentos estejam prontos.',
     chamadas: []
+  },
+  REUNIOES: {
+    aba: 'REUNIOES',
+    rotulo: 'Pautas de Reunião',
+    subtitulo: 'Alinhamento estratégico e briefing de projetos.',
+    proximoPasso: 'Consolidar as atas e próximos passos definidos.',
+    chamadas: []
+  },
+  LEMBRETES: {
+    aba: 'LEMBRETES',
+    rotulo: 'Fluxo de Notificações',
+    subtitulo: 'Lembretes automáticos e prazos críticos.',
+    proximoPasso: 'Verificar alertas de alta prioridade pendentes.',
+    chamadas: []
+  },
+  RELATORIOS: {
+    aba: 'RELATORIOS',
+    rotulo: 'Inteligência de BI',
+    subtitulo: 'Compilado de performance e resultados táticos.',
+    proximoPasso: 'Apresentar KPI de crescimento ao cliente.',
+    chamadas: []
   }
 };
 

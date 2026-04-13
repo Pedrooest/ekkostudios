@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Workspace } from './types';
 import { DatabaseService } from './DatabaseService';
-import { X, Building2, Palette, AlertTriangle, LogOut } from 'lucide-react';
+import { X, Building2, Palette, AlertTriangle, LogOut, Mail } from 'lucide-react';
 import { playUISound } from './utils/uiSounds';
 
 

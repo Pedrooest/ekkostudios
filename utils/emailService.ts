@@ -45,7 +45,7 @@ export const templates = {
     `
   }),
 
-  lembretePagamento: (descricao: string, valor: string, vencimento: string) => ({
+  lembretePagamento: (descricao: string, valor: string, vencimento: string, cliente: string) => ({
     subject: `💰 Lembrete de pagamento: ${descricao}`,
     html: `
       <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto; background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid #e4e4e7;">
@@ -53,8 +53,8 @@ export const templates = {
           <h1 style="color: white; margin: 0; font-size: 20px;">⚠️ Lembrete de pagamento</h1>
         </div>
         <div style="padding: 32px;">
-          <p style="color: #3f3f46; font-size: 16px;">Olá!</p>
-          <p style="color: #52525b;">Lembrete de pagamento pendente:</p>
+          <p style="color: #3f3f46; font-size: 16px;">Oi!</p>
+          <p style="color: #52525b;">Lembrete de pagamento para <strong>${cliente}</strong>:</p>
           <div style="background: #fef3c7; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #f59e0b;">
             <p style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #18181b;">${descricao}</p>
             <p style="margin: 0; color: #52525b;">Valor: <strong>${valor}</strong></p>

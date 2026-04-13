@@ -48,9 +48,10 @@ interface ChecklistsTabProps {
     onAdd: (tab: TipoTabela, initial?: Partial<any>) => Promise<string>;
     onUpdate: (id: string, tab: TipoTabela, field: string, value: any, skipLog?: boolean) => Promise<void>;
     onDelete: (ids: string[], tab: TipoTabela) => void;
+    savingStatus?: Record<string, 'saving' | 'success' | 'error'>;
 }
 
-export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete }: ChecklistsTabProps) {
+export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete, savingStatus = {} }: ChecklistsTabProps) {
     const [searchQuery, setSearchQuery] = useState('');
 
     // Controle de Interface
