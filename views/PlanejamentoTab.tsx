@@ -21,6 +21,8 @@ import {
     CalendarPlus
 } from 'lucide-react';
 import { useGoogleCalendar } from '../hooks/useGoogleCalendar';
+import { sendEmail, templates } from '../utils/emailService';
+import { DatabaseService } from '../DatabaseService';
 
 // ==========================================
 // FUNÇÕES AUXILIARES DE SOM
@@ -96,8 +98,10 @@ export default function PlanejamentoTab({
     const [librarySearchTerm, setLibrarySearchTerm] = useState('');
     
     // Google Calendar
-    const { isConnected, login, disconnect, createEvent } = useGoogleCalendar();
+    const [isConnected, setIsConnected] = useState(!!localStorage.getItem('google_calendar_token'));
+    const { login, disconnect, createEvent } = useGoogleCalendar();
     const [exportProgress, setExportProgress] = useState<{ current: number; total: number } | null>(null);
+    const [notifyMembers, setNotifyMembers] = useState(false);
 
     // Escape listener for modals and sidebars
     useEffect(() => {
@@ -1083,12 +1087,57 @@ export default function PlanejamentoTab({
                         </div>
 
                         <div className="p-8 bg-zinc-50/50 dark:bg-zinc-950/50 border-t border-zinc-100 dark:border-zinc-800 backdrop-blur-xl shrink-0">
+                            <div className="flex items-center gap-3 mb-6 px-2">
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <div className="relative flex items-center">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={notifyMembers}
+                                            onChange={(e) => { tryPlaySound('tap'); setNotifyMembers(e.target.checked); }}
+                                            className="w-5 h-5 rounded-lg border-zinc-300 dark:border-zinc-700 text-blue-600 focus:ring-blue-500 bg-white dark:bg-zinc-900 transition-all cursor-pointer"
+                                        />
+                                    </div>
+                                    <span className="text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest group-hover:text-blue-600 transition-colors">Notificar membros por email</span>
+                                </label>
+                            </div>
+
                             <div className="flex gap-4 mb-6">
                                 <button onClick={handleDuplicateEvent} className="flex-1 py-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:scale-105 active:scale-95 text-zinc-800 dark:text-zinc-200 shadow-sm">Duplicar</button>
                                 <button onClick={() => selectedEvent && performArchive([selectedEvent.id], 'PLANEJAMENTO', true)} className="flex-1 py-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:scale-105 active:scale-95 text-zinc-800 dark:text-zinc-200 shadow-sm">Arquivar</button>
                                 <button onClick={handleDeleteEvent} className="flex-1 py-3 bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all hover:bg-rose-500/20 hover:scale-105 active:scale-95 shadow-sm">Excluir</button>
                             </div>
-                            <button onClick={closeSidebar} className="w-full py-5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-blue-500/20 transition-all hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-3">
+                            <button 
+                                onClick={async () => {
+                                    if (notifyMembers && selectedEvent) {
+                                        try {
+                                            const workspaceId = selectedEvent.workspace_id || (window as any).activeWorkspaceId;
+                                            if (workspaceId) {
+                                                const members = await DatabaseService.getWorkspaceMembers(workspaceId);
+                                                const emails = members.map((m: any) => m.profiles.email).filter(Boolean);
+                                                const cliente = clients.find(c => c.id === selectedEvent.Cliente_ID)?.Nome || 'Geral';
+                                                
+                                                if (emails.length > 0) {
+                                                    const emailData = templates.novoConteudo(
+                                                        selectedEvent.Conteúdo,
+                                                        selectedEvent.Data,
+                                                        selectedEvent.Rede_Social,
+                                                        cliente
+                                                    );
+                                                    await sendEmail({
+                                                        to: emails,
+                                                        ...emailData
+                                                    });
+                                                }
+                                            }
+                                        } catch (err) {
+                                            console.error('Erro ao notificar membros:', err);
+                                        }
+                                    }
+                                    setNotifyMembers(false);
+                                    closeSidebar();
+                                }} 
+                                className="w-full py-5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-blue-500/20 transition-all hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-3"
+                            >
                                 <Check size={20} strokeWidth={3} className="shrink-0" /> Salvar Alterações
                             </button>
                         </div>

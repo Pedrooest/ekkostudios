@@ -9,8 +9,10 @@ import {
     List, LayoutGrid, Calendar as LucideCalendar, Search, Filter,
     ArrowUpDown, Plus, Clock, MessageSquare, Box, ExternalLink,
     X, Trash2, Zap, LayoutDashboard, Image as ImageIcon, CheckCircle2, FileText, ShieldAlert, Eye, History as HistoryIcon, Loader2, User,
-    Columns, CalendarDays, ChevronLeft, ChevronRight, CheckSquare, ArrowUp, ArrowDown, Check
+    Columns, CalendarDays, ChevronLeft, ChevronRight, CheckSquare, ArrowUp, ArrowDown, Check, Mail
 } from 'lucide-react';
+import { sendEmail, templates } from '../utils/emailService';
+import { DatabaseService } from '../DatabaseService';
 import { getCalendarDays, MONTH_NAMES_BR, WEEKDAYS_BR_SHORT } from '../utils/calendarUtils';
 import { Card, Button, DeletionBar, Badge } from '../Components';
 import { generateId } from '../utils/id';
@@ -574,6 +576,7 @@ export function TaskDetailPanel({
     const [uploading, setUploading] = useState(false);
     const [comment, setComment] = useState('');
     const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+    const [notifyResponsible, setNotifyResponsible] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -763,6 +766,25 @@ export function TaskDetailPanel({
                     </div>
                 </div>
 
+                {/* NOTIFY CHECKBOX */}
+                <div className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-xl p-4 flex items-center justify-between group transition-all hover:border-blue-300 dark:hover:border-blue-700">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-600">
+                            <Mail size={16} />
+                        </div>
+                        <div>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 block">Notificações</span>
+                            <span className="text-[9px] font-bold text-blue-500/60 dark:text-blue-400/40 uppercase tracking-widest">Enviar alerta para o responsável</span>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={() => setNotifyResponsible(!notifyResponsible)}
+                        className={`w-10 h-6 rounded-full transition-all relative ${notifyResponsible ? 'bg-blue-600' : 'bg-zinc-200 dark:bg-zinc-800'}`}
+                    >
+                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all shadow-sm ${notifyResponsible ? 'left-5' : 'left-1'}`}></div>
+                    </button>
+                </div>
+
                 {/* DESCRIPTION */}
                 <section className="relative">
                     <div className="flex items-center mb-4 border-b border-zinc-200 dark:border-zinc-800 pb-2">
@@ -924,7 +946,39 @@ export function TaskDetailPanel({
                     <Trash2 size={14} /> Excluir
                 </button>
                 <button
-                    onClick={onClose}
+                    onClick={async () => {
+                        if (notifyResponsible && t.Responsável) {
+                            try {
+                                const workspaceId = (window as any).activeWorkspaceId;
+                                if (workspaceId) {
+                                    const members = await DatabaseService.getWorkspaceMembers(workspaceId);
+                                    const respMember = members.find((m: any) => 
+                                        m.profiles.full_name?.toLowerCase() === t.Responsável?.toLowerCase() || 
+                                        m.profiles.email?.split('@')[0].toLowerCase() === t.Responsável?.toLowerCase()
+                                    );
+                                    const email = respMember?.profiles.email;
+                                    const cliente = clients.find(c => c.id === t.Cliente_ID)?.Nome || 'Geral';
+
+                                    if (email) {
+                                        const emailData = templates.novaTarefa(
+                                            t.Título,
+                                            t.Responsável,
+                                            t.Data_Entrega || 'Não definida',
+                                            cliente
+                                        );
+                                        await sendEmail({
+                                            to: email,
+                                            ...emailData
+                                        });
+                                    }
+                                }
+                            } catch (err) {
+                                console.error('Erro ao notificar responsável:', err);
+                            }
+                        }
+                        setNotifyResponsible(false);
+                        onClose();
+                    }}
                     className="col-span-2 h-11 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-all text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
                 >
                     <CheckCircle2 size={16} /> Finalizar Edição

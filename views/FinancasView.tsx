@@ -8,8 +8,9 @@ import {
     PieChart as PieChartIcon, TrendingUp, TrendingDown, Building, 
     AlertTriangle, Check, Layers, User, ArrowRight, History, 
     Save, PieChart as PieChartLucide, TrendingUp as TrendingUpLucide,
-    Sparkles
+    Sparkles, Mail, Bell
 } from 'lucide-react';
+import { sendEmail, templates } from '../utils/emailService';
 import { 
     BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
     PieChart, Pie, Cell, Legend, AreaChart, Area, 
@@ -709,6 +710,30 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
 
     const totalPendencias = pendencias.atrasadas.length + pendencias.vencendo.length + pendencias.aPagar.length;
 
+    const handleSendReminder = async (tx: any) => {
+        try {
+            const settings = JSON.parse(localStorage.getItem(`ekko_settings_${workspaceId}`) || '{}');
+            const targetEmail = settings.emailFinanceiro || clients.find((c: any) => c.id === tx.clienteId)?.['Email Financeiro'] || clients.find((c: any) => c.id === tx.clienteId)?.['Email'];
+            
+            if (!targetEmail) {
+                alert('E-mail para financeiro não configurado nas configurações ou no cliente.');
+                return;
+            }
+
+            const clientName = clients.find((c: any) => c.id === tx.clienteId)?.Nome || 'Cliente';
+            const emailData = templates.lembretePagamento(tx.descricao, tx.valor, tx.data, clientName);
+            
+            await sendEmail({
+                to: targetEmail,
+                ...emailData
+            });
+            alert(`Lembrete enviado para ${targetEmail}`);
+        } catch (err) {
+            console.error('Erro ao enviar lembrete:', err);
+            alert('Falha ao enviar lembrete.');
+        }
+    };
+
     return (
         <div className="view-root flex-1 min-h-0 flex flex-col bg-white dark:bg-zinc-950 overflow-hidden animate-fade">
             {/* Header */}
@@ -974,6 +999,9 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
                                                         <div className="flex justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            {tx.tipo === 'entrada' && tx.status !== 'Pago' && (
+                                                                <button onClick={() => handleSendReminder(tx)} title="Enviar Lembrete" className="p-1.5 rounded-md hover:bg-blue-100 dark:hover:bg-blue-500/20 text-blue-500 transition-all"><Bell size={14} /></button>
+                                                            )}
                                                             <button onClick={() => handleOpenModal(tx.raw)} className="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-500"><Edit3 size={14} /></button>
                                                             <button onClick={() => handleDelete(tx.id)} className="p-1.5 rounded-md hover:bg-rose-100 dark:hover:bg-rose-500/20 text-rose-500"><Trash2 size={14} /></button>
                                                         </div>
@@ -1320,9 +1348,14 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                     <p className="text-[10px] text-zinc-500 font-bold uppercase">{clients?.find((c:any)=>c.id===t.clienteId)?.Nome || 'Sem cliente'}</p>
                                     <p className="text-lg font-black text-emerald-600 mt-3">{formatBRL(t.valor)}</p>
                                     
-                                    <button onClick={() => handleQuickStatusUpdate(t.id, 'pago')} className="mt-4 w-full py-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 transition-colors">
-                                        <Check size={14} /> Marcar Recebido
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => handleQuickStatusUpdate(t.id, 'pago')} className="mt-4 flex-1 py-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 transition-colors">
+                                            <Check size={14} /> Recebido
+                                        </button>
+                                        <button onClick={() => handleSendReminder(t)} className="mt-4 px-3 py-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center transition-colors">
+                                            <Bell size={14} />
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                             {pendencias.atrasadas.length === 0 && <p className="text-[10px] font-black text-zinc-400 text-center uppercase tracking-widest p-8 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl">Nada atrasado</p>}
@@ -1342,9 +1375,16 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                     <p className="text-[10px] text-zinc-500 font-bold uppercase">{clients?.find((c:any)=>c.id===t.clienteId)?.Nome || 'Sem cliente'}</p>
                                     <p className={`text-lg font-black mt-3 ${t.tipo === 'entrada' ? 'text-emerald-600':'text-rose-600'}`}>{formatBRL(t.valor)}</p>
                                     
-                                    <button onClick={() => handleQuickStatusUpdate(t.id, 'pago')} className="mt-4 w-full py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white text-[10px] font-black uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 transition-colors">
-                                        <Check size={14} /> Dar Baixa
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => handleQuickStatusUpdate(t.id, 'pago')} className="mt-4 flex-1 py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white text-[10px] font-black uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 transition-colors">
+                                            <Check size={14} /> Dar Baixa
+                                        </button>
+                                        {t.tipo === 'entrada' && (
+                                            <button onClick={() => handleSendReminder(t)} className="mt-4 px-3 py-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center transition-colors">
+                                                <Bell size={14} />
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             ))}
                             {pendencias.vencendo.length === 0 && <p className="text-[10px] font-black text-zinc-400 text-center uppercase tracking-widest p-8 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl">Nada a vencer</p>}

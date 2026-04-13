@@ -113,7 +113,91 @@ export function WorkspaceSettingsModal({ workspace, onClose, onWorkspaceDeleted,
                             Excluir Workspace Permanentemente
                             <LogOut size={16} />
                         </button>
+                    </div>
 
+                    <div className="pt-6 border-t border-gray-200 dark:border-zinc-800 space-y-4">
+                        <label className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                            <Mail size={14} className="text-blue-500" /> Notificações por Email
+                        </label>
+                        
+                        <div className="space-y-4 bg-gray-50 dark:bg-zinc-900/50 p-4 rounded-2xl border border-gray-200 dark:border-zinc-800">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-bold text-gray-700 dark:text-zinc-300">Ativar notificações</span>
+                                <button 
+                                    onClick={() => {
+                                        playUISound('tap');
+                                        const config = JSON.parse(localStorage.getItem(`ekko_email_config_${workspace.id}`) || '{}');
+                                        config.enabled = !config.enabled;
+                                        localStorage.setItem(`ekko_email_config_${workspace.id}`, JSON.stringify(config));
+                                        setLoading(!loading); setTimeout(()=>setLoading(false), 10); // Force re-render
+                                    }}
+                                    className={`w-10 h-6 rounded-full transition-colors relative ${JSON.parse(localStorage.getItem(`ekko_email_config_${workspace.id}`) || '{}').enabled ? 'bg-blue-600' : 'bg-gray-300 dark:bg-zinc-700'}`}
+                                >
+                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${JSON.parse(localStorage.getItem(`ekko_email_config_${workspace.id}`) || '{}').enabled ? 'left-5' : 'left-1'}`}></div>
+                                </button>
+                            </div>
+
+                            <div className="space-y-3 pt-2">
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={JSON.parse(localStorage.getItem(`ekko_email_config_${workspace.id}`) || '{}').notifyTasks}
+                                        onChange={(e) => {
+                                            const config = JSON.parse(localStorage.getItem(`ekko_email_config_${workspace.id}`) || '{}');
+                                            config.notifyTasks = e.target.checked;
+                                            localStorage.setItem(`ekko_email_config_${workspace.id}`, JSON.stringify(config));
+                                            setLoading(!loading); setTimeout(()=>setLoading(false), 10);
+                                        }}
+                                        className="w-4 h-4 rounded border-gray-300 dark:border-zinc-700 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <span className="text-xs font-bold text-gray-600 dark:text-zinc-400 group-hover:text-gray-900 dark:group-hover:text-zinc-200">Novas tarefas</span>
+                                </label>
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={JSON.parse(localStorage.getItem(`ekko_email_config_${workspace.id}`) || '{}').notifyContent}
+                                        onChange={(e) => {
+                                            const config = JSON.parse(localStorage.getItem(`ekko_email_config_${workspace.id}`) || '{}');
+                                            config.notifyContent = e.target.checked;
+                                            localStorage.setItem(`ekko_email_config_${workspace.id}`, JSON.stringify(config));
+                                            setLoading(!loading); setTimeout(()=>setLoading(false), 10);
+                                        }}
+                                        className="w-4 h-4 rounded border-gray-300 dark:border-zinc-700 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <span className="text-xs font-bold text-gray-600 dark:text-zinc-400 group-hover:text-gray-900 dark:group-hover:text-zinc-200">Novos conteúdos</span>
+                                </label>
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={JSON.parse(localStorage.getItem(`ekko_email_config_${workspace.id}`) || '{}').notifyFinance}
+                                        onChange={(e) => {
+                                            const config = JSON.parse(localStorage.getItem(`ekko_email_config_${workspace.id}`) || '{}');
+                                            config.notifyFinance = e.target.checked;
+                                            localStorage.setItem(`ekko_email_config_${workspace.id}`, JSON.stringify(config));
+                                            setLoading(!loading); setTimeout(()=>setLoading(false), 10);
+                                        }}
+                                        className="w-4 h-4 rounded border-gray-300 dark:border-zinc-700 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <span className="text-xs font-bold text-gray-600 dark:text-zinc-400 group-hover:text-gray-900 dark:group-hover:text-zinc-200">Lembretes de pagamento</span>
+                                </label>
+                            </div>
+
+                            <div className="pt-2">
+                                <span className="text-[10px] font-black uppercase text-gray-400 dark:text-zinc-500 mb-2 block">Email para notificações financeiras</span>
+                                <input
+                                    type="email"
+                                    placeholder="exemplo@email.com"
+                                    value={JSON.parse(localStorage.getItem(`ekko_email_config_${workspace.id}`) || '{}').financeEmail || ''}
+                                    onChange={(e) => {
+                                        const config = JSON.parse(localStorage.getItem(`ekko_email_config_${workspace.id}`) || '{}');
+                                        config.financeEmail = e.target.value;
+                                        localStorage.setItem(`ekko_email_config_${workspace.id}`, JSON.stringify(config));
+                                        setLoading(!loading); setTimeout(()=>setLoading(false), 10);
+                                    }}
+                                    className="w-full bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-xs font-bold rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors"
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
 
