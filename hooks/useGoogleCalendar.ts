@@ -9,12 +9,15 @@ export function useGoogleCalendar() {
 
   const login = useGoogleLogin({
     scope: 'https://www.googleapis.com/auth/calendar',
+    flow: 'implicit', // usar implicit flow — não precisa de redirect URI
     onSuccess: (response) => {
       setAccessToken(response.access_token);
       setIsConnected(true);
       localStorage.setItem('google_calendar_token', response.access_token);
     },
-    onError: () => console.error('Erro ao conectar Google Calendar')
+    onError: (error) => {
+      console.error('Erro ao conectar Google Calendar:', error);
+    }
   });
 
   const disconnect = () => {
