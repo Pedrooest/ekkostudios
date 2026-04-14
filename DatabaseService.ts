@@ -26,16 +26,8 @@ const MAPA_COLUNAS: Record<string, Record<string, string>> = {
         role: 'papel'
     },
     financas: {
-        Lancamento_ID: 'Lançamento',
-        Tipo: 'tipo',
-        Categoria: 'categoria',
-        Descrição: 'descricao',
-        Valor: 'valor',
-        Data: 'data',
-        Status: 'status',
-        Recorrência: 'frequencia',
-        Cliente_ID: 'clienteId',
-        Dia_Pagamento: 'diaPagamento'
+        id: 'id',
+        workspace_id: 'workspace_id'
     },
     tasks: {
         Activities: 'Atividades',
@@ -116,7 +108,8 @@ const VALID_FIELDS: Record<string, string[]> = {
         'id', 'workspace_id', 'Lançamento', 'Data', 'Cliente_ID', 'Tipo',
         'Categoria', 'Descrição', 'Valor', 'Recorrência', 'Data_Início',
         'Data_Fim', 'Dia_Pagamento', 'Observações', 'Status', 'updated_at',
-        '_auto_gerado', '_origem_id', '__archived', 'created_at', 'created_by', 'updated_by'
+        '_auto_gerado', '_origem_id', '__archived', 'created_at', 'created_by', 'updated_by',
+        'descricao', 'valor', 'data', 'tipo', 'categoria', 'status', 'frequencia', 'clienteId', 'diaPagamento'
     ],
     clients: [
         'id', 'workspace_id', 'Nome', 'Nicho', 'Responsável', 'WhatsApp',

@@ -614,24 +614,24 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
 
         tryPlaySound('success');
         
-        // Usar as chaves do frontend (camelCase) para consistência
-        const updatedObject = {
-            tipo: formData.tipo,
-            categoria: formData.categoria || 'Geral',
-            descricao: formData.descricao,
-            valor: parseNumericValue(formData.valor),
-            data: formData.data,
-            status: formData.status === 'pago' ? 'Pago' : formData.status === 'pendente' ? 'Pendente' : formData.status,
-            frequencia: formData.frequencia,
-            clienteId: formData.clienteId || null,
-            diaPagamento: formData.diaPagamento ? parseInt(formData.diaPagamento) : null
+        // Mapear para as chaves reais do banco de dados (Pretty Case com Acentos)
+        const dbObject = {
+            'Tipo': formData.tipo.charAt(0).toUpperCase() + formData.tipo.slice(1),
+            'Categoria': formData.categoria || 'Geral',
+            'Descrição': formData.descricao,
+            'Valor': parseNumericValue(formData.valor),
+            'Data': formData.data,
+            'Status': formData.status === 'pago' ? 'Pago' : formData.status === 'pendente' ? 'Pendente' : formData.status,
+            'Recorrência': formData.frequencia === 'mensal' ? 'Mensal' : formData.frequencia === 'anual' ? 'Anual' : 'Única',
+            'Cliente_ID': formData.clienteId || null,
+            'Dia_Pagamento': formData.diaPagamento ? parseInt(formData.diaPagamento) : null
         };
 
         if (editingId) {
-            // Bulk update passando null no campo
-            if (onUpdate) await onUpdate(editingId, null, updatedObject);
+            // Bulk update passando null no campo para o App.tsx tratar como objeto
+            if (onUpdate) await onUpdate(editingId, null, dbObject);
         } else {
-            if (onAdd) await onAdd(updatedObject);
+            if (onAdd) await onAdd(dbObject);
         }
 
         setIsModalOpen(false);
