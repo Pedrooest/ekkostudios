@@ -1077,7 +1077,7 @@ export default function App() {
     const id = generateId();
     const now = new Date().toISOString();
     const defaultProps = { id, updated_at: now, created_at: now };
-    const defaultClientId = selectedClientIds.length === 1 ? selectedClientIds[0] : (clients[0]?.id || 'GERAL');
+    const defaultClientId = selectedClientIds.length === 1 ? selectedClientIds[0] : (clients[0]?.id || null);
     let newItem: any = null;
 
     if (tab === 'CLIENTES') newItem = { ...defaultProps, Nome: 'Novo Cliente', Nicho: '', Responsável: '', WhatsApp: '', Instagram: '', Objetivo: '', Observações: '', "Cor (HEX)": '#3B82F6', Status: 'Ativo', links: [], log_comunicacao: [], assets: [], paleta_cores: [], fontes: [], tom_de_voz: '', ...initial };
@@ -1138,7 +1138,8 @@ export default function App() {
           else if (tab === 'TAREFAS') addNotification('success', 'Nova tarefa adicionada', 'A tarefa foi criada no fluxo de trabalho.');
           else addNotification('success', 'Item Criado', `Novo item adicionado em ${TABLE_LABELS[tab]}.`);
         } catch (error: any) {
-          console.error(`[EKKO-SYNC] CREATE_FAILURE | Table: ${tableName} | ID: ${id}`, error);
+          console.error(`[EKKO-SYNC] CREATE_FAILURE | Table: ${tableName} | ID: ${id} | Error:`, error);
+          addNotification('error', 'Erro ao sincronizar', `O item foi criado localmente mas não pôde ser salvo no servidor: ${error.message || 'Erro de constraint ou permissão'}`);
           // Rollback local state
           const filterFn = (prev: any[]) => prev.filter((i: any) => i.id !== id);
           if (tab === 'CLIENTES') setClients(filterFn);
