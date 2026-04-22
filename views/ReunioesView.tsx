@@ -300,7 +300,7 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
                        <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Cliente</label>
                        <select 
                          value={selectedMeeting.cliente_id}
-                         onChange={(e) => onUpdate('REUNIOES', selectedMeeting.id, 'cliente_id', e.target.value)}
+                         onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'cliente_id', e.target.value)}
                          className="w-full h-11 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl text-[10px] font-bold uppercase"
                        >
                          <option value="">Selecione o Cliente</option>
@@ -311,7 +311,7 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
                        <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Status</label>
                        <select 
                          value={selectedMeeting.status}
-                         onChange={(e) => onUpdate('REUNIOES', selectedMeeting.id, 'status', e.target.value)}
+                         onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'status', e.target.value)}
                          className="w-full h-11 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl text-[10px] font-bold uppercase"
                        >
                          <option value="Agendada">Agendada</option>
@@ -326,7 +326,7 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
                     <input 
                       type="text"
                       value={selectedMeeting.titulo}
-                      onChange={(e) => onUpdate('REUNIOES', selectedMeeting.id, 'titulo', e.target.value)}
+                      onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'titulo', e.target.value)}
                       className="w-full h-11 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl text-xs font-bold"
                     />
                   </div>
@@ -334,15 +334,15 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
                   <div className="grid grid-cols-3 gap-4">
                      <div className="space-y-2">
                         <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Data</label>
-                        <input type="date" value={selectedMeeting.data} onChange={(e) => onUpdate('REUNIOES', selectedMeeting.id, 'data', e.target.value)} className="w-full h-11 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl text-[10px] font-bold" />
+                        <input type="date" value={selectedMeeting.data} onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'data', e.target.value)} className="w-full h-11 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl text-[10px] font-bold" />
                      </div>
                      <div className="space-y-2">
                         <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Hora</label>
-                        <input type="time" value={selectedMeeting.hora} onChange={(e) => onUpdate('REUNIOES', selectedMeeting.id, 'hora', e.target.value)} className="w-full h-11 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl text-[10px] font-bold" />
+                        <input type="time" value={selectedMeeting.hora} onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'hora', e.target.value)} className="w-full h-11 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl text-[10px] font-bold" />
                      </div>
                      <div className="space-y-2">
                         <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Formato</label>
-                        <select value={selectedMeeting.formato} onChange={(e) => onUpdate('REUNIOES', selectedMeeting.id, 'formato', e.target.value)} className="w-full h-11 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl text-[10px] font-bold">
+                        <select value={selectedMeeting.formato} onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'formato', e.target.value)} className="w-full h-11 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl text-[10px] font-bold">
                            <option value="Online">Online</option>
                            <option value="Presencial">Presencial</option>
                            <option value="Híbrido">Híbrido</option>
@@ -369,7 +369,7 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
                        <button 
                          onClick={() => {
                            const newSteps = [...(selectedMeeting.proximos_passos || []), { id: Date.now().toString(), checkbox: false, texto: '', responsavel: '', prazo: '' }];
-                           onUpdate('REUNIOES', selectedMeeting.id, 'proximos_passos', newSteps);
+                           onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps);
                          }}
                          className="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center shadow-lg shadow-blue-500/20"
                        >

@@ -875,6 +875,8 @@ export default function App() {
 
 
   const handleUpdate = useCallback(async (id: string, tab: TipoTabela, field: string, value: any, skipLog: boolean = false) => {
+    console.log(`[EKKO-SYNC] handleUpdate | Tab: ${tab} | ID: ${id} | Field: ${field}`, value);
+
     // Permission Check
     const member = currentWorkspace?.membros_workspace?.find((m: any) => m.id_usuario === currentUser?.id);
     if (member && member.papel === 'viewer') {
@@ -909,7 +911,7 @@ export default function App() {
     }
 
     let updated = { ...originalItem };
-    if (field === '__MULTIPLE__') {
+    if (field === '__MULTIPLE__' || field === null) {
       updated = { ...updated, ...value };
     } else {
       updated[field] = value;
@@ -996,17 +998,18 @@ export default function App() {
     if (currentWorkspace) {
       const tableName = getTableName(tab);
       if (tableName) {
-        if (!navigator.onLine) {
-           const queue = JSON.parse(localStorage.getItem('ekko_offline_queue') || '[]');
-           queue.push({ action: 'UPDATE', tableName, data: updated, workspaceId: currentWorkspace.id });
-           localStorage.setItem('ekko_offline_queue', JSON.stringify(queue));
-           setSavingStatus(prev => ({ ...prev, [key]: 'success' }));
-           clearSavingStatus(key);
-           return;
-        }
+        try {
+          if (!navigator.onLine) {
+             const queue = JSON.parse(localStorage.getItem('ekko_offline_queue') || '[]');
+             queue.push({ action: 'UPDATE', tableName, data: updated, workspaceId: currentWorkspace.id });
+             localStorage.setItem('ekko_offline_queue', JSON.stringify(queue));
+             setSavingStatus(prev => ({ ...prev, [key]: 'success' }));
+             clearSavingStatus(key);
+             return;
+          }
 
-        console.log(`[EKKO-SYNC] UPDATE_TRIGGERED | Table: ${tableName} | ID: ${id}`);
-        const error = await DatabaseService.syncItem(tableName, updated, currentWorkspace.id);
+          console.log(`[EKKO-SYNC] UPDATE_TRIGGERED | Table: ${tableName} | ID: ${id}`);
+          const error = await DatabaseService.syncItem(tableName, updated, currentWorkspace.id);
 
         if (error) {
           console.error(`[EKKO-SYNC] UPDATE_FAILURE | Table: ${tableName} | ID: ${id}`, error);
@@ -1022,15 +1025,34 @@ export default function App() {
           else if (tab === 'COBO') setCobo(revertFn);
           else if (tab === 'MATRIZ') setMatriz(revertFn);
           else if (tab === 'IA_HISTORY') setIaHistory(revertFn);
-          else if (tab === 'VH') setCollaborators(revertFn);
-          clearSavingStatus(key);
         } else {
+          console.log(`[EKKO-SYNC] UPDATE_SUCCESS | Table: ${tableName} | ID: ${id}`);
           setSavingStatus(prev => ({ ...prev, [key]: 'success' }));
           clearSavingStatus(key);
         }
+      } catch (error: any) {
+        console.error(`[EKKO-SYNC] CRITICAL_ERROR | Table: ${tableName} | ID: ${id}`, error);
+        addNotification('error', 'Falha na Sincronização', error.message || 'Erro inesperado ao salvar.');
+        
+        // REVERT state
+        const revertFn = (prev: any[]) => prev.map((i: any) => i.id === id ? { ...i, [field || '']: item[field || ''] } : i);
+        if (tab === 'CLIENTES') setClients(revertFn);
+        else if (tab === 'FINANCAS') setFinancas(revertFn);
+        else if (tab === 'TAREFAS') setTasks(revertFn);
+        else if (tab === 'PLANEJAMENTO') setPlanejamento(revertFn);
+        else if (tab === 'RDC') setRdc(revertFn);
+        else if (tab === 'MATRIZ') setMatriz(revertFn);
+        else if (tab === 'COBO') setCobo(revertFn);
+        else if (tab === 'VH') setCollaborators(revertFn);
+        else if (tab === 'CHECKLISTS') setChecklists(revertFn as any);
+        else if (tab === 'REUNIOES') setReunioes(revertFn);
+        else if (tab === 'LEMBRETES') setLembretes(revertFn);
+        
+        clearSavingStatus(key);
       }
     }
-  }, [currentWorkspace, currentUser, addNotification, clients, rdc, matriz, cobo, planejamento, financas, tasks, iaHistory, clearSavingStatus]);
+  }
+}, [currentWorkspace, currentUser, addNotification, clients, rdc, matriz, cobo, planejamento, financas, tasks, iaHistory, clearSavingStatus]);
 
   const handleAddRow = useCallback(async (tab: TipoTabela, initial: Partial<any> = {}): Promise<string> => {
     console.log(`[EKKO-DIAGNOSTIC] handleAddRow started | Tab: ${tab} | WorkspaceID: ${currentWorkspace?.id} | initialData:`, initial);
@@ -1551,6 +1573,24 @@ export default function App() {
 
           {/* RIGHT: Global Actions & Profile */}
           <div className="flex items-center gap-2 sm:gap-4">
+            <button 
+              onClick={async () => { 
+                if (!currentWorkspace) return;
+                playUISound('tap'); 
+                addNotification('info', 'Sincronizando...', 'Buscando dados atualizados do servidor.');
+                try {
+                  await loadWorkspaceData(currentWorkspace.id);
+                  addNotification('success', 'Sincronizado', 'Dados atualizados com sucesso.');
+                } catch (e) {
+                  addNotification('error', 'Erro na Sincronização', 'Não foi possível atualizar os dados.');
+                }
+              }} 
+              title="Forçar Sincronização"
+              className="ios-btn p-2.5 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 dark:border-white/5 dark:bg-white/5 dark:text-zinc-400 dark:hover:text-white transition-colors active:scale-90"
+            >
+              <Database size={18} />
+            </button>
+
             <button onClick={() => { playUISound('tap'); toggleTheme(); }} className="ios-btn p-2.5 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 dark:border-white/5 dark:bg-white/5 dark:text-zinc-400 dark:hover:text-white transition-colors active:scale-90">
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             </button>

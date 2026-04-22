@@ -443,7 +443,8 @@ export const DatabaseService = {
         return mapToFrontend(data, table);
     },
 
-    async syncItem(table: string, item: any, workspaceId: string) {
+    async syncItem(tableInput: string, item: any, workspaceId: string) {
+        const table = tableInput.toLowerCase();
         if (!item.id) {
             console.error('[DatabaseService.syncItem] Blocked: Missing ID');
             return new Error('ID ausente');
@@ -451,6 +452,7 @@ export const DatabaseService = {
 
         try {
             const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error('Usuário não autenticado no DatabaseService');
             const dbItem = mapToDB(item, table);
 
             const payload = {
@@ -465,14 +467,27 @@ export const DatabaseService = {
             }
 
             const sanitized = sanitizeForTable(table, payload);
+            console.log(`[DatabaseService.syncItem] PAYLOAD | Table: ${table}`, sanitized);
             const { data, error } = await supabase.from(table).upsert(sanitized, { onConflict: 'id' }).select();
             if (error) {
-                console.error(`[DatabaseService.syncItem] SQL_ERROR | Table: ${table} | ID: ${item.id}`, error);
-                return error;
+                let errorMessage = error.message;
+                if (error.code === '42501') {
+                    errorMessage = `Permissão negada (RLS). Verifique se você é um membro com papel de editor no Workspace ${workspaceId}.`;
+                }
+                console.error(`[DatabaseService.syncItem] SQL_ERROR | Table: ${table} | ID: ${item.id}`, {
+                    message: errorMessage,
+                    details: error.details,
+                    hint: error.hint,
+                    code: error.code,
+                    payload: sanitized
+                });
+                return new Error(errorMessage);
             }
+            console.log(`[DatabaseService.syncItem] SUCCESS | Table: ${table} | ID: ${item.id}`, data);
+            
             if (!data || data.length === 0) {
-                console.warn(`[DatabaseService.syncItem] NO_DATA_RETURNED | Table: ${table} | ID: ${item.id}`);
-                return new Error('Nenhum dado retornado no Upsert');
+                console.warn(`[DatabaseService.syncItem] NO_DATA_RETURNED | Table: ${table} | ID: ${item.id} | This often indicates an RLS Select policy failure.`);
+                return new Error('Dados não retornados pelo servidor (possível falha de permissão de leitura).');
             }
             return null;
         } catch (err: any) {
