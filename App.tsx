@@ -1035,7 +1035,7 @@ export default function App() {
         addNotification('error', 'Falha na Sincronização', error.message || 'Erro inesperado ao salvar.');
         
         // REVERT state
-        const revertFn = (prev: any[]) => prev.map((i: any) => i.id === id ? { ...i, [field || '']: item[field || ''] } : i);
+        const revertFn = (prev: any[]) => prev.map((i: any) => i.id === id ? originalItem : i);
         if (tab === 'CLIENTES') setClients(revertFn);
         else if (tab === 'FINANCAS') setFinancas(revertFn);
         else if (tab === 'TAREFAS') setTasks(revertFn);
@@ -1043,6 +1043,7 @@ export default function App() {
         else if (tab === 'RDC') setRdc(revertFn);
         else if (tab === 'MATRIZ') setMatriz(revertFn);
         else if (tab === 'COBO') setCobo(revertFn);
+        else if (tab === 'REUNIOES') setReunioes(revertFn);
         else if (tab === 'VH') setCollaborators(revertFn);
         else if (tab === 'CHECKLISTS') setChecklists(revertFn as any);
         else if (tab === 'REUNIOES') setReunioes(revertFn);
@@ -1097,9 +1098,9 @@ export default function App() {
     } else if (tab === 'COBO') newItem = { ...defaultProps, Cliente_ID: defaultClientId, Canal: 'Instagram', Frequência: '', Público: '', Voz: '', Zona: '', Intenção: '', Formato: '', ...initial };
     else if (tab === 'MATRIZ') newItem = { ...defaultProps, Cliente_ID: defaultClientId, Rede_Social: 'Instagram', Função: 'Hub', "Quem fala": '', "Papel estratégico": '', "Tipo de conteúdo": '', "Resultado esperado": '', ...initial };
     else if (tab === 'RDC') newItem = { ...defaultProps, Cliente_ID: defaultClientId, "Ideia de Conteúdo": '', Rede_Social: 'Instagram', "Tipo de conteúdo": '', "Resolução (1–5)": 1, "Demanda (1–5)": 1, "Competição (1–5)": 1, "Score (R×D×C)": 1, Decisão: 'Preencha R/D/C', ...initial };
-    else if (tab === 'CHECKLISTS') newItem = { ...defaultProps, itens_levar: [], itens_trazer: [], itens_gravar: [], ...initial };
-    else if (tab === 'REUNIOES') newItem = { ...defaultProps, Cliente_ID: initial.Cliente_ID || defaultClientId, Título: initial.Título || 'Nova Reunião', Data: initial.Data || new Date().toISOString().split('T')[0], Hora: initial.Hora || '10:00', Formato: 'Online', Participantes: '', Pauta: '', Decisões: '', Proximos_Passos: [], Status: 'Agendada', ...initial };
-    else if (tab === 'LEMBRETES') newItem = { ...defaultProps, Título: 'Novo Lembrete', Data: new Date().toISOString().split('T')[0], Hora: '09:00', Tipo: 'Tarefa', Cliente_ID: initial.Cliente_ID || null, Descrição: '', Concluído: false, Auto_Gerado: false, ...initial };
+    else if (tab === 'CHECKLISTS') newItem = { ...defaultProps, titulo: 'Novo Checklist', data: new Date().toISOString().split('T')[0], cliente_id: defaultClientId, local: '', observacoes: '', status: 'Pendente', hora: '10:00', itens_levar: [], itens_trazer: [], itens_gravar: [], ...initial };
+    else if (tab === 'REUNIOES') newItem = { ...defaultProps, cliente_id: initial.cliente_id || defaultClientId, titulo: initial.titulo || 'Nova Reunião', data: initial.data || new Date().toISOString().split('T')[0], hora: initial.hora || '10:00', formato: 'Online', participantes: '', pauta: '', decisoes: '', proximos_passos: [], status: 'Agendada', ...initial };
+    else if (tab === 'LEMBRETES') newItem = { ...defaultProps, titulo: 'Novo Lembrete', data: new Date().toISOString().split('T')[0], hora: '09:00', tipo: 'Tarefa', cliente_id: initial.cliente_id || null, descricao: '', concluido: false, auto_gerado: false, ...initial };
 
     if (newItem) {
       console.log(`[EKKO-SYNC] CREATE_TRIGGERED | Table: ${tab} | ID: ${id}`, newItem);

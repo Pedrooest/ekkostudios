@@ -30,22 +30,73 @@ const MAPA_COLUNAS: Record<string, Record<string, string>> = {
         workspace_id: 'workspace_id'
     },
     tasks: {
-        Activities: 'Atividades',
-        Task_ID: 'id', // Mapping database Task_ID to frontend id if needed
-        Cliente_ID: 'clienteId',
-        Título: 'titulo',
-        Descrição: 'descricao',
-        Área: 'area',
-        Status: 'status',
-        Prioridade: 'prioridade',
-        Responsável: 'responsavel',
-        Data_Entrega: 'dataEntrega',
-        Hora_Entrega: 'horaEntrega',
-        Tempo_Gasto_H: 'tempoGasto',
-        Estimativa_H: 'estimativa',
-        Relacionado_A: 'relacionadoA',
-        Relacionado_ID: 'relacionadoId',
-        Relacionado_Conteudo: 'relacionadoConteudo'
+        "Título": 'Título',
+        "Descrição": 'Descrição',
+        "Prioridade": 'Prioridade',
+        "Status": 'Status',
+        "Área": 'Área',
+        "Responsável": 'Responsável',
+        "Data_Entrega": 'Data_Entrega',
+        "Hora_Entrega": 'Hora_Entrega',
+        "Checklist": 'Checklist',
+        "Anexos": 'Anexos',
+        "Comentarios": 'Comentarios',
+        "Atividades": 'Atividades',
+        "Tempo_Gasto_H": 'Tempo_Gasto_H',
+        "Estimativa_H": 'Estimativa_H',
+        "Relacionado_A": 'Relacionado_A',
+        "Relacionado_ID": 'Relacionado_ID',
+        "Relacionado_Conteudo": 'Relacionado_Conteudo',
+        "Cliente_ID": 'Cliente_ID'
+    },
+    financas: {
+        "Lançamento": 'Lançamento',
+        "Data": 'Data',
+        "Cliente_ID": 'Cliente_ID',
+        "Tipo": 'Tipo',
+        "Categoria": 'Categoria',
+        "Descrição": 'Descrição',
+        "Valor": 'Valor',
+        "Recorrência": 'Recorrência',
+        "Data_Início": 'Data_Início',
+        "Data_Fim": 'Data_Fim',
+        "Dia_Pagamento": 'Dia_Pagamento',
+        "Observações": 'Observações',
+        "Status": 'Status'
+    },
+    reunioes: {
+        titulo: 'titulo',
+        data: 'data',
+        hora: 'hora',
+        formato: 'formato',
+        participantes: 'participantes',
+        pauta: 'pauta',
+        decisoes: 'decisoes',
+        proximos_passos: 'proximos_passos',
+        status: 'status',
+        cliente_id: 'cliente_id'
+    },
+    lembretes: {
+        titulo: 'titulo',
+        data: 'data',
+        hora: 'hora',
+        tipo: 'tipo',
+        descricao: 'descricao',
+        concluido: 'concluido',
+        auto_gerado: 'auto_gerado',
+        cliente_id: 'cliente_id'
+    },
+    checklists: {
+        titulo: 'titulo',
+        data: 'data',
+        cliente_id: 'cliente_id',
+        local: 'local',
+        observacoes: 'observacoes',
+        status: 'status',
+        hora: 'hora',
+        itens_levar: 'itens_levar',
+        itens_trazer: 'itens_trazer',
+        itens_gravar: 'itens_gravar'
     },
     rdc: {
         Cliente_ID: 'clienteId',
@@ -140,12 +191,12 @@ const VALID_FIELDS: Record<string, string[]> = {
         'id', 'workspace_id', 'cliente_id', 'titulo', 'data', 'hora',
         'formato', 'participantes', 'pauta', 'decisoes',
         'proximos_passos', 'status', 'updated_at',
-        '__archived', 'created_at', 'created_by', 'updated_by'
+        'created_at', 'created_by', 'updated_by', '__archived'
     ],
     lembretes: [
         'id', 'workspace_id', 'titulo', 'data', 'hora', 'tipo',
         'cliente_id', 'descricao', 'concluido', 'auto_gerado', 'updated_at',
-        '__archived', 'created_at', 'created_by', 'updated_by'
+        'created_at', 'created_by', 'updated_by', '__archived'
     ],
     retiradas_socios: [
         'id', 'workspace_id', 'socio', 'valor', 'data',
@@ -486,8 +537,8 @@ export const DatabaseService = {
             console.log(`[DatabaseService.syncItem] SUCCESS | Table: ${table} | ID: ${item.id}`, data);
             
             if (!data || data.length === 0) {
-                console.warn(`[DatabaseService.syncItem] NO_DATA_RETURNED | Table: ${table} | ID: ${item.id} | This often indicates an RLS Select policy failure.`);
-                return new Error('Dados não retornados pelo servidor (possível falha de permissão de leitura).');
+                console.warn(`[DatabaseService.syncItem] NO_DATA_RETURNED | Table: ${table} | ID: ${item.id} | User: ${user.id} | This often indicates an RLS Select policy failure. Please check if the row exists in the DB but is not visible to this user.`);
+                return new Error('Os dados foram salvos mas não puderam ser lidos de volta. Verifique as políticas de RLS (Row Level Security).');
             }
             return null;
         } catch (err: any) {
