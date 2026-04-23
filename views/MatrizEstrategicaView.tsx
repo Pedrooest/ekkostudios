@@ -96,7 +96,7 @@ export function MatrizEstrategicaView({
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editingCell, setEditingCell] = useState<{id: string, field: string} | null>(null);
   const [editingValue, setEditingValue] = useState('');
-  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [drawerItem, setDrawerItem] = useState<any>(null);
 
   // Escape listener for modal
   React.useEffect(() => {
@@ -117,7 +117,7 @@ export function MatrizEstrategicaView({
   }, [data, searchTerm, filterCanal]);
 
   const handleEdit = (item: any) => {
-    setSelectedItem(item);
+    setDrawerItem(item);
   };
 
   const handleSave = () => {
@@ -348,7 +348,7 @@ export function MatrizEstrategicaView({
                     <tr 
                       key={row.id} 
                       className={`hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors group cursor-pointer ${selection.includes(row.id) ? 'bg-zinc-900/5 dark:bg-zinc-100/5' : ''}`}
-                      onClick={() => setSelectedItem(row)}
+                      onClick={() => setDrawerItem(row)}
                     >
                       <td className="px-6 py-3 text-center" onClick={e => e.stopPropagation()}>
                         <input 
@@ -603,14 +603,21 @@ export function MatrizEstrategicaView({
       )}
 
       {/* Matriz Drawer */}
-      <MatrizDrawer
-        item={selectedItem}
-        clienteNome={clients.find(c => c.id === selectedItem?.Cliente_ID)?.Nome || 'Agência'}
-        onClose={() => setSelectedItem(null)}
-        onUpdate={onUpdate}
-        onDelete={onDelete}
-        savingStatus={savingStatus}
-      />
+      {drawerItem && (
+        <MatrizDrawer
+          item={drawerItem}
+          cliente={clients.find(c => c.id === drawerItem.Cliente_ID)}
+          onClose={() => setDrawerItem(null)}
+          onUpdate={(field, value) => {
+            onUpdate(drawerItem.id, 'MATRIZ', field, value);
+            setDrawerItem((prev: any) => prev ? { ...prev, [field]: value } : null);
+          }}
+          onDelete={() => {
+            onDelete([drawerItem.id], 'MATRIZ');
+            setDrawerItem(null);
+          }}
+        />
+      )}
     </div>
   );
 }

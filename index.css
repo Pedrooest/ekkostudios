@@ -308,3 +308,13 @@ video {
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #3f3f46;
 }
+
+/* Drawer slide-in animation */
+@keyframes slide-in-right {
+  from { transform: translateX(100%); opacity: 0.6; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

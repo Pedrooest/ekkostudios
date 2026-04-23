@@ -114,7 +114,7 @@ export function CoboView({
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editingCell, setEditingCell] = useState<{id: string, field: string} | null>(null);
   const [editingValue, setEditingValue] = useState('');
-  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [drawerItem, setDrawerItem] = useState<any>(null);
 
   const filteredData = useMemo(() => {
     return data.filter(item => {
@@ -155,7 +155,7 @@ export function CoboView({
   }
 
   const handleEdit = (item: any) => {
-    setSelectedItem(item);
+    setDrawerItem(item);
   };
 
   const handleSave = () => {
@@ -323,7 +323,7 @@ export function CoboView({
               </thead>
               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                 {filteredData.map(item => (
-                  <tr key={item.id} className="group hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer" onClick={() => setSelectedItem(item)}>
+                  <tr key={item.id} className="group hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer" onClick={() => setDrawerItem(item)}>
                     <td className="px-6 py-3 relative" onClick={e => e.stopPropagation()}>
                       <div className="flex items-center gap-3 overflow-hidden">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-500 border border-zinc-200 dark:border-zinc-700 shrink-0">
@@ -613,14 +613,21 @@ export function CoboView({
       )}
 
       {/* COBO Drawer */}
-      <CoboDrawer
-        item={selectedItem}
-        clienteNome={activeClient?.Nome || 'Agência'}
-        onClose={() => setSelectedItem(null)}
-        onUpdate={onUpdate}
-        onDelete={onDelete}
-        savingStatus={savingStatus}
-      />
+      {drawerItem && (
+        <CoboDrawer
+          item={drawerItem}
+          cliente={clients.find(c => c.id === drawerItem.Cliente_ID) || activeClient || undefined}
+          onClose={() => setDrawerItem(null)}
+          onUpdate={(field, value) => {
+            onUpdate(drawerItem.id, 'COBO', field, value);
+            setDrawerItem((prev: any) => prev ? { ...prev, [field]: value } : null);
+          }}
+          onDelete={() => {
+            onDelete([drawerItem.id], 'COBO');
+            setDrawerItem(null);
+          }}
+        />
+      )}
     </div>
   );
 }
