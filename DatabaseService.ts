@@ -99,58 +99,49 @@ const MAPA_COLUNAS: Record<string, Record<string, string>> = {
         itens_gravar: 'itens_gravar'
     },
     rdc: {
-        Cliente_ID: 'clienteId',
-        "Ideia de Conteúdo": 'ideia',
-        Rede_Social: 'redeSocial',
-        "Tipo de conteúdo": 'tipoConteudo',
-        "Resolução (1–5)": 'resolucao',
-        "Demanda (1–5)": 'demanda',
-        "Competição (1–5)": 'competicao',
-        "Score (R×D×C)": 'score',
-        Decisão: 'decisao'
+        Cliente_ID: 'Cliente_ID',
+        "Ideia de Conteúdo": 'Ideia de Conteúdo',
+        Rede_Social: 'Rede_Social',
+        "Tipo de conteúdo": 'Tipo de conteúdo',
+        "Resolução (1–5)": 'Resolução (1–5)',
+        "Demanda (1–5)": 'Demanda (1–5)',
+        "Competição (1–5)": 'Competição (1–5)',
+        "Score (R×D×C)": 'Score (R×D×C)',
+        Decisão: 'Decisão'
     },
     cobo: {
-        Cliente_ID: 'clienteId',
-        Canal: 'canal',
-        Frequência: 'frequencia',
-        Público: 'publico',
-        Voz: 'voz',
-        Zona: 'zona',
-        Intenção: 'intencao',
-        Formato: 'formato'
+        Cliente_ID: 'Cliente_ID',
+        Canal: 'Canal',
+        Frequência: 'Frequência',
+        Público: 'Público',
+        Voz: 'Voz',
+        Zona: 'Zona',
+        Intenção: 'Intenção',
+        Formato: 'Formato'
     },
     matriz_estrategica: {
-        Cliente_ID: 'clienteId',
-        Rede_Social: 'redeSocial',
-        Função: 'funcao',
-        "Quem fala": 'quemFala',
-        "Papel estratégico": 'papelEstrategico',
-        "Tipo de conteúdo": 'tipoConteudo',
-        "Resultado esperado": 'resultadoEsperado'
+        Cliente_ID: 'Cliente_ID',
+        Rede_Social: 'Rede_Social',
+        Função: 'Função',
+        "Quem fala": 'Quem fala',
+        "Papel estratégico": 'Papel estratégico',
+        "Tipo de conteúdo": 'Tipo de conteúdo',
+        "Resultado esperado": 'Resultado esperado'
     },
     planejamento: {
-        Cliente_ID: 'clienteId',
-        Data: 'data',
-        Hora: 'hora',
-        Conteúdo: 'conteudo',
-        Função: 'funcao',
-        Rede_Social: 'redeSocial',
-        "Tipo de conteúdo": 'tipoConteudo',
-        Intenção: 'intencao',
-        Canal: 'canal',
-        Formato: 'formato',
-        Zona: 'zona',
-        "Quem fala": 'quemFala',
-        "Status do conteúdo": 'status'
-    },
-    checklists: {
-        cliente_id: 'client',
-        titulo: 'title',
-        data: 'date',
-        local: 'location',
-        observacoes: 'notes',
-        hora: 'time',
-        status: 'status'
+        Cliente_ID: 'Cliente_ID',
+        Data: 'Data',
+        Hora: 'Hora',
+        Conteúdo: 'Conteúdo',
+        Função: 'Função',
+        Rede_Social: 'Rede_Social',
+        "Tipo de conteúdo": 'Tipo de conteúdo',
+        Intenção: 'Intenção',
+        Canal: 'Canal',
+        Formato: 'Formato',
+        Zona: 'Zona',
+        "Quem fala": 'Quem fala',
+        "Status do conteúdo": 'Status do conteúdo'
     }
 };
 
@@ -519,27 +510,21 @@ export const DatabaseService = {
 
             const sanitized = sanitizeForTable(table, payload);
             console.log(`[DatabaseService.syncItem] PAYLOAD | Table: ${table}`, sanitized);
-            const { data, error } = await supabase.from(table).upsert(sanitized, { onConflict: 'id' }).select();
-            if (error) {
+            const { error } = await supabase
+                .from(table)
+                .upsert(sanitized, { onConflict: 'id', ignoreDuplicates: false });
+
+            if (!error) {
+                console.log(`[DB] ✅ Saved: ${table} | ${sanitized.id}`);
+            } else {
+                console.error(`[DB] ❌ Failed: ${table} | ${sanitized.id}`, error);
                 let errorMessage = error.message;
                 if (error.code === '42501') {
                     errorMessage = `Permissão negada (RLS). Verifique se você é um membro com papel de editor no Workspace ${workspaceId}.`;
                 }
-                console.error(`[DatabaseService.syncItem] SQL_ERROR | Table: ${table} | ID: ${item.id}`, {
-                    message: errorMessage,
-                    details: error.details,
-                    hint: error.hint,
-                    code: error.code,
-                    payload: sanitized
-                });
                 return new Error(errorMessage);
             }
-            console.log(`[DatabaseService.syncItem] SUCCESS | Table: ${table} | ID: ${item.id}`, data);
             
-            if (!data || data.length === 0) {
-                console.warn(`[DatabaseService.syncItem] NO_DATA_RETURNED | Table: ${table} | ID: ${item.id} | User: ${user.id} | This often indicates an RLS Select policy failure. Please check if the row exists in the DB but is not visible to this user.`);
-                return new Error('Os dados foram salvos mas não puderam ser lidos de volta. Verifique as políticas de RLS (Row Level Security).');
-            }
             return null;
         } catch (err: any) {
             console.error(`[DatabaseService.syncItem] FATAL_ERROR | Table: ${table} | ID: ${item.id}`, err);

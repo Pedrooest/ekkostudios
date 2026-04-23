@@ -111,6 +111,8 @@ export function CoboView({
   const [filterCanal, setFilterCanal] = useState<string | null>(null);
   const [filterZona, setFilterZona] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingCell, setEditingCell] = useState<{id: string, field: string} | null>(null);
+  const [editingValue, setEditingValue] = useState('');
 
   const filteredData = useMemo(() => {
     return data.filter(item => {
@@ -164,8 +166,66 @@ export function CoboView({
     }
   };
 
+  const renderEditableCell = (item: any, field: string, hasDatalist?: string, isBadge: boolean = false) => {
+    const isEditing = editingCell?.id === item.id && editingCell?.field === field;
+    return (
+      <td 
+        className="px-6 py-3 min-w-[180px] text-xs font-medium text-zinc-500 relative group/cell"
+        onClick={(e) => {
+          e.stopPropagation();
+          setEditingCell({ id: item.id, field });
+          setEditingValue(item[field] || '');
+        }}
+      >
+        {isEditing ? (
+          <input
+            autoFocus
+            value={editingValue}
+            list={hasDatalist}
+            onChange={e => setEditingValue(e.target.value)}
+            onBlur={() => {
+              if (editingValue !== (item[field] || '')) {
+                onUpdate(item.id, 'COBO', field, editingValue);
+              }
+              setEditingCell(null);
+            }}
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                if (editingValue !== (item[field] || '')) {
+                  onUpdate(item.id, 'COBO', field, editingValue);
+                }
+                setEditingCell(null);
+              }
+              if (e.key === 'Escape') setEditingCell(null);
+            }}
+            className="w-full bg-transparent outline-none border-b border-blue-500 text-zinc-900 dark:text-zinc-100 uppercase"
+          />
+        ) : (
+          <div className="max-w-[180px] overflow-hidden cursor-pointer">
+            {isBadge ? (
+              <Badge color="slate" className="truncate block group-hover/cell:border-blue-500 transition-colors">{item[field] || '-'}</Badge>
+            ) : (
+              <span className="block truncate max-w-[180px] group-hover/cell:text-blue-500 transition-colors">{item[field] || '-'}</span>
+            )}
+          </div>
+        )}
+        <SavingIndicator status={savingStatus[`COBO:${item.id}:${field}`]} />
+      </td>
+    );
+  };
+
   return (
     <div className="view-root p-4 sm:p-6 space-y-6 animate-fade pb-20 h-full overflow-y-auto custom-scrollbar">
+      <datalist id="dl-frequencia-cobo">
+        {OPCOES_FREQUENCIA_COBO.map(opt => <option key={opt} value={opt} />)}
+      </datalist>
+      <datalist id="dl-intencao-cobo">
+        {OPCOES_INTENCAO_COBO.map(opt => <option key={opt} value={opt} />)}
+      </datalist>
+      <datalist id="dl-formato-cobo">
+        {OPCOES_FORMATO_COBO.map(opt => <option key={opt} value={opt} />)}
+      </datalist>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm">
         <div className="flex items-center gap-4">
@@ -262,35 +322,36 @@ export function CoboView({
               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                 {filteredData.map(item => (
                   <tr key={item.id} className="group hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
-                    <td className="px-6 py-3 relative" title={item.Canal}>
+                    <td className="px-6 py-3 relative" onClick={e => e.stopPropagation()}>
                       <div className="flex items-center gap-3 overflow-hidden">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-500 border border-zinc-200 dark:border-zinc-700 shrink-0">
                           {getSocialIcon(item.Canal)}
                         </div>
-                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight truncate min-w-0">{item.Canal}</span>
+                        <select
+                          value={item.Canal || ''}
+                          onChange={e => onUpdate(item.id, 'COBO', 'Canal', e.target.value)}
+                          className="bg-transparent outline-none text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight cursor-pointer hover:text-blue-500 border-b border-dashed border-zinc-300 dark:border-zinc-700 pb-0.5"
+                        >
+                          <option value="">Selecione</option>
+                          {OPCOES_CANAL_COBO.map(o => <option key={o} value={o}>{o}</option>)}
+                        </select>
                       </div>
                       <SavingIndicator status={savingStatus[`COBO:${item.id}:Canal`]} />
                     </td>
-                    <td className="px-6 py-3 text-xs font-medium text-zinc-500 truncate relative" title={item.Frequência}>
-                      {item.Frequência}
-                      <SavingIndicator status={savingStatus[`COBO:${item.id}:Frequência`]} />
-                    </td>
-                    <td className="px-6 py-3 relative">
-                      <Badge color={getZonaColor(item.Zona) as any} className="truncate">{item.Zona}</Badge>
+                    {renderEditableCell(item, 'Frequência', 'dl-frequencia-cobo')}
+                    <td className="px-6 py-3 relative" onClick={e => e.stopPropagation()}>
+                        <select
+                          value={item.Zona || ''}
+                          onChange={e => onUpdate(item.id, 'COBO', 'Zona', e.target.value)}
+                          className="bg-transparent outline-none text-[10px] font-bold text-zinc-700 dark:text-zinc-300 uppercase cursor-pointer hover:text-blue-500 border-b border-dashed border-zinc-300 dark:border-zinc-700 pb-0.5"
+                        >
+                          <option value="">Selecione</option>
+                          {OPCOES_ZONA_COBO.map(o => <option key={o} value={o}>{o}</option>)}
+                        </select>
                       <SavingIndicator status={savingStatus[`COBO:${item.id}:Zona`]} />
                     </td>
-                    <td className="px-6 py-3 min-w-[180px] relative">
-                      <div className="max-w-[180px] overflow-hidden">
-                        <Badge color="slate" className="truncate block">{item.Intenção}</Badge>
-                      </div>
-                      <SavingIndicator status={savingStatus[`COBO:${item.id}:Intenção`]} />
-                    </td>
-                    <td className="px-6 py-3 min-w-[180px] relative">
-                      <div className="max-w-[180px] overflow-hidden">
-                        <Badge color="slate" className="truncate block">{item.Formato}</Badge>
-                      </div>
-                      <SavingIndicator status={savingStatus[`COBO:${item.id}:Formato`]} />
-                    </td>
+                    {renderEditableCell(item, 'Intenção', 'dl-intencao-cobo', true)}
+                    {renderEditableCell(item, 'Formato', 'dl-formato-cobo', true)}
                     <td className="px-6 py-3 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => handleEdit(item)} className="p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">

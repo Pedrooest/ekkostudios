@@ -233,6 +233,7 @@ export default function App() {
   const [taskDetailViewMode, setTaskDetailViewMode] = useState<ModoVisaoTarefa>('sidebar');
   const [isClientFilterOpen, setIsClientFilterOpen] = useState(false);
   const [isReorderOpen, setIsReorderOpen] = useState(false);
+  const loadedWorkspaceRef = useRef<string | null>(null);
 
   const [isGeminiSidebarOpen, setIsGeminiSidebarOpen] = useState(false);
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
@@ -751,10 +752,12 @@ export default function App() {
   }, [currentUser, refreshWorkspaces]);
 
   useEffect(() => {
-    if (currentWorkspace) {
+    if (currentWorkspace?.id) {
+      if (loadedWorkspaceRef.current === currentWorkspace.id) return;
+      loadedWorkspaceRef.current = currentWorkspace.id;
       loadWorkspaceData(currentWorkspace.id);
     }
-  }, [currentWorkspace, loadWorkspaceData]);
+  }, [currentWorkspace?.id, loadWorkspaceData]);
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // SMART notificacoes (CHECKS)
@@ -1807,6 +1810,28 @@ export default function App() {
         )}
 
 
+
+        {/* --- GLOBAL SAVE INDICATOR --- */}
+        {Object.keys(savingStatus).length > 0 && (
+          <div className="fixed bottom-4 right-4 z-[9999]">
+            {Object.values(savingStatus).includes('saving') ? (
+              <div className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg text-sm font-medium animate-pulse">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Salvando...</span>
+              </div>
+            ) : Object.values(savingStatus).includes('error') ? (
+              <div className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-full shadow-lg text-sm font-medium">
+                <X className="w-4 h-4" />
+                <span>Erro ao salvar</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-full shadow-lg text-sm font-medium">
+                <CheckIcon className="w-4 h-4" />
+                <span>Salvo ✓</span>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className={`flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar animate-fade bg-app-bg ${(activeTab === 'WHITEBOARD' || activeTab === 'CLIENTES' || activeTab === 'PLANEJAMENTO' || activeTab === 'CHECKLISTS') ? 'p-0 overflow-hidden' : 'p-4 sm:p-6 pb-[calc(100px+env(safe-area-inset-bottom))] sm:pb-6'}`}>
           {activeTab === 'DASHBOARD' && <DashboardView clients={clients} tasks={currentTasks} financas={currentFinancas} planejamento={currentPlanejamento} rdc={currentRdc} setActiveTab={setActiveTab} perfilUsuario={perfilUsuario} />}

@@ -93,6 +93,8 @@ export function MatrizEstrategicaView({
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCanal, setFilterCanal] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingCell, setEditingCell] = useState<{id: string, field: string} | null>(null);
+  const [editingValue, setEditingValue] = useState('');
 
   // Escape listener for modal
   React.useEffect(() => {
@@ -137,8 +139,59 @@ export function MatrizEstrategicaView({
     return groups;
   }, [filteredData]);
 
+  const renderEditableCell = (row: any, field: string, hasDatalist?: string) => {
+    const isEditing = editingCell?.id === row.id && editingCell?.field === field;
+    return (
+      <td 
+        className="px-6 py-3 min-w-[180px] text-[11px] font-medium text-zinc-500 relative group/cell"
+        onClick={(e) => {
+          e.stopPropagation();
+          setEditingCell({ id: row.id, field });
+          setEditingValue(row[field] || '');
+        }}
+      >
+        {isEditing ? (
+          <input
+            autoFocus
+            value={editingValue}
+            list={hasDatalist}
+            onChange={e => setEditingValue(e.target.value)}
+            onBlur={() => {
+              if (editingValue !== (row[field] || '')) {
+                onUpdate(row.id, 'MATRIZ', field, editingValue);
+              }
+              setEditingCell(null);
+            }}
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                if (editingValue !== (row[field] || '')) {
+                  onUpdate(row.id, 'MATRIZ', field, editingValue);
+                }
+                setEditingCell(null);
+              }
+              if (e.key === 'Escape') setEditingCell(null);
+            }}
+            className="w-full bg-transparent outline-none border-b border-blue-500 text-zinc-900 dark:text-zinc-100"
+          />
+        ) : (
+          <span className="block truncate max-w-[200px] cursor-pointer group-hover/cell:text-blue-500 transition-colors" title={row[field]}>
+            {row[field] || '-'}
+          </span>
+        )}
+        <SavingIndicator status={savingStatus[`MATRIZ:${row.id}:${field}`]} />
+      </td>
+    );
+  };
+
   return (
     <div className="view-root p-4 sm:p-6 space-y-6 animate-fade pb-20 h-full overflow-y-auto custom-scrollbar">
+      <datalist id="dl-papel-estrategico">
+        {OPCOES_PAPEL_ESTRATEGICO_MATRIZ.map(opt => <option key={opt} value={opt} />)}
+      </datalist>
+      <datalist id="dl-tipo-conteudo">
+        {OPCOES_TIPO_CONTEUDO_MATRIZ.map(opt => <option key={opt} value={opt} />)}
+      </datalist>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm">
         <div className="flex items-center gap-4 flex-1">
@@ -308,33 +361,39 @@ export function MatrizEstrategicaView({
                         <span className="text-[11px] font-bold text-zinc-900 dark:text-zinc-100 truncate block">{client?.Nome || 'Agência'}</span>
                       </td>
                     )}
-                    <td className="px-6 py-3 min-w-[120px] relative">
+                    <td className="px-6 py-3 min-w-[120px] relative" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center gap-2">
-                          <div className="text-zinc-400 shrink-0">{getSocialIcon(row['Rede_Social'])}</div>
-                          <Badge color={getSocialColor(row['Rede_Social'])} className="!py-0 !text-[9px] !rounded-md !uppercase whitespace-nowrap">{row['Rede_Social'] || 'N/A'}</Badge>
+                          <select 
+                            value={row['Rede_Social'] || ''}
+                            onChange={e => onUpdate(row.id, 'MATRIZ', 'Rede_Social', e.target.value)}
+                            className="bg-transparent outline-none text-[10px] font-bold text-zinc-700 dark:text-zinc-300 uppercase cursor-pointer hover:text-blue-500 border-b border-dashed border-zinc-300 dark:border-zinc-700 pb-0.5"
+                          >
+                            <option value="">Selecione</option>
+                            <option value="Instagram">Instagram</option>
+                            <option value="TikTok">TikTok</option>
+                            <option value="Youtube">Youtube</option>
+                            <option value="LinkedIn">LinkedIn</option>
+                            <option value="Facebook">Facebook</option>
+                            <option value="WhatsApp">WhatsApp</option>
+                          </select>
                         </div>
                         <SavingIndicator status={savingStatus[`MATRIZ:${row.id}:Rede_Social`]} />
                     </td>
-                    <td className="px-6 py-3 min-w-[180px] relative" title={row['Função']}>
-                        <Badge color={getFuncaoColor(row['Função'])} className="!py-0 !text-[9px] !rounded-md !uppercase whitespace-nowrap">{row['Função'] || 'N/A'}</Badge>
+                    <td className="px-6 py-3 min-w-[180px] relative" onClick={e => e.stopPropagation()}>
+                        <select 
+                          value={row['Função'] || ''}
+                          onChange={e => onUpdate(row.id, 'MATRIZ', 'Função', e.target.value)}
+                          className="bg-transparent outline-none text-[10px] font-bold text-zinc-700 dark:text-zinc-300 uppercase cursor-pointer hover:text-blue-500 border-b border-dashed border-zinc-300 dark:border-zinc-700 pb-0.5"
+                        >
+                          <option value="">Selecione</option>
+                          {OPCOES_FUNCAO_MATRIZ.map(o => <option key={o} value={o}>{o}</option>)}
+                        </select>
                         <SavingIndicator status={savingStatus[`MATRIZ:${row.id}:Função`]} />
                     </td>
-                    <td className="px-6 py-3 min-w-[180px] text-[11px] font-medium text-zinc-500 relative" title={row['Quem fala']}>
-                      <span className="block truncate max-w-[180px]">{row['Quem fala'] || '-'}</span>
-                      <SavingIndicator status={savingStatus[`MATRIZ:${row.id}:Quem fala`]} />
-                    </td>
-                    <td className="px-6 py-3 min-w-[200px] text-[11px] font-bold text-zinc-900 dark:text-zinc-100 relative" title={row['Papel estratégico']}>
-                      <span className="block truncate max-w-[200px]">{row['Papel estratégico'] || '-'}</span>
-                      <SavingIndicator status={savingStatus[`MATRIZ:${row.id}:Papel estratégico`]} />
-                    </td>
-                    <td className="px-6 py-3 min-w-[200px] text-[11px] font-medium text-zinc-500 relative" title={row['Tipo de conteúdo']}>
-                      <span className="block truncate max-w-[200px]">{row['Tipo de conteúdo'] || '-'}</span>
-                      <SavingIndicator status={savingStatus[`MATRIZ:${row.id}:Tipo de conteúdo`]} />
-                    </td>
-                    <td className="px-6 py-3 min-w-[180px] text-[11px] font-medium text-zinc-500 relative" title={row['Resultado esperado']}>
-                      <span className="block truncate max-w-[180px]">{row['Resultado esperado'] || '-'}</span>
-                      <SavingIndicator status={savingStatus[`MATRIZ:${row.id}:Resultado esperado`]} />
-                    </td>
+                    {renderEditableCell(row, 'Quem fala')}
+                    {renderEditableCell(row, 'Papel estratégico', 'dl-papel-estrategico')}
+                    {renderEditableCell(row, 'Tipo de conteúdo', 'dl-tipo-conteudo')}
+                    {renderEditableCell(row, 'Resultado esperado')}
                       <td className="px-6 py-3 text-right" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button 
