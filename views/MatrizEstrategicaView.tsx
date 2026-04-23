@@ -14,6 +14,7 @@ import {
 } from '../constants';
 import { Cliente, TipoTabela } from '../types';
 import { playUISound } from '../utils/uiSounds';
+import { MatrizDrawer } from '../components/MatrizDrawer';
 
 interface MatrizEstrategicaViewProps {
   data: any[];
@@ -95,6 +96,7 @@ export function MatrizEstrategicaView({
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editingCell, setEditingCell] = useState<{id: string, field: string} | null>(null);
   const [editingValue, setEditingValue] = useState('');
+  const [selectedItem, setSelectedItem] = useState<any>(null);
 
   // Escape listener for modal
   React.useEffect(() => {
@@ -115,7 +117,7 @@ export function MatrizEstrategicaView({
   }, [data, searchTerm, filterCanal]);
 
   const handleEdit = (item: any) => {
-    setEditingItem({ ...item });
+    setSelectedItem(item);
   };
 
   const handleSave = () => {
@@ -346,7 +348,7 @@ export function MatrizEstrategicaView({
                     <tr 
                       key={row.id} 
                       className={`hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors group cursor-pointer ${selection.includes(row.id) ? 'bg-zinc-900/5 dark:bg-zinc-100/5' : ''}`}
-                      onClick={() => handleEdit(row)}
+                      onClick={() => setSelectedItem(row)}
                     >
                       <td className="px-6 py-3 text-center" onClick={e => e.stopPropagation()}>
                         <input 
@@ -600,6 +602,15 @@ export function MatrizEstrategicaView({
         document.body
       )}
 
+      {/* Matriz Drawer */}
+      <MatrizDrawer
+        item={selectedItem}
+        clienteNome={clients.find(c => c.id === selectedItem?.Cliente_ID)?.Nome || 'Agência'}
+        onClose={() => setSelectedItem(null)}
+        onUpdate={onUpdate}
+        onDelete={onDelete}
+        savingStatus={savingStatus}
+      />
     </div>
   );
 }
