@@ -9,19 +9,14 @@
   <link rel="manifest" href="/manifest.json">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
+    // Register service worker for PWA offline support
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function (registrations) {
-        for (let registration of registrations) {
-          registration.unregister();
-        }
-      });
-      if ('caches' in window) {
-        caches.keys().then(function (names) {
-          for (let name of names) caches.delete(name);
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch((err) => {
+          console.warn('Service worker registration failed:', err);
         });
-      }
+      });
     }
-
   </script>
   <script>
     tailwind.config = {
