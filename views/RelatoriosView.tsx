@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Cliente, ItemPlanejamento, Tarefa, LancamentoFinancas, ItemRdc } from '../types';
 import { Card, Button, StatCard, Badge } from '../Components';
-import { FileText, Download, Calendar, Users, TrendingUp, CheckCircle2, AlertCircle } from 'lucide-react';
+import { FileText, Download, Calendar, Users, TrendingUp, CheckCircle2, AlertCircle, Globe } from 'lucide-react';
 
 interface RelatoriosViewProps {
   clients: Cliente[];
@@ -201,7 +201,7 @@ const RelatoriosView: React.FC<RelatoriosViewProps> = ({ clients, planejamento, 
                           <td className="py-4 px-2">{new Date(p.Data + 'T12:00:00').toLocaleDateString('pt-BR')}</td>
                           <td className="py-4 px-2">
                              <div className="flex items-center gap-2">
-                                <i className={`fa-brands fa-${p.Rede_Social.toLowerCase()} text-blue-500`}></i>
+                                <Globe size={14} className="text-blue-500" />
                                 {p.Rede_Social}
                              </div>
                           </td>

@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { Bot, ArrowRight, Layers } from 'lucide-react';
 import { ConfiguracaoApresentacao, ModeloApresentacao, TipoTabela, Cliente, ItemRdc, ItemPlanejamento, Tarefa, ItemCobo, ItemMatrizEstrategica } from './types';
 
 const TAB_TEMPLATES: Record<TipoTabela, ModeloApresentacao> = {
@@ -264,7 +264,7 @@ export const PresentationSlide: React.FC<PresentationSlideProps> = ({ tab, confi
         return (
           <div className="flex flex-col items-center justify-center h-full space-y-6">
             <div className="w-24 h-24 rounded-3xl bg-blue-500/20 flex items-center justify-center border border-blue-500/30 shadow-xl">
-              <i className="fa-solid fa-robot text-5xl text-blue-500"></i>
+              <Bot size={48} className="text-blue-500" />
             </div>
             <div className="text-center">
               <div className="text-sm font-black uppercase tracking-[0.3em] text-blue-500">Inteligência Ativa</div>
@@ -341,7 +341,7 @@ export const PresentationSlide: React.FC<PresentationSlideProps> = ({ tab, confi
       <footer className="mt-16 flex justify-between items-end border-t border-gray-800/20 pt-10">
         <div className="space-y-1">
           <div className="text-[9px] font-black tracking-[0.3em] uppercase opacity-30">MÉTODO ORGANICK — AGENCY INTELLIGENCE</div>
-          <div className="text-[10px] font-bold text-gray-400"><i className="fa-solid fa-arrow-right mr-2 opacity-40"></i>{template?.proximoPasso || 'Ação sugerida.'}</div>
+          <div className="text-[10px] font-bold text-gray-400 flex items-center gap-2"><ArrowRight size={10} className="opacity-40 shrink-0" />{template?.proximoPasso || 'Ação sugerida.'}</div>
         </div>
         <div className="flex items-center gap-6">
           <div className="text-right">
@@ -349,7 +349,7 @@ export const PresentationSlide: React.FC<PresentationSlideProps> = ({ tab, confi
             <div className="text-xs font-bold uppercase tracking-tighter" style={{ color: accentColor }}>Verificado • EKKO STUDIOS</div>
           </div>
           <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gray-800/50 border border-gray-700/50">
-            <i className="fa-solid fa-layer-group text-lg opacity-40"></i>
+            <Layers size={18} className="opacity-40" />
           </div>
         </div>
       </footer>

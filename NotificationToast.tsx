@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { CheckCircle2, XCircle, AlertTriangle, Info, X } from 'lucide-react';
 import { NotificacaoApp } from './types';
 
 interface Props {
@@ -27,10 +28,10 @@ export const NotificationToast: React.FC<Props> = ({ notification, onClose }) =>
 
     const getIcon = () => {
         switch (notification.tipo) {
-            case 'success': return 'fa-circle-check text-emerald-400';
-            case 'error': return 'fa-circle-xmark text-rose-500';
-            case 'warning': return 'fa-triangle-exclamation text-amber-400';
-            default: return 'fa-circle-info text-blue-400';
+            case 'success': return <CheckCircle2 size={20} className="text-emerald-400 mt-1 shrink-0" />;
+            case 'error': return <XCircle size={20} className="text-rose-500 mt-1 shrink-0" />;
+            case 'warning': return <AlertTriangle size={20} className="text-amber-400 mt-1 shrink-0" />;
+            default: return <Info size={20} className="text-blue-400 mt-1 shrink-0" />;
         }
     };
 
@@ -47,7 +48,7 @@ export const NotificationToast: React.FC<Props> = ({ notification, onClose }) =>
       `}
         >
             <div className="p-4 flex items-start gap-4">
-                <i className={`fa-solid ${getIcon().split(' ')[0]} ${getIcon().split(' ')[1]} mt-1 text-lg`}></i>
+                {getIcon()}
                 <div className="flex-1 min-w-0">
                     <h4 className="text-[11px] font-black uppercase tracking-[0.1em] text-white">
                         {notification.titulo}
@@ -60,7 +61,7 @@ export const NotificationToast: React.FC<Props> = ({ notification, onClose }) =>
                     onClick={handleClose}
                     className="w-6 h-6 rounded-full flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/5 transition-all"
                 >
-                    <i className="fa-solid fa-xmark text-[10px]"></i>
+                    <X size={10} />
                 </button>
             </div>
 

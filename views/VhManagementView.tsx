@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
     TrendingUp, Users, DollarSign, Target, Plus, Zap, Trash2,
-    Calculator, Info, LayoutDashboard, Settings, BarChart3, Clock, Check
+    Calculator, Info, LayoutDashboard, Settings, BarChart3, Clock, Check,
+    Banknote, Percent
 } from 'lucide-react';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -154,10 +155,10 @@ export function VhManagementView({
                         <>
                             {/* KPI row */}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                <StatCard label="Faturamento" value={formatBRL(dashboardData.totalFees)} icon="fa-money-bill-wave" color="emerald" />
-                                <StatCard label="Custo Op." value={formatBRL(dashboardData.totalCosts)} icon="fa-calculator" color="rose" />
-                                <StatCard label="Lucro Bruto" value={formatBRL(dashboardData.profit)} icon="fa-chart-line" color="blue" />
-                                <StatCard label="Margem" value={`${dashboardData.margin.toFixed(1)}%`} icon="fa-percentage" color="orange" />
+                                <StatCard label="Faturamento" value={formatBRL(dashboardData.totalFees)} icon={Banknote} color="emerald" />
+                                <StatCard label="Custo Op." value={formatBRL(dashboardData.totalCosts)} icon={Calculator} color="rose" />
+                                <StatCard label="Lucro Bruto" value={formatBRL(dashboardData.profit)} icon={TrendingUp} color="blue" />
+                                <StatCard label="Margem" value={`${dashboardData.margin.toFixed(1)}%`} icon={Percent} color="orange" />
                             </div>
 
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

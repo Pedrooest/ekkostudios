@@ -1,4 +1,5 @@
 import React from 'react';
+import { Box } from 'lucide-react';
 import { ExportConfig } from '../types';
 import MasterExportSlide from './MasterExportSlide';
 
@@ -114,7 +115,7 @@ export const SlideRenderer: React.FC<SlideRendererProps> = ({ config, elementId 
                 <div>
                     <div className="flex items-center gap-6 mb-4">
                         <div className="w-14 h-14 bg-[#C8A24A] rounded-xl flex items-center justify-center transform rotate-3 hover:rotate-0 transition-transform duration-500">
-                            <i className="fa-solid fa-cube text-black text-2xl" />
+                            <Box className="text-black" size={32} />
                         </div>
                         <div className="flex flex-col">
                             <span className="text-[#C8A24A] text-2xl font-black tracking-[0.3em] uppercase leading-none flex items-center gap-[2px]">

@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { List, LayoutGrid, Calendar as LucideCalendar, Search, Plus, X, User, Users } from 'lucide-react';
+import { List, LayoutGrid, Calendar as LucideCalendar, Search, Plus, X, User, Users, Check, AlertCircle, ChevronDown, Zap, MoreVertical, Archive, ArchiveRestore, Trash2 } from 'lucide-react';
 import { Card, Button, InputSelect, Badge, Stepper, DeletionBar } from '../Components';
 import { BottomSheet } from './BottomSheet';
 import { playUISound } from '../utils/uiSounds';
@@ -42,10 +42,10 @@ const SavingIndicator = ({ status }: { status?: 'saving' | 'success' | 'error' }
                 <div className="w-3 h-3 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
             )}
             {status === 'success' && (
-                <i className="fa-solid fa-check text-[10px] text-emerald-500"></i>
+                <Check size={10} className="text-emerald-500" />
             )}
             {status === 'error' && (
-                <i className="fa-solid fa-circle-exclamation text-[10px] text-rose-500"></i>
+                <AlertCircle size={10} className="text-rose-500" />
             )}
         </div>
     );
@@ -110,7 +110,7 @@ export function TableView({
                             ))}
                         </select>
                         <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                            <i className="fa-solid fa-chevron-down text-[10px] text-app-text-strong"></i>
+                            <ChevronDown size={10} className="text-app-text-strong" />
                         </div>
                     </div>
                 </div>
@@ -123,7 +123,7 @@ export function TableView({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-4 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
             <div className="flex items-center gap-4 flex-1">
                 <div className="w-12 h-12 bg-gradient-to-br from-rose-500 to-orange-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-rose-500/20 shrink-0">
-                    <i className="fa-solid fa-bolt text-lg" />
+                    <Zap size={18} />
                 </div>
                 <div className="min-w-0">
                     <div className="flex items-center gap-3">
@@ -270,7 +270,7 @@ export function TableView({
                                         )}
                                     </div>
                                     <div className="flex gap-2 shrink-0">
-                                        <button onClick={() => setMobileActionRow(row)} className="w-[44px] h-[44px] rounded-xl bg-app-surface-2 border border-app-border text-app-text-muted hover:text-app-text-strong flex items-center justify-center transition-all active:scale-95 shadow-sm"><i className="fa-solid fa-ellipsis-vertical text-lg"></i></button>
+                                        <button onClick={() => setMobileActionRow(row)} className="w-[44px] h-[44px] rounded-xl bg-app-surface-2 border border-app-border text-app-text-muted hover:text-app-text-strong flex items-center justify-center transition-all active:scale-95 shadow-sm"><MoreVertical size={18} /></button>
                                     </div>
                                 </div>
                                 <div className="space-y-8">
@@ -326,7 +326,7 @@ export function TableView({
                         }}
                         className="w-full !justify-start !h-12 !text-[13px]"
                     >
-                        <i className={`fa-solid ${mobileActionRow?.__archived ? 'fa-box-open' : 'fa-box-archive'} mr-3 w-5 text-center`}></i>
+                        {mobileActionRow?.__archived ? <ArchiveRestore size={16} className="mr-3 shrink-0" /> : <Archive size={16} className="mr-3 shrink-0" />}
                         {mobileActionRow?.__archived ? 'Desarquivar Registro' : 'Arquivar Registro'}
                     </Button>
                     <Button
@@ -337,7 +337,7 @@ export function TableView({
                         }}
                         className="w-full !justify-start !h-12 !text-[13px] !bg-rose-500/10 !border-rose-500/20 !text-rose-500"
                     >
-                        <i className="fa-solid fa-trash-can mr-3 w-5 text-center"></i> Excluir Permanentemente
+                        <Trash2 size={16} className="mr-3 shrink-0" /> Excluir Permanentemente
                     </Button>
                 </div>
             </BottomSheet>
@@ -376,18 +376,18 @@ function TableRow({ row, tab, cols, onUpdate, clients, library, onOpenColorPicke
                         onClick={() => { if (!isMenuOpen) playUISound('open'); setIsMenuOpen(!isMenuOpen); }}
                         className="ios-btn w-8 h-8 rounded-lg bg-app-surface text-app-text-muted hover:text-app-text-strong transition-all flex items-center justify-center border border-app-border shadow-sm hover:shadow-md"
                     >
-                        <i className="fa-solid fa-ellipsis-vertical"></i>
+                        <MoreVertical size={16} />
                     </button>
                     {isMenuOpen && (
                         <>
                             <div className="fixed inset-0 z-10" onClick={() => setIsMenuOpen(false)}></div>
                             <div className="absolute right-0 bottom-full mb-2 w-40 bg-app-surface rounded-xl shadow-2xl border border-app-border z-20 overflow-hidden text-left animate-ios-spring">
                                 <button onClick={() => { playUISound('tap'); onArchive([row.id], tab, !row.__archived); setIsMenuOpen(false); }} className="w-full text-left px-4 py-3 hover:bg-[#3B82F6] transition-all flex items-center gap-3 font-bold uppercase text-[9px] tracking-widest text-app-text-strong">
-                                    <i className={`fa-solid ${row.__archived ? 'fa-box-open' : 'fa-box-archive'}`}></i>
+                                    {row.__archived ? <ArchiveRestore size={14} /> : <Archive size={14} />}
                                     {row.__archived ? 'Restaurar' : 'Arquivar'}
                                 </button>
                                 <button onClick={() => { playUISound('tap'); onDelete([row.id], tab); setIsMenuOpen(false); }} className="w-full text-left px-4 py-3 hover:bg-rose-600 transition-all flex items-center gap-3 font-bold uppercase text-[9px] tracking-widest text-rose-400 hover:text-app-text-strong">
-                                    <i className="fa-solid fa-trash-can"></i>
+                                    <Trash2 size={14} />
                                     Excluir
                                 </button>
                             </div>

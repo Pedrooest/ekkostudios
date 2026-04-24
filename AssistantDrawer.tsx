@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { X, Sparkles, AlertTriangle, Loader2 } from 'lucide-react';
 import { Button, Card, Badge } from './Components';
 import { TipoTabela } from './types';
 import { AssistantResponse, AssistantAction } from './ai/types';
@@ -67,7 +68,7 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
                     <span className="text-[10px] text-app-text-muted">Contexto: {activeTab}</span>
                 </div>
                 <button onClick={onClose} className="text-app-text-muted hover:text-app-text-strong transition-colors">
-                    <i className="fa-solid fa-times"></i>
+                    <X size={18} />
                 </button>
             </div>
 
@@ -101,7 +102,7 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
                     onChange={(e) => setUserNotes(e.target.value)}
                 />
                 <Button onClick={handleGenerate} disabled={loading} className="w-full" variant="primary">
-                    {loading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <><i className="fa-solid fa-sparkles"></i> Gerar Sugestões</>}
+                    {loading ? <Loader2 size={16} className="animate-spin" /> : <><Sparkles size={14} className="mr-1" /> Gerar Sugestões</>}
                 </Button>
             </div>
 
@@ -126,7 +127,7 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
                                 <span className="text-rose-500 font-bold text-[10px] uppercase block mb-1">Pontos de Atenção</span>
                                 {lastResponse.issues.map((issue, i) => (
                                     <div key={i} className="flex gap-2 items-start mb-2 last:mb-0">
-                                        <i className="fa-solid fa-exclamation-triangle text-rose-500 text-[10px] mt-0.5"></i>
+                                        <AlertTriangle size={10} className="text-rose-500 mt-0.5 shrink-0" />
                                         <div>
                                             <span className="text-app-text-strong text-xs font-bold block">{issue.title}</span>
                                             <span className="text-app-text-muted text-[10px]">{issue.why}</span>

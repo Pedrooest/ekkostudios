@@ -9,7 +9,7 @@ import {
     List, LayoutGrid, Calendar as LucideCalendar, Search, Filter,
     ArrowUpDown, Plus, Clock, MessageSquare, Box, ExternalLink,
     X, Trash2, Zap, LayoutDashboard, Image as ImageIcon, CheckCircle2, FileText, ShieldAlert, Eye, History as HistoryIcon, Loader2, User,
-    Columns, CalendarDays, ChevronLeft, ChevronRight, CheckSquare, ArrowUp, ArrowDown, Check, Mail
+    Columns, CalendarDays, ChevronLeft, ChevronRight, CheckSquare, ArrowUp, ArrowDown, Check, Mail, Flag
 } from 'lucide-react';
 import { sendEmail, templates } from '../utils/emailService';
 import { DatabaseService } from '../DatabaseService';
@@ -130,7 +130,7 @@ function TaskCardOverlay({ Tarefa, clients, getPriorityInfo, statusCor }: any) {
             <div className="absolute top-0 left-0 w-[4px] h-full" style={{ backgroundColor: statusCor }} />
             <div className="flex justify-between items-start gap-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500 truncate max-w-[140px]">{Cliente?.Nome || 'Agência'}</span>
-                <div className={`px-2 py-0.5 rounded flex items-center gap-1.5 ${prio.color}`}><i className={`fa-solid ${prio.icon} text-[8px]`}></i></div>
+                <div className={`px-2 py-0.5 rounded flex items-center gap-1.5 ${prio.color}`}><prio.icon size={8} /></div>
             </div>
             <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 leading-snug truncate mt-1">{Tarefa.Título}</h4>
         </div>
@@ -229,12 +229,12 @@ export function TaskFlowView({
 
     const getPriorityInfo = (priority: string) => {
         switch (priority?.toLowerCase()) {
-            case 'baixa': return { color: 'text-emerald-500 bg-emerald-500/10', icon: 'fa-flag' };
+            case 'baixa': return { color: 'text-emerald-500 bg-emerald-500/10', icon: Flag };
             case 'média':
-            case 'media': return { color: 'text-amber-500 bg-amber-500/10', icon: 'fa-flag' };
-            case 'alta': return { color: 'text-rose-500 bg-rose-500/10', icon: 'fa-flag' };
-            case 'urgente': return { color: 'text-purple-500 bg-purple-500/10', icon: 'fa-bolt' };
-            default: return { color: 'text-zinc-500 bg-zinc-500/10', icon: 'fa-flag' };
+            case 'media': return { color: 'text-amber-500 bg-amber-500/10', icon: Flag };
+            case 'alta': return { color: 'text-rose-500 bg-rose-500/10', icon: Flag };
+            case 'urgente': return { color: 'text-purple-500 bg-purple-500/10', icon: Zap };
+            default: return { color: 'text-zinc-500 bg-zinc-500/10', icon: Flag };
         }
     };
 

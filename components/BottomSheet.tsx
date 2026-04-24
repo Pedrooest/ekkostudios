@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { X } from 'lucide-react';
 
 interface BottomSheetProps {
     isOpen: boolean;
@@ -68,7 +69,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                             onClick={onClose}
                             className="w-8 h-8 rounded-full bg-app-surface-2 hover:bg-white/10 flex items-center justify-center text-app-text-muted hover:text-white transition-all"
                         >
-                            <i className="fa-solid fa-xmark"></i>
+                            <X size={16} />
                         </button>
                     </div>
                 )}

@@ -16,7 +16,8 @@ import {
   Plus, X, User, Target, Lightbulb, Radio, FolderOpen,
   Box, Eye, EyeOff, Search, LayoutGrid, List, Filter, ArrowUpDown, Archive, Briefcase, TrendingUp, TrendingDown, Receipt, CreditCard, Wallet, Activity, DollarSign, ArrowRight, LayoutDashboard, AlertTriangle, Calculator, Info, Users, CheckSquare, MoreVertical, Database,
   Menu, Sun, Moon, Download, Bell, BellOff, Layers, FileSpreadsheet, FileVideo, Palette, Info as InfoIcon, X as XIcon, Check as CheckIcon,
-  Bot, Castle, Antenna, CalendarDays, Coins, ListTodo, Presentation, Hourglass, ArrowLeft, ChevronRight as ChevronRightIcon, WifiOff
+  Bot, Castle, Antenna, CalendarDays, Coins, ListTodo, Presentation, Hourglass, ArrowLeft, ChevronRight as ChevronRightIcon, WifiOff,
+  Contact, Handshake, ClipboardCheck, Move, Maximize2, Banknote, FilePen, Wand2
 } from 'lucide-react';
 import { AssistantDrawer } from './AssistantDrawer';
 import { AssistantAction } from './ai/types';
@@ -1506,19 +1507,22 @@ export default function App() {
                   {group.label}
                 </p>
               )}
-              {group.tabs.filter(t => tabOrder.includes(t as TipoTabela)).map(tab => (
-                <button 
-                  key={`nav-tab-${tab}`} 
-                  onClick={() => { playUISound('tap'); setActiveTab(tab as TipoTabela); if (window.innerWidth < 1024) setSidebarCollapsed(true); }} 
-                  title={sidebarCollapsed ? TABLE_LABELS[tab as TipoTabela] : undefined} 
-                  className={`w-full flex items-center transition-all group rounded-lg h-9
-                    ${activeTab === tab ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'}
-                    ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}`}
-                >
-                  <i className={`fa-solid ${getIcon(tab as TipoTabela)} w-5 h-5 shrink-0 flex items-center justify-center text-sm transition-transform group-hover:scale-110`}></i>
-                  {!sidebarCollapsed && <span className="text-[11px] font-bold uppercase tracking-widest truncate min-w-0 flex-1 text-left">{TABLE_LABELS[tab as TipoTabela]}</span>}
-                </button>
-              ))}
+              {group.tabs.filter(t => tabOrder.includes(t as TipoTabela)).map(tab => {
+                const TabIcon = getIcon(tab as TipoTabela);
+                return (
+                  <button
+                    key={`nav-tab-${tab}`}
+                    onClick={() => { playUISound('tap'); setActiveTab(tab as TipoTabela); if (window.innerWidth < 1024) setSidebarCollapsed(true); }}
+                    title={sidebarCollapsed ? TABLE_LABELS[tab as TipoTabela] : undefined}
+                    className={`w-full flex items-center transition-all group rounded-lg h-9
+                      ${activeTab === tab ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'}
+                      ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}`}
+                  >
+                    <TabIcon size={18} className="shrink-0 transition-transform group-hover:scale-110" />
+                    {!sidebarCollapsed && <span className="text-[11px] font-bold uppercase tracking-widest truncate min-w-0 flex-1 text-left">{TABLE_LABELS[tab as TipoTabela]}</span>}
+                  </button>
+                );
+              })}
               {gIdx < 3 && !sidebarCollapsed && <div className="mx-4 h-px bg-zinc-100 dark:bg-zinc-800/50 my-4"></div>}
             </div>
           ))}
@@ -1526,15 +1530,15 @@ export default function App() {
 
         <div className="p-2 border-t border-zinc-100 dark:border-zinc-800 space-y-1 bg-white dark:bg-zinc-900 flex flex-col">
           <button onClick={() => { playUISound('tap'); setIsLibraryEditorOpen(true); }} title={sidebarCollapsed ? "Configurações Globais" : undefined} className={`w-full flex items-center transition-all group rounded-lg h-9 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}`}>
-            <i className="fa-solid fa-layer-group w-5 h-5 shrink-0 flex items-center justify-center text-sm transition-transform group-hover:scale-110"></i>
+            <Layers size={18} className="shrink-0 transition-transform group-hover:scale-110" />
             {!sidebarCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest truncate min-w-0 flex-1 text-left">Tipos</span>}
           </button>
           <button onClick={() => { playUISound('tap'); setIsReorderOpen(true); }} title={sidebarCollapsed ? "Ordenar Abas" : undefined} className={`w-full flex items-center transition-all group rounded-lg h-9 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}`}>
-            <i className="fa-solid fa-arrows-up-down-left-right w-5 h-5 shrink-0 flex items-center justify-center text-sm transition-transform group-hover:scale-110"></i>
+            <Move size={18} className="shrink-0 transition-transform group-hover:scale-110" />
             {!sidebarCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest truncate min-w-0 flex-1 text-left">Ordem</span>}
           </button>
           <button onClick={() => { playUISound('tap'); setSidebarCollapsed(!sidebarCollapsed); }} title={sidebarCollapsed ? "Expandir Sidebar" : "Recolher Sidebar"} className={`w-full flex items-center transition-all group rounded-lg h-9 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}`}>
-            <i className={`fa-solid ${sidebarCollapsed ? 'fa-expand' : 'fa-arrow-left'} w-5 h-5 shrink-0 flex items-center justify-center text-sm transition-transform group-hover:scale-110`}></i>
+            {sidebarCollapsed ? <Maximize2 size={18} className="shrink-0 transition-transform group-hover:scale-110" /> : <ArrowLeft size={18} className="shrink-0 transition-transform group-hover:scale-110" />}
             {!sidebarCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest truncate min-w-0 flex-1 text-left">{sidebarCollapsed ? 'Expandir' : 'Recolher'}</span>}
           </button>
         </div>
@@ -1719,7 +1723,7 @@ export default function App() {
                                           
                                           <div className="flex items-center gap-2 mt-1">
                                              <span className="text-[7px] font-black uppercase text-app-text-muted border border-app-border/50 px-1.5 py-0.5 rounded flex items-center gap-1">
-                                                <i className={`fa-solid ${l.tipo === 'Post' ? 'fa-share-nodes' : l.tipo === 'Reunião' ? 'fa-handshake' : l.tipo === 'Pagamento' ? 'fa-money-bill-wave' : l.tipo === 'Tarefa' ? 'fa-list-check' : 'fa-file-signature'} text-[6px]`}></i>
+                                                {l.tipo === 'Post' ? <Share2 size={6} /> : l.tipo === 'Reunião' ? <Handshake size={6} /> : l.tipo === 'Pagamento' ? <Banknote size={6} /> : l.tipo === 'Tarefa' ? <ListTodo size={6} /> : <FilePen size={6} />}
                                                 {l.tipo}
                                              </span>
                                              <span className={`text-[7px] font-bold uppercase ${isOverdue ? 'text-red-500' : 'text-app-text-muted'}`}>
@@ -1972,12 +1976,12 @@ export default function App() {
             <div className="w-full h-full md:h-[90dvh] md:max-w-6xl bg-app-surface border border-white/10 md:rounded-[30px] shadow-2xl flex flex-col overflow-hidden text-left">
               <div className="h-20 flex items-center justify-between px-6 md:px-10 border-b border-white/5 bg-app-surface-2 shrink-0">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-500"><i className="fa-solid fa-wand-magic-sparkles"></i></div>
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-500"><Wand2 size={18} /></div>
                   <div>
                     <h3 className="text-sm font-black uppercase text-app-text-strong tracking-widest">Assistente de Slide IA</h3>
                   </div>
                 </div>
-                <button onClick={() => setIsPresentationOpen(false)} className="text-app-text-muted hover:text-app-text-strong"><i className="fa-solid fa-xmark text-2xl"></i></button>
+                <button onClick={() => setIsPresentationOpen(false)} className="text-app-text-muted hover:text-app-text-strong"><X size={24} /></button>
               </div>
               <div className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
                 {presentationStep === 'input' ? (
@@ -2085,7 +2089,7 @@ export default function App() {
               className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-emerald-500/5 group transition-all text-left"
             >
               <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 text-xl group-hover:scale-110 transition-transform">
-                <i className="fa-solid fa-file-excel"></i>
+                <FileSpreadsheet size={20} />
               </div>
               <div className="flex-1">
                 <h4 className="text-app-text-strong font-bold text-xs uppercase tracking-tight group-hover:text-emerald-500 transition-colors">Excel</h4>
@@ -2099,7 +2103,7 @@ export default function App() {
               className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-blue-500/5 group transition-all text-left"
             >
               <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500 text-xl group-hover:scale-110 transition-transform">
-                <i className="fa-solid fa-image"></i>
+                <ImageIcon size={20} />
               </div>
               <div className="flex-1">
                 <h4 className="text-app-text-strong font-bold text-xs uppercase tracking-tight group-hover:text-blue-500 transition-colors">Imagem (PNG)</h4>
@@ -2113,7 +2117,7 @@ export default function App() {
               className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-rose-500/5 group transition-all text-left"
             >
               <div className="w-10 h-10 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-500 text-xl group-hover:scale-110 transition-transform">
-                <i className="fa-solid fa-file-pdf"></i>
+                <FileText size={20} />
               </div>
               <div className="flex-1">
                 <h4 className="text-app-text-strong font-bold text-xs uppercase tracking-tight group-hover:text-rose-500 transition-colors">PDF</h4>
@@ -2123,7 +2127,7 @@ export default function App() {
           </div>
           {isExporting && (
             <div className="p-3 bg-blue-500/5 text-blue-500 text-[9px] font-black uppercase text-center border-t border-blue-500/10 animate-pulse">
-              <i className="fa-solid fa-circle-notch fa-spin mr-2"></i> Exportando...
+              <Loader2 size={14} className="animate-spin mr-2 inline" /> Exportando...
             </div>
           )}
         </div>
@@ -2232,7 +2236,12 @@ export default function App() {
   );
 }
 
-function getIcon(tab: TipoTabela) {
-  const icons: any = { DASHBOARD: 'fa-table-columns', CLIENTES: 'fa-address-card', REUNIOES: 'fa-handshake', ORGANICKIA: 'fa-robot', RDC: 'fa-bolt', MATRIZ: 'fa-chess-rook', COBO: 'fa-tower-cell', PLANEJAMENTO: 'fa-calendar-days', FINANCAS: 'fa-coins', TAREFAS: 'fa-list-check', CHECKLISTS: 'fa-clipboard-check', VH: 'fa-hourglass', WHITEBOARD: 'fa-object-group', RELATORIOS: 'fa-file-invoice' };
-  return icons[tab] || 'fa-folder';
+function getIcon(tab: TipoTabela): React.ComponentType<{ size?: number; className?: string }> {
+  const icons: Record<string, React.ComponentType<any>> = {
+    DASHBOARD: LayoutDashboard, CLIENTES: Contact, REUNIOES: Handshake, ORGANICKIA: Bot,
+    RDC: Zap, MATRIZ: Castle, COBO: Antenna, PLANEJAMENTO: CalendarDays,
+    FINANCAS: Coins, TAREFAS: ListTodo, CHECKLISTS: ClipboardCheck,
+    VH: Hourglass, WHITEBOARD: Presentation, RELATORIOS: Receipt,
+  };
+  return icons[tab] || FolderOpen;
 }
