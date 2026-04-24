@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { 
-  List, LayoutGrid, Search, Plus, Trash2, Edit2, 
-  Instagram, Youtube, Twitter, Facebook, Linkedin, 
+  List, LayoutGrid, Search, Plus, Trash2, Edit2,
+  Instagram, Youtube, Twitter, Facebook, Linkedin,
   MessageCircle, Send, Globe, Filter, X, ChevronRight,
-  Database, Layout, Users, Megaphone, Target, BarChart3, CheckSquare, Zap, Target as TargetIcon, CheckCircle2
+  Database, Layout, Users, Megaphone, Target, BarChart3, CheckSquare, Zap, Target as TargetIcon, CheckCircle2, AlertCircle
 } from 'lucide-react';
 import { Card, Button, InputSelect, Badge, DeletionBar } from '../Components';
 import { 
@@ -42,7 +42,7 @@ const SavingIndicator = ({ status }: { status?: 'saving' | 'success' | 'error' }
         <CheckCircle2 size={12} className="text-emerald-500" />
       )}
       {status === 'error' && (
-        <i className="fa-solid fa-circle-exclamation text-[10px] text-rose-500"></i>
+        <AlertCircle size={10} className="text-rose-500" />
       )}
     </div>
   );

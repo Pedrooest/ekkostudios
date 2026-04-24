@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { supabase } from './supabase';
 import { Button } from './Components';
 
@@ -108,7 +109,7 @@ export function AuthView({ onSuccess }: AuthViewProps) {
                                 onClick={() => setShowPassword(!showPassword)}
                                 className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
                             >
-                                <i className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                             </button>
                         </div>
                     </div>
@@ -124,7 +125,7 @@ export function AuthView({ onSuccess }: AuthViewProps) {
                         disabled={loading}
                         className="w-full h-14 !bg-blue-600 !rounded-2xl !font-black !uppercase !tracking-[0.2em] shadow-xl shadow-blue-600/20"
                     >
-                        {loading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : (isLogin ? 'Entrar Agora' : 'Cadastrar Perfil')}
+                        {loading ? <Loader2 size={16} className="animate-spin" /> : (isLogin ? 'Entrar Agora' : 'Cadastrar Perfil')}
                     </Button>
                 </form>
 

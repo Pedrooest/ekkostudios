@@ -2,7 +2,7 @@
 import React from 'react';
 import { BottomSheet } from './components/BottomSheet';
 import { playUISound } from './utils/uiSounds';
-import { X as XIcon } from 'lucide-react';
+import { X as XIcon, Minus, Plus, Check, ChevronDown } from 'lucide-react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'success';
@@ -96,7 +96,7 @@ export const Stepper: React.FC<{
         disabled={value <= min}
         className="ios-btn w-9 h-9 flex items-center justify-center rounded-lg bg-app-surface border border-app-border text-app-text-muted hover:text-app-accent hover:border-app-accent/40 disabled:opacity-20 transition-all active:scale-95 shadow-sm"
       >
-        <i className="fa-solid fa-minus text-[10px]"></i>
+        <Minus size={10} />
       </button>
       <span className="flex-1 text-center text-sm font-black text-app-text-strong tabular-nums">
         {value}
@@ -107,7 +107,7 @@ export const Stepper: React.FC<{
         disabled={value >= max}
         className="ios-btn w-9 h-9 flex items-center justify-center rounded-lg bg-app-surface border border-app-border text-app-text-muted hover:text-app-accent hover:border-app-accent/40 disabled:opacity-20 transition-all active:scale-95 shadow-sm"
       >
-        <i className="fa-solid fa-plus text-[10px]"></i>
+        <Plus size={10} />
       </button>
     </div>
   );
@@ -274,7 +274,7 @@ export const InputSelect: React.FC<{
                 <span className="whitespace-nowrap">{opt.label}</span>
               )}
             </div>
-            {String(value) === String(opt.value) && <i className="fa-solid fa-check text-blue-500 shrink-0"></i>}
+            {String(value) === String(opt.value) && <Check size={14} className="text-blue-500 shrink-0" />}
           </button>
         ))
       ) : (
@@ -296,7 +296,7 @@ export const InputSelect: React.FC<{
       <div className={`flex items-center w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg h-10 transition-all focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 group px-3 gap-2 ${disabled ? 'opacity-50 cursor-not-allowed grayscale' : ''} ${className}`}>
         {Icon && (
           <div className="pointer-events-none text-zinc-400 w-4 h-4 flex items-center justify-center shrink-0 transition-colors group-focus-within:text-blue-500">
-            {typeof Icon === 'string' ? <i className={`fa-solid ${Icon} text-xs shrink-0`}></i> : <Icon size={16} className="shrink-0" />}
+            {typeof Icon !== 'string' && <Icon size={16} className="shrink-0" />}
           </div>
         )}
 
@@ -316,7 +316,7 @@ export const InputSelect: React.FC<{
               onClick={toggleOpen}
               className="ios-btn absolute right-0 top-0 bottom-0 px-2 flex items-center justify-center text-app-text-muted hover:text-app-text-strong"
             >
-              <i className={`fa-solid fa-chevron-down text-[9px] opacity-50 transition-transform ${isOpen ? 'rotate-180' : ''}`}></i>
+              <ChevronDown size={12} className={`opacity-50 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
           </div>
         ) : (
@@ -333,7 +333,7 @@ export const InputSelect: React.FC<{
                 <span className="truncate">{currentLabel}</span>
               )}
             </div>
-            <i className={`fa-solid fa-chevron-down shrink-0 text-[9px] opacity-50 transition-transform ${isOpen ? 'rotate-180' : ''}`}></i>
+            <ChevronDown size={12} className={`shrink-0 opacity-50 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
           </button>
         )}
       </div>
@@ -369,10 +369,10 @@ export const InputSelect: React.FC<{
 
 export const MobileFloatingAction: React.FC<{
   onClick: () => void;
-  icon?: string;
+  icon?: React.ComponentType<{ size?: number; className?: string }>;
   label?: string;
   className?: string;
-}> = ({ onClick, icon = "fa-plus", label = "Novo", className = "" }) => {
+}> = ({ onClick, icon: Icon = Plus, label = "Novo", className = "" }) => {
   return (
     <button
       onClick={() => {
@@ -390,7 +390,7 @@ export const MobileFloatingAction: React.FC<{
         ${className}
       `}
     >
-      <i className={`fa-solid ${icon} text-sm`}></i>
+      <Icon size={14} />
       {label && <span>{label}</span>}
     </button>
   );
@@ -474,14 +474,10 @@ export const StatCard: React.FC<{
     >
       <div className="flex justify-between items-start min-w-0">
         <span className={`text-[9px] font-black tracking-[0.2em] transition-colors uppercase flex-1 truncate ${active ? 'text-app-text-strong' : 'text-app-text-muted group-hover:text-app-text-strong'}`}>{label}</span>
-        {Icon && (
-          typeof Icon === 'string' ? (
-            <i className={`fa-solid ${Icon} transition-colors shrink-0 ml-2 ${active ? colors[color] : 'text-[#334155] group-hover:text-[#3B82F6]'}`}></i>
-          ) : (
-            <div className={`transition-colors shrink-0 ml-2 ${active ? colors[color] : 'text-[#334155] group-hover:text-[#3B82F6]'}`}>
-              <Icon size={16} />
-            </div>
-          )
+        {Icon && typeof Icon !== 'string' && (
+          <div className={`transition-colors shrink-0 ml-2 ${active ? colors[color] : 'text-[#334155] group-hover:text-[#3B82F6]'}`}>
+            <Icon size={16} />
+          </div>
         )}
       </div>
       <div>
@@ -600,12 +596,12 @@ export const ColorPickerModal: React.FC<{ target: { id: string; value: string };
               className="ios-btn group aspect-square rounded-2xl border border-white/10 hover:border-white transition-all shadow-lg hover:shadow-xl hover:shadow-white/10 relative overflow-hidden"
               style={{ backgroundColor: color }}
             >
-              {target.value === color && <div className="absolute inset-0 flex items-center justify-center bg-black/20"><i className="fa-solid fa-check text-white drop-shadow-md"></i></div>}
+              {target.value === color && <div className="absolute inset-0 flex items-center justify-center bg-black/20"><Check size={14} className="text-white drop-shadow-md" /></div>}
             </button>
           ))}
 
           <div className="aspect-square rounded-2xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 hover:border-blue-500 transition-all flex items-center justify-center relative cursor-pointer group bg-zinc-50 dark:bg-zinc-800">
-            <i className="fa-solid fa-plus text-app-text-muted group-hover:text-app-text-strong text-xl"></i>
+            <Plus size={20} className="text-app-text-muted group-hover:text-app-text-strong" />
             <input
               type="color"
               value={target.value}

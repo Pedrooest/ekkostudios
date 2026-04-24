@@ -4,7 +4,7 @@ import {
     Search, Plus, Calendar, Clock, MapPin,
     Video, CheckCircle2, X, Trash2, Check,
     Briefcase, AlertTriangle, ArrowLeft,
-    CheckSquare, Square
+    CheckSquare, Square, Loader2
 } from 'lucide-react';
 import { Button, Card, Badge, InputSelect } from '../Components';
 import { Cliente, ChecklistShoot, TipoTabela } from '../types';
@@ -344,7 +344,7 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                             className={`h-10 px-6 font-bold uppercase tracking-widest shadow-lg ${isCreating ? '!bg-blue-400 cursor-not-allowed opacity-80' : '!bg-blue-600 hover:!bg-blue-700'} !text-white !border-none transition-all flex items-center justify-center min-w-[160px]`}
                         >
                             {isCreating ? (
-                                <><i className="fa-solid fa-spinner animate-spin mr-2 shrink-0"></i> Criando...</>
+                                <><Loader2 size={16} className="animate-spin mr-2 shrink-0" /> Criando...</>
                             ) : (
                                 'Criar Gravação'
                             )}

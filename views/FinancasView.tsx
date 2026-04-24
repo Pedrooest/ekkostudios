@@ -5,10 +5,10 @@ import {
     Search, Plus, X, ArrowUpRight, ArrowDownRight,
     DollarSign, Filter, Trash2, Edit3, Clock,
     ChevronDown, Repeat, CalendarClock, Calendar, CheckCircle2,
-    PieChart as PieChartIcon, TrendingUp, TrendingDown, Building, 
-    AlertTriangle, Check, Layers, User, ArrowRight, History, 
+    PieChart as PieChartIcon, TrendingUp, TrendingDown, Building,
+    AlertTriangle, Check, Layers, User, ArrowRight, History,
     Save, PieChart as PieChartLucide, TrendingUp as TrendingUpLucide,
-    Sparkles, Mail, Bell
+    Sparkles, Mail, Bell, CalendarDays
 } from 'lucide-react';
 import { sendEmail, templates } from '../utils/emailService';
 import { 
@@ -208,7 +208,7 @@ const CalendarView: React.FC<{
                             </>
                         ) : (
                             <div className="py-20 text-center text-zinc-400">
-                                <i className="fa-solid fa-calendar-day mb-3 text-2xl opacity-20"></i>
+                                <CalendarDays size={32} className="mb-3 opacity-20" />
                                 <p className="text-[10px] font-black uppercase tracking-widest">Escolha uma data para ver detalhes</p>
                             </div>
                         )}

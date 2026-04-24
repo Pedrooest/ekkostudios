@@ -1,5 +1,5 @@
-
 import React, { useState, useRef, useEffect } from 'react';
+import { Bot, X, MessageSquare, Send } from 'lucide-react';
 import { MensagemChat } from './types';
 import { sendCopilotMessage } from './geminiService';
 
@@ -58,7 +58,7 @@ export const CopilotChat: React.FC<CopilotChatProps> = ({ appData }) => {
             <div className="p-5 border-b border-[#1F2937] bg-[#0F172A] flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[#3B82F6]/20 border border-[#3B82F6]/30 flex items-center justify-center text-[#3B82F6]">
-                  <i className="fa-solid fa-robot text-xl"></i>
+                  <Bot size={20} />
                 </div>
                 <div>
                   <h3 className="text-xs font-black uppercase text-white tracking-widest leading-none">Copiloto Operacional</h3>
@@ -66,7 +66,7 @@ export const CopilotChat: React.FC<CopilotChatProps> = ({ appData }) => {
                 </div>
               </div>
               <button onClick={() => setIsOpen(false)} className="text-[#9CA3AF] hover:text-white transition-all w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/5">
-                <i className="fa-solid fa-xmark text-lg"></i>
+                <X size={18} />
               </button>
             </div>
 
@@ -74,7 +74,7 @@ export const CopilotChat: React.FC<CopilotChatProps> = ({ appData }) => {
             <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 space-y-5 custom-scrollbar bg-[#0B0F19]/50">
               {messages.length === 0 && (
                 <div className="h-full flex flex-col items-center justify-center text-center px-6 opacity-40 space-y-4">
-                  <i className="fa-solid fa-comments text-4xl text-[#3B82F6]"></i>
+                  <MessageSquare size={40} className="text-[#3B82F6]" />
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Olá! Sou seu copiloto EKKO. Como posso ajudar na operação hoje?</p>
                   <div className="grid grid-cols-1 gap-2 w-full">
                     <button onClick={() => setInputValue('Analise as tarefas pendentes de hoje.')} className="text-[9px] border border-[#1F2937] rounded-lg p-2 hover:bg-[#3B82F6]/10 hover:border-[#3B82F6]/30 transition-all text-left pointer-events-auto">"Analise as tarefas pendentes de hoje"</button>
@@ -116,7 +116,7 @@ export const CopilotChat: React.FC<CopilotChatProps> = ({ appData }) => {
                 disabled={isLoading || !inputValue.trim()}
                 className="w-10 h-10 rounded-xl bg-[#3B82F6] text-white hover:bg-[#60A5FA] flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed pointer-events-auto"
               >
-                <i className="fa-solid fa-paper-plane"></i>
+                <Send size={16} />
               </button>
             </div>
           </div>
@@ -129,7 +129,7 @@ export const CopilotChat: React.FC<CopilotChatProps> = ({ appData }) => {
           onClick={() => { setIsOpen(!isOpen); logAction('Copilot Toggle'); }}
           className="w-14 h-14 rounded-2xl bg-[#3B82F6] text-white shadow-[0_8px_30px_rgb(59,130,246,0.5)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center text-2xl z-50 pointer-events-auto border-4 border-[#0B0F19]"
         >
-          <i className={`fa-solid ${isOpen ? 'fa-xmark' : 'fa-robot'}`}></i>
+          {isOpen ? <X size={24} /> : <Bot size={24} />}
         </button>
       </div>
     </div>

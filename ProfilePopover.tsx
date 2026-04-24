@@ -4,7 +4,7 @@ import { PerfilUsuario, Tarefa } from './types';
 import { Button } from './Components';
 import { BottomSheet } from './components/BottomSheet';
 import { PortalPopover } from './components/PortalPopover';
-import { Sparkles, X, ChevronDown, Activity, Calendar, Check, LogOut } from 'lucide-react';
+import { Sparkles, X, ChevronDown, Activity, Calendar, Check, LogOut, Camera } from 'lucide-react';
 import { playUISound } from './utils/uiSounds';
 
 interface ProfilePopoverProps {
@@ -125,7 +125,7 @@ export function ProfilePopover({ profile, tasks, onUpdate, onLogout }: ProfilePo
                             initials
                         )}
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity">
-                            <i className="fa-solid fa-camera text-white text-base"></i>
+                            <Camera size={16} className="text-white" />
                         </div>
                     </div>
                     {isEditingName ? (
