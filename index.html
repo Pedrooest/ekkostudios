@@ -7,7 +7,6 @@
   <title>EKKO</title>
   <link rel="icon" type="image/x-icon" href="/logo-aba.png">
   <link rel="manifest" href="/manifest.json">
-  <script src="https://cdn.tailwindcss.com"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function (registrations) {
@@ -22,30 +21,6 @@
       }
     }
 
-  </script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            app: {
-              bg: 'var(--bg)',
-              surface: 'var(--surface)',
-              'surface-2': 'var(--surface-2)',
-              border: 'var(--border)',
-              'border-strong': 'var(--border-strong)',
-              text: 'var(--text)',
-              'text-strong': 'var(--text-strong)',
-              'text-muted': 'var(--text-muted)',
-              input: 'var(--input-bg)',
-              accent: 'var(--accent)',
-              'accent-hover': 'var(--accent-hover)',
-            }
-          }
-        }
-      }
-    }
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
