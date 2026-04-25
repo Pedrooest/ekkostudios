@@ -48,14 +48,14 @@ const ICON_MAP: Record<string, any> = {
   'Reunião': Handshake, 'Email': Mail, 'Ligação': Phone, 'Anotação': StickyNote
 };
 
-const Accordion: React.FC<{ 
+const Accordion = React.memo<{ 
   title: string; 
   icon: any; 
   count?: number; 
   isOpen: boolean; 
   onToggle: () => void; 
   children: React.ReactNode 
-}> = ({ title, icon: Icon, count, isOpen, onToggle, children }) => (
+}>(({ title, icon: Icon, count, isOpen, onToggle, children }) => (
   <div className="border border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden bg-white dark:bg-zinc-900 shadow-sm transition-all">
     <button 
       onClick={onToggle}
@@ -81,7 +81,7 @@ const Accordion: React.FC<{
       </div>
     </div>
   </div>
-);
+));
 
 export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, onOpenColorPicker, savingStatus = {} }: ClientesViewProps) => {
   const [searchTerm, setSearchTerm] = useState('');
