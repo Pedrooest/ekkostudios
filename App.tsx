@@ -73,6 +73,7 @@ import { BottomSheet } from './components/BottomSheet';
 import { ErrorBoundary } from './components/ErrorBoundary';
 const Whiteboard = lazy(() => import('./components/Whiteboard').then(m => ({ default: m.Whiteboard })));
 
+import { useAuth } from './context/AuthContext';
 import { transcribeAndExtractInsights, generatePresentationBriefing, extractStructuredDataFromPDF, analyzeContextualData } from './geminiService';
 import { CopilotChat } from './CopilotChat';
 import { PresentationSlide } from './PresentationRenderer';
@@ -209,6 +210,8 @@ const RouteFallback = () => (
 
 export default function App() {
 
+  const { currentUser, setCurrentUser, perfilUsuario, setPerfilUsuario, authLoading } = useAuth();
+
   const [activeTab, setActiveTab] = useState<TipoTabela>('DASHBOARD');
   const [theme, setTheme] = useState<'dark' | 'light'>(() => (localStorage.getItem('theme') as 'dark' | 'light') || 'dark');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 1024);
@@ -277,7 +280,6 @@ export default function App() {
   const [deleteModalState, setDeleteModalState] = useState<{ isOpen: boolean, ids: string[], tab: TipoTabela | 'IA_HISTORY' | null }>({ isOpen: false, ids: [], tab: null });
   const [deleteConfirmationText, setDeleteConfirmationText] = useState("");
 
-  const [currentUser, setCurrentUser] = useState<any>(null);
   const [isSettingsFullscreenOpen, setIsSettingsFullscreenOpen] = useState(false);
 
   const pendingRemindersCount = useMemo(() => {
@@ -286,7 +288,6 @@ export default function App() {
   }, [lembretes]);
   const [activeSettingsTab, setActiveSettingsTab] = useState<'configuracoes' | 'pessoas'>('configuracoes');
   const [isNewWorkspaceModalOpen, setIsNewWorkspaceModalOpen] = useState(false);
-  const [authLoading, setAuthLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
@@ -295,7 +296,6 @@ export default function App() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-  const [perfilUsuario, setPerfilUsuario] = useState<PerfilUsuario | null>(null);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -659,99 +659,58 @@ export default function App() {
     }
     setIsExportModalOpen(false);
   };
+  // Invite handling — watches currentUser from AuthContext.
+  // Auth state itself is owned by AuthProvider; this effect only deals with
+  // the workspace-invite flow that lives at App level (uses setToasts).
   useEffect(() => {
-    // 1. Define checkInvite function first so it's available
-    const checkInvite = async (currentSession: any) => {
-      const params = new URLSearchParams(window.location.search);
-      const inviteToken = params.get('invite');
+    const params = new URLSearchParams(window.location.search);
+    const inviteToken = params.get('invite');
 
-      if (inviteToken) {
-        if (!currentSession?.user) {
-          // Store for post-login
-          sessionStorage.setItem('pending_invite', inviteToken);
-        } else {
-          try {
-            await DatabaseService.acceptInvite(inviteToken);
+    // Case A: invite in URL, but user not logged in yet -> stash for post-login.
+    if (inviteToken && !currentUser) {
+      sessionStorage.setItem('pending_invite', inviteToken);
+      return;
+    }
+
+    const acceptAndReload = (token: string, fromPending: boolean) => {
+      DatabaseService.acceptInvite(token)
+        .then(() => {
+          if (fromPending) {
+            sessionStorage.removeItem('pending_invite');
+          } else {
             window.history.replaceState({}, document.title, window.location.pathname);
-            // alert('Você entrou no workspace com sucesso!');
-            setToasts(prev => [...prev, { id: generateId(), tipo: 'success', titulo: 'Sucesso', mensagem: 'Você entrou no workspace com sucesso!', timestamp: new Date().toISOString(), lida: false }]);
-            window.location.reload();
-          } catch (e: any) {
-            // alert('Erro ao aceitar convite: ' + e.message);
-            let msg = e.message;
-            if (msg.includes('policy')) msg = 'Você não tem permissão para entrar neste workspace ou o convite expirou.';
-            setToasts(prev => [...prev, { id: generateId(), tipo: 'error', titulo: 'Erro no Convite', mensagem: msg, timestamp: new Date().toISOString(), lida: false }]);
           }
-        }
-      } else {
-        // Check for pending invite
-        const pending = sessionStorage.getItem('pending_invite');
-        if (pending && currentSession?.user) {
-          try {
-            await DatabaseService.acceptInvite(pending);
-            sessionStorage.removeItem('pending_invite');
-            // alert('Você entrou no workspace com sucesso!');
-            setToasts(prev => [...prev, { id: generateId(), tipo: 'success', titulo: 'Sucesso', mensagem: 'Você entrou no workspace com sucesso!', timestamp: new Date().toISOString(), lida: false }]);
-            window.location.reload();
-          } catch (e: any) {
-            // alert('Erro ao aceitar convite pendente: ' + e.message);
-            let msg = e.message;
-            if (msg.includes('policy')) msg = 'Você não tem permissão para entrar neste workspace ou o convite expirou.';
-            setToasts(prev => [...prev, { id: generateId(), tipo: 'error', titulo: 'Erro no Convite', mensagem: msg, timestamp: new Date().toISOString(), lida: false }]);
-            sessionStorage.removeItem('pending_invite');
-          }
-        }
-      }
+          setToasts(prev => [...prev, { id: generateId(), tipo: 'success', titulo: 'Sucesso', mensagem: 'Você entrou no workspace com sucesso!', timestamp: new Date().toISOString(), lida: false }]);
+          window.location.reload();
+        })
+        .catch((e: any) => {
+          let msg = e.message;
+          if (msg.includes('policy')) msg = 'Você não tem permissão para entrar neste workspace ou o convite expirou.';
+          setToasts(prev => [...prev, { id: generateId(), tipo: 'error', titulo: 'Erro no Convite', mensagem: msg, timestamp: new Date().toISOString(), lida: false }]);
+          if (fromPending) sessionStorage.removeItem('pending_invite');
+        });
     };
 
-    supabase.auth.getSession()
-      .then(({ data: { session } }) => {
-        setCurrentUser(session?.user ?? null);
-        setAuthLoading(false);
-        // Check invite on initial load
-        if (session) checkInvite(session);
-      })
-      .catch((err) => {
-        console.error('Supabase getSession Error:', err);
-        setAuthLoading(false);
-      });
+    // Case B: invite in URL and user is logged in -> accept now.
+    if (inviteToken && currentUser) {
+      acceptAndReload(inviteToken, false);
+      return;
+    }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setCurrentUser(session?.user ?? null);
-      if (session?.user) {
-        const savedProfile = localStorage.getItem(`profile_${session.user.id}`);
-        if (savedProfile) {
-          setPerfilUsuario(JSON.parse(savedProfile));
-        } else {
-          const newProfile = {
-            id: session.user.id,
-            email: session.user.email ?? '',
-            full_name: session.user.user_metadata.full_name || session.user.email?.split('@')[0] || 'Usuário',
-            role: 'Especialista EKKO',
-            status: 'online' as 'online' | 'offline' | 'ocupado' | 'ausente'
-          };
-          setPerfilUsuario(newProfile);
-          localStorage.setItem(`profile_${session.user.id}`, JSON.stringify(newProfile));
-          // Async profile sync (detached from render cycle)
-          supabase.from('profiles').upsert(newProfile).then(({ error }) => {
-            if (error) console.warn('Secondary profile sync failed:', error);
-          });
-        }
-      } else {
-        setPerfilUsuario(null);
-        setWorkspaces([]);
-        setCurrentWorkspace(null);
-      }
-      setAuthLoading(false);
+    // Case C: no URL token, but a pending invite was stashed before login.
+    const pending = sessionStorage.getItem('pending_invite');
+    if (pending && currentUser) {
+      acceptAndReload(pending, true);
+    }
+  }, [currentUser]);
 
-      // Check invite on auth change
-      checkInvite(session);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+  // Clear workspace state when the user signs out.
+  useEffect(() => {
+    if (!currentUser) {
+      setWorkspaces([]);
+      setCurrentWorkspace(null);
+    }
+  }, [currentUser]);
 
   useEffect(() => {
     if (currentUser) {
