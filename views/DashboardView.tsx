@@ -24,7 +24,7 @@ interface DashboardViewProps {
 // COMPONENTES AUXILIARES LOCAIS
 // ==========================================
 
-const MetricCard = ({ label, value, icon: Icon, color, trend, onClick }: any) => {
+const MetricCard = React.memo(({ label, value, icon: Icon, color, trend, onClick }: any) => {
     const colorClasses: any = {
         emerald: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
         blue: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
@@ -65,7 +65,7 @@ const MetricCard = ({ label, value, icon: Icon, color, trend, onClick }: any) =>
             </div>
         </Card>
     );
-};
+});
 
 export const DashboardView = React.memo(({ clients = [], tasks = [], financas = [], planejamento = [], rdc = [], setActiveTab, perfilUsuario }: DashboardViewProps) => {
     
