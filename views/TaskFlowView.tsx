@@ -56,7 +56,7 @@ const SavingIndicator = ({ status }: { status?: 'saving' | 'success' | 'error' }
     );
 };
 
-function DroppableColumn({ id, children }: { id: string, children: React.ReactNode }) {
+const DroppableColumn = React.memo(function DroppableColumn({ id, children }: { id: string, children: React.ReactNode }) {
     const { setNodeRef, isOver } = useDroppable({
         id: id,
         data: { type: 'Column', status: id }
@@ -66,9 +66,9 @@ function DroppableColumn({ id, children }: { id: string, children: React.ReactNo
             {children}
         </div>
     );
-}
+});
 
-function SortableTaskCard({ Tarefa, clients, getPriorityInfo, onSelectTask, selection, statusCor, savingStatus }: any) {
+const SortableTaskCard = React.memo(function SortableTaskCard({ Tarefa, clients, getPriorityInfo, onSelectTask, selection, statusCor, savingStatus }: any) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
         id: Tarefa.id,
         data: { type: 'Task', task: Tarefa }
@@ -119,7 +119,7 @@ function SortableTaskCard({ Tarefa, clients, getPriorityInfo, onSelectTask, sele
             </div>
         </div>
     );
-}
+});
 
 function TaskCardOverlay({ Tarefa, clients, getPriorityInfo, statusCor }: any) {
     const Cliente = clients.find((c: any) => c.id === Tarefa.Cliente_ID);
