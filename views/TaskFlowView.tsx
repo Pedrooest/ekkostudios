@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import {
     DndContext, closestCenter, KeyboardSensor, PointerSensor,
     useSensor, useSensors, DragOverlay, defaultDropAnimationSideEffects, useDroppable
@@ -171,11 +171,11 @@ export function TaskFlowView({
         return getCalendarDays(currentDate.getFullYear(), currentDate.getMonth());
     }, [currentDate]);
 
-    const handleMonthNav = (dir: number) => {
+    const handleMonthNav = useCallback((dir: number) => {
         const next = new Date(currentDate);
         next.setMonth(next.getMonth() + dir);
         setCurrentDate(next);
-    };
+    }, [currentDate]);
 
     const getEventosDoDia = (dateStr: string) => {
         return filteredTasks.filter((t: any) => {
@@ -227,7 +227,7 @@ export function TaskFlowView({
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const getPriorityInfo = (priority: string) => {
+    const getPriorityInfo = useCallback((priority: string) => {
         switch (priority?.toLowerCase()) {
             case 'baixa': return { color: 'text-emerald-500 bg-emerald-500/10', icon: Flag };
             case 'média':
@@ -236,7 +236,7 @@ export function TaskFlowView({
             case 'urgente': return { color: 'text-purple-500 bg-purple-500/10', icon: Zap };
             default: return { color: 'text-zinc-500 bg-zinc-500/10', icon: Flag };
         }
-    };
+    }, []);
 
     return (
         <div className="view-root flex flex-col h-full bg-white dark:bg-zinc-950 overflow-hidden animate-fade">
