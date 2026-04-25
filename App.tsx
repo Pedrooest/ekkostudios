@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, Suspense, lazy } from 'react';
 import ReactDOM from 'react-dom';
 import { supabase } from './supabase';
 import { AuthView } from './AuthView';
@@ -22,20 +22,20 @@ import {
 import { AssistantDrawer } from './AssistantDrawer';
 import { AssistantAction } from './ai/types';
 
-// Extracted Views
-import { DashboardView } from './views/DashboardView';
-import { ClientesView } from './views/ClientesView';
-import { SystematicModelingView } from './views/SystematicModelingView';
-import { OrganickIAView } from './views/OrganickIAView';
-import { MatrizEstrategicaView } from './views/MatrizEstrategicaView';
-import ChecklistsTab from './views/ChecklistsView';
-import { ReunioesView } from './views/ReunioesView';
-import RelatoriosView from './views/RelatoriosView';
-import { VhManagementView } from './views/VhManagementView';
-import { TaskFlowView, TaskDetailPanel } from './views/TaskFlowView';
-import FinancasTab from './views/FinancasView';
-import PlanejamentoTab from './views/PlanejamentoTab';
-import { CoboView } from './views/CoboView';
+// Extracted Views — lazy-loaded so each route ships its own chunk
+const DashboardView = lazy(() => import('./views/DashboardView').then(m => ({ default: m.DashboardView })));
+const ClientesView = lazy(() => import('./views/ClientesView').then(m => ({ default: m.ClientesView })));
+const OrganickIAView = lazy(() => import('./views/OrganickIAView').then(m => ({ default: m.OrganickIAView })));
+const MatrizEstrategicaView = lazy(() => import('./views/MatrizEstrategicaView').then(m => ({ default: m.MatrizEstrategicaView })));
+const ChecklistsTab = lazy(() => import('./views/ChecklistsView'));
+const ReunioesView = lazy(() => import('./views/ReunioesView').then(m => ({ default: m.ReunioesView })));
+const RelatoriosView = lazy(() => import('./views/RelatoriosView'));
+const VhManagementView = lazy(() => import('./views/VhManagementView').then(m => ({ default: m.VhManagementView })));
+const TaskFlowView = lazy(() => import('./views/TaskFlowView').then(m => ({ default: m.TaskFlowView })));
+const TaskDetailPanel = lazy(() => import('./views/TaskFlowView').then(m => ({ default: m.TaskDetailPanel })));
+const FinancasTab = lazy(() => import('./views/FinancasView'));
+const PlanejamentoTab = lazy(() => import('./views/PlanejamentoTab'));
+const CoboView = lazy(() => import('./views/CoboView').then(m => ({ default: m.CoboView })));
 import { TableView } from './components/TableView';
 import { generateId } from './utils/id';
 import {
@@ -71,7 +71,7 @@ import {
 import { Button, Card, Badge, Stepper, FloatingPopover, InputSelect, MobileFloatingAction, SimpleMarkdown, StatCard, DeletionBar, LibraryEditorModal, ReorderTabsModal, ColorPickerModal } from './Components';
 import { BottomSheet } from './components/BottomSheet';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { Whiteboard } from './components/Whiteboard';
+const Whiteboard = lazy(() => import('./components/Whiteboard').then(m => ({ default: m.Whiteboard })));
 
 import { transcribeAndExtractInsights, generatePresentationBriefing, extractStructuredDataFromPDF, analyzeContextualData } from './geminiService';
 import { CopilotChat } from './CopilotChat';
@@ -199,6 +199,13 @@ const getTableName = (tab: string): string | null => {
 
 
 import { PortalPopover } from './components/PortalPopover';
+
+// Fallback shown while a lazy-loaded view is being fetched.
+const RouteFallback = () => (
+  <div className="flex items-center justify-center w-full h-full min-h-[300px]">
+    <Loader2 className="w-8 h-8 animate-spin text-app-text-muted" />
+  </div>
+);
 
 export default function App() {
 
@@ -1838,6 +1845,7 @@ export default function App() {
         )}
 
         <div className={`flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar animate-fade bg-app-bg ${(activeTab === 'WHITEBOARD' || activeTab === 'CLIENTES' || activeTab === 'PLANEJAMENTO' || activeTab === 'CHECKLISTS') ? 'p-0 overflow-hidden' : 'p-4 sm:p-6 pb-[calc(100px+env(safe-area-inset-bottom))] sm:pb-6'}`}>
+          <Suspense fallback={<RouteFallback />}>
           {activeTab === 'DASHBOARD' && <DashboardView clients={clients} tasks={currentTasks} financas={currentFinancas} planejamento={currentPlanejamento} rdc={currentRdc} setActiveTab={setActiveTab} perfilUsuario={perfilUsuario} />}
           {activeTab === 'CLIENTES' && <ClientesView clients={filterArchived(clients)} onUpdate={handleUpdate} onDelete={performDelete} onAdd={() => handleAddRow('CLIENTES')} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} savingStatus={savingStatus} />}
           {activeTab === 'REUNIOES' && <ReunioesView reunioes={reunioes} clients={clients} onUpdate={handleUpdate} onDelete={performDelete} onAdd={() => handleAddRow('REUNIOES')} savingStatus={savingStatus} />}
@@ -1894,6 +1902,7 @@ export default function App() {
               <Whiteboard workspaceId={currentWorkspace?.id} />
             </ErrorBoundary>
           )}
+          </Suspense>
         </div>
 
         {
@@ -1904,19 +1913,21 @@ export default function App() {
               ${taskDetailViewMode === 'modal' ? 'w-[900px] h-[85dvh] rounded-[32px] border border-app-border' : ''}
               ${taskDetailViewMode === 'fullscreen' ? 'fixed inset-4 rounded-[40px] border border-app-border' : ''}
             `}>
-                <TaskDetailPanel
-                  taskId={selectedTaskId}
-                  tasks={tasks}
-                  clients={clients}
-                  collaborators={collaborators}
-                  onClose={() => setSelectedTaskId(null)}
-                  onUpdate={handleUpdate}
-                  onArchive={performArchive}
-                  onDelete={performDelete}
-                  onAdd={handleAddRow}
-                  viewMode={taskDetailViewMode as any}
-                  setViewMode={setTaskDetailViewMode}
-                />
+                <Suspense fallback={<RouteFallback />}>
+                  <TaskDetailPanel
+                    taskId={selectedTaskId}
+                    tasks={tasks}
+                    clients={clients}
+                    collaborators={collaborators}
+                    onClose={() => setSelectedTaskId(null)}
+                    onUpdate={handleUpdate}
+                    onArchive={performArchive}
+                    onDelete={performDelete}
+                    onAdd={handleAddRow}
+                    viewMode={taskDetailViewMode as any}
+                    setViewMode={setTaskDetailViewMode}
+                  />
+                </Suspense>
               </div>
             </div>
           )
