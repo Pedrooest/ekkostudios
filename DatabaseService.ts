@@ -25,10 +25,6 @@ const MAPA_COLUNAS: Record<string, Record<string, string>> = {
         expires_at: 'expira_em',
         role: 'papel'
     },
-    financas: {
-        id: 'id',
-        workspace_id: 'workspace_id'
-    },
     tasks: {
         "Título": 'Título',
         "Descrição": 'Descrição',
