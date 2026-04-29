@@ -28,14 +28,12 @@ export const PortalPopover: React.FC<PortalPopoverProps> = ({ isOpen, onClose, t
     }, [isOpen, triggerRef, align, className]);
 
     useEffect(() => {
-        const handleScroll = () => { if (isOpen) onClose(); }; // Close on scroll for simplicity
+        // Close only on resize. Scrolling is allowed (the trigger lives in a sticky
+        // header so its position is stable, and scrolling INSIDE the popover should
+        // never dismiss it).
         const handleResize = () => { if (isOpen) onClose(); };
-        window.addEventListener('scroll', handleScroll, true);
         window.addEventListener('resize', handleResize);
-        return () => {
-            window.removeEventListener('scroll', handleScroll, true);
-            window.removeEventListener('resize', handleResize);
-        };
+        return () => window.removeEventListener('resize', handleResize);
     }, [isOpen, onClose]);
 
     if (!isOpen) return null;
