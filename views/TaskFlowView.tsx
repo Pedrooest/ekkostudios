@@ -113,7 +113,7 @@ const SortableTaskCard = React.memo(function SortableTaskCard({ Tarefa, clients,
                 )}
             </div>
 
-            <h4 className="text-[11px] font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight leading-tight group-hover:text-blue-500 transition-colors pointer-events-none mt-1 line-clamp-2" title={Tarefa.Título}>
+            <h4 className="text-[13px] font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight leading-snug group-hover:text-blue-500 transition-colors pointer-events-none mt-1 line-clamp-2" title={Tarefa.Título}>
                 {Tarefa.Título}
             </h4>
 
@@ -182,7 +182,7 @@ function TaskCardOverlay({ Tarefa, clients, getPriorityInfo, statusCor }: any) {
                     </span>
                 )}
             </div>
-            <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 leading-snug truncate mt-1">{Tarefa.Título}</h4>
+            <h4 className="text-[13px] font-semibold text-zinc-900 dark:text-zinc-100 leading-snug truncate mt-1">{Tarefa.Título}</h4>
             {hasStats && (
                 <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
                     {checklistTotal > 0 && (
