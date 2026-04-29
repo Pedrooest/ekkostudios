@@ -97,7 +97,7 @@ const SortableTaskCard = React.memo(function SortableTaskCard({ Tarefa, clients,
         <div
             ref={setNodeRef} style={style} {...attributes} {...listeners}
             onClick={() => onSelectTask(Tarefa.id)}
-            className={`bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl shadow-sm hover:shadow-xl transition-all group flex flex-col gap-3 relative overflow-hidden cursor-grab active:cursor-grabbing ${selection.includes(Tarefa.id) ? 'ring-2 ring-zinc-900 dark:ring-white bg-zinc-50 dark:bg-zinc-800' : ''} ${isDragging ? 'ring-2 ring-zinc-900 z-50 shadow-2xl scale-[1.02]' : ''}`}
+            className={`bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl shadow-sm hover:shadow-xl lift group flex flex-col gap-3 relative overflow-hidden cursor-grab active:cursor-grabbing ${selection.includes(Tarefa.id) ? 'ring-2 ring-zinc-900 dark:ring-white bg-zinc-50 dark:bg-zinc-800' : ''} ${isDragging ? 'ring-2 ring-zinc-900 z-50 shadow-2xl scale-[1.02]' : ''}`}
         >
             <div className="absolute top-0 left-0 w-1 h-full opacity-40" style={{ backgroundColor: statusCor }} />
 

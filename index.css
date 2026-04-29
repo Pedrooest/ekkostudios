@@ -317,4 +317,85 @@ video {
 
 .animate-slide-in-right {
   animation: slide-in-right 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ============================================================
+ * Premium animation layer
+ * Smooth ease-out curves, subtle motion, spring on emphasis.
+ * Honors prefers-reduced-motion.
+ * ============================================================ */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.animate-fade {
+  animation: fade-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.85; transform: scale(0.97); }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Card lift on hover — translate + shadow change.
+ * Apply via class .lift on any clickable card. */
+.lift {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.lift:hover {
+  transform: translateY(-2px);
+}
+
+/* Stagger children — apply to a parent; direct children fade-up
+ * with 40ms delay each (capped at 8 children). */
+.stagger > *           { animation: fade-up 0.32s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.stagger > *:nth-child(1) { animation-delay: 0ms;   }
+.stagger > *:nth-child(2) { animation-delay: 40ms;  }
+.stagger > *:nth-child(3) { animation-delay: 80ms;  }
+.stagger > *:nth-child(4) { animation-delay: 120ms; }
+.stagger > *:nth-child(5) { animation-delay: 160ms; }
+.stagger > *:nth-child(6) { animation-delay: 200ms; }
+.stagger > *:nth-child(7) { animation-delay: 240ms; }
+.stagger > *:nth-child(8) { animation-delay: 280ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade,
+  .animate-fade-up,
+  .animate-scale-in,
+  .animate-pulse-soft,
+  .animate-ios-spring,
+  .animate-slide-in-right,
+  .animate-toast-in,
+  .animate-toast-out,
+  .stagger > * {
+    animation: none !important;
+  }
+  .lift:hover {
+    transform: none !important;
+  }
 }

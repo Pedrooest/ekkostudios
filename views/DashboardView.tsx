@@ -38,7 +38,7 @@ const MetricCard = React.memo(({ label, value, icon: Icon, color, trend, onClick
 
     return (
         <Card
-            className="group hover:shadow-xl transition-all duration-200 cursor-pointer border-zinc-100 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 !p-4 relative overflow-hidden"
+            className="group lift hover:shadow-xl cursor-pointer border-zinc-100 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 !p-4 relative overflow-hidden"
             onClick={onClick}
         >
             <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full opacity-[0.03] flex items-center justify-center pointer-events-none`}>
