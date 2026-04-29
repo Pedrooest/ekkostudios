@@ -155,7 +155,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
             </div>
             <div>
               <h1 className="text-lg font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100">Clientes</h1>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-0.5 opacity-60">Gestão estratégica de contas e branding.</p>
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mt-0.5">Gestão estratégica de contas e branding.</p>
             </div>
           </div>
         </div>
@@ -178,8 +178,8 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
           </div>
           <input
             type="text"
-            className="block w-full pl-9 pr-3 h-10 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm"
-            placeholder="BUSCAR CLIENTE..."
+            className="block w-full pl-9 pr-3 h-10 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm font-medium text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm"
+            placeholder="Buscar cliente..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -205,9 +205,19 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
       {/* CLIENTS GRID */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
         {filteredClients.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 border-2 border-dashed border-zinc-100 dark:border-zinc-800 rounded-3xl text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/20">
-            <Users size={48} className="mb-4 opacity-10" />
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">Nenhum cliente na lista.</p>
+          <div className="flex flex-col items-center justify-center py-24 px-8 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl bg-zinc-50/50 dark:bg-zinc-900/20 text-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center">
+              <Users size={28} className="text-blue-500" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Nenhum cliente ainda</p>
+              <p className="text-xs text-zinc-400 dark:text-zinc-500">Adicione seu primeiro cliente pra começar.</p>
+            </div>
+            {onAdd && (
+              <button onClick={onAdd} className="mt-2 text-[11px] font-bold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1">
+                + Adicionar cliente
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5">
@@ -233,14 +243,14 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start mb-1 gap-2">
-                        <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100 uppercase tracking-tight truncate leading-tight">
-                          {client.Nome || 'Sem Nome'}
+                      <div className="flex justify-between items-start mb-0.5 gap-2">
+                        <h3 className="font-semibold text-[15px] text-zinc-900 dark:text-zinc-100 truncate leading-tight">
+                          {client.Nome || 'Sem nome'}
                         </h3>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 truncate opacity-60">
-                          {client.Nicho || 'Sem Nicho'}
+                        <span className="text-[12px] font-medium text-zinc-500 dark:text-zinc-400 truncate">
+                          {client.Nicho || 'Sem nicho'}
                         </span>
                         <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${isAtivo ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-zinc-300 dark:bg-zinc-700'}`}></div>
                       </div>
