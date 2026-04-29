@@ -9,7 +9,7 @@ import {
     List, LayoutGrid, Calendar as LucideCalendar, Search, Filter,
     ArrowUpDown, Plus, Clock, MessageSquare, Box, ExternalLink,
     X, Trash2, Zap, LayoutDashboard, Image as ImageIcon, CheckCircle2, FileText, ShieldAlert, Eye, History as HistoryIcon, Loader2, User,
-    Columns, CalendarDays, ChevronLeft, ChevronRight, CheckSquare, ArrowUp, ArrowDown, Check, Mail, Flag
+    Columns, CalendarDays, ChevronLeft, ChevronRight, CheckSquare, ArrowUp, ArrowDown, Check, Mail, Flag, Paperclip
 } from 'lucide-react';
 import { sendEmail, templates } from '../utils/emailService';
 import { DatabaseService } from '../DatabaseService';
@@ -82,7 +82,16 @@ const SortableTaskCard = React.memo(function SortableTaskCard({ Tarefa, clients,
 
     const Cliente = clients.find((c: any) => c.id === Tarefa.Cliente_ID);
     const prio = getPriorityInfo(Tarefa.Prioridade);
+    const PriorityIcon = prio.icon;
     const isOverdue = Tarefa.Data_Entrega && new Date(Tarefa.Data_Entrega) < new Date(new Date().setHours(0,0,0,0));
+
+    // Card density stats — show only when present (>0)
+    const checklist = Array.isArray(Tarefa.Checklist) ? Tarefa.Checklist : [];
+    const checklistDone = checklist.filter((i: any) => i.concluido).length;
+    const checklistTotal = checklist.length;
+    const commentsCount = Array.isArray(Tarefa.Comentarios) ? Tarefa.Comentarios.length : 0;
+    const attachmentsCount = Array.isArray(Tarefa.Anexos) ? Tarefa.Anexos.length : 0;
+    const hasStats = checklistTotal > 0 || commentsCount > 0 || attachmentsCount > 0;
 
     return (
         <div
@@ -91,18 +100,46 @@ const SortableTaskCard = React.memo(function SortableTaskCard({ Tarefa, clients,
             className={`bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl shadow-sm hover:shadow-xl transition-all group flex flex-col gap-3 relative overflow-hidden cursor-grab active:cursor-grabbing ${selection.includes(Tarefa.id) ? 'ring-2 ring-zinc-900 dark:ring-white bg-zinc-50 dark:bg-zinc-800' : ''} ${isDragging ? 'ring-2 ring-zinc-900 z-50 shadow-2xl scale-[1.02]' : ''}`}
         >
             <div className="absolute top-0 left-0 w-1 h-full opacity-40" style={{ backgroundColor: statusCor }} />
-            
+
             <div className="flex justify-between items-start pointer-events-none gap-2">
                 <Badge color="slate" className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 opacity-60">
                     {Cliente?.Nome || 'AGÊNCIA'}
                 </Badge>
-                <div className={`w-2 h-2 rounded-full ${prio.color.split(' ')[0].replace('text-', 'bg-')} shadow-[0_0_8px_rgba(0,0,0,0.1)]`} title={Tarefa.Prioridade} />
+                {Tarefa.Prioridade && (
+                    <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest shrink-0 ${prio.color}`} title={`Prioridade: ${Tarefa.Prioridade}`}>
+                        <PriorityIcon size={9} className="shrink-0" />
+                        <span>{Tarefa.Prioridade}</span>
+                    </span>
+                )}
             </div>
-            
+
             <h4 className="text-[11px] font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight leading-tight group-hover:text-blue-500 transition-colors pointer-events-none mt-1 line-clamp-2" title={Tarefa.Título}>
                 {Tarefa.Título}
             </h4>
-            
+
+            {hasStats && (
+                <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 pointer-events-none">
+                    {checklistTotal > 0 && (
+                        <span className={`flex items-center gap-1 ${checklistDone === checklistTotal ? 'text-emerald-500' : ''}`} title={`Checklist: ${checklistDone} de ${checklistTotal} concluídos`}>
+                            <CheckSquare size={11} className="shrink-0" />
+                            {checklistDone}/{checklistTotal}
+                        </span>
+                    )}
+                    {commentsCount > 0 && (
+                        <span className="flex items-center gap-1" title={`${commentsCount} ${commentsCount === 1 ? 'comentário' : 'comentários'}`}>
+                            <MessageSquare size={11} className="shrink-0" />
+                            {commentsCount}
+                        </span>
+                    )}
+                    {attachmentsCount > 0 && (
+                        <span className="flex items-center gap-1" title={`${attachmentsCount} ${attachmentsCount === 1 ? 'anexo' : 'anexos'}`}>
+                            <Paperclip size={11} className="shrink-0" />
+                            {attachmentsCount}
+                        </span>
+                    )}
+                </div>
+            )}
+
             <div className="flex items-center justify-between mt-1 pt-3 border-t border-zinc-100 dark:border-zinc-800 pointer-events-none">
                 <div className={`flex items-center gap-2 text-[9px] font-black uppercase tracking-widest ${isOverdue ? 'text-rose-600' : 'text-zinc-400'}`}>
                     {Tarefa.Data_Entrega ? <span className="flex items-center gap-1.5"><Clock size={10} /> {Tarefa.Data_Entrega}</span> : <span className="flex items-center gap-1.5 opacity-30"><Clock size={10} /> S/ DATA</span>}
@@ -123,16 +160,51 @@ const SortableTaskCard = React.memo(function SortableTaskCard({ Tarefa, clients,
 
 function TaskCardOverlay({ Tarefa, clients, getPriorityInfo, statusCor }: any) {
     const Cliente = clients.find((c: any) => c.id === Tarefa.Cliente_ID);
-    const clientColorCss = Cliente?.['Cor (HEX)'] || '#3B82F6';
     const prio = getPriorityInfo(Tarefa.Prioridade);
+    const PriorityIcon = prio.icon;
+
+    const checklist = Array.isArray(Tarefa.Checklist) ? Tarefa.Checklist : [];
+    const checklistDone = checklist.filter((i: any) => i.concluido).length;
+    const checklistTotal = checklist.length;
+    const commentsCount = Array.isArray(Tarefa.Comentarios) ? Tarefa.Comentarios.length : 0;
+    const attachmentsCount = Array.isArray(Tarefa.Anexos) ? Tarefa.Anexos.length : 0;
+    const hasStats = checklistTotal > 0 || commentsCount > 0 || attachmentsCount > 0;
+
     return (
         <div className={`bg-white dark:bg-zinc-900 border-2 border-blue-500 p-4 rounded-xl shadow-2xl flex flex-col gap-3 relative overflow-hidden rotate-2 cursor-grabbing opacity-95 scale-105 min-w-[300px]`}>
             <div className="absolute top-0 left-0 w-[4px] h-full" style={{ backgroundColor: statusCor }} />
             <div className="flex justify-between items-start gap-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500 truncate max-w-[140px]">{Cliente?.Nome || 'Agência'}</span>
-                <div className={`px-2 py-0.5 rounded flex items-center gap-1.5 ${prio.color}`}><prio.icon size={8} /></div>
+                {Tarefa.Prioridade && (
+                    <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest shrink-0 ${prio.color}`}>
+                        <PriorityIcon size={9} className="shrink-0" />
+                        <span>{Tarefa.Prioridade}</span>
+                    </span>
+                )}
             </div>
             <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 leading-snug truncate mt-1">{Tarefa.Título}</h4>
+            {hasStats && (
+                <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                    {checklistTotal > 0 && (
+                        <span className={`flex items-center gap-1 ${checklistDone === checklistTotal ? 'text-emerald-500' : ''}`}>
+                            <CheckSquare size={11} className="shrink-0" />
+                            {checklistDone}/{checklistTotal}
+                        </span>
+                    )}
+                    {commentsCount > 0 && (
+                        <span className="flex items-center gap-1">
+                            <MessageSquare size={11} className="shrink-0" />
+                            {commentsCount}
+                        </span>
+                    )}
+                    {attachmentsCount > 0 && (
+                        <span className="flex items-center gap-1">
+                            <Paperclip size={11} className="shrink-0" />
+                            {attachmentsCount}
+                        </span>
+                    )}
+                </div>
+            )}
         </div>
     );
 }
