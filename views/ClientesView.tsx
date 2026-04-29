@@ -220,17 +220,17 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5 stagger">
             {filteredClients.map(client => {
               const bgHex = client['Cor (HEX)'] || '#3B82F6';
               const initial = (client.Nome || '?').charAt(0).toUpperCase();
               const isAtivo = client.Status === 'Ativo';
 
               return (
-                <Card 
+                <Card
                   key={client.id}
                   onClick={() => setSelectedClient(client)}
-                  className={`group relative overflow-hidden transition-all duration-300 !p-5 ${isAtivo ? 'hover:border-zinc-400 dark:hover:border-zinc-500' : 'opacity-60 saturate-50'}`}
+                  className={`group relative overflow-hidden lift hover:shadow-xl !p-5 ${isAtivo ? 'hover:border-zinc-400 dark:hover:border-zinc-500' : 'opacity-60 saturate-50'}`}
                 >
                   <div className="absolute left-0 top-0 bottom-0 w-1 transition-all group-hover:w-1.5" style={{ backgroundColor: bgHex }}></div>
                   

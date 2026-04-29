@@ -91,27 +91,23 @@ export function TableView({
         return (
             <Card title={ROTULOS_TABELAS[tab]}>
                 <div className="p-8 md:p-12 flex flex-col items-center justify-center text-center space-y-6 animate-fade">
-                    <div className="w-20 h-20 bg-blue-600/10 rounded-full flex items-center justify-center text-blue-500 text-4xl shadow-[0_0_30px_rgba(37,99,235,0.2)]">
-                        <Users size={40} />
+                    <div className="w-20 h-20 bg-blue-600/10 rounded-full flex items-center justify-center text-blue-500 shadow-[0_0_40px_rgba(37,99,235,0.18)] animate-ios-spring">
+                        <Users size={36} />
                     </div>
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-black text-app-text-strong uppercase tracking-widest">Selecione um Cliente</h3>
-                        <p className="text-xs font-bold text-app-text-muted uppercase tracking-widest">Para acessar a {ROTULOS_TABELAS[tab]}, escolha um cliente para focar a estratégia.</p>
+                    <div className="space-y-1.5 max-w-sm">
+                        <h3 className="text-xl font-bold text-app-text-strong tracking-tight">Selecione um cliente</h3>
+                        <p className="text-sm font-medium text-app-text-muted leading-relaxed">
+                            Para acessar a {ROTULOS_TABELAS[tab]}, escolha um cliente para focar a estratégia.
+                        </p>
                     </div>
-                    <div className="w-full max-w-sm relative">
-                        <select
+                    <div className="w-full max-w-sm">
+                        <InputSelect
                             value=""
-                            onChange={(e) => onSelectClient && onSelectClient(e.target.value)}
-                            className="w-full h-12 bg-app-surface text-app-text-strong text-xs font-bold uppercase pl-4 pr-10 rounded-xl border border-app-border outline-none appearance-none cursor-pointer hover:border-blue-500 transition-colors shadow-xl"
-                        >
-                            <option value="" disabled>Selecionar Cliente Agora</option>
-                            {clients?.map((c) => (
-                                <option key={c.id} value={c.id} className="bg-app-surface text-app-text-strong">{c.Nome}</option>
-                            ))}
-                        </select>
-                        <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                            <ChevronDown size={10} className="text-app-text-strong" />
-                        </div>
+                            onChange={(val) => onSelectClient && onSelectClient(val)}
+                            options={(clients || []).map((c) => ({ value: c.id, label: c.Nome }))}
+                            placeholder="Selecionar cliente"
+                            className="bg-app-surface border border-app-border text-app-text-strong text-sm font-medium h-12 px-4 rounded-xl shadow-xl hover:border-blue-500 transition-colors w-full"
+                        />
                     </div>
                 </div>
             </Card>
