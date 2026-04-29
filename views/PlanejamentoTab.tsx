@@ -452,7 +452,7 @@ export default function PlanejamentoTab({
                             </button>
                             
                             {isClientDropdownOpen && (
-                                <div className="absolute top-full left-0 mt-3 w-64 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800/80 rounded-2xl shadow-2xl py-2 z-50 overflow-hidden backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200">
+                                <div className="absolute top-full left-0 mt-3 w-64 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800/80 rounded-2xl shadow-2xl py-2 z-50 overflow-hidden backdrop-blur-xl animate-scale-in origin-top-left">
                                     <div className="px-4 py-2 border-b border-zinc-100 dark:border-zinc-800/60 mb-1">
                                         <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em]">Filtrar por Cliente</span>
                                     </div>
@@ -585,19 +585,19 @@ export default function PlanejamentoTab({
                     <div className="flex bg-zinc-100 dark:bg-zinc-800/50 p-1 rounded-2xl items-center relative shadow-inner border border-zinc-200/50 dark:border-zinc-700/30">
                         <button
                             onClick={() => { tryPlaySound('tap'); setViewMode('calendar'); }}
-                            className={`flex items-center gap-2.5 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'calendar' ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-sm transform scale-[1.02]' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'}`}
+                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 ${viewMode === 'calendar' ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-sm scale-[1.02]' : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'}`}
                         >
                             <CalendarIcon size={14} strokeWidth={2.5} /> Calendário
                         </button>
                         <button
                             onClick={() => { tryPlaySound('tap'); setViewMode('list'); }}
-                            className={`flex items-center gap-2.5 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'list' ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-sm transform scale-[1.02]' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'}`}
+                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 ${viewMode === 'list' ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-sm scale-[1.02]' : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'}`}
                         >
                             <List size={14} strokeWidth={2.5} /> Lista
                         </button>
                         <button
                             onClick={() => { tryPlaySound('tap'); setViewMode('kanban'); }}
-                            className={`flex items-center gap-2.5 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'kanban' ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-sm transform scale-[1.02]' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'}`}
+                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 ${viewMode === 'kanban' ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-sm scale-[1.02]' : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'}`}
                         >
                             <LayoutGrid size={14} strokeWidth={2.5} /> Kanban
                         </button>
@@ -637,7 +637,7 @@ export default function PlanejamentoTab({
 
                 {/* MODERN CALENDAR GRID */}
                 {viewMode === 'calendar' && (
-                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-w-[1600px] mx-auto animate-fade-up">
                         <div className="grid grid-cols-7 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/80 backdrop-blur-md relative z-10">
                             {WEEKDAYS_BR_SHORT.map(dia => (
                                 <div key={dia} className="py-6 text-center text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] border-r border-zinc-200 dark:border-zinc-800 last:border-0 truncate">
@@ -725,7 +725,7 @@ export default function PlanejamentoTab({
 
                 {/* MODERN LIST VIEW */}
                 {viewMode === 'list' && (
-                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-2xl overflow-hidden max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-2xl overflow-hidden max-w-[1600px] mx-auto animate-fade-up">
                         <div className="table-responsive overflow-x-auto custom-scrollbar">
                             <table className="w-full text-left border-collapse">
                                 <thead>
@@ -836,7 +836,7 @@ export default function PlanejamentoTab({
 
                 {/* MODERN KANBAN VIEW */}
                 {viewMode === 'kanban' && (
-                    <div className="flex gap-8 overflow-x-auto custom-scrollbar pb-10 max-w-[1600px] mx-auto h-[calc(100vh-280px)] animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="flex gap-8 overflow-x-auto custom-scrollbar pb-10 max-w-[1600px] mx-auto h-[calc(100vh-280px)] animate-fade-up">
                         {[
                             { id: 'PENDENTE', label: 'Pendente', color: 'bg-zinc-400', statuses: ['EM ESPERA'] },
                             { id: 'PRODUÇÃO', label: 'Em Produção', color: 'bg-blue-500', statuses: ['PRODUÇÃO'] },
@@ -927,12 +927,12 @@ export default function PlanejamentoTab({
 
                 {/* MODERN MODAL/SIDEBAR OVERLAY */}
                 {sidebarView && (
-                    <div className="fixed inset-0 bg-zinc-950/60 backdrop-blur-md z-[90] transition-all duration-500 animate-in fade-in" onClick={closeSidebar}></div>
+                    <div className="fixed inset-0 bg-zinc-950/60 backdrop-blur-md z-[90] animate-fade" onClick={closeSidebar}></div>
                 )}
 
                 {/* SIDEBAR: EDIÇÃO DE CONTEÚDO */}
                 {sidebarView === 'edit' && (
-                    <div className="fixed inset-y-0 right-0 w-full sm:w-[500px] bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 shadow-2xl z-[100] flex flex-col transform animate-in slide-in-from-right duration-500 ease-out rounded-l-[3rem] overflow-hidden">
+                    <div className="fixed inset-y-0 right-0 w-full sm:w-[500px] bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 shadow-2xl z-[100] flex flex-col transform animate-slide-in-right rounded-l-[3rem] overflow-hidden">
                         <div className="px-8 py-7 border-b border-zinc-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl flex justify-between items-center shrink-0">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
@@ -1145,7 +1145,7 @@ export default function PlanejamentoTab({
 
                 {/* SIDEBAR: BANCO DE CONTEÚDOS */}
                 {sidebarView === 'banco' && (
-                    <div className="fixed inset-y-0 right-0 w-full sm:w-[500px] bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 shadow-2xl z-[100] flex flex-col transform animate-in slide-in-from-right duration-500 ease-out rounded-l-[3rem] overflow-hidden">
+                    <div className="fixed inset-y-0 right-0 w-full sm:w-[500px] bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 shadow-2xl z-[100] flex flex-col transform animate-slide-in-right rounded-l-[3rem] overflow-hidden">
                         <div className="px-8 py-7 border-b border-zinc-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl flex justify-between items-center shrink-0">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center">
@@ -1241,9 +1241,9 @@ export default function PlanejamentoTab({
             {/* MODERN EXPORT MODAL */}
             {isExportModalOpen && (
                 <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 lg:p-8">
-                    <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md animate-in fade-in transition-all duration-500" onClick={() => !isGenerating && setIsExportModalOpen(false)}></div>
+                    <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md animate-fade" onClick={() => !isGenerating && setIsExportModalOpen(false)}></div>
 
-                    <div className="relative w-full max-w-[1300px] h-full max-h-[95vh] bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[3rem] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-500 pointer-events-auto">
+                    <div className="relative w-full max-w-[1300px] h-full max-h-[95vh] bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[3rem] shadow-2xl flex flex-col overflow-hidden animate-scale-in pointer-events-auto">
 
                         <div className="px-10 py-8 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center shrink-0">
                             <div className="flex items-center gap-5">
