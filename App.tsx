@@ -1549,11 +1549,13 @@ export default function App() {
           </div>
 
           {/* RIGHT: Global Actions & Profile */}
-          <div className="flex items-center gap-2 sm:gap-4">
-            <button 
-              onClick={async () => { 
+          <div className="flex items-center gap-3">
+            {/* System controls cluster — single pill grouping low-frequency utilities */}
+            <div className="flex items-center gap-0.5 p-1 rounded-full bg-zinc-100/80 dark:bg-white/[0.04] border border-zinc-200/60 dark:border-white/[0.06]">
+            <button
+              onClick={async () => {
                 if (!currentWorkspace) return;
-                playUISound('tap'); 
+                playUISound('tap');
                 addNotification('info', 'Sincronizando...', 'Buscando dados atualizados do servidor.');
                 try {
                   await loadWorkspaceData(currentWorkspace.id);
@@ -1561,15 +1563,15 @@ export default function App() {
                 } catch (e) {
                   addNotification('error', 'Erro na Sincronização', 'Não foi possível atualizar os dados.');
                 }
-              }} 
+              }}
               title="Forçar Sincronização"
-              className="ios-btn p-2.5 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 dark:border-white/5 dark:bg-white/5 dark:text-zinc-400 dark:hover:text-white transition-colors active:scale-90"
+              className="ios-btn p-2 rounded-full text-gray-600 hover:bg-white hover:text-gray-900 dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white transition-colors active:scale-90"
             >
-              <Database size={18} />
+              <Database size={16} />
             </button>
 
-            <button onClick={() => { playUISound('tap'); toggleTheme(); }} className="ios-btn p-2.5 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 dark:border-white/5 dark:bg-white/5 dark:text-zinc-400 dark:hover:text-white transition-colors active:scale-90">
-              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            <button onClick={() => { playUISound('tap'); toggleTheme(); }} title={theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'} className="ios-btn p-2 rounded-full text-gray-600 hover:bg-white hover:text-gray-900 dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white transition-colors active:scale-90">
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
 
             <div className="relative">
@@ -1579,11 +1581,12 @@ export default function App() {
                   if (!isNotificationOpen) playUISound('open');
                   setIsNotificationOpen(!isNotificationOpen);
                 }}
-                className="ios-btn p-2.5 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 dark:border-white/5 dark:bg-white/5 dark:text-zinc-400 dark:hover:text-white transition-colors active:scale-90 relative"
+                title="Notificações"
+                className="ios-btn p-2 rounded-full text-gray-600 hover:bg-white hover:text-gray-900 dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white transition-colors active:scale-90 relative"
               >
-                <Bell size={18} />
+                <Bell size={16} />
                 {(notificacoes.some(n => !n.lida) || pendingRemindersCount > 0) && (
-                  <span className={`absolute top-2 right-2 w-4 h-4 ${pendingRemindersCount > 0 ? 'bg-red-500' : 'bg-blue-500'} rounded-full border-2 border-app-bg text-[8px] font-black text-white flex items-center justify-center`}>
+                  <span className={`absolute top-1 right-1 ${pendingRemindersCount > 0 ? 'min-w-[14px] h-[14px] px-0.5 bg-red-500' : 'w-2 h-2 bg-blue-500'} rounded-full text-[8px] font-black text-white flex items-center justify-center`}>
                     {pendingRemindersCount > 0 ? pendingRemindersCount : ''}
                   </span>
                 )}
@@ -1617,9 +1620,17 @@ export default function App() {
                   <div className="max-h-[450px] overflow-y-auto custom-scrollbar bg-app-surface">
                     {activeNotifTab === 'notificacoes' ? (
                       <div className="divide-y divide-app-border/50">
-                        <div className="p-3 flex justify-between items-center bg-app-bg/30">
+                        <div className="p-3 flex justify-between items-center bg-app-bg/30 sticky top-0 z-10 backdrop-blur-md">
                            <span className="text-[8px] font-bold uppercase text-app-text-muted tracking-widest">Recentes</span>
-                           <button onClick={() => setNotificacoes(prev => prev.map(n => ({...n, lida: true})))} className="text-[8px] font-black uppercase text-blue-500">Limpar</button>
+                           {notificacoes.length > 0 && (
+                             <button
+                               onClick={() => { playUISound('tap'); setNotificacoes([]); }}
+                               className="text-[8px] font-black uppercase text-rose-500 hover:text-rose-600 transition-colors flex items-center gap-1"
+                               title="Excluir todas as notificações"
+                             >
+                               <Trash2 size={10} /> Limpar tudo
+                             </button>
+                           )}
                         </div>
                         {notificacoes.length === 0 ? (
                           <div className="p-12 text-center opacity-20">
@@ -1628,17 +1639,24 @@ export default function App() {
                           </div>
                         ) : (
                           notificacoes.map(n => (
-                            <div key={n.id} className={`p-4 hover:bg-app-bg transition-all cursor-pointer group ${!n.lida ? 'bg-blue-500/5' : ''}`}>
+                            <div key={n.id} className={`p-4 hover:bg-app-bg transition-all cursor-pointer group relative ${!n.lida ? 'bg-blue-500/5' : ''}`}>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); playUISound('tap'); setNotificacoes(prev => prev.filter(x => x.id !== n.id)); }}
+                                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg bg-app-surface text-app-text-muted hover:bg-rose-500/10 hover:text-rose-500 z-10 shadow-sm"
+                                title="Excluir notificação"
+                              >
+                                <X size={12} />
+                              </button>
                               <div className="flex gap-3">
                                 <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 border ${n.tipo === 'success' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
                                   n.tipo === 'warning' ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
                                   }`}>
                                   {n.tipo === 'success' ? <CheckCircle2 size={14} /> : n.tipo === 'warning' ? <AlertTriangle size={14} /> : <Info size={14} />}
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex justify-between items-baseline mb-0.5">
+                                <div className="flex-1 min-w-0 pr-7">
+                                  <div className="flex justify-between items-baseline mb-0.5 gap-2">
                                     <p className="text-[10px] font-black text-app-text-strong uppercase truncate">{n.titulo}</p>
-                                    <span className="text-[7px] font-bold text-app-text-muted uppercase">{new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                    <span className="text-[7px] font-bold text-app-text-muted uppercase shrink-0 group-hover:opacity-0 transition-opacity">{new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                   </div>
                                   <p className="text-[9px] font-medium text-app-text-muted leading-snug uppercase line-clamp-2">{n.mensagem}</p>
                                 </div>
@@ -1715,8 +1733,7 @@ export default function App() {
                 </div>
               </PortalPopover>
             </div>
-
-            <div className="h-6 w-px bg-gray-200 dark:bg-white/10 hidden sm:block"></div>
+            </div>
 
             <div className="flex items-center gap-2">
               <button className="ios-btn hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:border-zinc-700 rounded-lg text-xs font-bold transition-colors shadow-sm dark:shadow-none uppercase tracking-widest" onClick={() => playUISound('tap')}>
