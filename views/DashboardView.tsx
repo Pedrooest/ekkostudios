@@ -37,29 +37,29 @@ const MetricCard = React.memo(({ label, value, icon: Icon, color, trend, onClick
     };
 
     return (
-        <Card 
-            className="group hover:scale-[1.02] hover:shadow-xl transition-all duration-300 cursor-pointer border-zinc-100 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 !p-5 relative overflow-hidden" 
+        <Card
+            className="group hover:shadow-xl transition-all duration-200 cursor-pointer border-zinc-100 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 !p-4 relative overflow-hidden"
             onClick={onClick}
         >
-            <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full opacity-[0.03] flex items-center justify-center`}>
+            <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full opacity-[0.03] flex items-center justify-center pointer-events-none`}>
                 <Icon size={80} />
             </div>
 
             <div className="flex items-start justify-between relative z-10">
-                <div className={`p-2.5 rounded-xl border ${colorClasses[color] || colorClasses.blue}`}>
-                    <Icon size={20} strokeWidth={2.5} className="shrink-0" />
+                <div className={`p-2 rounded-lg border ${colorClasses[color] || colorClasses.blue}`}>
+                    <Icon size={16} strokeWidth={2.5} className="shrink-0" />
                 </div>
                 {trend && (
-                    <div className={`flex items-center gap-1 text-[10px] font-black uppercase tracking-widest ${trend.isUp ? 'text-emerald-500' : 'text-rose-500'}`}>
+                    <div className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider ${trend.isUp ? 'text-emerald-500' : 'text-rose-500'}`}>
                         {trend.isUp ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
                         {trend.value}
                     </div>
                 )}
             </div>
 
-            <div className="mt-4 relative z-10">
-                <h3 className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">{label}</h3>
-                <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mt-1 tabular-nums">
+            <div className="mt-3 relative z-10">
+                <h3 className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.15em]">{label}</h3>
+                <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-0.5 tabular-nums">
                     {value}
                 </p>
             </div>
@@ -264,7 +264,7 @@ export const DashboardView = React.memo(({ clients = [], tasks = [], financas = 
     // ==========================================
 
     return (
-        <div className="view-root p-4 sm:p-8 space-y-8 animate-fade h-full overflow-y-auto custom-scrollbar bg-zinc-50 dark:bg-zinc-950 transition-colors">
+        <div className="view-root p-4 sm:p-6 space-y-6 animate-fade h-full overflow-y-auto custom-scrollbar bg-zinc-50 dark:bg-zinc-950 transition-colors">
             
             {/* 1. HEADER */}
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-1">
@@ -291,9 +291,9 @@ export const DashboardView = React.memo(({ clients = [], tasks = [], financas = 
             </header>
 
             {/* 2. DASHBOARD CARDS (2 LINES) */}
-            <div className="space-y-6">
+            <div className="space-y-4">
                 {/* Linha 1: Operacional */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <MetricCard label="Clientes Ativos" value={operationalStats.activeClients} icon={Users} color="blue" onClick={() => setActiveTab('CLIENTES')} />
                     <MetricCard label="Tarefas Pendentes" value={operationalStats.pendingTasks} icon={ListChecks} color="orange" onClick={() => setActiveTab('TAREFAS')} />
                     <MetricCard label="Tasks Concluídas (Mês)" value={operationalStats.completedThisMonth} icon={CheckCircle2} color="emerald" onClick={() => setActiveTab('TAREFAS')} />
@@ -301,7 +301,7 @@ export const DashboardView = React.memo(({ clients = [], tasks = [], financas = 
                 </div>
 
                 {/* Linha 2: Financeiro */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <MetricCard label="Receita do Mês" value={financialStats.revenue.current} icon={TrendingUp} color="emerald" trend={financialStats.revenue.trend} onClick={() => setActiveTab('FINANCAS')} />
                     <MetricCard label="Despesas do Mês" value={financialStats.expenses.current} icon={TrendingDown} color="rose" trend={financialStats.expenses.trend} onClick={() => setActiveTab('FINANCAS')} />
                     <MetricCard label="Lucro Líquido" value={financialStats.profit.current} icon={DollarSign} color="amber" trend={financialStats.profit.trend} onClick={() => setActiveTab('FINANCAS')} />
@@ -347,8 +347,12 @@ export const DashboardView = React.memo(({ clients = [], tasks = [], financas = 
                     </div>
                     <div className="flex-1 overflow-y-auto custom-scrollbar divide-y divide-zinc-50 dark:divide-zinc-800">
                         {urgentTasks.length === 0 ? (
-                            <div className="h-full flex items-center justify-center p-8 opacity-40 grayscale">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-center">Tudo sob controle.</span>
+                            <div className="h-full flex flex-col items-center justify-center p-8 text-center gap-3">
+                                <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                                    <CheckCircle2 size={22} className="text-emerald-500" />
+                                </div>
+                                <p className="text-[12px] font-semibold text-zinc-700 dark:text-zinc-300">Tudo sob controle</p>
+                                <p className="text-[10px] text-zinc-400">Nenhuma tarefa atrasada.</p>
                             </div>
                         ) : (
                             urgentTasks.map((t: any) => (
@@ -375,8 +379,14 @@ export const DashboardView = React.memo(({ clients = [], tasks = [], financas = 
                     </div>
                     <div className="flex-1 overflow-y-auto custom-scrollbar">
                         {upcomingContent.length === 0 ? (
-                            <div className="h-full flex items-center justify-center p-8 opacity-40 grayscale">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-center">Sem posts próximos.</span>
+                            <div className="h-full flex flex-col items-center justify-center p-8 text-center gap-3">
+                                <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
+                                    <Calendar size={22} className="text-blue-500" />
+                                </div>
+                                <p className="text-[12px] font-semibold text-zinc-700 dark:text-zinc-300">Sem posts próximos</p>
+                                <button onClick={() => setActiveTab('PLANEJAMENTO')} className="text-[10px] font-bold text-blue-500 hover:text-blue-600 transition-colors">
+                                    Criar conteúdo →
+                                </button>
                             </div>
                         ) : (
                             upcomingContent.map((p: any) => (
