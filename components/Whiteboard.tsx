@@ -517,31 +517,31 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
                 <div className={`flex ${isMobile ? 'flex-row gap-1' : 'flex-col gap-1'}`}>
                     
                     {/* Selectors & Nav */}
-                    <button onClick={() => { setActiveTool('cursor'); tryPlaySound('tap'); }} className={`p-3 rounded-xl transition-all ios-btn shrink-0 ${activeTool === 'cursor' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`} title="Cursor"><MousePointer2 size={18} /></button>
-                    <button onClick={() => { setActiveTool('pan'); setSelectedIds([]); tryPlaySound('tap'); }} className={`p-3 rounded-xl transition-all ios-btn shrink-0 ${activeTool === 'pan' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`} title="Pan (Mover View)"><Hand size={18} /></button>
+                    <button onClick={() => { setActiveTool('cursor'); tryPlaySound('tap'); }} className={`p-3 rounded-xl transition-all ios-btn shrink-0 ${activeTool === 'cursor' ? 'bg-purple-600 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`} title="Cursor"><MousePointer2 size={18} /></button>
+                    <button onClick={() => { setActiveTool('pan'); setSelectedIds([]); tryPlaySound('tap'); }} className={`p-3 rounded-xl transition-all ios-btn shrink-0 ${activeTool === 'pan' ? 'bg-purple-600 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`} title="Pan (Mover View)"><Hand size={18} /></button>
                     
                     <div className={`${isMobile ? 'w-px h-full mx-1' : 'h-px w-full my-1'} bg-gray-200 dark:bg-zinc-800 shrink-0`}></div>
                     
                     {/* Line based tools */}
                     <button onClick={() => { setActiveTool('connect'); setSelectedIds([]); tryPlaySound('tap'); }} className={`p-3 rounded-xl transition-all ios-btn shrink-0 ${activeTool === 'connect' ? 'bg-emerald-500 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`} title="Conectar"><ArrowUpRight size={18} /></button>
-                    <button onClick={() => { setActiveTool('pen'); setSelectedIds([]); tryPlaySound('tap'); }} className={`p-3 rounded-xl transition-all ios-btn shrink-0 ${activeTool === 'pen' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`} title="Caneta Livre"><PenTool size={18} /></button>
+                    <button onClick={() => { setActiveTool('pen'); setSelectedIds([]); tryPlaySound('tap'); }} className={`p-3 rounded-xl transition-all ios-btn shrink-0 ${activeTool === 'pen' ? 'bg-purple-600 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`} title="Caneta Livre"><PenTool size={18} /></button>
                     <button onClick={() => { setActiveTool('eraser'); setSelectedIds([]); tryPlaySound('tap'); }} className={`p-3 rounded-xl transition-all ios-btn shrink-0 ${activeTool === 'eraser' ? 'bg-rose-500 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800'}`} title="Borracha"><Eraser size={18} /></button>
 
                     <div className={`${isMobile ? 'w-px h-full mx-1' : 'h-px w-full my-1'} bg-gray-200 dark:bg-zinc-800 shrink-0`}></div>
 
                     {/* Content Adders */}
-                    <button onClick={() => createElement('postit')} title="Nota (Post-it)" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-zinc-800 shrink-0"><StickyNote size={18} /></button>
-                    <button onClick={() => createElement('task')} title="Tarefas" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-zinc-800 shrink-0"><CheckSquare size={18} /></button>
-                    <button onClick={() => createElement('text')} title="Texto" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-zinc-800 shrink-0"><Type size={18} /></button>
-                    <button onClick={() => fileInputRef.current?.click()} title="Imagem" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-zinc-800 shrink-0"><ImageIcon size={18} /></button>
-                    <button onClick={() => addLink()} title="Link" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-zinc-800 shrink-0"><Link2 size={18} /></button>
+                    <button onClick={() => createElement('postit')} title="Nota (Post-it)" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-zinc-800 shrink-0"><StickyNote size={18} /></button>
+                    <button onClick={() => createElement('task')} title="Tarefas" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-zinc-800 shrink-0"><CheckSquare size={18} /></button>
+                    <button onClick={() => createElement('text')} title="Texto" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-zinc-800 shrink-0"><Type size={18} /></button>
+                    <button onClick={() => fileInputRef.current?.click()} title="Imagem" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-zinc-800 shrink-0"><ImageIcon size={18} /></button>
+                    <button onClick={() => addLink()} title="Link" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-zinc-800 shrink-0"><Link2 size={18} /></button>
 
                     <div className={`${isMobile ? 'w-px h-full mx-1' : 'h-px w-full my-1'} bg-gray-200 dark:bg-zinc-800 shrink-0`}></div>
 
                     {/* Structures */}
-                    <button onClick={() => createElement('folder')} title="Pasta (Sub-board)" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-zinc-800 shrink-0"><Folder size={18} /></button>
-                    <button onClick={() => createElement('frame')} title="Frame / Zona" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-zinc-800 shrink-0"><Square size={18} /></button>
-                    <button onClick={() => createElement('document')} title="Documento" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-zinc-800 shrink-0"><FileText size={18} /></button>
+                    <button onClick={() => createElement('folder')} title="Pasta (Sub-board)" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-zinc-800 shrink-0"><Folder size={18} /></button>
+                    <button onClick={() => createElement('frame')} title="Frame / Zona" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-zinc-800 shrink-0"><Square size={18} /></button>
+                    <button onClick={() => createElement('document')} title="Documento" className="p-3 rounded-xl ios-btn text-gray-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-zinc-800 shrink-0"><FileText size={18} /></button>
                 </div>
             </div>
 
@@ -648,7 +648,7 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
                             return (
                                 <div key={el.id} className={`${baseClasses} touch-none pointer-events-auto rounded-3xl bg-indigo-50 dark:bg-indigo-500/10 border-2 border-indigo-200 dark:border-indigo-500/30 flex items-center justify-center gap-3 cursor-pointer`} style={{ left: el.x, top: el.y, width: el.w, height: el.h }} onDoubleClick={() => { setActiveBoard(prev => [...prev, { id: el.id, name: el.title || 'Pasta' }]); resetCamera(); }} onPointerDown={(e) => handlePointerDown(e, el.id)}>
                                     <Folder className="text-indigo-500 w-8 h-8 pointer-events-none" />
-                                    <input value={el.title} onChange={(e) => updateElement(el.id, { title: e.target.value })} className="no-drag font-black text-gray-900 dark:text-white bg-transparent outline-none w-2/3 truncate" onClick={e => e.stopPropagation()} />
+                                    <input value={el.title} onChange={(e) => updateElement(el.id, { title: e.target.value })} className="no-drag font-semibold text-gray-900 dark:text-white bg-transparent outline-none w-2/3 truncate" onClick={e => e.stopPropagation()} placeholder="Pasta" />
                                 </div>
                             );
                         }
@@ -707,7 +707,7 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
                         if (el.type === 'task') {
                             return (
                                 <div key={el.id} className={`${baseClasses} touch-none pointer-events-auto rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 flex flex-col shadow-xl overflow-hidden group p-4`} style={{ left: el.x, top: el.y, width: el.w, height: el.h }} onPointerDown={(e) => handlePointerDown(e, el.id)}>
-                                    <input value={el.title} onChange={(e) => updateElement(el.id, { title: e.target.value })} className="no-drag font-black text-gray-900 dark:text-white bg-transparent outline-none mb-3 text-lg" placeholder="Tarefas" />
+                                    <input value={el.title} onChange={(e) => updateElement(el.id, { title: e.target.value })} className="no-drag font-semibold text-gray-900 dark:text-white bg-transparent outline-none mb-3 text-lg" placeholder="Tarefas" />
                                     <div className="flex-1 overflow-y-auto no-drag custom-scrollbar pr-2 flex flex-col gap-2">
                                         {el.tasks?.map((tsk, i) => (
                                             <div key={tsk.id} className="flex items-center gap-2 group/task">
@@ -738,7 +738,7 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
                                 <div key={el.id} className={`${baseClasses} touch-none pointer-events-auto rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 flex flex-col shadow-xl overflow-hidden group`} style={{ left: el.x, top: el.y, width: el.w, minHeight: 150 }} onPointerDown={(e) => handlePointerDown(e, el.id)}>
                                     {el.imageSrc && <img src={el.imageSrc} alt="Preview" className="w-full h-40 object-cover pointer-events-none" />}
                                     <div className="p-4 flex flex-col gap-2 flex-1">
-                                        <input value={el.title || ''} onChange={(e) => updateElement(el.id, { title: e.target.value })} placeholder="Título" className="no-drag w-full font-black text-gray-900 dark:text-white bg-transparent outline-none" />
+                                        <input value={el.title || ''} onChange={(e) => updateElement(el.id, { title: e.target.value })} placeholder="Título" className="no-drag w-full font-semibold text-gray-900 dark:text-white bg-transparent outline-none" />
                                         <textarea value={el.content} onChange={(e) => updateElement(el.id, { content: e.target.value })} placeholder="Escreva os detalhes aqui..." className="no-drag w-full flex-1 min-h-[40px] text-sm text-gray-600 dark:text-zinc-400 bg-transparent resize-none outline-none custom-scrollbar" />
                                     </div>
                                     <ResizeHandle />
@@ -754,7 +754,7 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
                                         <Link2 className="text-indigo-500" />
                                     </div>
                                     <div className="flex flex-col flex-1 overflow-hidden">
-                                        <input value={el.title || ''} onChange={(e) => updateElement(el.id, { title: e.target.value })} className="no-drag font-black text-sm text-gray-900 dark:text-white bg-transparent outline-none w-full" placeholder="Título" />
+                                        <input value={el.title || ''} onChange={(e) => updateElement(el.id, { title: e.target.value })} className="no-drag font-semibold text-sm text-gray-900 dark:text-white bg-transparent outline-none w-full" placeholder="Título" />
                                         <a href={el.content || el.url} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-500 hover:underline truncate no-drag" onPointerDown={e => e.stopPropagation()}>{el.content || el.url}</a>
                                     </div>
                                 </div>
