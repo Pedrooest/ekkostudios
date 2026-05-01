@@ -53,48 +53,48 @@ export function AuthView({ onSuccess }: AuthViewProps) {
             <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 blur-[120px] rounded-full animate-pulse"></div>
             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 blur-[120px] rounded-full animate-pulse"></div>
 
-            <div className="w-full max-w-md mx-4 sm:mx-0 p-6 sm:p-10 bg-[#111827]/40 backdrop-blur-2xl border border-white/10 rounded-[40px] shadow-2xl animate-fade relative overflow-hidden">
+            <div className="w-full max-w-md mx-4 sm:mx-0 p-6 sm:p-10 bg-[#111827]/40 backdrop-blur-2xl border border-white/10 rounded-[40px] shadow-2xl animate-scale-in relative overflow-hidden">
                 <div className="text-center mb-10">
                     <div className="flex justify-center mb-6">
                         <img src="/site-logo.png" alt="EKKO" className="h-40 object-contain" />
                     </div>
-                    <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-2">
+                    <h2 className="text-3xl font-bold text-white tracking-tight mb-2">
                         {isLogin ? 'Bem-vindo de volta' : 'Crie sua conta'}
                     </h2>
-                    <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">
+                    <p className="text-sm font-medium text-gray-400">
                         {isLogin ? 'Acesse o dashboard da EKKO Studios' : 'Junte-se ao time da EKKO Studios'}
                     </p>
                 </div>
 
-                <form onSubmit={handleAuth} className="space-y-6">
+                <form onSubmit={handleAuth} className="space-y-5">
                     {!isLogin && (
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-4">Nome Completo</label>
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold uppercase text-gray-500 tracking-wider ml-4">Nome completo</label>
                             <input
                                 type="text"
                                 required
                                 value={fullName}
                                 onChange={e => setFullName(e.target.value)}
-                                placeholder="Seu Nome"
-                                className="w-full px-6 py-4 bg-[#0B0F19]/50 border border-white/5 rounded-2xl text-white font-bold outline-none focus:border-blue-500 transition-all"
+                                placeholder="Seu nome"
+                                className="w-full px-6 py-4 bg-[#0B0F19]/50 border border-white/5 rounded-2xl text-white font-medium outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
                             />
                         </div>
                     )}
 
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-4">E-mail</label>
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase text-gray-500 tracking-wider ml-4">E-mail</label>
                         <input
                             type="email"
                             required
                             value={email}
                             onChange={e => setEmail(e.target.value)}
                             placeholder="seu@email.com"
-                            className="w-full px-6 py-4 bg-[#0B0F19]/50 border border-white/5 rounded-2xl text-white font-bold outline-none focus:border-blue-500 transition-all"
+                            className="w-full px-6 py-4 bg-[#0B0F19]/50 border border-white/5 rounded-2xl text-white font-medium outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-4">Senha</label>
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase text-gray-500 tracking-wider ml-4">Senha</label>
                         <div className="relative">
                             <input
                                 type={showPassword ? "text" : "password"}
@@ -102,7 +102,7 @@ export function AuthView({ onSuccess }: AuthViewProps) {
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
                                 placeholder="••••••••"
-                                className="w-full px-6 py-4 bg-[#0B0F19]/50 border border-white/5 rounded-2xl text-white font-bold outline-none focus:border-blue-500 transition-all pr-14"
+                                className="w-full px-6 py-4 bg-[#0B0F19]/50 border border-white/5 rounded-2xl text-white font-medium outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all pr-14"
                             />
                             <button
                                 type="button"
@@ -115,7 +115,7 @@ export function AuthView({ onSuccess }: AuthViewProps) {
                     </div>
 
                     {message && (
-                        <div className={`p-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-center ${message.type === 'error' ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20' : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}`}>
+                        <div className={`p-4 rounded-2xl text-sm font-medium text-center animate-fade-up ${message.type === 'error' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}`}>
                             {message.text}
                         </div>
                     )}
@@ -123,18 +123,18 @@ export function AuthView({ onSuccess }: AuthViewProps) {
                     <Button
                         type="submit"
                         disabled={loading}
-                        className="w-full h-14 !bg-blue-600 !rounded-2xl !font-black !uppercase !tracking-[0.2em] shadow-xl shadow-blue-600/20"
+                        className="w-full h-14 !bg-blue-600 hover:!bg-blue-700 !rounded-2xl !font-semibold !tracking-wide shadow-xl shadow-blue-600/20 lift"
                     >
-                        {loading ? <Loader2 size={16} className="animate-spin" /> : (isLogin ? 'Entrar Agora' : 'Cadastrar Perfil')}
+                        {loading ? <Loader2 size={16} className="animate-spin" /> : (isLogin ? 'Entrar' : 'Cadastrar')}
                     </Button>
                 </form>
 
                 <div className="mt-8 text-center">
                     <button
                         onClick={() => setIsLogin(!isLogin)}
-                        className="text-[10px] font-black uppercase text-gray-500 hover:text-white transition-all tracking-widest"
+                        className="text-sm font-medium text-gray-400 hover:text-white transition-colors"
                     >
-                        {isLogin ? 'Não tem uma conta? Cadastre-se' : 'Já possui uma conta? Faça Login'}
+                        {isLogin ? 'Não tem uma conta? Cadastre-se' : 'Já possui uma conta? Faça login'}
                     </button>
                 </div>
             </div>
