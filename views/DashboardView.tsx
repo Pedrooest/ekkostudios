@@ -293,7 +293,7 @@ export const DashboardView = React.memo(({ clients = [], tasks = [], financas = 
             {/* 2. DASHBOARD CARDS (2 LINES) */}
             <div className="space-y-4">
                 {/* Linha 1: Operacional */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger">
                     <MetricCard label="Clientes Ativos" value={operationalStats.activeClients} icon={Users} color="blue" onClick={() => setActiveTab('CLIENTES')} />
                     <MetricCard label="Tarefas Pendentes" value={operationalStats.pendingTasks} icon={ListChecks} color="orange" onClick={() => setActiveTab('TAREFAS')} />
                     <MetricCard label="Tasks Concluídas (Mês)" value={operationalStats.completedThisMonth} icon={CheckCircle2} color="emerald" onClick={() => setActiveTab('TAREFAS')} />
@@ -301,7 +301,7 @@ export const DashboardView = React.memo(({ clients = [], tasks = [], financas = 
                 </div>
 
                 {/* Linha 2: Financeiro */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger">
                     <MetricCard label="Receita do Mês" value={financialStats.revenue.current} icon={TrendingUp} color="emerald" trend={financialStats.revenue.trend} onClick={() => setActiveTab('FINANCAS')} />
                     <MetricCard label="Despesas do Mês" value={financialStats.expenses.current} icon={TrendingDown} color="rose" trend={financialStats.expenses.trend} onClick={() => setActiveTab('FINANCAS')} />
                     <MetricCard label="Lucro Líquido" value={financialStats.profit.current} icon={DollarSign} color="amber" trend={financialStats.profit.trend} onClick={() => setActiveTab('FINANCAS')} />
