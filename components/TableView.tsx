@@ -285,7 +285,7 @@ export function TableView({
                                                             <div key={col}>
                                                                 <label className="text-[9px] font-black uppercase text-[#4B5563] tracking-widest block mb-2">{col}</label>
                                                                 <div className="text-sm">
-                                                                    {renderCell(tab, row, col, onUpdate, clients, library, onOpenColorPicker, savingStatus)}
+                                                                    <Cell tab={tab} row={row} col={col} update={onUpdate} clients={clients} library={library} onOpenColorPicker={onOpenColorPicker} savingStatus={savingStatus} />
                                                                 </div>
                                                             </div>
                                                         ))}
@@ -299,7 +299,7 @@ export function TableView({
                                                 <div key={col}>
                                                     <label className="text-[9px] font-black uppercase text-[#4B5563] tracking-widest block mb-2">{col}</label>
                                                     <div className="text-sm">
-                                                        {renderCell(tab, row, col, onUpdate, clients, library, onOpenColorPicker, savingStatus)}
+                                                        <Cell tab={tab} row={row} col={col} update={onUpdate} clients={clients} library={library} onOpenColorPicker={onOpenColorPicker} savingStatus={savingStatus} />
                                                     </div>
                                                 </div>
                                             ))}
@@ -362,7 +362,16 @@ function TableRow({ row, tab, cols, onUpdate, clients, library, onOpenColorPicke
                 }
                 return (
                     <td key={col} className="px-3 py-2.5 text-sm align-middle min-w-0" style={widthStyle}>
-                        {renderCell(tab, row, col, onUpdate, clients, library, onOpenColorPicker, savingStatus)}
+                        <Cell
+                            tab={tab}
+                            row={row}
+                            col={col}
+                            update={onUpdate}
+                            clients={clients}
+                            library={library}
+                            onOpenColorPicker={onOpenColorPicker}
+                            savingStatus={savingStatus}
+                        />
                     </td>
                 );
             })}
@@ -395,7 +404,18 @@ function TableRow({ row, tab, cols, onUpdate, clients, library, onOpenColorPicke
     );
 };
 
-function renderCell(tab: TipoTabela, row: any, col: string, update: Function, clients: Cliente[] = [], library: BibliotecaConteudo = {}, onOpenColorPicker?: Function, savingStatus: Record<string, any> = {}) {
+interface CellProps {
+    tab: TipoTabela;
+    row: any;
+    col: string;
+    update: Function;
+    clients?: Cliente[];
+    library?: BibliotecaConteudo;
+    onOpenColorPicker?: Function;
+    savingStatus?: Record<string, any>;
+}
+
+function Cell({ tab, row, col, update, clients = [], library = {}, onOpenColorPicker, savingStatus = {} }: CellProps) {
     const key = `${tab}:${row.id}:${col}`;
     const status = savingStatus[key];
     
