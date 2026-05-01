@@ -60,7 +60,7 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-y-0 right-0 w-[400px] bg-app-surface border-l border-app-border shadow-2xl z-50 flex flex-col transition-transform duration-300">
+        <div className="fixed inset-y-0 right-0 w-[400px] bg-app-surface border-l border-app-border shadow-2xl z-50 flex flex-col animate-slide-in-right">
             {/* Header */}
             <div className="p-4 border-b border-app-border flex justify-between items-center bg-app-surface-2">
                 <div>
