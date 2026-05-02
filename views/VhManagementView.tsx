@@ -115,7 +115,7 @@ export function VhManagementView({
     }, [simulator, collaborators]);
 
     return (
-        <div className="view-root flex flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors">
+        <div className="view-root flex flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors animate-fade">
             
             {/* SUB-NAVIGATION HEADER */}
             <div className="flex items-center justify-between flex-wrap gap-3 px-6 py-4 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
@@ -154,14 +154,14 @@ export function VhManagementView({
                     {subTab === 'dashboard' && (
                         <>
                             {/* KPI row */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 stagger">
                                 <StatCard label="Faturamento" value={formatBRL(dashboardData.totalFees)} icon={Banknote} color="emerald" />
                                 <StatCard label="Custo Op." value={formatBRL(dashboardData.totalCosts)} icon={Calculator} color="rose" />
                                 <StatCard label="Lucro Bruto" value={formatBRL(dashboardData.profit)} icon={TrendingUp} color="blue" />
                                 <StatCard label="Margem" value={`${dashboardData.margin.toFixed(1)}%`} icon={Percent} color="orange" />
                             </div>
 
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 stagger">
                                 {/* VH Chart */}
                                 <Card title="Valor Hora por Colaborador">
                                     <div className="h-[250px] w-full pt-4">

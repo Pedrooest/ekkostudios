@@ -124,7 +124,7 @@ const RelatoriosView: React.FC<RelatoriosViewProps> = ({ clients, planejamento, 
           </div>
 
           {/* Resumo Executivo */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 stagger">
             <StatCard 
               label="Posts Publicados" 
               value={`${stats?.postsDone || 0}/${stats?.postsTotal || 0}`} 
@@ -147,7 +147,7 @@ const RelatoriosView: React.FC<RelatoriosViewProps> = ({ clients, planejamento, 
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 stagger">
             {/* Metas e OKRs */}
             <Card className="p-8 !rounded-[32px] space-y-6">
               <div className="flex items-center justify-between">

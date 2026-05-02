@@ -827,7 +827,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                             </div>
                         )}
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 stagger">
                             <StatCard label="Receita" value={formatBRL(summary.receita)} icon={TrendingUp} color="emerald" />
                             <StatCard label="Despesas" value={formatBRL(summary.despesas)} icon={TrendingDown} color="rose" />
                             <StatCard label="Lucro Líquido" value={formatBRL(summary.lucro)} icon={Wallet} color={summary.lucro >= 0 ? "emerald" : "rose"} />
@@ -836,7 +836,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                             <StatCard label="MRR Atual" value={formatBRL(mrrValue)} icon={Repeat} color="indigo" />
                         </div>
 
-                        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 stagger">
                             <Card title="Fluxo Semestral (R$)" className="xl:col-span-2 shadow-sm border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 !p-6 rounded-3xl">
                                 <div className="h-[280px] w-full mt-4">
                                     <ResponsiveContainer width="100%" height="100%">
@@ -1051,7 +1051,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                 =============================================================== */}
                 {activeInternalTab === 'SOCIOS' && (
                     <div className="animate-in fade-in slide-in-from-bottom-2 space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 stagger">
                             {[
                                 { id: 1, config: sociosConfig.socio1, gradient: 'from-blue-600 via-indigo-600 to-purple-600', shadow: 'shadow-indigo-500/20', iconColor: 'text-indigo-500' },
                                 { id: 2, config: sociosConfig.socio2, gradient: 'from-emerald-500 via-teal-500 to-cyan-500', shadow: 'shadow-teal-500/20', iconColor: 'text-teal-500' }
@@ -1227,7 +1227,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                 =============================================================== */}
                 {activeInternalTab === 'MRR' && (
                     <div className="animate-in fade-in slide-in-from-bottom-2 space-y-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 stagger">
                             <Card className="lg:col-span-3 !p-8 shadow-sm border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-[32px]">
                                 <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
                                     <div>
