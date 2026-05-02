@@ -438,7 +438,7 @@ export default function PlanejamentoTab({
                 </div>
             )}
 
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10 font-sans w-full bg-transparent transition-colors relative">
+            <div className="flex-1 overflow-y-auto flex flex-col p-4 sm:p-6 lg:p-10 font-sans w-full bg-transparent transition-colors relative">
 
                 {/* TOP ACTION BAR - ZINC STYLE */}
                 <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4 px-2">
@@ -836,7 +836,7 @@ export default function PlanejamentoTab({
 
                 {/* MODERN KANBAN VIEW */}
                 {viewMode === 'kanban' && (
-                    <div className="flex gap-8 overflow-x-auto custom-scrollbar pb-10 max-w-[1600px] mx-auto h-[calc(100vh-280px)] animate-fade-up">
+                    <div className="flex gap-8 overflow-x-auto custom-scrollbar pb-6 max-w-[1600px] w-full flex-1 min-h-0 animate-fade-up">
                         {[
                             { id: 'PENDENTE', label: 'Pendente', color: 'bg-zinc-400', statuses: ['EM ESPERA'] },
                             { id: 'PRODUÇÃO', label: 'Em Produção', color: 'bg-blue-500', statuses: ['PRODUÇÃO'] },
