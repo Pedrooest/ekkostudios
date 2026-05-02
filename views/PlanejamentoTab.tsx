@@ -438,10 +438,10 @@ export default function PlanejamentoTab({
                 </div>
             )}
 
-            <div className="flex-1 overflow-y-auto flex flex-col p-4 sm:p-6 lg:p-10 font-sans w-full bg-transparent transition-colors relative">
+            <div className="flex-1 overflow-y-auto flex flex-col p-4 sm:p-6 lg:p-8 font-sans w-full bg-transparent transition-colors relative">
 
                 {/* TOP ACTION BAR - ZINC STYLE */}
-                <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4 px-2">
+                <div className="flex flex-col sm:flex-row items-center justify-between mb-3 gap-4 w-full shrink-0">
                     <div className="flex bg-white dark:bg-zinc-900/50 p-1 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm backdrop-blur-md relative z-[60]">
                         <div className="relative">
                             <button
@@ -531,22 +531,22 @@ export default function PlanejamentoTab({
                 </div>
 
                 {/* MODERN HEADER & TABS */}
-                <div className="flex flex-col xl:flex-row xl:items-end justify-between mb-10 gap-8 max-w-[1600px] mx-auto">
-                    <div className="space-y-6">
-                        <div className="flex items-center gap-4">
-                            <div className="w-1.5 h-10 bg-blue-600 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.4)]"></div>
-                            <h1 className="text-[42px] font-black text-zinc-900 dark:text-white tracking-tighter leading-none uppercase italic">
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between mb-3 gap-4 w-full shrink-0 max-w-[1600px] mx-auto">
+                    <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-3">
+                            <div className="w-1 h-7 bg-blue-600 rounded-full shadow-[0_0_10px_rgba(37,99,235,0.5)]"></div>
+                            <h1 className="text-2xl font-black text-zinc-900 dark:text-white tracking-tighter leading-none uppercase italic">
                                 PLANEJAMENTO<span className="text-blue-600">.</span>
                             </h1>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-1 bg-white dark:bg-zinc-900/50 p-1.5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm w-fit">
+                        <div className="flex items-center gap-0.5 bg-white dark:bg-zinc-900/50 p-1 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
                             {['ALL', 'EM ESPERA', 'AGUARDANDO APROVAÇÃO', 'PRODUÇÃO', 'PUBLICADO'].map((tab) => (
                                 <button
                                     key={tab}
                                     onClick={() => { tryPlaySound('tap'); setActiveTabLocal(tab); }}
-                                    className={`text-[10px] font-black uppercase tracking-widest transition-all ios-btn px-4 py-2.5 rounded-xl ${activeTab === tab
-                                            ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-md transform scale-[1.02]'
+                                    className={`text-[9px] font-black uppercase tracking-widest transition-all ios-btn px-3 py-2 rounded-lg ${activeTab === tab
+                                            ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-sm'
                                             : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200'
                                         }`}
                                 >
@@ -556,32 +556,32 @@ export default function PlanejamentoTab({
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-4 shrink-0">
-                        <button 
-                            onClick={openBancoSidebar} 
-                            className="group flex items-center gap-3 px-6 py-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-blue-500/50 text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all ios-shadow ios-btn"
+                    <div className="flex items-center gap-3 shrink-0">
+                        <button
+                            onClick={openBancoSidebar}
+                            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-blue-500/40 text-zinc-600 dark:text-zinc-400 hover:text-blue-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ios-btn shadow-sm"
                         >
-                            <Database size={18} className="transition-transform group-hover:rotate-12" /> BANCO DE CONTEÚDO
+                            <Database size={14} /> BANCO
                         </button>
-                        <button 
-                            onClick={handleBulkExportToGoogle} 
+                        <button
+                            onClick={handleBulkExportToGoogle}
                             disabled={exportProgress !== null}
-                            className="group flex items-center gap-3 px-6 py-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/50 text-zinc-600 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all ios-shadow ios-btn disabled:opacity-50"
+                            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/40 text-zinc-600 dark:text-zinc-400 hover:text-emerald-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ios-btn shadow-sm disabled:opacity-50"
                         >
-                            <CalendarPlus size={18} className="transition-transform group-hover:scale-110" /> 
-                            {exportProgress ? 'EXPORTANDO...' : 'EXPORTAR TODOS'}
+                            <CalendarPlus size={14} />
+                            {exportProgress ? 'EXPORTANDO...' : 'EXPORTAR'}
                         </button>
-                        <button 
-                            onClick={() => handleAddContent()} 
-                            className="flex items-center gap-3 px-8 py-4 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-zinc-900/20 dark:shadow-white/5 transition-all ios-btn transform hover:-translate-y-1 active:translate-y-0"
+                        <button
+                            onClick={() => handleAddContent()}
+                            className="flex items-center gap-2 px-5 py-2 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg transition-all ios-btn"
                         >
-                            <Plus size={20} strokeWidth={3} className="shrink-0" /> NOVO CONTEÚDO
+                            <Plus size={14} strokeWidth={3} className="shrink-0" /> NOVO CONTEÚDO
                         </button>
                     </div>
                 </div>
 
                 {/* VIEW SELECTOR & CALENDAR CONTROLS - ZINC STYLE */}
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 p-2 sm:p-3 px-6 rounded-[2rem] shadow-sm max-w-[1600px] mx-auto backdrop-blur-sm">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-3 bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 p-2 px-4 rounded-2xl shadow-sm w-full max-w-[1600px] mx-auto backdrop-blur-sm shrink-0">
                     <div className="flex bg-zinc-100 dark:bg-zinc-800/50 p-1 rounded-2xl items-center relative shadow-inner border border-zinc-200/50 dark:border-zinc-700/30">
                         <button
                             onClick={() => { tryPlaySound('tap'); setViewMode('calendar'); }}
@@ -637,17 +637,17 @@ export default function PlanejamentoTab({
 
                 {/* MODERN CALENDAR GRID */}
                 {viewMode === 'calendar' && (
-                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-w-[1600px] mx-auto animate-fade-up">
-                        <div className="grid grid-cols-7 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/80 backdrop-blur-md relative z-10">
+                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col w-full max-w-[1600px] mx-auto flex-1 min-h-0 animate-fade-up">
+                        <div className="grid grid-cols-7 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/80 backdrop-blur-md relative z-10 shrink-0">
                             {WEEKDAYS_BR_SHORT.map(dia => (
-                                <div key={dia} className="py-6 text-center text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] border-r border-zinc-200 dark:border-zinc-800 last:border-0 truncate">
+                                <div key={dia} className="py-4 text-center text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] border-r border-zinc-200 dark:border-zinc-800 last:border-0 truncate">
                                     <span className="hidden sm:inline">{dia}</span>
                                     <span className="sm:hidden">{dia.substring(0, 3)}</span>
                                 </div>
                             ))}
                         </div>
 
-                        <div className={`grid grid-cols-7 bg-zinc-100 dark:bg-zinc-950 ${calendarSubMode === 'month' ? 'auto-rows-[minmax(160px,auto)]' : 'auto-rows-[minmax(400px,auto)]'}`}>
+                        <div className={`grid grid-cols-7 flex-1 min-h-0 overflow-y-auto bg-zinc-50 dark:bg-zinc-950 ${calendarSubMode === 'month' ? 'grid-rows-6' : 'grid-rows-1'}`}>
                             {calendarDays.map((diaObj, idx) => {
                                 const evts = getEventosDoDia(diaObj.dateStr);
                                 const isToday = diaObj.dateStr === new Date().toISOString().split('T')[0];
@@ -725,7 +725,7 @@ export default function PlanejamentoTab({
 
                 {/* MODERN LIST VIEW */}
                 {viewMode === 'list' && (
-                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-2xl overflow-hidden max-w-[1600px] mx-auto animate-fade-up">
+                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-2xl overflow-hidden w-full max-w-[1600px] mx-auto animate-fade-up">
                         <div className="table-responsive overflow-x-auto custom-scrollbar">
                             <table className="w-full text-left border-collapse">
                                 <thead>
