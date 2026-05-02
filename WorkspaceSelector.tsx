@@ -121,19 +121,24 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
                         <button
                             key={ws.id}
                             onClick={() => { playUISound('tap'); onSelect(ws); setIsOpen(false); }}
-                            className="ios-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 transition-colors text-sm font-medium text-left"
+                            className="ios-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 transition-colors text-left group"
                         >
                             <div
-                                className={`w-6 h-6 rounded flex items-center justify-center font-bold text-white text-[9px] shrink-0 ${ws?.cor?.startsWith('#') ? '' : ws.cor || 'bg-gray-300'}`}
+                                className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-white text-[9px] shrink-0 ${ws?.cor?.startsWith('#') ? '' : ws.cor || 'bg-gray-400'}`}
                                 style={ws?.cor?.startsWith('#') ? { backgroundColor: ws.cor } : undefined}
                             >
                                 {ws.avatar_url ? (
-                                    <img src={ws.avatar_url} alt="Avatar" className="w-full h-full object-cover rounded" />
-                                ) : (
-                                    ws.nome ? ws.nome.substring(0, 2).toUpperCase() : 'WS'
+                                    <img src={ws.avatar_url} alt="Avatar" className="w-full h-full object-cover rounded-lg" />
+                                ) : (ws.nome ? ws.nome.substring(0, 2).toUpperCase() : 'WS')}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="truncate text-xs font-bold">{ws.nome || 'Workspace sem nome'}</p>
+                                {ws.membros_workspace && ws.membros_workspace.length > 0 && (
+                                    <p className="text-[9px] text-gray-400 dark:text-zinc-500 font-medium">
+                                        {ws.membros_workspace.length} membro{ws.membros_workspace.length !== 1 ? 's' : ''}
+                                    </p>
                                 )}
                             </div>
-                            <span className="truncate flex-1">{ws.nome || 'Workspace sem nome'}</span>
                         </button>
                     ))}
                 </div>

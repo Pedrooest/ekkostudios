@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Workspace } from './types';
 import { DatabaseService } from './DatabaseService';
-import { X, Building2, Palette, AlertTriangle, LogOut, Mail } from 'lucide-react';
+import { X, Building2, Palette, AlertTriangle, LogOut, Mail, Camera } from 'lucide-react';
 import { playUISound } from './utils/uiSounds';
 
 
@@ -15,21 +15,37 @@ interface WorkspaceSettingsModalProps {
 export function WorkspaceSettingsModal({ workspace, onClose, onWorkspaceDeleted, onUpdateWorkspace }: WorkspaceSettingsModalProps) {
     const [editWsName, setEditWsName] = useState(workspace.nome || '');
     const [editWsColor, setEditWsColor] = useState(workspace.cor || 'bg-indigo-600');
+    const [editWsAvatar, setEditWsAvatar] = useState(workspace.avatar_url || '');
+    const [customHex, setCustomHex] = useState('');
     const [loading, setLoading] = useState(false);
+    const avatarInputRef = useRef<HTMLInputElement>(null);
 
     const availableColors = ['bg-indigo-600', 'bg-blue-600', 'bg-emerald-600', 'bg-orange-500', 'bg-rose-600', 'bg-purple-600', 'bg-zinc-800'];
 
     useEffect(() => {
         setEditWsName(workspace.nome || '');
         setEditWsColor(workspace.cor || 'bg-indigo-600');
+        setEditWsAvatar(workspace.avatar_url || '');
     }, [workspace]);
+
+    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onloadend = () => setEditWsAvatar(reader.result as string);
+        reader.readAsDataURL(file);
+    };
+
+    const wsInitials = editWsName ? editWsName.substring(0, 2).toUpperCase() : 'EK';
+    const isHexColor = editWsColor.startsWith('#');
 
     const saveSettings = async () => {
         setLoading(true);
         try {
             const updated = await DatabaseService.updateWorkspace(workspace.id, {
                 nome: editWsName,
-                cor: editWsColor
+                cor: editWsColor,
+                avatar_url: editWsAvatar || undefined,
             });
             playUISound('success');
             onUpdateWorkspace(updated);
@@ -74,6 +90,37 @@ export function WorkspaceSettingsModal({ workspace, onClose, onWorkspaceDeleted,
 
 
                 <div className="p-6 space-y-6">
+
+                    {/* Live preview */}
+                    <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-zinc-900 rounded-2xl border border-gray-200 dark:border-zinc-800">
+                        <div className="relative group/wsavatar">
+                            <div
+                                className={`w-14 h-14 rounded-xl flex items-center justify-center font-bold text-white text-sm shadow-md overflow-hidden cursor-pointer ${!isHexColor && !editWsAvatar ? editWsColor : ''}`}
+                                style={isHexColor && !editWsAvatar ? { backgroundColor: editWsColor } : undefined}
+                                onClick={() => { playUISound('tap'); avatarInputRef.current?.click(); }}
+                            >
+                                {editWsAvatar ? (
+                                    <img src={editWsAvatar} alt="Avatar" className="w-full h-full object-cover" />
+                                ) : wsInitials}
+                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/wsavatar:opacity-100 transition-opacity rounded-xl">
+                                    <Camera size={14} className="text-white" />
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <p className="text-sm font-black text-gray-900 dark:text-white">{editWsName || 'Nome do workspace'}</p>
+                            <p className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest mt-0.5">Preview</p>
+                            {editWsAvatar && (
+                                <button
+                                    onClick={() => { playUISound('tap'); setEditWsAvatar(''); }}
+                                    className="text-[9px] font-bold text-rose-500 hover:underline mt-1"
+                                >
+                                    Remover logo
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
                     <div>
                         <label className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-2 flex items-center gap-2">
                             <Building2 size={14} className="text-indigo-500" /> Nome do Workspace
@@ -90,17 +137,45 @@ export function WorkspaceSettingsModal({ workspace, onClose, onWorkspaceDeleted,
                         <label className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                             <Palette size={14} className="text-emerald-500" /> Cor de Identificação
                         </label>
-                        <div className="flex flex-wrap gap-4 p-2 -ml-2">
+                        <div className="flex flex-wrap gap-3 mb-3">
                             {availableColors.map(color => (
                                 <button
                                     key={color}
                                     onClick={() => { playUISound('tap'); setEditWsColor(color); }}
-                                    className={`ios-btn w-10 h-10 rounded-full transition-all ${color} ${editWsColor === color ? 'ring-4 ring-offset-2 ring-indigo-500 dark:ring-offset-[#111114] scale-110' : 'opacity-70 hover:opacity-100'}`}
+                                    className={`ios-btn w-9 h-9 rounded-full transition-all ${color} ${editWsColor === color ? 'ring-4 ring-offset-2 ring-indigo-500 dark:ring-offset-[#111114] scale-110' : 'opacity-70 hover:opacity-100'}`}
                                 />
                             ))}
                         </div>
-
+                        {/* Custom hex */}
+                        <div className="flex items-center gap-2">
+                            <div
+                                className="w-9 h-9 rounded-full border-2 border-gray-200 dark:border-zinc-700 shrink-0 transition-colors"
+                                style={{ backgroundColor: customHex || '#6366f1' }}
+                            />
+                            <input
+                                type="text"
+                                value={customHex}
+                                onChange={(e) => setCustomHex(e.target.value)}
+                                placeholder="#6366f1"
+                                maxLength={7}
+                                className="flex-1 bg-gray-50 dark:bg-[#151518] border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-xs font-bold rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500 transition-colors font-mono"
+                            />
+                            <button
+                                onClick={() => {
+                                    if (/^#[0-9A-Fa-f]{6}$/.test(customHex)) {
+                                        playUISound('tap');
+                                        setEditWsColor(customHex);
+                                    }
+                                }}
+                                disabled={!/^#[0-9A-Fa-f]{6}$/.test(customHex)}
+                                className="ios-btn px-3 py-2.5 bg-indigo-600 disabled:opacity-40 text-white text-xs font-bold rounded-xl transition-colors"
+                            >
+                                Aplicar
+                            </button>
+                        </div>
                     </div>
+
+                    <input type="file" ref={avatarInputRef} onChange={handleAvatarChange} accept="image/*" className="hidden" />
 
                     <div className="pt-6 border-t border-gray-200 dark:border-zinc-800">
                         <label className="text-xs font-bold text-rose-500 uppercase tracking-widest mb-3 flex items-center gap-2">
