@@ -11,6 +11,9 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
       headers: { 'Cache-Control': 'no-store' },
     },
+    optimizeDeps: {
+      force: true,
+    },
     plugins: [react()],
     define: {
       'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
