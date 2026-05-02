@@ -252,7 +252,7 @@ export function OrganickIAView({
                     {/* 2. BASE DE CONHECIMENTO */}
                     <Card title="Base de Conhecimento (Arquivos)">
                         <div className="p-6 md:p-8 space-y-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 stagger">
 
                                 {/* Audio Upload */}
                                 <div className="group relative">
