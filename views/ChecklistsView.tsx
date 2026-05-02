@@ -561,7 +561,7 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
     };
 
     return (
-        <div className="view-root flex flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors relative">
+        <div className="view-root flex flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors relative animate-fade">
             
             {/* RENDER ACTIVE DIARY (If Open) */}
             {renderActiveShootView()}
@@ -601,7 +601,7 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
             {/* LIST AREA (GRID 2 COLS) */}
             <div className={`flex-1 overflow-y-auto px-6 py-8 transition-opacity duration-300 custom-scrollbar ${activeShootId ? 'opacity-0 pointer-events-none absolute inset-0' : 'opacity-100'}`}>
                 <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 stagger">
                         {filteredShoots.map(shoot => {
                             const p = calculateProgress(shoot);
                             const clientData = clients.find(c => c.Nome === shoot.client);

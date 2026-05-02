@@ -150,7 +150,7 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
             <p className="text-xs font-black uppercase tracking-[0.3em] opacity-30 mt-4">Nenhuma reunião encontrada.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 stagger">
             {filteredReunioes.map(r => {
               const client = currentClient(r.cliente_id);
               const clientColor = client?.['Cor (HEX)'] || '#3B82F6';
@@ -158,10 +158,10 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
               const formattedDate = meetingDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' });
 
               return (
-                <Card 
+                <Card
                   key={r.id}
                   onClick={() => { setSelectedMeeting(r); setIsEditModalOpen(true); }}
-                  className="group relative cursor-pointer hover:border-zinc-400 dark:hover:border-zinc-500 transition-all duration-500 !p-6 flex flex-col gap-5 overflow-hidden active:scale-[0.98]"
+                  className="group relative cursor-pointer hover:border-zinc-400 dark:hover:border-zinc-500 transition-all duration-500 !p-6 flex flex-col gap-5 overflow-hidden active:scale-[0.98] lift"
                 >
                   <div className="absolute left-0 top-0 bottom-0 w-1.5 transition-all group-hover:w-2" style={{ backgroundColor: clientColor }}></div>
                   
