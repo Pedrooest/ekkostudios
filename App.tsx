@@ -1759,6 +1759,8 @@ export default function App() {
                     localStorage.setItem(`profile_${perfilUsuario.id}`, JSON.stringify(newProfile));
                   }}
                   onLogout={() => supabase.auth.signOut()}
+                  isDarkMode={theme === 'dark'}
+                  onToggleDarkMode={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
                 />
               )}
             </div>
