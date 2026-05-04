@@ -265,15 +265,7 @@ video {
   letter-spacing: 0.05em !important;
 }
 
-/* iOS-style utilities */
-.ios-btn {
-  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-}
-
-
-.ios-btn:active:not(:disabled) {
-  transform: scale(0.95);
-}
+/* iOS-style utilities — defined in premium suite below */
 
 @keyframes iosSpring {
   0% {
@@ -309,14 +301,29 @@ video {
   background-color: #3f3f46;
 }
 
-/* Drawer slide-in animation */
+/* Drawer slide-in animation — Apple spring curve */
 @keyframes slide-in-right {
-  from { transform: translateX(100%); opacity: 0.6; }
-  to   { transform: translateX(0);    opacity: 1; }
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+.animate-slide-in-right {
+  animation: slide-in-right 0.35s cubic-bezier(0.32, 0.72, 0, 1) forwards;
 }
 
-.animate-slide-in-right {
-  animation: slide-in-right 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+@keyframes slide-in-bottom {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+.animate-slide-in-bottom {
+  animation: slide-in-bottom 0.35s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+@keyframes slide-out-right {
+  from { transform: translateX(0); }
+  to   { transform: translateX(100%); }
+}
+.animate-slide-out-right {
+  animation: slide-out-right 0.28s cubic-bezier(0.32, 0, 0.67, 0) forwards;
 }
 
 /* ============================================================
@@ -361,45 +368,183 @@ video {
   animation: pulse-soft 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Card lift on hover — translate + shadow change.
- * Apply via class .lift on any clickable card. */
-.lift {
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+/* .lift and .stagger defined in premium suite below */
+
+/* ═══════════════════════════════════════════════════════════
+ * PREMIUM ANIMATION SUITE — high-quality motion system
+ * Curves: Apple spring (0.32,0.72,0,1) | Expo out (0.16,1,0.3,1)
+ * ═══════════════════════════════════════════════════════════ */
+
+/* Fade + blur — entrance with depth */
+@keyframes fade-in-blur {
+  from { opacity: 0; filter: blur(4px); transform: scale(0.98); }
+  to   { opacity: 1; filter: blur(0px); transform: scale(1); }
 }
-.lift:hover {
-  transform: translateY(-2px);
+.animate-fade-blur {
+  animation: fade-in-blur 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Stagger children — apply to a parent; direct children fade-up
- * with 40ms delay each (capped at 12 children). */
-.stagger > *           { animation: fade-up 0.32s cubic-bezier(0.16, 1, 0.3, 1) both; }
-.stagger > *:nth-child(1)  { animation-delay: 0ms;   }
-.stagger > *:nth-child(2)  { animation-delay: 40ms;  }
-.stagger > *:nth-child(3)  { animation-delay: 80ms;  }
-.stagger > *:nth-child(4)  { animation-delay: 120ms; }
-.stagger > *:nth-child(5)  { animation-delay: 160ms; }
-.stagger > *:nth-child(6)  { animation-delay: 200ms; }
-.stagger > *:nth-child(7)  { animation-delay: 240ms; }
-.stagger > *:nth-child(8)  { animation-delay: 280ms; }
-.stagger > *:nth-child(9)  { animation-delay: 320ms; }
-.stagger > *:nth-child(10) { animation-delay: 360ms; }
-.stagger > *:nth-child(11) { animation-delay: 400ms; }
-.stagger > *:nth-child(12) { animation-delay: 440ms; }
+/* Bounce-in for modals/dialogs — spring overshoot */
+@keyframes bounce-in {
+  0%   { opacity: 0; transform: scale(0.85) translateY(16px); }
+  60%  { opacity: 1; transform: scale(1.02) translateY(-2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-bounce-in {
+  animation: bounce-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Pop — for tooltips, badges, small elements */
+@keyframes pop {
+  0%   { opacity: 0; transform: scale(0.6); }
+  70%  { transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.animate-pop {
+  animation: pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Shimmer — skeleton loading */
+@keyframes shimmer {
+  from { background-position: -200% center; }
+  to   { background-position: 200% center; }
+}
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(148,163,184,0.08) 25%,
+    rgba(148,163,184,0.18) 37%,
+    rgba(148,163,184,0.08) 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+.dark .shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.03) 25%,
+    rgba(255,255,255,0.08) 37%,
+    rgba(255,255,255,0.03) 63%
+  );
+  background-size: 400% 100%;
+}
+
+/* Glow pulse — status dots, live indicators */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; opacity: 1; }
+  50%       { box-shadow: 0 0 0 6px transparent; opacity: 0.7; }
+}
+.glow-pulse {
+  animation: glow-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Float — subtle levitation for premium cards */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-4px); }
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Ping once — one-time badge attention */
+@keyframes ping-once {
+  0%   { transform: scale(1); opacity: 1; }
+  70%  { transform: scale(1.8); opacity: 0; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+.animate-ping-once {
+  animation: ping-once 0.6s cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+
+/* Slide-fade-up — for list items appearing */
+@keyframes slide-fade-up {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-slide-fade-up {
+  animation: slide-fade-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Stagger — tighter 25ms delays, extended to 16 children */
+.stagger > *           { animation: fade-up 0.36s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.stagger > *:nth-child(1)  { animation-delay:  0ms;  }
+.stagger > *:nth-child(2)  { animation-delay: 25ms;  }
+.stagger > *:nth-child(3)  { animation-delay: 50ms;  }
+.stagger > *:nth-child(4)  { animation-delay: 75ms;  }
+.stagger > *:nth-child(5)  { animation-delay: 100ms; }
+.stagger > *:nth-child(6)  { animation-delay: 125ms; }
+.stagger > *:nth-child(7)  { animation-delay: 150ms; }
+.stagger > *:nth-child(8)  { animation-delay: 175ms; }
+.stagger > *:nth-child(9)  { animation-delay: 200ms; }
+.stagger > *:nth-child(10) { animation-delay: 225ms; }
+.stagger > *:nth-child(11) { animation-delay: 250ms; }
+.stagger > *:nth-child(12) { animation-delay: 275ms; }
+.stagger > *:nth-child(13) { animation-delay: 300ms; }
+.stagger > *:nth-child(14) { animation-delay: 325ms; }
+.stagger > *:nth-child(15) { animation-delay: 350ms; }
+.stagger > *:nth-child(16) { animation-delay: 375ms; }
+
+/* Lift — premium hover elevation */
+.lift {
+  transition:
+    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+.lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06);
+}
+.dark .lift:hover {
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4), 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* iOS press — faster feedback for interactive buttons */
+.ios-btn {
+  transition:
+    transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+  will-change: transform;
+}
+.ios-btn:active:not(:disabled) {
+  transform: scale(0.93);
+}
+
+/* Backdrop — premium blur entrance */
+.backdrop-enter {
+  animation: fade-in 0.2s ease forwards;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .animate-fade,
   .animate-fade-up,
+  .animate-fade-blur,
+  .animate-bounce-in,
+  .animate-pop,
   .animate-scale-in,
   .animate-pulse-soft,
   .animate-ios-spring,
   .animate-slide-in-right,
+  .animate-slide-in-bottom,
+  .animate-slide-out-right,
+  .animate-slide-fade-up,
+  .animate-float,
+  .animate-ping-once,
   .animate-toast-in,
   .animate-toast-out,
   .stagger > * {
     animation: none !important;
   }
-  .lift:hover {
+  .lift:hover,
+  .ios-btn:active {
     transform: none !important;
+    box-shadow: none !important;
+  }
+  .shimmer {
+    animation: none !important;
   }
 }

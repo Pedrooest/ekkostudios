@@ -222,7 +222,7 @@ const CalendarView: React.FC<{
 const SavingIndicator = ({ status }: { status?: 'saving' | 'success' | 'error' }) => {
     if (!status) return null;
     return (
-        <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none z-10 animate-fade">
+        <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none z-10 animate-fade-blur">
             {status === 'saving' && (
                 <div className="w-2.5 h-2.5 border-2 border-zinc-400/30 border-t-zinc-400 rounded-full animate-spin"></div>
             )}
@@ -735,7 +735,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
     };
 
     return (
-        <div className="view-root flex-1 min-h-0 flex flex-col bg-white dark:bg-zinc-950 overflow-hidden animate-fade">
+        <div className="view-root flex-1 min-h-0 flex flex-col bg-white dark:bg-zinc-950 overflow-hidden animate-fade-blur">
             {/* Header */}
             <div className="shrink-0 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 px-6 py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md sticky top-0 z-10">
                 <div className="flex items-center gap-3">
@@ -1417,7 +1417,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
             {/* MODERN MODAL VIA PORTAL */}
             {isModalOpen && ReactDOM.createPortal(
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md animate-fade" onClick={() => setIsModalOpen(false)}></div>
+                    <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md animate-fade-blur" onClick={() => setIsModalOpen(false)}></div>
                     <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-zoom-in ring-1 ring-white/10 max-h-[90vh]">
                         
                         <div className="px-8 py-6 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center bg-zinc-50/50 dark:bg-zinc-900/50">
@@ -1529,7 +1529,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
             {/* MODAL DE RETIRADA */}
             {isWithdrawalModalOpen && ReactDOM.createPortal(
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-sm animate-fade" onClick={() => setIsWithdrawalModalOpen(false)}></div>
+                    <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-sm animate-fade-blur" onClick={() => setIsWithdrawalModalOpen(false)}></div>
                     <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[32px] shadow-2xl flex flex-col overflow-hidden animate-zoom-in">
                         <div className="p-8 text-center">
                             <div className={`w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center text-4xl font-black text-white bg-gradient-to-br ${withdrawalData.socio === 1 ? 'from-blue-600 to-indigo-600' : 'from-emerald-500 to-teal-500'}`}>

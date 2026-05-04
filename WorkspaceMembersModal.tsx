@@ -73,7 +73,7 @@ export function WorkspaceMembersModal({ workspace, onClose, currentUserEmail }: 
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
             <div className="absolute inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-md transition-opacity animate-in fade-in" onClick={() => { playUISound('close'); onClose(); }}></div>
 
-            <div className="relative w-full max-w-2xl bg-white/95 dark:bg-[#111114]/95 backdrop-blur-2xl border border-gray-200 dark:border-zinc-800 rounded-[2rem] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-ios-spring">
+            <div className="relative w-full max-w-2xl bg-white/95 dark:bg-[#111114]/95 backdrop-blur-2xl border border-gray-200 dark:border-zinc-800 rounded-[2rem] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-bounce-in">
 
 
                 <div className="px-6 py-5 border-b border-gray-200 dark:border-zinc-800 flex justify-between items-start shrink-0">
