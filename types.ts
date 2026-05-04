@@ -352,10 +352,15 @@ export interface PerfilUsuario {
   full_name: string;
   email: string;
   avatar_url?: string;
+  banner_url?: string;
+  accent_color?: string;
   role?: string;
   status: 'online' | 'ocupado' | 'ausente' | 'offline';
   descricao?: string;
   prioridades?: string[];
+  skills?: string[];
+  timezone?: string;
+  social_links?: { label: string; url: string }[];
 }
 
 export type DadosModelagemSistematica = Record<string, Record<string, string>>; // clientId -> { "day-rowId": "value" }
