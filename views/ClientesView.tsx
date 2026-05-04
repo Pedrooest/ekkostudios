@@ -49,6 +49,41 @@ const ICON_MAP: Record<string, any> = {
   'Reunião': Handshake, 'Email': Mail, 'Ligação': Phone, 'Anotação': StickyNote
 };
 
+// CaseToggle — cicla entre MAIÚSCULAS / minúsculas / Título / original
+type CaseMode = 'original' | 'upper' | 'lower' | 'title';
+const CASE_LABELS: Record<CaseMode, string> = { original: 'Aa', upper: 'AA', lower: 'aa', title: 'Ab' };
+const CASE_CYCLE: CaseMode[] = ['original', 'upper', 'lower', 'title'];
+
+const applyCase = (text: string, mode: CaseMode): string => {
+  if (mode === 'upper') return text.toUpperCase();
+  if (mode === 'lower') return text.toLowerCase();
+  if (mode === 'title') return text.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+  return text;
+};
+
+const CaseToggle = ({ value, onChange }: { value: string; onChange: (v: string) => void }) => {
+  const [mode, setMode] = React.useState<CaseMode>('original');
+  const cycle = () => {
+    const next = CASE_CYCLE[(CASE_CYCLE.indexOf(mode) + 1) % CASE_CYCLE.length];
+    setMode(next);
+    if (next !== 'original') onChange(applyCase(value, next));
+  };
+  return (
+    <button
+      type="button"
+      onClick={cycle}
+      title={`Modo: ${CASE_LABELS[mode]} — clique para alternar`}
+      className={`absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-md text-[9px] font-black flex items-center justify-center transition-all ios-btn z-10 ${
+        mode === 'original'
+          ? 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800'
+          : 'bg-blue-500 text-white shadow-sm'
+      }`}
+    >
+      {CASE_LABELS[mode]}
+    </button>
+  );
+};
+
 const Accordion = React.memo<{ 
   title: string; 
   icon: any; 
@@ -95,6 +130,10 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
   const [isAddingLink, setIsAddingLink] = useState(false);
   const [isAddingMeta, setIsAddingMeta] = useState(false);
   const [newMetaEntry, setNewMetaEntry] = useState({ id: '', titulo: '', metrica: '', valor_atual: 0, valor_meta: 0, periodo: 'Mensal' as const, status: 'No prazo' as const });
+
+  // Refs para uploads de logo e capa (devem ficar no topo do componente - regras dos hooks)
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
 
   const filteredClients = useMemo(() => {
     return clients.filter(c => {
@@ -337,62 +376,72 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
         )}
       </div>
 
+      {/* Hidden file inputs — fora do drawer para evitar problemas de refs */}
+      <input ref={coverInputRef} type="file" accept="image/*" className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (!f) return;
+          const r = new FileReader();
+          r.onloadend = () => handleUpdateField('cover_url', r.result as string);
+          r.readAsDataURL(f);
+          if (coverInputRef.current) coverInputRef.current.value = '';
+        }}
+      />
+      <input ref={logoInputRef} type="file" accept="image/*" className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (!f) return;
+          const r = new FileReader();
+          r.onloadend = () => handleUpdateField('logo_url', r.result as string);
+          r.readAsDataURL(f);
+          if (logoInputRef.current) logoInputRef.current.value = '';
+        }}
+      />
+
       {/* EDIT DRAWER */}
-      {selectedClient && (() => {
-        const logoInputRef = React.createRef<HTMLInputElement>();
-        const coverInputRef = React.createRef<HTMLInputElement>();
-        return (
+      {selectedClient && (
         <div className="fixed inset-0 z-[2200] flex justify-end pointer-events-auto overflow-hidden">
           <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm animate-fade-blur" onClick={closeDrawer}></div>
 
-          <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 h-full shadow-2xl flex flex-col animate-slide-in-right ring-1 ring-white/10 dark:ring-zinc-800">
+          <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 h-full shadow-2xl flex flex-col animate-slide-in-right ring-1 ring-zinc-100/50 dark:ring-zinc-800">
             {/* Cover + Avatar header */}
             <div className="relative shrink-0">
-              {/* Cover */}
+              {/* Cover — clicável */}
               <div
-                className="h-20 relative cursor-pointer group/cover overflow-hidden"
-                style={{ background: selectedClient.cover_url ? undefined : `linear-gradient(135deg, ${selectedClient['Cor (HEX)'] || '#3B82F6'}40, ${selectedClient['Cor (HEX)'] || '#3B82F6'}10)` }}
+                className="h-24 relative cursor-pointer group/cover overflow-hidden"
+                style={{ background: selectedClient.cover_url ? undefined : `linear-gradient(135deg, ${selectedClient['Cor (HEX)'] || '#3B82F6'}35 0%, ${selectedClient['Cor (HEX)'] || '#3B82F6'}08 100%)` }}
                 onClick={() => coverInputRef.current?.click()}
               >
                 {selectedClient.cover_url && <img src={selectedClient.cover_url} className="w-full h-full object-cover" alt="" />}
-                <div className="absolute inset-0 bg-black/0 group-hover/cover:bg-black/30 transition-all flex items-center justify-center opacity-0 group-hover/cover:opacity-100">
+                <div className="absolute inset-0 bg-black/0 group-hover/cover:bg-black/25 transition-all flex items-center justify-center opacity-0 group-hover/cover:opacity-100">
                   <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-lg">
                     <Camera size={11} className="text-white" />
                     <span className="text-[9px] font-black text-white uppercase tracking-wider">Alterar capa</span>
                   </div>
                 </div>
+                {!selectedClient.cover_url && (
+                  <div className="absolute bottom-2 right-3 flex items-center gap-1 text-[8px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-wider opacity-60">
+                    <Camera size={9} /> Adicionar capa
+                  </div>
+                )}
               </div>
-              <input ref={coverInputRef} type="file" accept="image/*" className="hidden"
-                onChange={async (e) => {
-                  const f = e.target.files?.[0];
-                  if (!f) return;
-                  const r = new FileReader();
-                  r.onloadend = () => handleUpdateField('cover_url', r.result as string);
-                  r.readAsDataURL(f);
-                }}
-              />
 
               {/* Avatar row */}
               <div className="px-5 pb-4">
-                <div className="flex items-end justify-between -mt-7">
-                  {/* Logo */}
+                <div className="flex items-end justify-between -mt-8">
+                  {/* Logo — clicável */}
                   <div className="relative group/logo cursor-pointer" onClick={() => logoInputRef.current?.click()}>
-                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-white text-xl shadow-xl ring-3 ring-white dark:ring-zinc-900 overflow-hidden" style={{ backgroundColor: selectedClient['Cor (HEX)'] || '#3B82F6' }}>
+                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center font-black text-white text-xl shadow-xl ring-[3px] ring-white dark:ring-zinc-900 overflow-hidden transition-transform group-hover/logo:scale-105" style={{ backgroundColor: selectedClient['Cor (HEX)'] || '#3B82F6' }}>
                       {selectedClient.logo_url ? <img src={selectedClient.logo_url} alt="" className="w-full h-full object-cover" /> : (selectedClient.Nome || '?').charAt(0).toUpperCase()}
                     </div>
                     <div className="absolute inset-0 rounded-2xl bg-black/0 group-hover/logo:bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover/logo:opacity-100">
                       <Camera size={14} className="text-white" />
                     </div>
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-white dark:bg-zinc-800 rounded-full flex items-center justify-center border border-zinc-200 dark:border-zinc-700 shadow-sm">
+                      <Camera size={9} className="text-zinc-500" />
+                    </div>
                   </div>
-                  <input ref={logoInputRef} type="file" accept="image/*" className="hidden"
-                    onChange={async (e) => {
-                      const f = e.target.files?.[0];
-                      if (!f) return;
-                      const r = new FileReader();
-                      r.onloadend = () => handleUpdateField('logo_url', r.result as string);
-                      r.readAsDataURL(f);
-                    }}
-                  />
+
                   <button onClick={closeDrawer} className="w-9 h-9 flex items-center justify-center rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all hover:rotate-90 active:scale-90 shadow-sm">
                     <X size={16} />
                   </button>
@@ -421,27 +470,39 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
               >
                 <div className="space-y-4 pt-4">
                   <div className="space-y-1.5 relative">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">NOME DA MARCA</label>
-                    <input 
-                      type="text" 
-                      value={localState?.Nome || ''} 
-                      onChange={(e) => setLocalState({ ...localState, Nome: e.target.value })}
-                      onBlur={() => handleBlur('Nome')}
-                      className="w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500/50 transition-all pr-10"
-                    />
+                    <div className="flex items-center justify-between ml-1 mb-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">NOME DA MARCA</label>
+                      <span className="text-[8px] text-zinc-300 dark:text-zinc-600 font-bold uppercase tracking-wider flex items-center gap-1">
+                        <span className="w-4 h-4 rounded bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-[7px] font-black text-zinc-400">Aa</span>
+                        clique para alternar caixa
+                      </span>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={localState?.Nome || ''}
+                        onChange={(e) => setLocalState({ ...localState, Nome: e.target.value })}
+                        onBlur={() => handleBlur('Nome')}
+                        className="w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 text-xs font-bold tracking-widest text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500/50 transition-all pr-16"
+                      />
+                      <CaseToggle value={localState?.Nome || ''} onChange={(v) => { setLocalState({ ...localState, Nome: v }); onUpdate(selectedClient.id, 'CLIENTES', 'Nome', v); }} />
+                    </div>
                     <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:Nome`]} />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5 relative">
                       <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">NICHO</label>
-                      <input 
-                        type="text" 
-                        value={localState?.Nicho || ''} 
-                        onChange={(e) => setLocalState({ ...localState, Nicho: e.target.value })}
-                        onBlur={() => handleBlur('Nicho')}
-                        className="w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500/50 transition-all pr-10"
-                      />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={localState?.Nicho || ''}
+                          onChange={(e) => setLocalState({ ...localState, Nicho: e.target.value })}
+                          onBlur={() => handleBlur('Nicho')}
+                          className="w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 text-xs font-bold tracking-widest text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500/50 transition-all pr-16"
+                        />
+                        <CaseToggle value={localState?.Nicho || ''} onChange={(v) => { setLocalState({ ...localState, Nicho: v }); onUpdate(selectedClient.id, 'CLIENTES', 'Nicho', v); }} />
+                      </div>
                       <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:Nicho`]} />
                     </div>
                     
@@ -1065,8 +1126,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
 
           </div>
         </div>
-        );
-      })()}
+      )}
 
       {/* MODAL DE REGISTRO DE LOG */}
       {isLogModalOpen && (

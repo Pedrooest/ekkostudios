@@ -444,12 +444,13 @@ export default function App() {
 
     // 3. Contas a vencer em 3 dias
     financas.forEach(f => {
-      if (f.Data === in3DaysStr && f.Status === 'Pendente') {
+      const lancNome = f.Lançamento || f.Descrição || f.Categoria || 'Conta';
+      if (f.Data === in3DaysStr && f.Status === 'Pendente' && lancNome) {
         newReminders.push({
-          titulo: `Conta "${f.Lançamento}" vence em 3 dias`,
+          titulo: `"${lancNome}" vence em 3 dias`,
           data: todayStr,
           tipo: 'Pagamento',
-          cliente_id: f.Cliente_ID,
+          cliente_id: f.Cliente_ID || null,
           auto_gerado: true,
           auto_id: `financa_vence_3d:${f.id}`
         });
@@ -461,12 +462,14 @@ export default function App() {
     financas.filter(f => (f.Tipo === 'Assinatura' || f.Tipo === 'Entrada') && f.Dia_Pagamento).forEach(f => {
         const diaPag = Number(f.Dia_Pagamento);
         const diff = (diaPag - dayToday + 31) % 31;
-        if (diff >= 0 && diff <= 5) {
+        const clienteNome = clients.find(c => c.id === f.Cliente_ID)?.Nome;
+        const lancNome = f.Lançamento || f.Descrição || f.Categoria || 'Assinatura';
+        if (diff >= 0 && diff <= 5 && lancNome) {
             newReminders.push({
-                titulo: `Cobrança de cliente em ${diff} dias: ${f.Lançamento}`,
+                titulo: `Cobrança em ${diff} dia${diff !== 1 ? 's' : ''}: ${lancNome}${clienteNome ? ` — ${clienteNome}` : ''}`,
                 data: todayStr,
                 tipo: 'Contrato',
-                cliente_id: f.Cliente_ID,
+                cliente_id: f.Cliente_ID || null,
                 auto_gerado: true,
                 auto_id: `mrr_cobranca_5d:${f.id}:${today.getMonth()}`
             });
@@ -801,14 +804,18 @@ export default function App() {
   }, [currentUser?.id, currentWorkspace?.id, tasks.length, planejamento.length, reunioes.length, lembretes.length, clients.length]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('ekko_os_ui_v17');
+    // Remove chaves antigas para garantir que novas abas apareçam
+    ['ekko_os_ui_v17', 'ekko_os_ui_v16', 'ekko_os_ui_v15'].forEach(k => localStorage.removeItem(k));
+
+    const ALL_TABS: TipoTabela[] = ['DASHBOARD', 'CLIENTES', 'REUNIOES', 'ORGANICKIA', 'RDC', 'MATRIZ', 'COBO', 'PLANEJAMENTO', 'FINANCAS', 'TAREFAS', 'RELATORIOS', 'CHECKLISTS', 'VH', 'WHITEBOARD', 'LEMBRETES'];
+
+    const saved = localStorage.getItem('ekko_os_ui_v18');
     if (saved) {
       const p = JSON.parse(saved);
       if (p.tabOrder) {
-        // Merge saved order with new tabs to ensure missing ones appear
-        const defaultOrder: TipoTabela[] = ['DASHBOARD', 'CLIENTES', 'REUNIOES', 'ORGANICKIA', 'RDC', 'MATRIZ', 'COBO', 'PLANEJAMENTO', 'FINANCAS', 'TAREFAS', 'RELATORIOS', 'CHECKLISTS', 'VH', 'WHITEBOARD', 'LEMBRETES'];
-        const uniqueTabs = new Set([...defaultOrder, ...p.tabOrder]);
-        setTabOrder(Array.from(uniqueTabs));
+        // ALL_TABS tem prioridade — garante que TODAS as abas apareçam sempre
+        const uniqueTabs = new Set([...ALL_TABS, ...p.tabOrder.filter((t: string) => ALL_TABS.includes(t as TipoTabela))]);
+        setTabOrder(Array.from(uniqueTabs) as TipoTabela[]);
       }
       if (p.vhConfig) setVhConfig(p.vhConfig);
       if (p.BibliotecaConteudo) setContentLibrary(p.BibliotecaConteudo);
@@ -821,7 +828,7 @@ export default function App() {
 
   useEffect(() => {
     // Only persist UI state to LocalStorage
-    localStorage.setItem('ekko_os_ui_v17', JSON.stringify({
+    localStorage.setItem('ekko_os_ui_v18', JSON.stringify({
       tabOrder, vhConfig, BibliotecaConteudo, selectedClientIdIA, iaAudioInsight, iaPdfInsight, iaHistory
     }));
   }, [tabOrder, vhConfig, BibliotecaConteudo, selectedClientIdIA, iaAudioInsight, iaPdfInsight, iaHistory]);
@@ -1739,14 +1746,22 @@ export default function App() {
                            <div className="flex items-center gap-2">
                              {lembretes.length > 0 && (() => {
                                const todayStr = new Date().toISOString().split('T')[0];
-                               const toClean = lembretes.filter(l => l.concluido || (l.data < todayStr && !l.concluido));
+                               // Limpar: concluídos + vencidos + auto-gerados de hoje (que já foram vistos)
+                               const toClean = lembretes.filter(l =>
+                                 l.concluido ||
+                                 (l.data < todayStr && !l.concluido) ||
+                                 (l.auto_gerado && l.data <= todayStr)
+                               );
                                if (toClean.length === 0) return null;
-                               const label = toClean.every(l => l.concluido) ? 'Limpar concluídos' : toClean.every(l => !l.concluido) ? 'Limpar vencidos' : 'Limpar';
+                               const autoCount = toClean.filter(l => l.auto_gerado).length;
+                               const label = autoCount > 0 && toClean.length === autoCount
+                                 ? `Limpar automáticos (${autoCount})`
+                                 : `Limpar (${toClean.length})`;
                                return (
                                  <button
                                    onClick={() => { playUISound('tap'); performDelete(toClean.map(l => l.id), 'LEMBRETES'); }}
-                                   className="text-[8px] font-black uppercase text-rose-500 hover:text-rose-600 transition-colors flex items-center gap-1"
-                                   title={`Remove ${toClean.length} lembrete(s) concluído(s) ou vencido(s)`}
+                                   className="text-[8px] font-black uppercase text-rose-500 hover:text-rose-600 transition-colors flex items-center gap-1 px-2 py-1 rounded-md hover:bg-rose-50 dark:hover:bg-rose-500/10"
+                                   title={`Remove ${toClean.length} lembrete(s)`}
                                  >
                                    <Trash2 size={9} /> {label}
                                  </button>
