@@ -11,6 +11,8 @@ export interface Cliente {
   "Cor (HEX)": string;
   Status: 'Ativo' | 'Pausado' | 'Prospect';
   Fee: number;
+  logo_url?: string;
+  cover_url?: string;
   links?: Array<{ titulo: string; url: string; categoria: string }>;
   log_comunicacao?: Array<{ tipo: string; data: string; hora: string; descricao: string }>;
   assets?: Array<{ nome: string; tipo: string; dados: string }>;
@@ -124,6 +126,7 @@ export interface ItemPlanejamento {
   Observações?: string;
   Gancho?: string;
   CTA?: string;
+  imagem_url?: string;
   Fonte_Origem?: 'RDC' | 'Estratégia' | 'COBO' | 'Tarefa' | 'IA' | 'Manual' | 'Gemini';
   Origem_ID?: string;
   google_event_id?: string;
