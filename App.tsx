@@ -1737,15 +1737,21 @@ export default function App() {
                              )}
                            </span>
                            <div className="flex items-center gap-2">
-                             {lembretes.some(l => l.concluido) && (
-                               <button
-                                 onClick={() => { playUISound('tap'); const ids = lembretes.filter(l => l.concluido).map(l => l.id); if (ids.length) performDelete(ids, 'LEMBRETES'); }}
-                                 className="text-[8px] font-black uppercase text-rose-500 hover:text-rose-600 transition-colors flex items-center gap-1"
-                                 title="Remover lembretes já concluídos"
-                               >
-                                 <Trash2 size={9} /> Limpar
-                               </button>
-                             )}
+                             {lembretes.length > 0 && (() => {
+                               const todayStr = new Date().toISOString().split('T')[0];
+                               const toClean = lembretes.filter(l => l.concluido || (l.data < todayStr && !l.concluido));
+                               if (toClean.length === 0) return null;
+                               const label = toClean.every(l => l.concluido) ? 'Limpar concluídos' : toClean.every(l => !l.concluido) ? 'Limpar vencidos' : 'Limpar';
+                               return (
+                                 <button
+                                   onClick={() => { playUISound('tap'); performDelete(toClean.map(l => l.id), 'LEMBRETES'); }}
+                                   className="text-[8px] font-black uppercase text-rose-500 hover:text-rose-600 transition-colors flex items-center gap-1"
+                                   title={`Remove ${toClean.length} lembrete(s) concluído(s) ou vencido(s)`}
+                                 >
+                                   <Trash2 size={9} /> {label}
+                                 </button>
+                               );
+                             })()}
                              <button onClick={() => { playUISound('tap'); setIsLembreteModalOpen(true); setEditingLembrete(null); }} className="text-[8px] font-black uppercase text-app-accent-blue bg-app-accent-blue/10 px-2 py-1 rounded-md hover:bg-app-accent-blue/20 transition-all">+ Criar</button>
                            </div>
                         </div>
