@@ -358,7 +358,7 @@ export const InputSelect: React.FC<{
           onClose={() => setIsOpen(false)}
           triggerRef={triggerRef}
           align="start"
-          className="w-48 bg-app-surface border border-app-border rounded-xl shadow-xl overflow-hidden mt-2 animate-ios-spring"
+          className="w-48 bg-app-surface border border-app-border rounded-xl shadow-xl overflow-hidden mt-2 animate-bounce-in"
         >
           <OptionList />
         </FloatingPopover>
@@ -502,7 +502,7 @@ export const LibraryEditorModal: React.FC<{ library: any; onClose: () => void }>
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-zinc-900/60 backdrop-blur-md p-4 pointer-events-auto text-left transition-all" onClick={onClose}>
-      <div className="w-full h-full md:h-[80vh] md:max-w-4xl bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl flex flex-col animate-ios-spring overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div className="w-full h-full md:h-[80vh] md:max-w-4xl bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl flex flex-col animate-bounce-in overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="h-20 flex items-center justify-between px-10 border-b border-app-border">
           <h3 className="text-xl font-bold uppercase text-app-text-strong">Biblioteca de Formatos</h3>
           <button onClick={() => { playUISound('tap'); onClose(); }} className="ios-btn p-2 text-app-text-muted hover:text-app-text-strong transition-colors">
@@ -544,7 +544,7 @@ export const ReorderTabsModal: React.FC<{ tabOrder: TipoTabela[]; setTabOrder: (
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-zinc-900/60 backdrop-blur-md p-4 animate-fade pointer-events-auto" onClick={onClose}>
-      <div className="w-full max-w-lg bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl p-8 flex flex-col relative animate-ios-spring" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl p-8 flex flex-col relative animate-bounce-in" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold uppercase text-app-text-strong">Ordem das Abas</h3>
           <button onClick={() => { playUISound('tap'); onClose(); }} className="ios-btn p-2 text-app-text-muted hover:text-app-text-strong transition-colors">
@@ -580,7 +580,7 @@ export const ColorPickerModal: React.FC<{ target: { id: string; value: string };
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-zinc-900/60 backdrop-blur-md p-4 animate-fade pointer-events-auto" onClick={onClose}>
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl p-8 space-y-6 w-full max-w-sm transform transition-all animate-ios-spring" onClick={e => e.stopPropagation()}>
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl p-8 space-y-6 w-full max-w-sm transform transition-all animate-bounce-in" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between gap-3">
           <h3 className="text-sm font-black uppercase text-app-text-strong tracking-widest truncate flex-1">Escolher Cor</h3>
           <button onClick={() => { playUISound('tap'); onClose(); }} className="ios-btn p-2 text-app-text-muted hover:text-app-text-strong transition-colors">

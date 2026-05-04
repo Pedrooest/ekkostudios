@@ -264,7 +264,7 @@ export const DashboardView = React.memo(({ clients = [], tasks = [], financas = 
     // ==========================================
 
     return (
-        <div className="view-root p-4 sm:p-6 space-y-6 animate-fade h-full overflow-y-auto custom-scrollbar bg-zinc-50 dark:bg-zinc-950 transition-colors">
+        <div className="view-root p-4 sm:p-6 space-y-6 animate-fade-blur h-full overflow-y-auto custom-scrollbar bg-zinc-50 dark:bg-zinc-950 transition-colors">
             
             {/* 1. HEADER */}
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-1">

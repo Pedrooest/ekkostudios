@@ -23,7 +23,7 @@ export function NewWorkspaceModal({ onClose, onCreate }: NewWorkspaceModalProps)
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity animate-in fade-in" onClick={() => { playUISound('close'); onClose(); }}></div>
 
-            <div className="relative w-full max-w-md bg-app-surface/95 backdrop-blur-2xl border border-app-border rounded-[2rem] shadow-2xl flex flex-col overflow-hidden animate-ios-spring">
+            <div className="relative w-full max-w-md bg-app-surface/95 backdrop-blur-2xl border border-app-border rounded-[2rem] shadow-2xl flex flex-col overflow-hidden animate-bounce-in">
 
                 <div className="px-6 py-5 border-b border-app-border flex justify-between items-start shrink-0">
                     <div>

@@ -46,7 +46,7 @@ interface TaskFlowViewProps {
 const SavingIndicator = ({ status }: { status?: 'saving' | 'success' | 'error' }) => {
     if (!status) return null;
     return (
-        <div className="flex items-center gap-1 pointer-events-none z-10 animate-fade">
+        <div className="flex items-center gap-1 pointer-events-none z-10 animate-fade-blur">
             {status === 'saving' && (
                 <div className="w-2.5 h-2.5 border-2 border-zinc-400/30 border-t-zinc-400 rounded-full animate-spin"></div>
             )}
@@ -312,7 +312,7 @@ export function TaskFlowView({
     }, []);
 
     return (
-        <div className="view-root flex flex-col h-full bg-white dark:bg-zinc-950 overflow-hidden animate-fade">
+        <div className="view-root flex flex-col h-full bg-white dark:bg-zinc-950 overflow-hidden animate-fade-blur">
             {/* MODERN TOP HEADER */}
             <div className="shrink-0 flex items-center justify-between flex-wrap gap-4 px-6 py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md sticky top-0 z-10">
                 <div className="flex items-center gap-4">

@@ -184,7 +184,7 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
                 className="w-[280px]"
                 align="start"
             >
-                <div className="bg-white/95 dark:bg-[#111114]/95 backdrop-blur-xl border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl flex flex-col py-2 z-50 animate-ios-spring origin-top-left overflow-hidden">
+                <div className="bg-white/95 dark:bg-[#111114]/95 backdrop-blur-xl border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl flex flex-col py-2 z-50 animate-bounce-in origin-top-left overflow-hidden">
                     <DropdownContent />
                 </div>
             </PortalPopover>

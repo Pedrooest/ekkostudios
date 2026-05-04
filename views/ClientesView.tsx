@@ -19,7 +19,7 @@ interface ClientesViewProps {
 const SavingIndicator = ({ status }: { status?: 'saving' | 'success' | 'error' }) => {
   if (!status) return null;
   return (
-    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none z-10 animate-fade">
+    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none z-10 animate-fade-blur">
       {status === 'saving' && (
         <div className="w-3 h-3 border-2 border-zinc-400/30 border-t-zinc-400 rounded-full animate-spin"></div>
       )}
@@ -144,7 +144,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
   }, [selectedClient, closeDrawer]);
 
   return (
-    <div className="view-root flex flex-col h-full w-full animate-fade">
+    <div className="view-root flex flex-col h-full w-full animate-fade-blur">
       
       {/* MODERN HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-6 py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 backdrop-blur-md sticky top-0 z-10">
@@ -276,7 +276,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
       {/* EDIT DRAWER */}
       {selectedClient && (
         <div className="fixed inset-0 z-[2200] flex justify-end pointer-events-auto overflow-hidden">
-          <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm animate-fade" onClick={closeDrawer}></div>
+          <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm animate-fade-blur" onClick={closeDrawer}></div>
           
           <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 h-full shadow-2xl flex flex-col animate-slide-left ring-1 ring-white/10">
             {/* Drawer Header */}
@@ -440,7 +440,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                   </div>
 
                   {isAddingLink ? (
-                    <div className="p-4 bg-zinc-50 dark:bg-zinc-800/80 rounded-2xl border-2 border-blue-500/20 space-y-3 animate-fade">
+                    <div className="p-4 bg-zinc-50 dark:bg-zinc-800/80 rounded-2xl border-2 border-blue-500/20 space-y-3 animate-fade-blur">
                       <input 
                         type="text" 
                         placeholder="TÍTULO DO LINK"
@@ -963,7 +963,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
 
       {/* MODAL DE REGISTRO DE LOG */}
       {isLogModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-md animate-fade-in">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-md animate-fade-blur-in">
           <div className="w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[32px] shadow-2xl overflow-hidden animate-scale-up">
             <div className="p-8 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-800/30">
               <div className="flex items-center gap-4">
