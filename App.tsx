@@ -727,44 +727,78 @@ export default function App() {
   }, [currentWorkspace?.id, loadWorkspaceData]);
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // SMART notificacoes (CHECKS)
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // SMART NOTIFICATIONS — disparam uma única vez por sessão/dia com dedupKey
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   useEffect(() => {
-    console.log('ActiveTab Changed', { activeTab });
-    if (!currentUser || activeTab === 'DASHBOARD') return;
+    if (!currentUser || !currentWorkspace) return;
+    const today = new Date().toISOString().split('T')[0];
 
-    const checkSmart = () => {
-      const today = new Date().toISOString().split('T')[0];
-
-      // 1. Overdue Tasks
-      const lateCount = tasks.filter(t => t.Status !== 'concluido' && t.Data_Entrega && t.Data_Entrega < today).length;
-      if (lateCount > 0) {
-        addNotification('warning', 'Tarefas Atrasadas', `Você tem ${lateCount} tarefas vencidas. Revise o fluxo.`);
+    const runChecks = () => {
+      // 1. Tarefas atrasadas
+      const lateTasks = tasks.filter(t => t.Status !== 'concluido' && t.Data_Entrega && t.Data_Entrega < today);
+      if (lateTasks.length > 0) {
+        addNotification('warning', `${lateTasks.length} tarefa${lateTasks.length > 1 ? 's' : ''} atrasada${lateTasks.length > 1 ? 's' : ''}`,
+          lateTasks.length === 1
+            ? `"${lateTasks[0].Título || 'Sem título'}" está vencida. Revise o fluxo.`
+            : `${lateTasks.length} tarefas vencidas. A mais antiga: "${lateTasks[0].Título || 'Sem título'}".`,
+          `overdue-tasks-${today}`
+        );
       }
 
-      // 2. Planning Check
-      if (activeTab === 'PLANEJAMENTO') {
-        const hasToday = planejamento.some(p => p.Data === today);
-        if (!hasToday) {
-          addNotification('info', 'Aviso de Planejamento', 'Ainda não há conteúdos planejados para hoje.');
-        }
+      // 2. Tarefas urgentes sem responsável
+      const unassigned = tasks.filter(t => t.Status !== 'concluido' && (t.Prioridade === 'Urgente' || t.Prioridade === 'Alta') && !t.Responsável);
+      if (unassigned.length > 0) {
+        addNotification('warning', 'Tarefas sem responsável',
+          `${unassigned.length} tarefa${unassigned.length > 1 ? 's' : ''} de alta prioridade sem responsável atribuído.`,
+          `unassigned-urgent-${today}`
+        );
       }
 
-      // 3. VH Limit (Simple example)
-      if (activeTab === 'VH') {
-        const totalHours = tasks
-          .filter(t => t.Status === 'concluido')
-          .reduce((acc, t) => acc + (Number(t.Tempo_Gasto_H) || 0), 0);
-        if (totalHours > 160) {
-          addNotification('warning', 'Limite VH', 'O volume de horas executadas está acima da média esperada.');
-        }
+      // 3. Reuniões hoje
+      const reunioesHoje = reunioes.filter(r => r.data === today && r.status !== 'Realizada' && r.status !== 'Cancelada');
+      if (reunioesHoje.length > 0) {
+        addNotification('info', `${reunioesHoje.length} reunião${reunioesHoje.length > 1 ? 'ões' : ''} hoje`,
+          reunioesHoje.map(r => `${r.titulo} às ${r.hora || '—'}`).join(' · '),
+          `reunioes-hoje-${today}`
+        );
+      }
+
+      // 4. Conteúdos planejados para hoje sem publicação
+      const postsHoje = planejamento.filter(p => p.Data === today && p["Status do conteúdo"] !== 'Concluído');
+      if (postsHoje.length > 0) {
+        addNotification('info', `${postsHoje.length} post${postsHoje.length > 1 ? 's' : ''} pendente${postsHoje.length > 1 ? 's' : ''} hoje`,
+          postsHoje.map(p => `${p.Rede_Social}: ${(p.Conteúdo || '').substring(0, 40)}`).join(' · '),
+          `posts-hoje-${today}`
+        );
+      }
+
+      // 5. Lembretes vencidos
+      const lembretesVencidos = lembretes.filter(l => !l.concluido && l.data < today);
+      if (lembretesVencidos.length > 0) {
+        addNotification('warning', `${lembretesVencidos.length} lembrete${lembretesVencidos.length > 1 ? 's' : ''} vencido${lembretesVencidos.length > 1 ? 's' : ''}`,
+          lembretesVencidos.slice(0, 2).map(l => l.titulo).join(', ') + (lembretesVencidos.length > 2 ? ` e mais ${lembretesVencidos.length - 2}` : ''),
+          `lembretes-vencidos-${today}`
+        );
+      }
+
+      // 6. Clientes sem conteúdo planejado nos próximos 7 dias
+      const next7 = new Date(); next7.setDate(next7.getDate() + 7);
+      const next7Str = next7.toISOString().split('T')[0];
+      const clientsWithContent = new Set(planejamento.filter(p => p.Data >= today && p.Data <= next7Str).map(p => p.Cliente_ID));
+      const clientsWithoutContent = clients.filter(c => !clientsWithContent.has(c.id));
+      if (clientsWithoutContent.length > 0 && clients.length > 0) {
+        addNotification('info', 'Clientes sem conteúdo esta semana',
+          `${clientsWithoutContent.length} cliente${clientsWithoutContent.length > 1 ? 's' : ''} sem publicações planejadas nos próximos 7 dias.`,
+          `clients-no-content-${today}`
+        );
       }
     };
 
-    // Run after a short delay to avoid spamming on load
-    const timer = setTimeout(checkSmart, 5000);
+    // Roda com delay após a carga inicial dos dados
+    const timer = setTimeout(runChecks, 3000);
     return () => clearTimeout(timer);
-  }, [currentUser, tasks.length, planejamento.length, activeTab]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.id, currentWorkspace?.id, tasks.length, planejamento.length, reunioes.length, lembretes.length, clients.length]);
 
   useEffect(() => {
     const saved = localStorage.getItem('ekko_os_ui_v17');
@@ -772,8 +806,8 @@ export default function App() {
       const p = JSON.parse(saved);
       if (p.tabOrder) {
         // Merge saved order with new tabs to ensure missing ones appear
-        const defaultOrder: TipoTabela[] = ['DASHBOARD', 'CLIENTES', 'ORGANICKIA', 'RDC', 'MATRIZ', 'COBO', 'PLANEJAMENTO', 'FINANCAS', 'TAREFAS', 'CHECKLISTS', 'VH', 'WHITEBOARD'];
-        const uniqueTabs = new Set([...p.tabOrder, ...defaultOrder]);
+        const defaultOrder: TipoTabela[] = ['DASHBOARD', 'CLIENTES', 'REUNIOES', 'ORGANICKIA', 'RDC', 'MATRIZ', 'COBO', 'PLANEJAMENTO', 'FINANCAS', 'TAREFAS', 'RELATORIOS', 'CHECKLISTS', 'VH', 'WHITEBOARD', 'LEMBRETES'];
+        const uniqueTabs = new Set([...defaultOrder, ...p.tabOrder]);
         setTabOrder(Array.from(uniqueTabs));
       }
       if (p.vhConfig) setVhConfig(p.vhConfig);
@@ -796,7 +830,15 @@ export default function App() {
     setSelection([]);
   }, [activeTab]);
 
-  const addNotification = useCallback((tipo: NotificacaoApp['tipo'], titulo: string, mensagem: string) => {
+  // Deduplication: track which notification keys already fired this session
+  const shownNotifKeys = useRef<Set<string>>(new Set());
+
+  const addNotification = useCallback((tipo: NotificacaoApp['tipo'], titulo: string, mensagem: string, dedupKey?: string) => {
+    // If a dedupKey is provided, skip if already shown this session
+    if (dedupKey) {
+      if (shownNotifKeys.current.has(dedupKey)) return;
+      shownNotifKeys.current.add(dedupKey);
+    }
     const newNotif: NotificacaoApp = {
       id: generateId(),
       tipo,
@@ -806,6 +848,9 @@ export default function App() {
       lida: false
     };
     setNotificacoes(prev => [newNotif, ...prev].slice(0, 50));
+    // Show as toast too
+    setToasts(prev => [newNotif, ...prev].slice(0, 3));
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== newNotif.id)), 4000);
   }, []);
 
   useEffect(() => {
@@ -1621,15 +1666,32 @@ export default function App() {
                     {activeNotifTab === 'notificacoes' ? (
                       <div className="divide-y divide-app-border/50">
                         <div className="p-3 flex justify-between items-center bg-app-bg/30 sticky top-0 z-10 backdrop-blur-md">
-                           <span className="text-[8px] font-bold uppercase text-app-text-muted tracking-widest">Recentes</span>
+                           <span className="text-[8px] font-bold uppercase text-app-text-muted tracking-widest">
+                             Recentes
+                             {notificacoes.filter(n => !n.lida).length > 0 && (
+                               <span className="ml-2 text-[7px] bg-blue-500 text-white px-1.5 py-0.5 rounded-full font-black">
+                                 {notificacoes.filter(n => !n.lida).length} nova{notificacoes.filter(n => !n.lida).length !== 1 ? 's' : ''}
+                               </span>
+                             )}
+                           </span>
                            {notificacoes.length > 0 && (
-                             <button
-                               onClick={() => { playUISound('tap'); setNotificacoes([]); }}
-                               className="text-[8px] font-black uppercase text-rose-500 hover:text-rose-600 transition-colors flex items-center gap-1"
-                               title="Excluir todas as notificações"
-                             >
-                               <Trash2 size={10} /> Limpar tudo
-                             </button>
+                             <div className="flex items-center gap-2">
+                               {notificacoes.some(n => !n.lida) && (
+                                 <button
+                                   onClick={() => { playUISound('tap'); setNotificacoes(prev => prev.map(n => ({ ...n, lida: true }))); }}
+                                   className="text-[8px] font-black uppercase text-blue-500 hover:text-blue-600 transition-colors flex items-center gap-1"
+                                 >
+                                   <CheckIcon size={9} /> Marcar lidas
+                                 </button>
+                               )}
+                               <button
+                                 onClick={() => { playUISound('tap'); setNotificacoes([]); shownNotifKeys.current.clear(); }}
+                                 className="text-[8px] font-black uppercase text-rose-500 hover:text-rose-600 transition-colors flex items-center gap-1"
+                                 title="Limpar todas as notificações"
+                               >
+                                 <Trash2 size={9} /> Limpar
+                               </button>
+                             </div>
                            )}
                         </div>
                         {notificacoes.length === 0 ? (
@@ -1668,8 +1730,24 @@ export default function App() {
                     ) : (
                       <div className="divide-y divide-app-border/50">
                         <div className="p-3 flex justify-between items-center bg-app-bg/30 sticky top-0 z-10 backdrop-blur-md">
-                           <span className="text-[8px] font-bold uppercase text-app-text-muted tracking-widest">Meus Lembretes</span>
-                           <button onClick={() => { playUISound('tap'); setIsLembreteModalOpen(true); setEditingLembrete(null); }} className="text-[8px] font-black uppercase text-app-accent-blue bg-app-accent-blue/10 px-2 py-1 rounded-md hover:bg-app-accent-blue/20 transition-all">+ Criar</button>
+                           <span className="text-[8px] font-bold uppercase text-app-text-muted tracking-widest">
+                             Meus Lembretes
+                             {pendingRemindersCount > 0 && (
+                               <span className="ml-2 text-[7px] bg-red-500 text-white px-1.5 py-0.5 rounded-full font-black">{pendingRemindersCount}</span>
+                             )}
+                           </span>
+                           <div className="flex items-center gap-2">
+                             {lembretes.some(l => l.concluido) && (
+                               <button
+                                 onClick={() => { playUISound('tap'); const ids = lembretes.filter(l => l.concluido).map(l => l.id); if (ids.length) performDelete(ids, 'LEMBRETES'); }}
+                                 className="text-[8px] font-black uppercase text-rose-500 hover:text-rose-600 transition-colors flex items-center gap-1"
+                                 title="Remover lembretes já concluídos"
+                               >
+                                 <Trash2 size={9} /> Limpar
+                               </button>
+                             )}
+                             <button onClick={() => { playUISound('tap'); setIsLembreteModalOpen(true); setEditingLembrete(null); }} className="text-[8px] font-black uppercase text-app-accent-blue bg-app-accent-blue/10 px-2 py-1 rounded-md hover:bg-app-accent-blue/20 transition-all">+ Criar</button>
+                           </div>
                         </div>
                         
                         {lembretes.length === 0 ? (
