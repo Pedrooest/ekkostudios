@@ -1753,6 +1753,7 @@ export default function App() {
                 <ProfilePopover
                   profile={perfilUsuario}
                   tasks={tasks}
+                  planejamento={planejamento}
                   onUpdate={(updates) => {
                     const newProfile = { ...perfilUsuario, ...updates };
                     setPerfilUsuario(newProfile);

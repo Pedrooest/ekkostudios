@@ -9,7 +9,8 @@ import {
     List, LayoutGrid, Calendar as LucideCalendar, Search, Filter,
     ArrowUpDown, Plus, Clock, MessageSquare, Box, ExternalLink,
     X, Trash2, Zap, LayoutDashboard, Image as ImageIcon, CheckCircle2, FileText, ShieldAlert, Eye, History as HistoryIcon, Loader2, User,
-    Columns, CalendarDays, ChevronLeft, ChevronRight, CheckSquare, ArrowUp, ArrowDown, Check, Mail, Flag, Paperclip
+    Columns, CalendarDays, ChevronLeft, ChevronRight, CheckSquare, ArrowUp, ArrowDown, Check, Mail, Flag, Paperclip,
+    Film, Music, Archive, Code2, Download
 } from 'lucide-react';
 import { sendEmail, templates } from '../utils/emailService';
 import { DatabaseService } from '../DatabaseService';
@@ -926,33 +927,102 @@ export function TaskDetailPanel({
                 <section>
                     <div className="flex items-center justify-between mb-4 border-b border-zinc-200 dark:border-zinc-800 pb-2">
                         <h4 className="text-[10px] font-black uppercase text-zinc-900 dark:text-zinc-100 tracking-[0.2em] flex items-center gap-2">
-                            <ImageIcon size={14} className="text-zinc-400" /> Ativos e Mídia
+                            <Paperclip size={14} className="text-zinc-400" /> Arquivos e Mídia
+                            {(t.Anexos || []).length > 0 && (
+                                <span className="text-[9px] bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 px-2 py-0.5 rounded-full font-bold">
+                                    {(t.Anexos || []).length}
+                                </span>
+                            )}
                         </h4>
                         <button
                             onClick={() => fileInputRef.current?.click()}
-                            className="text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors flex items-center gap-2"
+                            className="text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700"
                         >
-                            {uploading ? <Loader2 size={12} className="animate-spin" /> : <><Plus size={12} /> Upload</>}
+                            {uploading ? <Loader2 size={11} className="animate-spin" /> : <><Plus size={11} /> Adicionar</>}
                         </button>
-                        <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" multiple accept="image/*" />
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileUpload}
+                            className="hidden"
+                            multiple
+                            accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar"
+                        />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                        {(t.Anexos || []).map(file => (
-                            <div key={file.id} className="group relative aspect-video rounded-xl overflow-hidden bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 transition-all shadow-sm">
-                                <img src={file.dados} alt={file.nomeArquivo} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-[1px]">
-                                    <button onClick={() => setLightboxImage(file.dados)} className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md transition-all shadow-lg"><Eye size={16} /></button>
-                                    <button onClick={() => updateAttachments((t.Anexos || []).filter(a => a.id !== file.id))} className="w-8 h-8 rounded-lg bg-rose-500/30 hover:bg-rose-500 text-rose-100 flex items-center justify-center backdrop-blur-md transition-all shadow-lg"><Trash2 size={16} /></button>
+                    {/* Drop zone + grid */}
+                    <div
+                        className="space-y-2"
+                        onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('ring-2', 'ring-blue-400', 'rounded-2xl'); }}
+                        onDragLeave={(e) => { e.currentTarget.classList.remove('ring-2', 'ring-blue-400', 'rounded-2xl'); }}
+                        onDrop={(e) => {
+                            e.preventDefault();
+                            e.currentTarget.classList.remove('ring-2', 'ring-blue-400', 'rounded-2xl');
+                            if (e.dataTransfer.files.length > 0) processFiles(e.dataTransfer.files);
+                        }}
+                    >
+                        {(t.Anexos || []).length > 0 ? (
+                            <>
+                                {/* Image grid */}
+                                {(t.Anexos || []).some(f => f.tipoMime?.startsWith('image/')) && (
+                                    <div className="grid grid-cols-2 gap-2 mb-2">
+                                        {(t.Anexos || []).filter(f => f.tipoMime?.startsWith('image/')).map(file => (
+                                            <div key={file.id} className="group relative aspect-video rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 transition-all shadow-sm">
+                                                <img src={file.dados} alt={file.nomeArquivo} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[1px]">
+                                                    <button onClick={() => setLightboxImage(file.dados)} className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/40 text-white flex items-center justify-center backdrop-blur-md transition-all shadow-lg" title="Visualizar"><Eye size={14} /></button>
+                                                    <a href={file.dados} download={file.nomeArquivo} className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/40 text-white flex items-center justify-center backdrop-blur-md transition-all shadow-lg" title="Baixar"><Download size={14} /></a>
+                                                    <button onClick={() => updateAttachments((t.Anexos || []).filter(a => a.id !== file.id))} className="w-8 h-8 rounded-lg bg-rose-500/60 hover:bg-rose-500 text-white flex items-center justify-center backdrop-blur-md transition-all shadow-lg" title="Remover"><Trash2 size={14} /></button>
+                                                </div>
+                                                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <p className="text-[9px] text-white font-bold truncate">{file.nomeArquivo}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                {/* Non-image files list */}
+                                {(t.Anexos || []).filter(f => !f.tipoMime?.startsWith('image/')).map(file => {
+                                    const isVideo = file.tipoMime?.startsWith('video/');
+                                    const isAudio = file.tipoMime?.startsWith('audio/');
+                                    const isPdf = file.tipoMime === 'application/pdf';
+                                    const isArchive = file.tipoMime?.includes('zip') || file.tipoMime?.includes('rar');
+                                    const isCode = file.tipoMime?.includes('javascript') || file.tipoMime?.includes('json') || file.tipoMime?.includes('xml') || file.nomeArquivo?.match(/\.(js|ts|json|xml|html|css)$/i);
+                                    const FileIcon = isVideo ? Film : isAudio ? Music : isPdf ? FileText : isArchive ? Archive : isCode ? Code2 : FileText;
+                                    const iconColor = isVideo ? 'text-purple-500' : isAudio ? 'text-pink-500' : isPdf ? 'text-red-500' : isArchive ? 'text-amber-500' : 'text-blue-500';
+                                    const sizeStr = file.tamanho ? (file.tamanho > 1024 * 1024 ? `${(file.tamanho / 1024 / 1024).toFixed(1)}MB` : `${Math.round(file.tamanho / 1024)}KB`) : '';
+                                    return (
+                                        <div key={file.id} className="group flex items-center gap-3 p-3 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 transition-all">
+                                            <div className={`w-9 h-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 ${iconColor}`}>
+                                                <FileIcon size={16} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">{file.nomeArquivo}</p>
+                                                <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wide">{file.tipoMime?.split('/')[1]?.toUpperCase() || 'FILE'}{sizeStr ? ` · ${sizeStr}` : ''}</p>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <a href={file.dados} download={file.nomeArquivo} className="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-blue-500 hover:text-white text-zinc-400 flex items-center justify-center transition-all" title="Baixar">
+                                                    <Download size={12} />
+                                                </a>
+                                                <button onClick={() => updateAttachments((t.Anexos || []).filter(a => a.id !== file.id))} className="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-rose-500 hover:text-white text-zinc-400 flex items-center justify-center transition-all" title="Remover">
+                                                    <Trash2 size={12} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </>
+                        ) : (
+                            <div
+                                className="border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl py-8 flex flex-col items-center justify-center gap-3 text-zinc-400 group hover:border-zinc-400 dark:hover:border-zinc-600 transition-all cursor-pointer"
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center border border-zinc-200 dark:border-zinc-700 group-hover:scale-105 transition-transform">
+                                    <Paperclip size={18} />
                                 </div>
-                            </div>
-                        ))}
-                        {(!t.Anexos || t.Anexos.length === 0) && (
-                            <div className="col-span-2 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl py-8 flex flex-col items-center justify-center gap-3 text-zinc-400 group hover:border-zinc-400 dark:hover:border-zinc-600 transition-all cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                                <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center border border-zinc-200 dark:border-zinc-700 group-hover:scale-105 transition-transform"><ImageIcon size={18} /></div>
                                 <div className="text-center">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest">Arraste Ativos Aqui</p>
-                                    <p className="text-[8px] font-bold uppercase opacity-60 mt-0.5">Imagens até 20MB</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest">Arraste arquivos aqui</p>
+                                    <p className="text-[8px] font-bold uppercase opacity-60 mt-0.5">Imagens, PDFs, vídeos, docs · até 20MB</p>
                                 </div>
                             </div>
                         )}
