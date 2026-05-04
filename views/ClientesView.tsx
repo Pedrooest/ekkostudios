@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { Button, Badge, Card, InputSelect } from '../Components';
-import { 
-  Users, Search, Plus, X, Phone, Instagram, Target, Palette, Trash2, CheckCircle2, 
-  Globe, Youtube, Music, Linkedin, Pin, Video, MessageCircle, Folder, FileText, 
-  Figma, Brush, Music2, Swords, Star, Link, Handshake, Mail, StickyNote, 
-  ChevronDown, ChevronUp, Download, Calendar, Clock, Image as ImageIcon, File
+import {
+  Users, Search, Plus, X, Phone, Instagram, Target, Palette, Trash2, CheckCircle2,
+  Globe, Youtube, Music, Linkedin, Pin, Video, MessageCircle, Folder, FileText,
+  Figma, Brush, Music2, Swords, Star, Link, Handshake, Mail, StickyNote,
+  ChevronDown, ChevronUp, Download, Calendar, Clock, Image as ImageIcon, File,
+  Camera, LayoutTemplate, TrendingUp, CheckSquare
 } from 'lucide-react';
 
 interface ClientesViewProps {
@@ -83,7 +84,7 @@ const Accordion = React.memo<{
   </div>
 ));
 
-export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, onOpenColorPicker, savingStatus = {} }: ClientesViewProps) => {
+export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, onOpenColorPicker, savingStatus = {}, tasks = [], planejamento = [] }: ClientesViewProps & { tasks?: any[]; planejamento?: any[] }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'Todos' | 'Ativo' | 'Inativo'>('Todos');
   const [selectedClient, setSelectedClient] = useState<any | null>(null);
@@ -225,48 +226,111 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
               const bgHex = client['Cor (HEX)'] || '#3B82F6';
               const initial = (client.Nome || '?').charAt(0).toUpperCase();
               const isAtivo = client.Status === 'Ativo';
+              const clientTasks = tasks.filter((t: any) => t.Cliente_ID === client.id && t.Status !== 'concluido');
+              const clientPostsThisMonth = planejamento.filter((p: any) => {
+                const m = new Date().getMonth();
+                const y = new Date().getFullYear();
+                const d = new Date(p.Data + 'T12:00:00');
+                return p.Cliente_ID === client.id && d.getMonth() === m && d.getFullYear() === y;
+              });
+              const clientPostsDone = clientPostsThisMonth.filter((p: any) => p["Status do conteúdo"] === 'Concluído').length;
 
               return (
-                <Card
+                <div
                   key={client.id}
                   onClick={() => setSelectedClient(client)}
-                  className={`group relative overflow-hidden lift hover:shadow-xl !p-5 ${isAtivo ? 'hover:border-zinc-400 dark:hover:border-zinc-500' : 'opacity-60 saturate-50'}`}
+                  className={`group relative bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 lift hover:shadow-2xl dark:hover:shadow-black/40 ${!isAtivo ? 'opacity-60 saturate-50' : 'hover:border-zinc-300 dark:hover:border-zinc-600'}`}
                 >
-                  <div className="absolute left-0 top-0 bottom-0 w-1 transition-all group-hover:w-1.5" style={{ backgroundColor: bgHex }}></div>
-                  
-                  <div className="flex items-center gap-4">
-                    <div 
-                      className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white text-lg shrink-0 shadow-inner group-hover:scale-105 transition-transform"
-                      style={{ backgroundColor: bgHex }}
+                  {/* Cover / banner strip */}
+                  <div
+                    className="h-16 relative overflow-hidden shrink-0"
+                    style={{
+                      background: client.cover_url
+                        ? undefined
+                        : `linear-gradient(135deg, ${bgHex}40 0%, ${bgHex}15 60%, transparent 100%)`,
+                    }}
+                  >
+                    {client.cover_url && (
+                      <img src={client.cover_url} alt="" className="w-full h-full object-cover" />
+                    )}
+                    {/* Palette dots */}
+                    {(client.paleta_cores || []).length > 0 && (
+                      <div className="absolute bottom-2 right-3 flex gap-1">
+                        {(client.paleta_cores || []).slice(0, 4).map((cor: string, i: number) => (
+                          <div key={i} className="w-3 h-3 rounded-full border border-white/50 shadow-sm" style={{ backgroundColor: cor }} />
+                        ))}
+                      </div>
+                    )}
+                    {/* Color swatch button */}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onOpenColorPicker?.(client.id, bgHex); }}
+                      className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/20 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-black/40"
+                      title="Alterar cor"
                     >
-                      {initial}
+                      <Palette size={11} />
+                    </button>
+                  </div>
+
+                  {/* Avatar overlapping cover */}
+                  <div className="px-4 pb-4">
+                    <div className="flex items-end justify-between -mt-6 mb-3">
+                      {/* Logo/avatar */}
+                      <div
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white text-lg shrink-0 shadow-lg ring-2 ring-white dark:ring-zinc-900 overflow-hidden group-hover:scale-105 transition-transform"
+                        style={{ backgroundColor: bgHex }}
+                      >
+                        {client.logo_url ? (
+                          <img src={client.logo_url} alt={client.Nome} className="w-full h-full object-cover" />
+                        ) : initial}
+                      </div>
+                      {/* Status badge */}
+                      <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${isAtivo ? 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400'}`}>
+                        <div className={`w-1.5 h-1.5 rounded-full ${isAtivo ? 'bg-emerald-500 glow-pulse' : 'bg-zinc-300 dark:bg-zinc-600'}`} />
+                        {client.Status || 'Ativo'}
+                      </div>
                     </div>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start mb-0.5 gap-2">
-                        <h3 className="font-semibold text-[15px] text-zinc-900 dark:text-zinc-100 truncate leading-tight">
-                          {client.Nome || 'Sem nome'}
-                        </h3>
+                    {/* Name + nicho */}
+                    <div className="mb-3">
+                      <h3 className="font-black text-[15px] text-zinc-900 dark:text-zinc-100 tracking-tight leading-tight truncate">
+                        {client.Nome || 'Sem nome'}
+                      </h3>
+                      <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest truncate mt-0.5">
+                        {client.Nicho || 'Sem nicho'}
+                      </p>
+                    </div>
+
+                    {/* Mini stats */}
+                    <div className="grid grid-cols-3 gap-2 mb-3">
+                      {[
+                        { label: 'Posts', value: clientPostsThisMonth.length, icon: <LayoutTemplate size={9} />, color: 'text-indigo-500' },
+                        { label: 'Concluídos', value: clientPostsDone, icon: <CheckSquare size={9} />, color: 'text-emerald-500' },
+                        { label: 'Tarefas', value: clientTasks.length, icon: <TrendingUp size={9} />, color: 'text-amber-500' },
+                      ].map(s => (
+                        <div key={s.label} className="flex flex-col items-center py-1.5 bg-zinc-50 dark:bg-zinc-800/60 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                          <span className={`${s.color} mb-0.5`}>{s.icon}</span>
+                          <span className="text-[11px] font-black text-zinc-900 dark:text-zinc-100">{s.value}</span>
+                          <span className="text-[7px] font-bold text-zinc-400 uppercase tracking-wide">{s.label}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Social links + color strip */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-zinc-400">
+                        {client.WhatsApp && <Phone size={12} className="hover:text-emerald-500 transition-colors cursor-pointer" onClick={(e) => { e.stopPropagation(); window.open(`https://wa.me/${client.WhatsApp.replace(/\D/g,'')}`, '_blank'); }} />}
+                        {client.Instagram && <Instagram size={12} className="hover:text-rose-500 transition-colors cursor-pointer" onClick={(e) => { e.stopPropagation(); window.open(`https://instagram.com/${client.Instagram.replace('@','')}`, '_blank'); }} />}
+                        {(client.links || []).some((l: any) => l.categoria === 'Site') && <Globe size={12} className="hover:text-blue-500 transition-colors" />}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[12px] font-medium text-zinc-500 dark:text-zinc-400 truncate">
-                          {client.Nicho || 'Sem nicho'}
-                        </span>
-                        <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${isAtivo ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-zinc-300 dark:bg-zinc-700'}`}></div>
+                      {/* Paleta strip */}
+                      <div className="flex items-center gap-0.5">
+                        {[bgHex, ...(client.paleta_cores || []).slice(0, 3)].slice(0, 4).map((c: string, i: number) => (
+                          <div key={i} className="w-3 h-3 rounded-full border border-white dark:border-zinc-900 shadow-sm" style={{ backgroundColor: c }} />
+                        ))}
                       </div>
                     </div>
                   </div>
-
-                  <div className="mt-4 pt-4 border-t border-zinc-50 dark:border-zinc-800/50 flex items-center justify-between">
-                    <div className="flex items-center gap-3 text-zinc-400">
-                      {client.WhatsApp && <Phone size={14} className="hover:text-emerald-500 transition-colors" />}
-                      {client.Instagram && <Instagram size={14} className="hover:text-rose-500 transition-colors" />}
-                    </div>
-                    <Badge color={isAtivo ? 'emerald' : 'slate'} className="text-[9px] font-black uppercase tracking-[0.15em] py-0.5 px-2">
-                      {client.Status}
-                    </Badge>
-                  </div>
-                </Card>
+                </div>
               );
             })}
           </div>
@@ -274,33 +338,75 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
       </div>
 
       {/* EDIT DRAWER */}
-      {selectedClient && (
+      {selectedClient && (() => {
+        const logoInputRef = React.createRef<HTMLInputElement>();
+        const coverInputRef = React.createRef<HTMLInputElement>();
+        return (
         <div className="fixed inset-0 z-[2200] flex justify-end pointer-events-auto overflow-hidden">
           <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm animate-fade-blur" onClick={closeDrawer}></div>
-          
-          <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 h-full shadow-2xl flex flex-col animate-slide-left ring-1 ring-white/10">
-            {/* Drawer Header */}
-            <div className="flex items-center justify-between px-6 py-6 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
-              <div className="flex items-center gap-4">
-                <div 
-                  className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white text-lg shadow-lg"
-                  style={{ backgroundColor: selectedClient['Cor (HEX)'] || '#3B82F6' }}
-                >
-                  {(selectedClient.Nome || '?').charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <h2 className="font-black text-lg uppercase tracking-tight text-zinc-900 dark:text-zinc-100 truncate max-w-[200px]">
-                    {selectedClient.Nome || 'Novo Cliente'}
-                  </h2>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 opacity-60">Configurações Base</p>
+
+          <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 h-full shadow-2xl flex flex-col animate-slide-in-right ring-1 ring-white/10 dark:ring-zinc-800">
+            {/* Cover + Avatar header */}
+            <div className="relative shrink-0">
+              {/* Cover */}
+              <div
+                className="h-20 relative cursor-pointer group/cover overflow-hidden"
+                style={{ background: selectedClient.cover_url ? undefined : `linear-gradient(135deg, ${selectedClient['Cor (HEX)'] || '#3B82F6'}40, ${selectedClient['Cor (HEX)'] || '#3B82F6'}10)` }}
+                onClick={() => coverInputRef.current?.click()}
+              >
+                {selectedClient.cover_url && <img src={selectedClient.cover_url} className="w-full h-full object-cover" alt="" />}
+                <div className="absolute inset-0 bg-black/0 group-hover/cover:bg-black/30 transition-all flex items-center justify-center opacity-0 group-hover/cover:opacity-100">
+                  <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-lg">
+                    <Camera size={11} className="text-white" />
+                    <span className="text-[9px] font-black text-white uppercase tracking-wider">Alterar capa</span>
+                  </div>
                 </div>
               </div>
-              <button 
-                onClick={closeDrawer}
-                className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all hover:rotate-90 active:scale-90 shadow-sm"
-              >
-                <X size={20} />
-              </button>
+              <input ref={coverInputRef} type="file" accept="image/*" className="hidden"
+                onChange={async (e) => {
+                  const f = e.target.files?.[0];
+                  if (!f) return;
+                  const r = new FileReader();
+                  r.onloadend = () => handleUpdateField('cover_url', r.result as string);
+                  r.readAsDataURL(f);
+                }}
+              />
+
+              {/* Avatar row */}
+              <div className="px-5 pb-4">
+                <div className="flex items-end justify-between -mt-7">
+                  {/* Logo */}
+                  <div className="relative group/logo cursor-pointer" onClick={() => logoInputRef.current?.click()}>
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-white text-xl shadow-xl ring-3 ring-white dark:ring-zinc-900 overflow-hidden" style={{ backgroundColor: selectedClient['Cor (HEX)'] || '#3B82F6' }}>
+                      {selectedClient.logo_url ? <img src={selectedClient.logo_url} alt="" className="w-full h-full object-cover" /> : (selectedClient.Nome || '?').charAt(0).toUpperCase()}
+                    </div>
+                    <div className="absolute inset-0 rounded-2xl bg-black/0 group-hover/logo:bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover/logo:opacity-100">
+                      <Camera size={14} className="text-white" />
+                    </div>
+                  </div>
+                  <input ref={logoInputRef} type="file" accept="image/*" className="hidden"
+                    onChange={async (e) => {
+                      const f = e.target.files?.[0];
+                      if (!f) return;
+                      const r = new FileReader();
+                      r.onloadend = () => handleUpdateField('logo_url', r.result as string);
+                      r.readAsDataURL(f);
+                    }}
+                  />
+                  <button onClick={closeDrawer} className="w-9 h-9 flex items-center justify-center rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all hover:rotate-90 active:scale-90 shadow-sm">
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="mt-2">
+                  <h2 className="font-black text-lg uppercase tracking-tight text-zinc-900 dark:text-zinc-100 truncate leading-tight">
+                    {selectedClient.Nome || 'Novo Cliente'}
+                  </h2>
+                  <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-zinc-400 mt-0.5">
+                    {selectedClient.Nicho || 'Configurações do cliente'}
+                  </p>
+                </div>
+              </div>
+              <div className="h-px bg-zinc-100 dark:bg-zinc-800" />
             </div>
 
             {/* Drawer Body Form */}
@@ -956,10 +1062,11 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                 <CheckCircle2 size={18} className="mr-2 shrink-0" /> SALVAR E FINALIZAR
               </Button>
             </div>
-            
+
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* MODAL DE REGISTRO DE LOG */}
       {isLogModalOpen && (

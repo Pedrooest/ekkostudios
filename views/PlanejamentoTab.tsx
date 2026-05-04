@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
     Download, Plus, Search, Clock, User, Check, X,
     Filter, Image as ImageIcon, Archive, Database,
@@ -15,7 +15,8 @@ import {
     PlayCircle,
     CalendarCheck,
     CalendarPlus,
-    CheckCircle2
+    CheckCircle2,
+    Zap, Eye, FileImage, Pencil
 } from 'lucide-react';
 import { playUISound } from '../utils/uiSounds';
 import { getCalendarDays, MONTH_NAMES_BR, WEEKDAYS_BR_SHORT } from '../utils/calendarUtils';
@@ -33,6 +34,140 @@ const tryPlaySound = (type: any) => {
     } else if (typeof window !== 'undefined' && (window as any).playUISound) {
         (window as any).playUISound(type);
     }
+};
+
+// ─── Hover Preview Tooltip ────────────────────────────────────────────────
+const STATUS_COLORS_PLAN: Record<string, { bg: string; text: string; dot: string }> = {
+    'Pendente':       { bg: 'bg-zinc-100 dark:bg-zinc-800',     text: 'text-zinc-600 dark:text-zinc-400',    dot: 'bg-zinc-400' },
+    'Em produção':    { bg: 'bg-blue-50 dark:bg-blue-500/15',   text: 'text-blue-600 dark:text-blue-400',    dot: 'bg-blue-500' },
+    'Em aprovação':   { bg: 'bg-amber-50 dark:bg-amber-500/15', text: 'text-amber-600 dark:text-amber-400',  dot: 'bg-amber-500' },
+    'Concluído':      { bg: 'bg-emerald-50 dark:bg-emerald-500/15', text: 'text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500' },
+    'Arquivado':      { bg: 'bg-zinc-50 dark:bg-zinc-800',      text: 'text-zinc-400',                       dot: 'bg-zinc-300' },
+};
+
+interface HoverPreviewProps {
+    evento: any;
+    client?: any;
+    redeStyle: any;
+    anchorRect: DOMRect;
+}
+
+const HoverPreview: React.FC<HoverPreviewProps> = ({ evento, client, redeStyle, anchorRect }) => {
+    const Icon = redeStyle.icon;
+    const status = evento["Status do conteúdo"] || 'Pendente';
+    const sc = STATUS_COLORS_PLAN[status] || STATUS_COLORS_PLAN['Pendente'];
+    const clientColor = client?.['Cor (HEX)'] || '#6366f1';
+
+    // Position: prefer right of card, fallback left
+    const vpW = window.innerWidth;
+    const PREVIEW_W = 280;
+    const PREVIEW_H = 340;
+    let left = anchorRect.right + 8;
+    if (left + PREVIEW_W > vpW - 12) left = anchorRect.left - PREVIEW_W - 8;
+    let top = anchorRect.top;
+    if (top + PREVIEW_H > window.innerHeight - 12) top = window.innerHeight - PREVIEW_H - 12;
+
+    return (
+        <div
+            className="fixed z-[9999] w-[280px] bg-white dark:bg-[#111114] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl dark:shadow-black/60 overflow-hidden animate-pop pointer-events-none"
+            style={{ left, top }}
+        >
+            {/* Image preview or gradient placeholder */}
+            {evento.imagem_url ? (
+                <div className="h-36 relative overflow-hidden">
+                    <img src={evento.imagem_url} alt="preview" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                    <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between">
+                        <span className="text-[9px] font-black text-white uppercase tracking-widest opacity-80">{evento.Rede_Social}</span>
+                        <span className="text-[9px] font-bold text-white opacity-70">{evento.Hora || '09:00'}</span>
+                    </div>
+                </div>
+            ) : (
+                <div
+                    className="h-20 relative overflow-hidden flex items-center justify-center"
+                    style={{ background: `linear-gradient(135deg, ${clientColor}25, ${clientColor}08)` }}
+                >
+                    <div className="absolute inset-0 opacity-10" style={{ backgroundImage: `radial-gradient(circle at 70% 30%, ${clientColor}, transparent 60%)` }} />
+                    <div className="relative flex flex-col items-center gap-1.5">
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${redeStyle.bg} ${redeStyle.text}`}>
+                            <Icon size={18} />
+                        </div>
+                        <span className="text-[8px] font-black uppercase tracking-widest text-zinc-400">{evento.Rede_Social} · {evento.Hora || '09:00'}</span>
+                    </div>
+                </div>
+            )}
+
+            {/* Content */}
+            <div className="p-4 space-y-3">
+                {/* Status + client */}
+                <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5">
+                        <div className="w-4 h-4 rounded-full shrink-0 flex items-center justify-center font-black text-[7px] text-white" style={{ backgroundColor: clientColor }}>
+                            {(client?.Nome || '?').charAt(0)}
+                        </div>
+                        <span className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400 truncate max-w-[100px]">{client?.Nome || '—'}</span>
+                    </div>
+                    <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${sc.bg} ${sc.text}`}>
+                        <div className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+                        {status}
+                    </div>
+                </div>
+
+                {/* Content text */}
+                <p className="text-[11px] font-medium text-zinc-800 dark:text-zinc-200 leading-relaxed line-clamp-3">
+                    {evento.Conteúdo || '—'}
+                </p>
+
+                {/* Gancho + CTA */}
+                {(evento.Gancho || evento.CTA) && (
+                    <div className="space-y-1.5 pt-1 border-t border-zinc-100 dark:border-zinc-800">
+                        {evento.Gancho && (
+                            <div className="flex items-start gap-2">
+                                <Zap size={9} className="text-amber-500 mt-0.5 shrink-0" />
+                                <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400 line-clamp-2 leading-snug">
+                                    <span className="text-amber-600 dark:text-amber-400 uppercase tracking-wider">Gancho: </span>
+                                    {evento.Gancho}
+                                </p>
+                            </div>
+                        )}
+                        {evento.CTA && (
+                            <div className="flex items-start gap-2">
+                                <Eye size={9} className="text-blue-500 mt-0.5 shrink-0" />
+                                <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400 line-clamp-1 leading-snug">
+                                    <span className="text-blue-600 dark:text-blue-400 uppercase tracking-wider">CTA: </span>
+                                    {evento.CTA}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Formato */}
+                {(evento.Formato || evento["Tipo de conteúdo"]) && (
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                        {evento.Formato && (
+                            <span className="text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
+                                {evento.Formato}
+                            </span>
+                        )}
+                        {evento["Tipo de conteúdo"] && (
+                            <span className="text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
+                                {evento["Tipo de conteúdo"]}
+                            </span>
+                        )}
+                    </div>
+                )}
+
+                {/* No image prompt */}
+                {!evento.imagem_url && (
+                    <div className="flex items-center gap-1.5 text-[8px] font-bold text-zinc-300 dark:text-zinc-600 uppercase tracking-wider">
+                        <FileImage size={9} />
+                        Sem mídia anexada
+                    </div>
+                )}
+            </div>
+        </div>
+    );
 };
 
 const SavingIndicator = ({ status }: { status?: 'saving' | 'success' | 'error' }) => {
@@ -101,6 +236,8 @@ export default function PlanejamentoTab({
     const { login, disconnect, createEvent } = useGoogleCalendar();
     const [exportProgress, setExportProgress] = useState<{ current: number; total: number } | null>(null);
     const [notifyMembers, setNotifyMembers] = useState(false);
+    const [hoverPreview, setHoverPreview] = useState<{ evento: any; rect: DOMRect } | null>(null);
+    const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Escape listener for modals and sidebars
     useEffect(() => {
@@ -686,6 +823,14 @@ export default function PlanejamentoTab({
                                                         onClick={() => openEditSidebar(evento.id)}
                                                         className={`group/card relative p-2 rounded-lg border-l-[3px] ${redeStyle.bg} bg-opacity-30 dark:bg-opacity-10 text-left cursor-pointer transition-all hover:translate-x-0.5 active:scale-[0.98] ios-btn flex flex-col gap-1 shadow-sm`}
                                                         style={{ borderLeftColor: client?.['Cor (HEX)'] || '#3B82F6' }}
+                                                        onMouseEnter={(e) => {
+                                                            const rect = e.currentTarget.getBoundingClientRect();
+                                                            hoverTimerRef.current = setTimeout(() => setHoverPreview({ evento, rect }), 350);
+                                                        }}
+                                                        onMouseLeave={() => {
+                                                            if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+                                                            setHoverPreview(null);
+                                                        }}
                                                     >
                                                         <div className="flex items-center justify-between">
                                                             <div className={`flex items-center gap-1 ${redeStyle.text}`}>
@@ -1396,6 +1541,20 @@ export default function PlanejamentoTab({
                     </div>
                 </div>
             )}
+
+            {/* Hover Preview Portal */}
+            {hoverPreview && (() => {
+                const client = clients.find((c: any) => c.id === hoverPreview.evento.Cliente_ID);
+                const redeStyle = getRedeStyle(hoverPreview.evento.Rede_Social);
+                return (
+                    <HoverPreview
+                        evento={hoverPreview.evento}
+                        client={client}
+                        redeStyle={redeStyle}
+                        anchorRect={hoverPreview.rect}
+                    />
+                );
+            })()}
         </div>
     );
 }
