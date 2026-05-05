@@ -1253,41 +1253,74 @@ export default function PlanejamentoTab({
 
                             {/* ── TAREFAS VINCULADAS ── */}
                             {(() => {
-                                const linkedTasks = selectedEvent
+                                // Directly linked to this planning item
+                                const directlyLinked = selectedEvent
                                     ? tasks.filter((t: any) => t.Relacionado_ID === selectedEvent.id && !t.__archived)
                                     : [];
+                                // All tasks from same client (not directly linked to anything)
+                                const clientTasks = selectedEvent
+                                    ? tasks.filter((t: any) =>
+                                        t.Cliente_ID === selectedEvent.Cliente_ID &&
+                                        !t.__archived &&
+                                        !t.Relacionado_ID &&
+                                        !directlyLinked.find((d: any) => d.id === t.id)
+                                      )
+                                    : [];
+
                                 const statusDot: Record<string, string> = {
-                                    'todo': '#94a3b8', 'em andamento': '#f59e0b',
+                                    'todo': '#94a3b8', 'em andamento': '#f59e0b', 'review': '#3b82f6',
                                     'done': '#10b981', 'Concluído': '#10b981', 'CONCLUÍDO': '#10b981',
                                 };
+                                const isDone = (t: any) => ['done','Concluído','CONCLUÍDO'].includes(t.Status);
+
+                                const TaskRow = ({ t }: { t: any }) => (
+                                    <div className="flex items-center gap-3 p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/50 shadow-sm">
+                                        <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: statusDot[t.Status] || '#94a3b8' }} />
+                                        <span className={`flex-1 text-[11px] font-bold truncate ${isDone(t) ? 'line-through text-zinc-400' : 'text-zinc-700 dark:text-zinc-300'}`}>{t.Título}</span>
+                                        <span className="shrink-0 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full"
+                                            style={{ backgroundColor: (statusDot[t.Status] || '#94a3b8') + '20', color: statusDot[t.Status] || '#94a3b8' }}
+                                        >{t.Prioridade}</span>
+                                    </div>
+                                );
+
+                                const totalDone = [...directlyLinked, ...clientTasks].filter(isDone).length;
+                                const totalAll = directlyLinked.length + clientTasks.length;
+
                                 return (
                                     <div className="mb-8 p-5 rounded-3xl bg-zinc-50 dark:bg-zinc-950/50 border border-zinc-100 dark:border-zinc-800/60 space-y-3">
                                         <div className="flex items-center justify-between">
                                             <h4 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">
                                                 <CheckSquare size={12} className="shrink-0 text-blue-500" />
-                                                Tarefas Vinculadas
+                                                Tarefas
                                             </h4>
-                                            {linkedTasks.length > 0 && (
+                                            {totalAll > 0 && (
                                                 <span className="px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-black border border-blue-100 dark:border-blue-500/20">
-                                                    {linkedTasks.filter((t: any) => ['done','Concluído','CONCLUÍDO'].includes(t.Status)).length}/{linkedTasks.length} concluídas
+                                                    {totalDone}/{totalAll} concluídas
                                                 </span>
                                             )}
                                         </div>
 
-                                        {linkedTasks.length > 0 && (
+                                        {/* Directly linked */}
+                                        {directlyLinked.length > 0 && (
                                             <div className="space-y-2">
-                                                {linkedTasks.map((t: any) => (
-                                                    <div key={t.id} className="flex items-center gap-3 p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/50 shadow-sm">
-                                                        <div className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-white dark:ring-zinc-900"
-                                                            style={{ backgroundColor: statusDot[t.Status] || '#94a3b8' }}
-                                                        />
-                                                        <span className="flex-1 text-[11px] font-bold text-zinc-700 dark:text-zinc-300 truncate">{t.Título}</span>
-                                                        <span className="shrink-0 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full"
-                                                            style={{ backgroundColor: (statusDot[t.Status] || '#94a3b8') + '20', color: statusDot[t.Status] || '#94a3b8' }}
-                                                        >{t.Prioridade}</span>
-                                                    </div>
-                                                ))}
+                                                <p className="text-[8px] font-black uppercase tracking-widest text-blue-500/70 ml-1">📌 Vinculadas a este post</p>
+                                                {directlyLinked.map((t: any) => <TaskRow key={t.id} t={t} />)}
                                             </div>
+                                        )}
+
+                                        {/* Other client tasks */}
+                                        {clientTasks.length > 0 && (
+                                            <div className="space-y-2">
+                                                <p className="text-[8px] font-black uppercase tracking-widest text-zinc-400 ml-1">📋 Outras tarefas do cliente</p>
+                                                {clientTasks.slice(0, 5).map((t: any) => <TaskRow key={t.id} t={t} />)}
+                                                {clientTasks.length > 5 && (
+                                                    <p className="text-center text-[9px] font-black text-zinc-400 uppercase tracking-wider">+{clientTasks.length - 5} mais na aba de Tarefas</p>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {totalAll === 0 && (
+                                            <p className="text-center text-[10px] font-bold text-zinc-400 py-2 italic">Nenhuma tarefa para este cliente ainda.</p>
                                         )}
 
                                         <button
