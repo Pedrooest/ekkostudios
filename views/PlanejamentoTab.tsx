@@ -16,7 +16,8 @@ import {
     CalendarCheck,
     CalendarPlus,
     CheckCircle2,
-    Zap, Eye, FileImage, Pencil
+    Zap, Eye, FileImage, Pencil,
+    CheckSquare, Link2
 } from 'lucide-react';
 import { playUISound } from '../utils/uiSounds';
 import { getCalendarDays, MONTH_NAMES_BR, WEEKDAYS_BR_SHORT } from '../utils/calendarUtils';
@@ -1250,6 +1251,70 @@ export default function PlanejamentoTab({
                                 </label>
                             </div>
 
+                            {/* ── TAREFAS VINCULADAS ── */}
+                            {(() => {
+                                const linkedTasks = selectedEvent
+                                    ? tasks.filter((t: any) => t.Relacionado_ID === selectedEvent.id && !t.__archived)
+                                    : [];
+                                const statusDot: Record<string, string> = {
+                                    'todo': '#94a3b8', 'em andamento': '#f59e0b',
+                                    'done': '#10b981', 'Concluído': '#10b981', 'CONCLUÍDO': '#10b981',
+                                };
+                                return (
+                                    <div className="mb-8 p-5 rounded-3xl bg-zinc-50 dark:bg-zinc-950/50 border border-zinc-100 dark:border-zinc-800/60 space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">
+                                                <CheckSquare size={12} className="shrink-0 text-blue-500" />
+                                                Tarefas Vinculadas
+                                            </h4>
+                                            {linkedTasks.length > 0 && (
+                                                <span className="px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-black border border-blue-100 dark:border-blue-500/20">
+                                                    {linkedTasks.filter((t: any) => ['done','Concluído','CONCLUÍDO'].includes(t.Status)).length}/{linkedTasks.length} concluídas
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {linkedTasks.length > 0 && (
+                                            <div className="space-y-2">
+                                                {linkedTasks.map((t: any) => (
+                                                    <div key={t.id} className="flex items-center gap-3 p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/50 shadow-sm">
+                                                        <div className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-white dark:ring-zinc-900"
+                                                            style={{ backgroundColor: statusDot[t.Status] || '#94a3b8' }}
+                                                        />
+                                                        <span className="flex-1 text-[11px] font-bold text-zinc-700 dark:text-zinc-300 truncate">{t.Título}</span>
+                                                        <span className="shrink-0 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full"
+                                                            style={{ backgroundColor: (statusDot[t.Status] || '#94a3b8') + '20', color: statusDot[t.Status] || '#94a3b8' }}
+                                                        >{t.Prioridade}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        <button
+                                            onClick={async () => {
+                                                if (!selectedEvent) return;
+                                                tryPlaySound('success');
+                                                await onAdd('TAREFAS', {
+                                                    Cliente_ID: selectedEvent.Cliente_ID,
+                                                    Título: `📅 ${(selectedEvent.Conteúdo || 'Post do planejamento').slice(0, 60)}`,
+                                                    Área: 'Conteúdo',
+                                                    Status: 'todo',
+                                                    Prioridade: 'Média',
+                                                    Data_Entrega: selectedEvent.Data,
+                                                    Relacionado_A: 'Planejamento',
+                                                    Relacionado_ID: selectedEvent.id,
+                                                    Relacionado_Conteudo: selectedEvent.Conteúdo
+                                                });
+                                            }}
+                                            className="ios-btn w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-dashed border-zinc-200 dark:border-zinc-700/50 text-[10px] font-black uppercase tracking-wider text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-400/60 hover:bg-blue-50/50 dark:hover:bg-blue-500/5 transition-all"
+                                        >
+                                            <Plus size={14} className="shrink-0" />
+                                            Criar tarefa vinculada
+                                        </button>
+                                    </div>
+                                );
+                            })()}
+
                             <div className="flex gap-4 mb-6">
                                 <button onClick={handleDuplicateEvent} className="flex-1 py-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:scale-105 active:scale-95 text-zinc-800 dark:text-zinc-200 shadow-sm">Duplicar</button>
                                 <button onClick={() => selectedEvent && performArchive([selectedEvent.id], 'PLANEJAMENTO', true)} className="flex-1 py-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:scale-105 active:scale-95 text-zinc-800 dark:text-zinc-200 shadow-sm">Arquivar</button>
@@ -1479,9 +1544,22 @@ export default function PlanejamentoTab({
                                                                         <div className="text-[13px] font-bold text-zinc-800 leading-snug break-words tracking-tight italic">
                                                                             "{evt.Conteúdo}"
                                                                         </div>
-                                                                        <div className="text-[9px] font-black uppercase tracking-widest mt-2 bg-zinc-50 px-3 py-1.5 rounded-lg w-fit flex items-center gap-2 text-zinc-400 border border-zinc-100">
-                                                                            <User size={10} strokeWidth={3} className="shrink-0" />
-                                                                            <span className="truncate max-w-[80px]">{clients.find(c => c.id === evt.Cliente_ID)?.Nome || 'GERAL'}</span>
+                                                                        <div className="flex items-center gap-2 flex-wrap mt-2">
+                                                                            <div className="text-[9px] font-black uppercase tracking-widest bg-zinc-50 px-3 py-1.5 rounded-lg w-fit flex items-center gap-2 text-zinc-400 border border-zinc-100">
+                                                                                <User size={10} strokeWidth={3} className="shrink-0" />
+                                                                                <span className="truncate max-w-[80px]">{clients.find(c => c.id === evt.Cliente_ID)?.Nome || 'GERAL'}</span>
+                                                                            </div>
+                                                                            {(() => {
+                                                                                const linked = tasks.filter((t: any) => t.Relacionado_ID === evt.id && !t.__archived);
+                                                                                if (linked.length === 0) return null;
+                                                                                const done = linked.filter((t: any) => ['done','Concluído','CONCLUÍDO'].includes(t.Status)).length;
+                                                                                return (
+                                                                                    <div className="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-black" style={{ backgroundColor: style.hex + '18', color: style.hex }}>
+                                                                                        <CheckSquare size={9} className="shrink-0" />
+                                                                                        {done}/{linked.length}
+                                                                                    </div>
+                                                                                );
+                                                                            })()}
                                                                         </div>
                                                                     </div>
                                                                 </div>
