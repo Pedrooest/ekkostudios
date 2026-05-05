@@ -202,8 +202,204 @@ export const FloatingPopover: React.FC<{
   );
 };
 
+// ─── PSelect — Universal Premium Select ──────────────────────────────────────
+// Drop-in replacement for native <select>. Same visual as InputSelect but
+// simpler API: accepts <option>-like array or { value, label, color? } objects.
+// Renders a custom floating panel — no OS styling anywhere.
+
+export interface PSelectOption {
+  value: string;
+  label: string;
+  color?: string; // hex or tailwind color dot
+}
+
+export const PSelect: React.FC<{
+  value: string;
+  onChange: (value: string) => void;
+  options: (PSelectOption | string)[];
+  placeholder?: string;
+  className?: string;
+  label?: string;
+  disabled?: boolean;
+  size?: 'sm' | 'md';
+}> = ({ value, onChange, options, placeholder = 'Selecionar...', className = '', label, disabled = false, size = 'md' }) => {
+  const [open, setOpen] = React.useState(false);
+  const [pos, setPos] = React.useState({ top: 0, left: 0, width: 0, flip: false });
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
+  const normalized = options.map(o =>
+    typeof o === 'string' ? { value: o, label: o } : o
+  );
+  const current = normalized.find(o => o.value === value);
+
+  const openPanel = () => {
+    if (disabled) return;
+    const rect = triggerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const panelH = Math.min(normalized.length * 44 + 16, 280);
+    const flip = rect.bottom + panelH > window.innerHeight - 8;
+    setPos({ top: flip ? rect.top - panelH - 4 : rect.bottom + 4, left: rect.left, width: rect.width, flip });
+    setOpen(true);
+    playUISound('open');
+  };
+
+  React.useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => {
+      if (!triggerRef.current?.contains(e.target as Node) && !panelRef.current?.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [open]);
+
+  const h = size === 'sm' ? 'h-9 text-[10px]' : 'h-11 text-xs';
+
+  const trigger = (
+    <button
+      ref={triggerRef}
+      type="button"
+      onClick={open ? () => setOpen(false) : openPanel}
+      disabled={disabled}
+      className={`ios-btn w-full ${h} flex items-center justify-between gap-2 px-4 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl font-bold text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/15 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${open ? 'border-blue-500/60 ring-2 ring-blue-500/15' : ''} ${className}`}
+    >
+      <span className={`truncate ${!current ? 'text-zinc-400 dark:text-zinc-500' : ''}`}>
+        {current ? current.label : placeholder}
+      </span>
+      <ChevronDown size={13} className={`shrink-0 text-zinc-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+    </button>
+  );
+
+  const panel = open && !isMobile ? (
+    <div
+      ref={panelRef}
+      className="fixed z-[9000] bg-white dark:bg-[#111114] border border-zinc-200/80 dark:border-zinc-800 rounded-2xl shadow-2xl dark:shadow-black/50 overflow-hidden animate-bounce-in"
+      style={{ top: pos.top, left: pos.left, width: Math.max(pos.width, 180) }}
+    >
+      <div className="max-h-[260px] overflow-y-auto custom-scrollbar py-1.5">
+        {normalized.map(opt => {
+          const isActive = opt.value === value;
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => { onChange(opt.value); setOpen(false); playUISound('tap'); }}
+              className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 text-xs font-bold transition-colors text-left ${
+                isActive
+                  ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                  : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/80'
+              }`}
+            >
+              <span className="flex items-center gap-2.5 truncate">
+                {opt.color && (
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0 border border-black/10" style={{ backgroundColor: opt.color }} />
+                )}
+                {opt.label}
+              </span>
+              {isActive && <Check size={12} className="shrink-0 text-blue-500" />}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  ) : null;
+
+  return (
+    <div className="relative w-full">
+      {label && <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-1.5 ml-1">{label}</label>}
+      {trigger}
+      {panel && typeof document !== 'undefined' && (
+        React.createElement(React.Fragment, null,
+          React.createElement('div', null,
+            // Use a portal via createPortal-like approach without importing
+            ...[panel]
+          )
+        )
+      )}
+    </div>
+  );
+};
+
+// ─── Re-export portal-safe version ────────────────────────────────────────────
+// PSelectPortal renders panel via a fixed-position div appended to body
+export const PSelectPortal: React.FC<Parameters<typeof PSelect>[0]> = (props) => {
+  const [open, setOpen] = React.useState(false);
+  const [pos, setPos] = React.useState({ top: 0, left: 0, width: 0 });
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const panelRef = React.useRef<HTMLDivElement>(null);
+
+  const normalized = (props.options || []).map(o =>
+    typeof o === 'string' ? { value: o, label: o } as PSelectOption : o as PSelectOption
+  );
+  const current = normalized.find(o => o.value === props.value);
+  const h = props.size === 'sm' ? 'h-9 text-[10px]' : 'h-11 text-xs';
+
+  const openPanel = () => {
+    if (props.disabled) return;
+    const rect = triggerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const panelH = Math.min(normalized.length * 44 + 16, 280);
+    const flip = rect.bottom + panelH > window.innerHeight - 8;
+    setPos({ top: flip ? rect.top - panelH - 4 : rect.bottom + 4, left: rect.left, width: rect.width });
+    setOpen(true);
+    playUISound('open');
+  };
+
+  React.useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => {
+      if (!triggerRef.current?.contains(e.target as Node) && !panelRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [open]);
+
+  return (
+    <div className={`relative w-full ${props.className || ''}`}>
+      {props.label && <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-1.5 ml-1">{props.label}</label>}
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={open ? () => setOpen(false) : openPanel}
+        disabled={props.disabled}
+        className={`ios-btn w-full ${h} flex items-center justify-between gap-2 px-4 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl font-bold text-zinc-900 dark:text-zinc-100 focus:outline-none transition-all disabled:opacity-50 ${open ? 'border-blue-500/60 ring-2 ring-blue-500/15' : 'hover:border-zinc-300 dark:hover:border-zinc-600'}`}
+      >
+        <span className={`truncate ${!current ? 'text-zinc-400 dark:text-zinc-500' : ''}`}>
+          {current ? current.label : (props.placeholder || 'Selecionar...')}
+        </span>
+        <ChevronDown size={13} className={`shrink-0 text-zinc-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && typeof document !== 'undefined' && (
+        <div ref={panelRef} className="fixed z-[9000] bg-white dark:bg-[#111114] border border-zinc-200/80 dark:border-zinc-800 rounded-2xl shadow-2xl dark:shadow-black/50 overflow-hidden animate-bounce-in"
+          style={{ top: pos.top, left: pos.left, width: Math.max(pos.width, 200) }}>
+          <div className="max-h-[260px] overflow-y-auto custom-scrollbar py-1.5">
+            {normalized.map(opt => {
+              const isActive = opt.value === props.value;
+              return (
+                <button key={opt.value} type="button"
+                  onClick={() => { props.onChange(opt.value); setOpen(false); playUISound('tap'); }}
+                  className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 text-xs font-bold transition-colors text-left ${isActive ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/80'}`}
+                >
+                  <span className="flex items-center gap-2.5 truncate">
+                    {opt.color && <span className="w-2.5 h-2.5 rounded-full shrink-0 border border-black/10" style={{ backgroundColor: opt.color }} />}
+                    {opt.label}
+                  </span>
+                  {isActive && <Check size={12} className="shrink-0 text-blue-500" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Re-write of the logic block mainly to correct the Fixed positioning logic inside the tool call:
-/* 
+/*
   Correct Logic for Fixed Positioning (Portal):
   Top = triggerRect.bottom (space below)
 */
@@ -474,9 +670,14 @@ export const StatCard: React.FC<{
     >
       <div className="flex justify-between items-start min-w-0">
         <span className={`text-[9px] font-black tracking-[0.2em] transition-colors uppercase flex-1 truncate ${active ? 'text-app-text-strong' : 'text-app-text-muted group-hover:text-app-text-strong'}`}>{label}</span>
-        {Icon && typeof Icon !== 'string' && (
+        {Icon && (
           <div className={`transition-colors shrink-0 ml-2 ${active ? colors[color] : 'text-[#334155] group-hover:text-[#3B82F6]'}`}>
-            <Icon size={16} />
+            {/* Accept both component reference (Icon) and JSX element (<Icon/>) */}
+            {React.isValidElement(Icon)
+              ? Icon
+              : typeof Icon === 'function'
+                ? <Icon size={16} />
+                : null}
           </div>
         )}
       </div>
