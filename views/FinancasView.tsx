@@ -17,7 +17,7 @@ import {
     LineChart, Line, CartesianGrid 
 } from 'recharts';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { StatCard, Badge, Button, InputSelect, Card } from '../Components';
+import { StatCard, Badge, Button, InputSelect, Card, PSelectPortal } from '../Components';
 import { generateId } from '../utils/id';
 
 // ==========================================
@@ -925,15 +925,20 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                     className="w-full h-10 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl pl-9 pr-4 text-[11px] font-black uppercase tracking-widest outline-none focus:border-emerald-500 transition-colors"
                                 />
                             </div>
-                            <select value={filterTipo} onChange={e => setFilterTipo(e.target.value)} className="h-10 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 text-[10px] font-black uppercase outline-none focus:border-emerald-500 text-zinc-700 dark:text-zinc-300">
-                                <option value="all">Tipos</option>
-                                <option value="entrada">Receitas</option>
-                                <option value="saida">Despesas</option>
-                            </select>
-                            <select value={filterCliente} onChange={e => setFilterCliente(e.target.value)} className="h-10 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 text-[10px] font-black uppercase outline-none focus:border-emerald-500 text-zinc-700 dark:text-zinc-300">
-                                <option value="all">Clientes (Todos)</option>
-                                {clients?.map((cl:any) => <option key={cl.id} value={cl.id}>{cl.Nome}</option>)}
-                            </select>
+                            <PSelectPortal
+                                value={filterTipo}
+                                onChange={val => setFilterTipo(val)}
+                                options={[
+                                    { value: 'all', label: 'Tipos' },
+                                    { value: 'entrada', label: 'Receitas' },
+                                    { value: 'saida', label: 'Despesas' },
+                                ]}
+                            />
+                            <PSelectPortal
+                                value={filterCliente}
+                                onChange={val => setFilterCliente(val)}
+                                options={[{ value: 'all', label: 'Clientes (Todos)' }, ...(clients?.map((cl: any) => ({ value: cl.id, label: cl.Nome })) ?? [])]}
+                            />
                         </div>
                         <div className="table-responsive flex-1 overflow-auto custom-scrollbar">
                             <table className="w-full text-left border-collapse table-fixed min-w-[800px]">

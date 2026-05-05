@@ -23,6 +23,7 @@ import { getCalendarDays, MONTH_NAMES_BR, WEEKDAYS_BR_SHORT } from '../utils/cal
 import { useGoogleCalendar } from '../hooks/useGoogleCalendar';
 import { sendEmail, templates } from '../utils/emailService';
 import { DatabaseService } from '../DatabaseService';
+import { PSelectPortal } from '../Components';
 
 // ==========================================
 // FUNÇÕES AUXILIARES DE SOM
@@ -1153,24 +1154,22 @@ export default function PlanejamentoTab({
                                     <label className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                         <MessageSquare size={12} strokeWidth={3} className="shrink-0" /> Rede
                                     </label>
-                                    <div className="relative group">
-                                        <select
-                                            value={selectedEvent?.Rede_Social || ''}
-                                            onChange={(e) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Rede_Social', e.target.value)}
-                                            className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl px-4 py-3 text-xs font-bold text-zinc-800 dark:text-zinc-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 outline-none transition-all appearance-none uppercase"
-                                        >
-                                            <option value="INSTAGRAM">Instagram</option>
-                                            <option value="YOUTUBE">YouTube</option>
-                                            <option value="TIKTOK">TikTok</option>
-                                            <option value="LINKEDIN">LinkedIn</option>
-                                            <option value="FACEBOOK">Facebook</option>
-                                            <option value="PINTEREST">Pinterest</option>
-                                            <option value="X/TWITTER">X / Twitter</option>
-                                            <option value="BLOG">Blog</option>
-                                            <option value="OUTRA">Outra</option>
-                                        </select>
-                                        <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none group-focus-within:rotate-180 transition-transform shrink-0" />
-                                    </div>
+                                    <PSelectPortal
+                                        value={selectedEvent?.Rede_Social || ''}
+                                        onChange={(val) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Rede_Social', val)}
+                                        options={[
+                                            { value: 'INSTAGRAM', label: 'Instagram' },
+                                            { value: 'YOUTUBE', label: 'YouTube' },
+                                            { value: 'TIKTOK', label: 'TikTok' },
+                                            { value: 'LINKEDIN', label: 'LinkedIn' },
+                                            { value: 'FACEBOOK', label: 'Facebook' },
+                                            { value: 'PINTEREST', label: 'Pinterest' },
+                                            { value: 'X/TWITTER', label: 'X / Twitter' },
+                                            { value: 'BLOG', label: 'Blog' },
+                                            { value: 'OUTRA', label: 'Outra' },
+                                        ]}
+                                        className="w-full"
+                                    />
                                 </div>
 
                                 {/* DATA */}
@@ -1202,20 +1201,18 @@ export default function PlanejamentoTab({
 
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1">Status do Conteúdo</label>
-                                <div className="relative group">
-                                    <select
-                                        value={selectedEvent?.["Status do conteúdo"] || 'EM ESPERA'}
-                                        onChange={(e) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Status do conteúdo', e.target.value)}
-                                        className="w-full bg-zinc-900 border border-zinc-700 text-sm font-black text-white rounded-2xl px-5 py-4 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none cursor-pointer uppercase tracking-widest"
-                                    >
-                                        <option value="EM ESPERA">EM ESPERA</option>
-                                        <option value="PRODUÇÃO">PRODUÇÃO</option>
-                                        <option value="AGUARDANDO APROVAÇÃO">AGUARDANDO APROVAÇÃO</option>
-                                        <option value="PUBLICADO">PUBLICADO</option>
-                                        <option value="CONCLUÍDO">CONCLUÍDO</option>
-                                    </select>
-                                    <ChevronDown size={18} className="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none group-focus-within:rotate-180 transition-transform shrink-0" />
-                                </div>
+                                <PSelectPortal
+                                    value={selectedEvent?.["Status do conteúdo"] || 'EM ESPERA'}
+                                    onChange={(val) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Status do conteúdo', val)}
+                                    options={[
+                                        { value: 'EM ESPERA', label: 'EM ESPERA' },
+                                        { value: 'PRODUÇÃO', label: 'PRODUÇÃO' },
+                                        { value: 'AGUARDANDO APROVAÇÃO', label: 'AGUARDANDO APROVAÇÃO' },
+                                        { value: 'PUBLICADO', label: 'PUBLICADO' },
+                                        { value: 'CONCLUÍDO', label: 'CONCLUÍDO' },
+                                    ]}
+                                    className="w-full"
+                                />
                             </div>
 
                             <div className="space-y-3">
@@ -1411,13 +1408,11 @@ export default function PlanejamentoTab({
                             <div className="flex items-center gap-6">
                                 <div className="hidden lg:flex flex-col items-end">
                                     <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Filtrar para Exportar</span>
-                                    <select
-                                        value={exportSelectedClient} onChange={(e) => { tryPlaySound('tap'); setExportSelectedClient(e.target.value); }}
-                                        className="bg-transparent text-sm font-black text-zinc-900 dark:text-white focus:outline-none cursor-pointer uppercase tracking-widest text-right"
-                                    >
-                                        <option value="Todos">Visão Geral (Todos)</option>
-                                        {clientList.map(c => <option key={c.id} value={c.Nome}>{c.Nome}</option>)}
-                                    </select>
+                                    <PSelectPortal
+                                        value={exportSelectedClient}
+                                        onChange={(val) => { tryPlaySound('tap'); setExportSelectedClient(val); }}
+                                        options={[{ value: 'Todos', label: 'Visão Geral (Todos)' }, ...clientList.map(c => ({ value: c.Nome, label: c.Nome }))]}
+                                    />
                                 </div>
                                 <div className="h-10 w-px bg-zinc-200 dark:bg-zinc-800 mx-2 hidden lg:block"></div>
                                 <button onClick={() => setIsExportModalOpen(false)} disabled={isGenerating} className="p-3 text-zinc-400 hover:text-rose-500 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all hover:scale-110 active:scale-90"><X size={24} strokeWidth={3} className="shrink-0" /></button>

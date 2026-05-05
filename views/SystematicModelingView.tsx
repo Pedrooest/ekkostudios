@@ -46,7 +46,7 @@ export function SystematicModelingView({
 
     const counts = useMemo(() => {
         let hero = 0, hub = 0, help = 0;
-        if (activeClient && data[activeClient.id]) {
+        if (activeClient && data && data[activeClient.id]) {
             days.forEach(day => {
                 const val = data[activeClient.id][`${day}-modelagem`];
                 if (val === 'Hero') hero++;
