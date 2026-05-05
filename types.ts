@@ -419,6 +419,8 @@ export interface WhiteboardElement {
   tasks?: { id: string, text: string, done: boolean }[];
   // Rich Text Tool
   htmlContent?: string;
+  // Lock
+  locked?: boolean;
 }
 
 export interface WhiteboardConnection {
