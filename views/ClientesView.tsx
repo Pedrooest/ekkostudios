@@ -246,7 +246,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
       {/* CLIENTS GRID */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
         {filteredClients.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 px-8 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl bg-zinc-50/50 dark:bg-zinc-900/20 text-center gap-4">
+          <div className="flex flex-col items-center justify-center py-24 px-8 border border-zinc-100 dark:border-zinc-800/50 rounded-3xl bg-zinc-50/50 dark:bg-zinc-900/20 text-center gap-4">
             <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center">
               <Users size={28} className="text-blue-500" />
             </div>
@@ -261,7 +261,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5 stagger">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5 card-grid">
             {filteredClients.map(client => {
               const bgHex = client['Cor (HEX)'] || '#3B82F6';
               const initial = (client.Nome || '?').charAt(0).toUpperCase();
@@ -279,7 +279,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                 <div
                   key={client.id}
                   onClick={() => setSelectedClient(client)}
-                  className={`group relative bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 lift hover:shadow-2xl dark:hover:shadow-black/40 ${!isAtivo ? 'opacity-60 saturate-50' : 'hover:border-zinc-300 dark:hover:border-zinc-600'}`}
+                  className={`group relative bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 lift hover:-translate-y-1 hover:shadow-2xl dark:hover:shadow-black/40 ${!isAtivo ? 'opacity-60 saturate-50' : 'hover:border-zinc-300 dark:hover:border-zinc-600'}`}
                 >
                   {/* Cover / banner strip */}
                   <div
@@ -404,7 +404,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
         <div className="fixed inset-0 z-[2200] flex justify-end pointer-events-auto overflow-hidden">
           <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm animate-fade-blur" onClick={closeDrawer}></div>
 
-          <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 h-full shadow-2xl flex flex-col animate-slide-in-right ring-1 ring-zinc-100/50 dark:ring-zinc-800">
+          <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 h-full shadow-2xl flex flex-col animate-slide-in-right ring-1 ring-zinc-100/50 dark:ring-zinc-800 rounded-l-3xl overflow-hidden">
             {/* Cover + Avatar header */}
             <div className="relative shrink-0">
               {/* Cover — clicável */}

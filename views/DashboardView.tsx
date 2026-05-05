@@ -321,7 +321,7 @@ export const DashboardView = React.memo(({ clients = [], tasks = [], financas = 
                         </div>
                         <Activity size={18} className="text-zinc-300 dark:text-zinc-600" />
                     </div>
-                    <div className="h-[320px] p-6">
+                    <div className="h-[320px] p-6 overflow-hidden">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={chartData6Months} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.05} />
