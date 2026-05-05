@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Lembrete, LembreteTipo, Cliente } from '../types';
 import ReactDOM from 'react-dom';
 import { X, Save, Calendar, Clock, Tag, User, AlignLeft } from 'lucide-react';
+import { PSelectPortal } from '../Components';
 import { playUISound } from '../utils/uiSounds';
 
 interface LembreteModalProps {
@@ -116,13 +117,12 @@ export function LembreteModal({ lembrete, clients, onClose, onSave }: LembreteMo
               <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                 <Tag size={12} /> Categoria
               </label>
-              <select
-                value={formData.tipo}
-                onChange={e => setFormData({ ...formData, tipo: e.target.value as LembreteTipo })}
-                className="w-full bg-gray-50 dark:bg-zinc-900/50 border border-gray-200 dark:border-white/5 rounded-2xl px-5 py-4 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-bold appearance-none"
-              >
-                {tipos.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
+              <PSelectPortal
+                value={formData.tipo || ''}
+                onChange={v => setFormData({ ...formData, tipo: v as LembreteTipo })}
+                options={tipos}
+                className="w-full"
+              />
             </div>
 
             {/* Cliente */}
@@ -130,14 +130,13 @@ export function LembreteModal({ lembrete, clients, onClose, onSave }: LembreteMo
               <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                 <User size={12} /> Cliente (Opcional)
               </label>
-              <select
+              <PSelectPortal
                 value={formData.cliente_id || ''}
-                onChange={e => setFormData({ ...formData, cliente_id: e.target.value })}
-                className="w-full bg-gray-50 dark:bg-zinc-900/50 border border-gray-200 dark:border-white/5 rounded-2xl px-5 py-4 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-bold appearance-none"
-              >
-                <option value="">Nenhum</option>
-                {clients.map(c => <option key={c.id} value={c.id}>{c.Nome}</option>)}
-              </select>
+                onChange={v => setFormData({ ...formData, cliente_id: v })}
+                placeholder="Nenhum"
+                options={[{ value: '', label: 'Nenhum' }, ...clients.map(c => ({ value: c.id, label: c.Nome }))]}
+                className="w-full"
+              />
             </div>
           </div>
 

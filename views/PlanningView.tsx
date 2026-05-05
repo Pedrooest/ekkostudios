@@ -7,6 +7,7 @@ import {
     Calendar as CalendarIcon, LayoutGrid, Columns, List
 } from 'lucide-react';
 import { playUISound } from '../utils/uiSounds';
+import { PSelectPortal } from '../Components';
 import { getCalendarDays, MONTH_NAMES_BR, WEEKDAYS_BR_SHORT } from '../utils/calendarUtils';
 
 interface PlanningViewProps {
@@ -457,28 +458,25 @@ export function PlanningView({
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1">Cliente</label>
-                                        <select
+                                        <PSelectPortal
                                             value={selectedEvent?.Cliente_ID || ''}
-                                            onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Cliente_ID', e.target.value)}
-                                            className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-2.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500 appearance-none"
-                                        >
-                                            <option value="">Selecionar Cliente</option>
-                                            {clients.map(c => <option key={c.id} value={c.id}>{c.Nome}</option>)}
-                                        </select>
+                                            onChange={v => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Cliente_ID', v)}
+                                            placeholder="Selecionar Cliente"
+                                            className="w-full"
+                                            size="sm"
+                                            options={clients.map((c: any) => ({ value: c.id, label: c.Nome }))}
+                                        />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1">Formato</label>
-                                        <select
+                                        <PSelectPortal
                                             value={selectedEvent?.["Tipo de conteúdo"] || ''}
-                                            onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Tipo de conteúdo', e.target.value)}
-                                            className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-2.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500 appearance-none"
-                                        >
-                                            <option value="">Selecionar Formato</option>
-                                            <option value="Reels Viral">Reels Viral</option>
-                                            <option value="Carrossel Edu.">Carrossel Edu.</option>
-                                            <option value="Estático">Estático</option>
-                                            <option value="Stories">Stories</option>
-                                        </select>
+                                            onChange={v => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Tipo de conteúdo', v)}
+                                            placeholder="Selecionar Formato"
+                                            className="w-full"
+                                            size="sm"
+                                            options={['Reels Viral','Carrossel Edu.','Estático','Stories']}
+                                        />
                                     </div>
                                 </div>
 
@@ -506,28 +504,32 @@ export function PlanningView({
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1">Rede Social</label>
-                                        <select
+                                        <PSelectPortal
                                             value={selectedEvent?.Rede_Social || ''}
-                                            onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Rede_Social', e.target.value)}
-                                            className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-2.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500 appearance-none"
-                                        >
-                                            <option value="">INSTAGRAM</option>
-                                            <option value="LINKEDIN">LINKEDIN</option>
-                                            <option value="YOUTUBE">YOUTUBE</option>
-                                        </select>
+                                            onChange={v => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Rede_Social', v)}
+                                            className="w-full"
+                                            size="sm"
+                                            options={[
+                                                { value: '', label: 'INSTAGRAM' },
+                                                { value: 'LINKEDIN', label: 'LINKEDIN' },
+                                                { value: 'YOUTUBE', label: 'YOUTUBE' },
+                                            ]}
+                                        />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1">Status</label>
-                                        <select
-                                            value={selectedEvent?.["Status do conteúdo"] || ''}
-                                            onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Status do conteúdo', e.target.value)}
-                                            className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-2.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500 appearance-none"
-                                        >
-                                            <option value="EM ESPERA">EM ESPERA</option>
-                                            <option value="PRODUÇÃO">PRODUÇÃO</option>
-                                            <option value="AGUARDANDO APROVAÇÃO">APROVAÇÃO</option>
-                                            <option value="PUBLICADO">PUBLICADO</option>
-                                        </select>
+                                        <PSelectPortal
+                                            value={selectedEvent?.["Status do conteúdo"] || 'EM ESPERA'}
+                                            onChange={v => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Status do conteúdo', v)}
+                                            className="w-full"
+                                            size="sm"
+                                            options={[
+                                                { value: 'EM ESPERA', label: 'EM ESPERA' },
+                                                { value: 'PRODUÇÃO', label: 'PRODUÇÃO' },
+                                                { value: 'AGUARDANDO APROVAÇÃO', label: 'APROVAÇÃO' },
+                                                { value: 'PUBLICADO', label: 'PUBLICADO' },
+                                            ]}
+                                        />
                                     </div>
                                 </div>
 
@@ -664,14 +666,12 @@ export function PlanningView({
                                 </div>
 
                                 <div className="flex items-center gap-3">
-                                    <select
+                                    <PSelectPortal
                                         value={exportSelectedClient}
-                                        onChange={(e) => setExportSelectedClient(e.target.value)}
-                                        className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-1.5 text-[10px] font-bold text-zinc-600 dark:text-zinc-300 focus:outline-none"
-                                    >
-                                        <option value="Todos">Todos os Clientes</option>
-                                        {clients.map(c => <option key={c.id} value={c.Nome}>{c.Nome}</option>)}
-                                    </select>
+                                        onChange={setExportSelectedClient}
+                                        size="sm"
+                                        options={[{ value: 'Todos', label: 'Todos os Clientes' }, ...clients.map((c: any) => ({ value: c.Nome, label: c.Nome }))]}
+                                    />
                                     <button onClick={() => setIsExportModalOpen(false)} className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-zinc-400 transition-colors">
                                         <X size={20} className="shrink-0" />
                                     </button>

@@ -6,7 +6,7 @@ import {
     Briefcase, AlertTriangle, ArrowLeft,
     CheckSquare, Square, Loader2
 } from 'lucide-react';
-import { Button, Card, Badge, InputSelect } from '../Components';
+import { Button, Card, Badge, InputSelect, PSelectPortal } from '../Components';
 import { Cliente, ChecklistShoot, TipoTabela } from '../types';
 
 // ==========================================
@@ -498,17 +498,13 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                                                 </div>
                                                 <div className="flex-1 w-full flex flex-col gap-2">
                                                     {isScene && (
-                                                        <select 
-                                                            value={newSceneType} 
-                                                            onChange={(e) => setNewSceneType(e.target.value)}
-                                                            className="w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg h-7 text-[10px] font-bold uppercase text-zinc-600 dark:text-zinc-400 px-2 outline-none focus:border-purple-500 shadow-sm"
-                                                        >
-                                                            <option>Feed/YouTube</option>
-                                                            <option>Reels</option>
-                                                            <option>B-Roll</option>
-                                                            <option>Entrevista</option>
-                                                            <option>Cena Específica</option>
-                                                        </select>
+                                                        <PSelectPortal
+                                                            value={newSceneType}
+                                                            onChange={setNewSceneType}
+                                                            size="sm"
+                                                            className="w-full"
+                                                            options={['Feed/YouTube','Reels','B-Roll','Entrevista','Cena Específica']}
+                                                        />
                                                     )}
                                                     <input 
                                                         type="text" 

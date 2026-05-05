@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import { Card, InputSelect, Badge } from '../Components';
+import { Card, InputSelect, Badge, PSelectPortal } from '../Components';
 import { LINHAS_MODELAGEM_SISTEMATICA as rows } from '../constants';
 import { Cliente, BibliotecaConteudo } from '../types';
 import { playUISound } from '../utils/uiSounds';
@@ -118,36 +118,36 @@ export function SystematicModelingView({
                                             <td key={`${day}-${row.id}`} className="px-2 py-1.5 border-b border-zinc-100 dark:border-zinc-800/50">
                                                 <div className="relative group">
                                                     {row.id === 'conteudo' ? (
-                                                        <select
+                                                        <PSelectPortal
                                                             value={value}
-                                                            onChange={(e) => updateCell(day, row.id, e.target.value)}
+                                                            onChange={(v) => updateCell(day, row.id, v)}
                                                             disabled={!activeClient}
-                                                            className="w-full h-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-md px-2 text-[10px] font-semibold text-zinc-700 dark:text-zinc-300 focus:border-zinc-500 outline-none appearance-none transition-all uppercase tracking-tight shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
-                                                        >
-                                                            {contentOptions.map(opt => <option key={opt} value={opt} className="bg-white dark:bg-zinc-900">{opt}</option>)}
-                                                        </select>
+                                                            size="sm"
+                                                            className="w-full"
+                                                            options={contentOptions}
+                                                        />
                                                     ) : (
-                                                        <select
+                                                        <PSelectPortal
                                                             value={value}
-                                                            onChange={(e) => updateCell(day, row.id, e.target.value)}
+                                                            onChange={(v) => updateCell(day, row.id, v)}
                                                             disabled={!activeClient}
-                                                            className="w-full h-8 bg-transparent border-none text-[10px] font-bold text-zinc-500 dark:text-zinc-400 focus:text-zinc-900 dark:focus:text-white outline-none appearance-none cursor-pointer text-center uppercase transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                                                        >
-                                                            <option value="" className="bg-white dark:bg-zinc-900">-</option>
-                                                            {(() => {
+                                                            size="sm"
+                                                            className="w-full"
+                                                            placeholder="-"
+                                                            options={(() => {
                                                                 if (row.id === 'formato') {
                                                                     const selectedContent = activeClient && data && data[activeClient.id] ? data[activeClient.id][`${day}-conteudo`] : null;
                                                                     if (selectedContent) {
                                                                         const rdcItem = rdc.find((r: any) => r['Ideia de Conteúdo'] === selectedContent && r.Cliente_ID === activeClient.id);
                                                                         const planItem = planning.find((p: any) => p.Conteúdo === selectedContent && p.Cliente_ID === activeClient.id);
                                                                         const network = rdcItem?.Rede_Social || planItem?.Rede_Social;
-                                                                        if (network && library[network]) return library[network].map((opt: any) => <option key={opt} value={opt} className="bg-white dark:bg-zinc-900">{opt}</option>);
+                                                                        if (network && library[network]) return library[network];
                                                                     }
-                                                                    return Object.values(library).flat().map((opt: any) => <option key={opt} value={opt} className="bg-white dark:bg-zinc-900">{opt}</option>);
+                                                                    return Object.values(library).flat() as string[];
                                                                 }
-                                                                return row.options?.map((opt: any) => <option key={opt} value={opt} className="bg-white dark:bg-zinc-900">{opt}</option>);
+                                                                return row.options || [];
                                                             })()}
-                                                        </select>
+                                                        />
                                                     )}
                                                 </div>
                                             </td>

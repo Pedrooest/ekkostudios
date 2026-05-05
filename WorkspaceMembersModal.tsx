@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Workspace, MembroWorkspace, Convite } from './types';
 import { DatabaseService } from './DatabaseService';
 import { X, Users, Link as LinkIcon, LogOut, Mail, Clock, Shield, ChevronDown } from 'lucide-react';
+import { PSelectPortal } from './Components';
 import { playUISound } from './utils/uiSounds';
 
 
@@ -149,17 +150,17 @@ export function WorkspaceMembersModal({ workspace, onClose, currentUserEmail }: 
                                         className="w-full h-12 bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white text-sm font-medium rounded-xl pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-shadow placeholder-gray-400 dark:placeholder-zinc-500"
                                     />
                                 </div>
-                                <div className="sm:w-40 relative shrink-0">
-                                    <select
+                                <div className="sm:w-40 shrink-0">
+                                    <PSelectPortal
                                         value={inviteRole}
-                                        onChange={(e) => { playUISound('tap'); setInviteRole(e.target.value); }}
-                                        className="ios-btn w-full h-12 bg-white dark:bg-[#111114] border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 text-sm font-medium rounded-xl pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-shadow appearance-none cursor-pointer"
-                                    >
-                                        <option value="editor">Editor</option>
-                                        <option value="viewer">Visualizador</option>
-                                        <option value="admin">Admin</option>
-                                    </select>
-                                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-400 pointer-events-none" />
+                                        onChange={v => { playUISound('tap'); setInviteRole(v); }}
+                                        className="w-full"
+                                        options={[
+                                            { value: 'editor', label: 'Editor' },
+                                            { value: 'viewer', label: 'Visualizador' },
+                                            { value: 'admin', label: 'Admin' },
+                                        ]}
+                                    />
                                 </div>
                                 <button
                                     onClick={handleCreateInvite}

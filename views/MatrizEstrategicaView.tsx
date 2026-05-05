@@ -6,7 +6,7 @@ import {
   MessageCircle, Send, Globe, Filter, X, ChevronRight,
   Database, Layout, Users, Megaphone, Target, BarChart3, CheckSquare, Zap, Target as TargetIcon, CheckCircle2, AlertCircle
 } from 'lucide-react';
-import { Card, Button, InputSelect, Badge, DeletionBar } from '../Components';
+import { Card, Button, InputSelect, Badge, DeletionBar, PSelectPortal } from '../Components';
 import { 
   OPCOES_FUNCAO_MATRIZ, OPCOES_QUEM_FALA_MATRIZ, 
   OPCOES_PAPEL_ESTRATEGICO_MATRIZ, OPCOES_TIPO_CONTEUDO_MATRIZ, 
@@ -364,32 +364,23 @@ export function MatrizEstrategicaView({
                       </td>
                     )}
                     <td className="px-6 py-3 min-w-[120px] relative" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center gap-2">
-                          <select 
-                            value={row['Rede_Social'] || ''}
-                            onChange={e => onUpdate(row.id, 'MATRIZ', 'Rede_Social', e.target.value)}
-                            className="bg-transparent outline-none text-[10px] font-bold text-zinc-700 dark:text-zinc-300 uppercase cursor-pointer hover:text-blue-500 border-b border-dashed border-zinc-300 dark:border-zinc-700 pb-0.5"
-                          >
-                            <option value="">Selecione</option>
-                            <option value="Instagram">Instagram</option>
-                            <option value="TikTok">TikTok</option>
-                            <option value="Youtube">Youtube</option>
-                            <option value="LinkedIn">LinkedIn</option>
-                            <option value="Facebook">Facebook</option>
-                            <option value="WhatsApp">WhatsApp</option>
-                          </select>
-                        </div>
+                        <PSelectPortal
+                          value={row['Rede_Social'] || ''}
+                          onChange={v => onUpdate(row.id, 'MATRIZ', 'Rede_Social', v)}
+                          size="sm"
+                          placeholder="Selecione"
+                          options={['Instagram','TikTok','Youtube','LinkedIn','Facebook','WhatsApp']}
+                        />
                         <SavingIndicator status={savingStatus[`MATRIZ:${row.id}:Rede_Social`]} />
                     </td>
                     <td className="px-6 py-3 min-w-[180px] relative" onClick={e => e.stopPropagation()}>
-                        <select 
+                        <PSelectPortal
                           value={row['Função'] || ''}
-                          onChange={e => onUpdate(row.id, 'MATRIZ', 'Função', e.target.value)}
-                          className="bg-transparent outline-none text-[10px] font-bold text-zinc-700 dark:text-zinc-300 uppercase cursor-pointer hover:text-blue-500 border-b border-dashed border-zinc-300 dark:border-zinc-700 pb-0.5"
-                        >
-                          <option value="">Selecione</option>
-                          {OPCOES_FUNCAO_MATRIZ.map(o => <option key={o} value={o}>{o}</option>)}
-                        </select>
+                          onChange={v => onUpdate(row.id, 'MATRIZ', 'Função', v)}
+                          size="sm"
+                          placeholder="Selecione"
+                          options={OPCOES_FUNCAO_MATRIZ}
+                        />
                         <SavingIndicator status={savingStatus[`MATRIZ:${row.id}:Função`]} />
                     </td>
                     {renderEditableCell(row, 'Quem fala')}

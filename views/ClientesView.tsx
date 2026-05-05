@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { Button, Badge, Card, InputSelect } from '../Components';
+import { Button, Badge, Card, InputSelect, PSelectPortal } from '../Components';
 import {
   Users, Search, Plus, X, Phone, Instagram, Target, Palette, Trash2, CheckCircle2,
   Globe, Youtube, Music, Linkedin, Pin, Video, MessageCircle, Folder, FileText,
@@ -955,19 +955,20 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                                  }}
                                  className="flex-1 h-7 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-2 text-[9px] font-black outline-none text-center"
                                />
-                               <select 
+                               <PSelectPortal
                                  value={meta.status}
-                                 onChange={(e) => {
+                                 onChange={(v) => {
                                    const newList = [...selectedClient.metas];
-                                   newList[idx].status = e.target.value;
+                                   newList[idx].status = v;
                                    handleUpdateField('metas', newList);
                                  }}
-                                 className="h-7 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-1 text-[8px] font-black uppercase outline-none"
-                               >
-                                 <option value="No prazo">NO PRAZO</option>
-                                 <option value="Em risco">EM RISCO</option>
-                                 <option value="Concluída">CONCLUÍDA</option>
-                               </select>
+                                 size="sm"
+                                 options={[
+                                   { value: 'No prazo', label: 'NO PRAZO' },
+                                   { value: 'Em risco', label: 'EM RISCO' },
+                                   { value: 'Concluída', label: 'CONCLUÍDA' },
+                                 ]}
+                               />
                             </div>
                           </div>
                         </div>
@@ -1000,15 +1001,12 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                         </div>
                         <div className="space-y-2">
                           <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Periodicidade</label>
-                          <select 
+                          <PSelectPortal
                             value={newMetaEntry.periodo}
-                            onChange={e => setNewMetaEntry({ ...newMetaEntry, periodo: e.target.value as any })}
-                            className="w-full h-11 bg-zinc-50 dark:bg-zinc-800 border-none rounded-xl px-4 text-[10px] font-bold uppercase"
-                          >
-                            <option value="Mensal">Mensal</option>
-                            <option value="Trimestral">Trimestral</option>
-                            <option value="Anual">Anual</option>
-                          </select>
+                            onChange={v => setNewMetaEntry({ ...newMetaEntry, periodo: v as any })}
+                            className="w-full"
+                            options={['Mensal','Trimestral','Anual']}
+                          />
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Cliente, ItemPlanejamento, Tarefa, LancamentoFinancas, ItemRdc } from '../types';
-import { Card, Button, StatCard, Badge } from '../Components';
+import { Card, Button, StatCard, Badge, PSelectPortal } from '../Components';
 import { FileText, Download, Calendar, Users, TrendingUp, CheckCircle2, AlertCircle, Globe } from 'lucide-react';
 
 interface RelatoriosViewProps {
@@ -62,16 +62,13 @@ const RelatoriosView: React.FC<RelatoriosViewProps> = ({ clients, planejamento, 
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <select 
-            value={selectedClientId} 
-            onChange={(e) => setSelectedClientId(e.target.value)}
-            className="h-11 bg-app-bg border border-app-border rounded-xl px-4 text-xs font-bold uppercase outline-none focus:border-blue-500 transition-all text-app-text-strong"
-          >
-            <option value="">Selecionar Cliente</option>
-            {clients.map(c => (
-              <option key={c.id} value={c.id}>{c.Nome}</option>
-            ))}
-          </select>
+          <PSelectPortal
+            value={selectedClientId}
+            onChange={setSelectedClientId}
+            placeholder="Selecionar Cliente"
+            className="min-w-[200px]"
+            options={clients.map(c => ({ value: c.id, label: c.Nome }))}
+          />
 
           <div className="flex bg-app-bg p-1 rounded-xl border border-app-border">
             {(['mes', 'trimestre', 'ano'] as const).map(p => (
