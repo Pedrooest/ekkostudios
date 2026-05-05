@@ -41,6 +41,7 @@ interface TaskFlowViewProps {
     onSelect: (id: string) => void;
     onClearSelection: () => void;
     savingStatus?: Record<string, 'saving' | 'success' | 'error'>;
+    planejamento?: any[];
 }
 
 const SavingIndicator = ({ status }: { status?: 'saving' | 'success' | 'error' }) => {
@@ -117,6 +118,12 @@ const SortableTaskCard = React.memo(function SortableTaskCard({ Tarefa, clients,
             <h4 className="text-[13px] font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight leading-snug group-hover:text-blue-500 transition-colors pointer-events-none mt-1 line-clamp-2" title={Tarefa.Título}>
                 {Tarefa.Título}
             </h4>
+
+            {Tarefa.Relacionado_A === 'Planejamento' && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-black uppercase tracking-wider border border-blue-200/50 dark:border-blue-500/20">
+                    <span>📅</span> Planejamento
+                </span>
+            )}
 
             {hasStats && (
                 <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 pointer-events-none">
@@ -213,14 +220,20 @@ function TaskCardOverlay({ Tarefa, clients, getPriorityInfo, statusCor }: any) {
 export function TaskFlowView({
     tasks, clients, collaborators, activeViewId, setActiveViewId,
     onUpdate, onDelete, onArchive, onAdd, onSelectTask,
-    selection, onSelect, onClearSelection, savingStatus = {}
+    selection, onSelect, onClearSelection, savingStatus = {},
+    planejamento = []
 }: TaskFlowViewProps) {
     const [globalSearch, setGlobalSearch] = useState('');
+    const [clientFilter, setClientFilter] = useState<string>('');
     const [sortField, setSortField] = useState<string>('Data_Entrega');
     const [sortDesc, setSortDesc] = useState<boolean>(false);
 
     const filteredTasks = useMemo(() => {
-        let ft = tasks.filter((t: any) => (!globalSearch || (t.Título || '').toLowerCase().includes(globalSearch.toLowerCase()) || clients.find((c:any)=>c.id === t.Cliente_ID)?.Nome?.toLowerCase().includes(globalSearch.toLowerCase())) && t.Status !== 'arquivado');
+        let ft = tasks.filter((t: any) => {
+            const matchesSearch = !globalSearch || (t.Título || '').toLowerCase().includes(globalSearch.toLowerCase()) || clients.find((c:any)=>c.id === t.Cliente_ID)?.Nome?.toLowerCase().includes(globalSearch.toLowerCase());
+            const matchesClient = !clientFilter || t.Cliente_ID === clientFilter;
+            return matchesSearch && matchesClient && t.Status !== 'arquivado';
+        });
         
         ft.sort((a: any, b: any) => {
             let valA = a[sortField] || '';
@@ -234,7 +247,7 @@ export function TaskFlowView({
             return 0;
         });
         return ft;
-    }, [tasks, globalSearch, sortField, sortDesc, clients]);
+    }, [tasks, globalSearch, sortField, sortDesc, clients, clientFilter]);
 
     const viewType = useMemo(() => DEFAULT_TASK_VIEWS.find(v => v.id === activeViewId)?.tipo || 'List', [activeViewId]);
 
@@ -351,6 +364,18 @@ export function TaskFlowView({
                             className="flex-1 bg-transparent border-none outline-none text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100"
                         />
                     </div>
+
+                    <PSelectPortal
+                        value={clientFilter}
+                        onChange={setClientFilter}
+                        placeholder="Todos os clientes"
+                        size="sm"
+                        className="w-48"
+                        options={[
+                            { value: '', label: 'Todos os clientes' },
+                            ...clients.map((c: any) => ({ value: c.id, label: c.Nome, color: c['Cor (HEX)'] }))
+                        ]}
+                    />
 
                     <DeletionBar count={selection.length} onDelete={() => onDelete(selection, 'TAREFAS')} onArchive={() => onArchive(selection, 'TAREFAS', true)} onClear={onClearSelection} />
                     

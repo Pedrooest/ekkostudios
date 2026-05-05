@@ -6,7 +6,7 @@ import {
     ChevronDown, Download, Loader2, Moon, Sun,
     Calendar as CalendarIcon, LayoutGrid, Columns, List,
     Zap, Target, Globe, MessageSquare, Sparkles, Hash,
-    CheckCircle2, Eye, AlertCircle, Timer
+    CheckCircle2, Eye, AlertCircle, Timer, CheckSquare
 } from 'lucide-react';
 import { playUISound } from '../utils/uiSounds';
 import { PSelectPortal } from '../Components';
@@ -407,6 +407,19 @@ export function PlanningView({
                                                             <div className="text-[10px] font-bold leading-tight text-zinc-900 dark:text-white truncate">
                                                                 {evt.Conteúdo}
                                                             </div>
+                                                            {(() => {
+                                                                const linkedTasks = tasks.filter((t: any) => t.Relacionado_ID === evt.id && !t.__archived);
+                                                                if (linkedTasks.length === 0) return null;
+                                                                const done = linkedTasks.filter((t: any) => ['done', 'Concluído', 'CONCLUÍDO'].includes(t.Status)).length;
+                                                                return (
+                                                                    <div className="flex items-center gap-1 mt-1">
+                                                                        <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white/60 dark:bg-white/5 border border-white/20" style={{ color: styles.text }}>
+                                                                            <CheckSquare size={7} className="shrink-0" />
+                                                                            <span className="text-[8px] font-black">{done}/{linkedTasks.length}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })()}
                                                         </div>
                                                     </div>
                                                 );
@@ -643,6 +656,75 @@ export function PlanningView({
                                         className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/60 rounded-2xl p-4 text-xs font-medium text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all resize-none"
                                         placeholder="Adicione notas, links de referências, briefings..."
                                     />
+                                </div>
+
+                                {/* ── TAREFAS VINCULADAS ── */}
+                                <div className="mx-6 h-px bg-zinc-100 dark:bg-zinc-800/60" />
+                                <div className="px-6 py-4 pb-4 space-y-3">
+                                    {(() => {
+                                        const linkedTasks = selectedEvent
+                                            ? tasks.filter((t: any) => t.Relacionado_ID === selectedEvent.id && !t.__archived)
+                                            : [];
+                                        const statusColor: Record<string, string> = {
+                                            'todo': '#94a3b8', 'em andamento': '#f59e0b', 'done': '#10b981',
+                                            'Concluído': '#10b981', 'CONCLUÍDO': '#10b981',
+                                            'Em produção': '#f59e0b', 'Revisão': '#3b82f6',
+                                        };
+                                        return (
+                                            <>
+                                                <label className="flex items-center justify-between text-[9px] font-black uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+                                                    <span className="flex items-center gap-1.5"><CheckSquare size={10} className="shrink-0" /> Tarefas Vinculadas</span>
+                                                    {linkedTasks.length > 0 && (
+                                                        <span className="px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-black">
+                                                            {linkedTasks.filter((t: any) => ['done','Concluído','CONCLUÍDO'].includes(t.Status)).length}/{linkedTasks.length}
+                                                        </span>
+                                                    )}
+                                                </label>
+
+                                                {/* Lista de tarefas vinculadas */}
+                                                {linkedTasks.length > 0 && (
+                                                    <div className="space-y-2">
+                                                        {linkedTasks.map((t: any) => (
+                                                            <div key={t.id} className="flex items-center gap-3 p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-100 dark:border-zinc-800/60 group">
+                                                                <div className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-white dark:ring-zinc-900"
+                                                                    style={{ backgroundColor: statusColor[t.Status] || '#94a3b8' }}
+                                                                />
+                                                                <span className="flex-1 text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 truncate leading-tight">
+                                                                    {t.Título}
+                                                                </span>
+                                                                <span className="shrink-0 text-[9px] font-black uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                                                                    {t.Prioridade}
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {/* Botão criar nova tarefa vinculada */}
+                                                <button
+                                                    onClick={async () => {
+                                                        if (!selectedEvent) return;
+                                                        playUISound('success');
+                                                        await onAdd('TAREFAS', {
+                                                            Cliente_ID: selectedEvent.Cliente_ID,
+                                                            Título: `📅 ${selectedEvent.Conteúdo?.slice(0, 60) || 'Post do planejamento'}`,
+                                                            Área: 'Conteúdo',
+                                                            Status: 'todo',
+                                                            Prioridade: 'Média',
+                                                            Data_Entrega: selectedEvent.Data,
+                                                            Relacionado_A: 'Planejamento',
+                                                            Relacionado_ID: selectedEvent.id,
+                                                            Relacionado_Conteudo: selectedEvent.Conteúdo
+                                                        });
+                                                    }}
+                                                    className="ios-btn w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl border-2 border-dashed border-zinc-200 dark:border-zinc-700/60 bg-zinc-50/50 dark:bg-zinc-900/30 text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400 hover:border-blue-400/60 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-500/10 transition-all"
+                                                >
+                                                    <Plus size={14} className="shrink-0" />
+                                                    Criar tarefa vinculada
+                                                </button>
+                                            </>
+                                        );
+                                    })()}
                                 </div>
                             </div>
 
