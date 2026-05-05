@@ -122,24 +122,24 @@ const RelatoriosView: React.FC<RelatoriosViewProps> = ({ clients, planejamento, 
 
           {/* Resumo Executivo */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 stagger">
-            <StatCard 
-              label="Posts Publicados" 
-              value={`${stats?.postsDone || 0}/${stats?.postsTotal || 0}`} 
+            <StatCard
+              label="Posts Publicados"
+              value={`${stats?.postsDone || 0}/${stats?.postsTotal || 0}`}
               trend={{ value: stats?.postsPerc || 0, isUp: (stats?.postsPerc || 0) >= 50 }}
-              icon={<TrendingUp size={20} />}
+              icon={TrendingUp}
             />
-            <StatCard 
-              label="Tarefas Concluídas" 
-              value={`${stats?.tasksDone || 0}/${stats?.tasksTotal || 0}`} 
+            <StatCard
+              label="Tarefas Concluídas"
+              value={`${stats?.tasksDone || 0}/${stats?.tasksTotal || 0}`}
               trend={{ value: stats?.tasksPerc || 0, isUp: (stats?.tasksPerc || 0) >= 50 }}
-              icon={<CheckCircle2 size={20} />}
+              icon={CheckCircle2}
               color="emerald"
             />
-            <StatCard 
-              label="Resultado Financeiro" 
-              value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats?.saldo || 0)} 
+            <StatCard
+              label="Resultado Financeiro"
+              value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats?.saldo || 0)}
               trend={{ value: 100, isUp: (stats?.receita || 0) > 0 }}
-              icon={<TrendingUp size={20} />}
+              icon={TrendingUp}
               color="blue"
             />
           </div>
