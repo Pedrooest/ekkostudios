@@ -42,6 +42,9 @@ interface TaskFlowViewProps {
     onClearSelection: () => void;
     savingStatus?: Record<string, 'saving' | 'success' | 'error'>;
     planejamento?: any[];
+    // Client filter — unified with global App filter
+    activeClientId?: string;
+    onClientChange?: (clientId: string) => void;
 }
 
 const SavingIndicator = ({ status }: { status?: 'saving' | 'success' | 'error' }) => {
@@ -221,20 +224,28 @@ export function TaskFlowView({
     tasks, clients, collaborators, activeViewId, setActiveViewId,
     onUpdate, onDelete, onArchive, onAdd, onSelectTask,
     selection, onSelect, onClearSelection, savingStatus = {},
-    planejamento = []
+    planejamento = [],
+    activeClientId = '',
+    onClientChange
 }: TaskFlowViewProps) {
     const [globalSearch, setGlobalSearch] = useState('');
-    const [clientFilter, setClientFilter] = useState<string>('');
     const [sortField, setSortField] = useState<string>('Data_Entrega');
     const [sortDesc, setSortDesc] = useState<boolean>(false);
 
+    // Client filter is unified with the global App filter via activeClientId prop
+    const handleClientChange = (clientId: string) => {
+        onClientChange?.(clientId);
+    };
+
     const filteredTasks = useMemo(() => {
         let ft = tasks.filter((t: any) => {
-            const matchesSearch = !globalSearch || (t.Título || '').toLowerCase().includes(globalSearch.toLowerCase()) || clients.find((c:any)=>c.id === t.Cliente_ID)?.Nome?.toLowerCase().includes(globalSearch.toLowerCase());
-            const matchesClient = !clientFilter || t.Cliente_ID === clientFilter;
+            const matchesSearch = !globalSearch ||
+                (t.Título || '').toLowerCase().includes(globalSearch.toLowerCase()) ||
+                clients.find((c:any)=>c.id === t.Cliente_ID)?.Nome?.toLowerCase().includes(globalSearch.toLowerCase());
+            const matchesClient = !activeClientId || t.Cliente_ID === activeClientId;
             return matchesSearch && matchesClient && t.Status !== 'arquivado';
         });
-        
+
         ft.sort((a: any, b: any) => {
             let valA = a[sortField] || '';
             let valB = b[sortField] || '';
@@ -247,7 +258,7 @@ export function TaskFlowView({
             return 0;
         });
         return ft;
-    }, [tasks, globalSearch, sortField, sortDesc, clients, clientFilter]);
+    }, [tasks, globalSearch, sortField, sortDesc, clients, activeClientId]);
 
     const viewType = useMemo(() => DEFAULT_TASK_VIEWS.find(v => v.id === activeViewId)?.tipo || 'List', [activeViewId]);
 
@@ -326,64 +337,76 @@ export function TaskFlowView({
 
     return (
         <div className="view-root flex flex-col h-full bg-white dark:bg-zinc-950 overflow-hidden animate-fade-blur">
-            {/* MODERN TOP HEADER */}
-            <div className="shrink-0 flex items-center justify-between flex-wrap gap-4 px-6 py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md sticky top-0 z-10">
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900 shadow-lg shadow-zinc-500/10">
-                            <CheckSquare size={20} className="shrink-0" />
-                        </div>
-                        <div>
-                            <h1 className="text-lg font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100">Tarefas</h1>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-0.5 opacity-60">Operação e Entrega Estratégica</p>
-                        </div>
+            {/* HEADER */}
+            <div className="shrink-0 flex items-center justify-between flex-wrap gap-3 px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md sticky top-0 z-10">
+                {/* Left: title + client filter (unified) */}
+                <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900 shadow-lg shrink-0">
+                        <CheckSquare size={17} className="shrink-0" />
                     </div>
+                    <div className="hidden sm:block shrink-0">
+                        <h1 className="text-sm font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100 leading-none">Tarefas</h1>
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 mt-0.5">Operação e Entrega</p>
+                    </div>
+
+                    {/* CLIENT FILTER — único, conectado ao filtro global */}
+                    <div className="ml-2 w-44 shrink-0">
+                        <PSelectPortal
+                            value={activeClientId}
+                            onChange={handleClientChange}
+                            placeholder="Todos os clientes"
+                            size="sm"
+                            options={[
+                                { value: '', label: 'Todos os clientes' },
+                                ...clients.map((c: any) => ({ value: c.id, label: c.Nome, color: c['Cor (HEX)'] }))
+                            ]}
+                        />
+                    </div>
+
+                    {activeClientId && (
+                        <button
+                            onClick={() => handleClientChange('')}
+                            className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-black uppercase tracking-wider border border-blue-200/50 dark:border-blue-500/20 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all ios-btn"
+                        >
+                            <X size={10} className="shrink-0" />
+                            {clients.find((c: any) => c.id === activeClientId)?.Nome || 'Cliente'}
+                        </button>
+                    )}
                 </div>
 
-                <div className="flex items-center gap-3">
+                {/* Right: views + search + actions */}
+                <div className="flex items-center gap-2 flex-wrap">
                     <div className="hidden lg:flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl border border-zinc-200 dark:border-zinc-700">
                         {DEFAULT_TASK_VIEWS.map((v: any) => (
                             <button
                                 key={v.id}
                                 onClick={() => setActiveViewId(v.id)}
-                                className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeViewId === v.id ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm shadow-zinc-500/10 active:scale-95' : 'text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeViewId === v.id ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm active:scale-95' : 'text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}
                             >
-                                {v.tipo === 'List' || (v as any).type === 'List' ? <List size={14} /> : v.tipo === 'Board' || (v as any).type === 'Board' ? <Columns size={14} /> : <CalendarDays size={14} />}
-                                {v.nome || (v as any).name}
+                                {v.tipo === 'List' || (v as any).type === 'List' ? <List size={13} /> : v.tipo === 'Board' || (v as any).type === 'Board' ? <Columns size={13} /> : <CalendarDays size={13} />}
+                                <span className="hidden xl:inline">{v.nome || (v as any).name}</span>
                             </button>
                         ))}
                     </div>
 
-                    <div className="flex items-center gap-2 group h-10 w-48 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 focus-within:ring-4 focus-within:ring-zinc-500/5 transition-all">
-                        <Search className="text-zinc-400 group-focus-within:text-zinc-900 dark:group-focus-within:text-white transition-colors shrink-0" size={14} />
+                    <div className="flex items-center gap-2 h-9 min-w-0 w-40 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+                        <Search className="text-zinc-400 shrink-0" size={13} />
                         <input
                             type="text"
                             value={globalSearch}
                             onChange={e => setGlobalSearch(e.target.value)}
-                            placeholder="BUSCAR TAREFA..."
-                            className="flex-1 bg-transparent border-none outline-none text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100"
+                            placeholder="Buscar..."
+                            className="flex-1 min-w-0 bg-transparent border-none outline-none text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
                         />
                     </div>
 
-                    <PSelectPortal
-                        value={clientFilter}
-                        onChange={setClientFilter}
-                        placeholder="Todos os clientes"
-                        size="sm"
-                        className="w-48"
-                        options={[
-                            { value: '', label: 'Todos os clientes' },
-                            ...clients.map((c: any) => ({ value: c.id, label: c.Nome, color: c['Cor (HEX)'] }))
-                        ]}
-                    />
-
                     <DeletionBar count={selection.length} onDelete={() => onDelete(selection, 'TAREFAS')} onArchive={() => onArchive(selection, 'TAREFAS', true)} onClear={onClearSelection} />
-                    
+
                     <Button
-                        onClick={() => onAdd('TAREFAS')}
-                        className="!h-10 px-4 !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 !rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-zinc-500/10 active:scale-95 transition-all"
+                        onClick={() => onAdd('TAREFAS', activeClientId ? { Cliente_ID: activeClientId } : undefined)}
+                        className="!h-9 px-4 !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 !rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-zinc-500/10 active:scale-95 transition-all whitespace-nowrap"
                     >
-                        <Plus size={16} className="mr-2" /> Nova Tarefa
+                        <Plus size={15} className="mr-1.5" /> Nova Tarefa
                     </Button>
                 </div>
             </div>
