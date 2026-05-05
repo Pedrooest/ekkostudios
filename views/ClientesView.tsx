@@ -925,7 +925,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                                <button 
                                  onClick={() => {
                                    const newList = [...selectedClient.metas];
-                                   newList[idx].valor_atual = Math.max(0, newList[idx].valor_atual - 1);
+                                   newList[idx] = { ...newList[idx], valor_atual: Math.max(0, newList[idx].valor_atual - 1) };
                                    handleUpdateField('metas', newList);
                                  }}
                                  className="w-7 h-7 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-500 hover:text-blue-500 transition-colors shadow-sm"
@@ -935,10 +935,8 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                                <button 
                                  onClick={() => {
                                    const newList = [...selectedClient.metas];
-                                   newList[idx].valor_atual = newList[idx].valor_atual + 1;
-                                   if (newList[idx].valor_atual >= newList[idx].valor_meta) {
-                                       newList[idx].status = 'Concluída';
-                                   }
+                                   const novoValor = newList[idx].valor_atual + 1;
+                                   newList[idx] = { ...newList[idx], valor_atual: novoValor, status: novoValor >= newList[idx].valor_meta ? 'Concluída' : newList[idx].status };
                                    handleUpdateField('metas', newList);
                                  }}
                                  className="w-7 h-7 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-500 hover:text-blue-500 transition-colors shadow-sm"
@@ -950,7 +948,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                                  value={meta.valor_atual}
                                  onChange={(e) => {
                                    const newList = [...selectedClient.metas];
-                                   newList[idx].valor_atual = Number(e.target.value);
+                                   newList[idx] = { ...newList[idx], valor_atual: Number(e.target.value) };
                                    handleUpdateField('metas', newList);
                                  }}
                                  className="flex-1 h-7 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-2 text-[9px] font-black outline-none text-center"
@@ -959,7 +957,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                                  value={meta.status}
                                  onChange={(v) => {
                                    const newList = [...selectedClient.metas];
-                                   newList[idx].status = v;
+                                   newList[idx] = { ...newList[idx], status: v };
                                    handleUpdateField('metas', newList);
                                  }}
                                  size="sm"

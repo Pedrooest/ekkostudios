@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Button, Badge, Card } from '../Components';
+import { Button, Badge, Card, PSelectPortal } from '../Components';
 import { 
   Handshake, Search, Plus, Calendar, Clock, Users, FileText, 
   CheckCircle2, XCircle, MapPin, Video, Monitor,
@@ -37,8 +37,8 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
 
   const filteredReunioes = useMemo(() => {
     return (reunioes || []).filter(r => {
-      const matchesSearch = r.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            r.pauta.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = (r.titulo || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            (r.pauta || '').toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesClient = clientFilter === 'Todos' || r.cliente_id === clientFilter;
       
@@ -122,23 +122,19 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
         </div>
 
         <div className="flex gap-3 overflow-x-auto pb-2 sm:pb-0 custom-scrollbar">
-          <select 
-            value={clientFilter} 
-            onChange={(e) => setClientFilter(e.target.value)}
-            className="h-11 px-4 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-[10px] font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-300 focus:outline-none shadow-sm min-w-[140px]"
-          >
-            <option value="Todos">TODOS OS CLIENTES</option>
-            {clients.map(c => <option key={c.id} value={c.id}>{c.Nome.toUpperCase()}</option>)}
-          </select>
+          <PSelectPortal
+            value={clientFilter}
+            onChange={(val) => setClientFilter(val)}
+            options={[{ value: 'Todos', label: 'TODOS OS CLIENTES' }, ...clients.map(c => ({ value: c.id, label: c.Nome.toUpperCase() }))]}
+            className="min-w-[140px]"
+          />
 
-          <select 
-            value={monthFilter} 
-            onChange={(e) => setMonthFilter(e.target.value)}
-            className="h-11 px-4 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-[10px] font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-300 focus:outline-none shadow-sm min-w-[140px]"
-          >
-            <option value="Todos">TODOS OS MESES</option>
-            {months.map(m => <option key={m} value={m}>{m.toUpperCase()}</option>)}
-          </select>
+          <PSelectPortal
+            value={monthFilter}
+            onChange={(val) => setMonthFilter(val)}
+            options={[{ value: 'Todos', label: 'TODOS OS MESES' }, ...months.map(m => ({ value: m, label: m.toUpperCase() }))]}
+            className="min-w-[140px]"
+          />
         </div>
       </div>
 
@@ -298,26 +294,25 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                        <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Cliente</label>
-                       <select 
+                       <PSelectPortal
                          value={selectedMeeting.cliente_id}
-                         onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'cliente_id', e.target.value)}
-                         className="w-full h-11 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl text-[10px] font-bold uppercase"
-                       >
-                         <option value="">Selecione o Cliente</option>
-                         {clients.map(c => <option key={c.id} value={c.id}>{c.Nome.toUpperCase()}</option>)}
-                       </select>
+                         onChange={(val) => onUpdate(selectedMeeting.id, 'REUNIOES', 'cliente_id', val)}
+                         options={[{ value: '', label: 'Selecione o Cliente' }, ...clients.map(c => ({ value: c.id, label: c.Nome.toUpperCase() }))]}
+                         className="w-full"
+                       />
                     </div>
                     <div className="space-y-2">
                        <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Status</label>
-                       <select 
+                       <PSelectPortal
                          value={selectedMeeting.status}
-                         onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'status', e.target.value)}
-                         className="w-full h-11 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl text-[10px] font-bold uppercase"
-                       >
-                         <option value="Agendada">Agendada</option>
-                         <option value="Realizada">Realizada</option>
-                         <option value="Cancelada">Cancelada</option>
-                       </select>
+                         onChange={(val) => onUpdate(selectedMeeting.id, 'REUNIOES', 'status', val)}
+                         options={[
+                           { value: 'Agendada', label: 'Agendada' },
+                           { value: 'Realizada', label: 'Realizada' },
+                           { value: 'Cancelada', label: 'Cancelada' },
+                         ]}
+                         className="w-full"
+                       />
                     </div>
                   </div>
 
@@ -342,11 +337,16 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
                      </div>
                      <div className="space-y-2">
                         <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Formato</label>
-                        <select value={selectedMeeting.formato} onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'formato', e.target.value)} className="w-full h-11 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl text-[10px] font-bold">
-                           <option value="Online">Online</option>
-                           <option value="Presencial">Presencial</option>
-                           <option value="Híbrido">Híbrido</option>
-                        </select>
+                        <PSelectPortal
+                           value={selectedMeeting.formato}
+                           onChange={(val) => onUpdate(selectedMeeting.id, 'REUNIOES', 'formato', val)}
+                           options={[
+                             { value: 'Online', label: 'Online' },
+                             { value: 'Presencial', label: 'Presencial' },
+                             { value: 'Híbrido', label: 'Híbrido' },
+                           ]}
+                           className="w-full"
+                        />
                      </div>
                   </div>
 
@@ -384,7 +384,7 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
                               <button 
                                 onClick={() => {
                                   const newSteps = [...selectedMeeting.proximos_passos];
-                                  newSteps[idx].checkbox = !newSteps[idx].checkbox;
+                                  newSteps[idx] = { ...newSteps[idx], checkbox: !newSteps[idx].checkbox };
                                   onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps);
                                 }}
                                 className={`mt-0.5 h-4 w-4 rounded border flex items-center justify-center text-[8px] ${step.checkbox ? 'bg-green-500 border-green-500 text-white' : 'border-zinc-300'}`}
@@ -396,7 +396,7 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
                                 value={step.texto}
                                 onChange={(e) => {
                                   const newSteps = [...selectedMeeting.proximos_passos];
-                                  newSteps[idx].texto = e.target.value;
+                                  newSteps[idx] = { ...newSteps[idx], texto: e.target.value };
                                   onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps);
                                 }}
                                 className={`flex-1 bg-transparent border-none p-0 text-[11px] font-bold focus:ring-0 ${step.checkbox ? 'text-zinc-400 line-through' : ''}`}
@@ -404,8 +404,8 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
                               />
                            </div>
                            <div className="flex items-center gap-3">
-                              <input type="text" value={step.responsavel} onChange={(e) => { const newSteps = [...selectedMeeting.proximos_passos]; newSteps[idx].responsavel = e.target.value; onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps); }} className="flex-1 bg-zinc-50 dark:bg-zinc-800 rounded-lg p-2 text-[8px] font-black uppercase tracking-widest border-none" placeholder="QUEM" />
-                              <input type="text" value={step.prazo} onChange={(e) => { const newSteps = [...selectedMeeting.proximos_passos]; newSteps[idx].prazo = e.target.value; onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps); }} className="flex-1 bg-zinc-50 dark:bg-zinc-800 rounded-lg p-2 text-[8px] font-black uppercase tracking-widest border-none" placeholder="QUANDO" />
+                              <input type="text" value={step.responsavel} onChange={(e) => { const newSteps = [...selectedMeeting.proximos_passos]; newSteps[idx] = { ...newSteps[idx], responsavel: e.target.value }; onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps); }} className="flex-1 bg-zinc-50 dark:bg-zinc-800 rounded-lg p-2 text-[8px] font-black uppercase tracking-widest border-none" placeholder="QUEM" />
+                              <input type="text" value={step.prazo} onChange={(e) => { const newSteps = [...selectedMeeting.proximos_passos]; newSteps[idx] = { ...newSteps[idx], prazo: e.target.value }; onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps); }} className="flex-1 bg-zinc-50 dark:bg-zinc-800 rounded-lg p-2 text-[8px] font-black uppercase tracking-widest border-none" placeholder="QUANDO" />
                               <button onClick={() => { const newSteps = selectedMeeting.proximos_passos.filter((_, i) => i !== idx); onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps); }} className="text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
                                  <Trash2 size={12} />
                               </button>

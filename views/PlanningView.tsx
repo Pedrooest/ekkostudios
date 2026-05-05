@@ -42,18 +42,6 @@ export function PlanningView({
     const [currentDate, setCurrentDate] = useState(new Date());
     const [viewMode, setViewMode] = useState<'month' | 'week' | 'list'>('month');
 
-    // Escape listener
-    useEffect(() => {
-        const handleEsc = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
-                setSidebarView(null);
-                setIsExportModalOpen(false);
-            }
-        };
-        window.addEventListener('keydown', handleEsc);
-        return () => window.removeEventListener('keydown', handleEsc);
-    }, []);
-
     // Filtros e Sidebars
     const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);

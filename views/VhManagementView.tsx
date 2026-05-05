@@ -177,7 +177,7 @@ export function VhManagementView({
                                                 <XAxis dataKey="name" stroke="#a1a1aa" fontSize={10} axisLine={false} tickLine={false} />
                                                 <YAxis stroke="#a1a1aa" fontSize={10} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val}`} />
                                                 <Tooltip
-                                                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e4e4e7', borderRadius: '8px', fontSize: '10px' }}
+                                                    contentStyle={{ backgroundColor: 'var(--color-surface, #18181b)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', fontSize: '10px', color: '#e4e4e7', fontWeight: 'bold' }}
                                                     labelStyle={{ fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '4px' }}
                                                 />
                                                 <Area type="monotone" dataKey="vh" stroke="#3f3f46" strokeWidth={2} fillOpacity={1} fill="url(#colorVh)" name="R$/h" />
@@ -196,7 +196,7 @@ export function VhManagementView({
                                                 <YAxis stroke="#a1a1aa" fontSize={10} axisLine={false} tickLine={false} tickFormatter={(val) => `${val}%`} />
                                                 <Tooltip 
                                                     cursor={{ fill: 'rgba(0,0,0,0.02)' }}
-                                                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e4e4e7', borderRadius: '8px', fontSize: '10px' }} 
+                                                    contentStyle={{ backgroundColor: 'var(--color-surface, #18181b)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', fontSize: '10px', color: '#e4e4e7', fontWeight: 'bold' }} 
                                                 />
                                                 <Bar dataKey="margin" name="Margem" radius={[4, 4, 0, 0]}>
                                                     {clientMetrics.map((entry, index) => (

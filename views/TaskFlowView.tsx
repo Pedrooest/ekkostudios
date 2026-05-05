@@ -15,7 +15,7 @@ import {
 import { sendEmail, templates } from '../utils/emailService';
 import { DatabaseService } from '../DatabaseService';
 import { getCalendarDays, MONTH_NAMES_BR, WEEKDAYS_BR_SHORT } from '../utils/calendarUtils';
-import { Card, Button, DeletionBar, Badge } from '../Components';
+import { Card, Button, DeletionBar, Badge, PSelectPortal } from '../Components';
 import { generateId } from '../utils/id';
 import {
     VISOES_TAREFA_PADRAO as DEFAULT_TASK_VIEWS,
@@ -220,7 +220,7 @@ export function TaskFlowView({
     const [sortDesc, setSortDesc] = useState<boolean>(false);
 
     const filteredTasks = useMemo(() => {
-        let ft = tasks.filter((t: any) => (!globalSearch || t.Título.toLowerCase().includes(globalSearch.toLowerCase()) || clients.find((c:any)=>c.id === t.Cliente_ID)?.Nome?.toLowerCase().includes(globalSearch.toLowerCase())) && t.Status !== 'arquivado');
+        let ft = tasks.filter((t: any) => (!globalSearch || (t.Título || '').toLowerCase().includes(globalSearch.toLowerCase()) || clients.find((c:any)=>c.id === t.Cliente_ID)?.Nome?.toLowerCase().includes(globalSearch.toLowerCase())) && t.Status !== 'arquivado');
         
         ft.sort((a: any, b: any) => {
             let valA = a[sortField] || '';
@@ -782,13 +782,12 @@ export function TaskDetailPanel({
                         <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                             <HistoryIcon size={12} className="text-zinc-400" /> Status
                         </label>
-                        <select
+                        <PSelectPortal
                             value={t.Status}
-                            onChange={e => onUpdate(t.id, 'TAREFAS', 'Status', e.target.value)}
-                            className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-[11px] font-bold text-zinc-900 dark:text-zinc-100 uppercase focus:ring-1 focus:ring-zinc-400 p-2 cursor-pointer outline-none transition-all"
-                        >
-                            {DEFAULT_TASK_STATUSES.map(s => <option key={s.id} value={s.id}>{s.rotulo}</option>)}
-                        </select>
+                            onChange={val => onUpdate(t.id, 'TAREFAS', 'Status', val)}
+                            options={DEFAULT_TASK_STATUSES.map(s => ({ value: s.id, label: s.rotulo }))}
+                            size="sm"
+                        />
                         <div className="absolute top-2 right-2">
                             <SavingIndicator status={savingStatus[`TAREFAS:${t.id}:Status`]} />
                         </div>
@@ -797,13 +796,12 @@ export function TaskDetailPanel({
                         <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                             <ShieldAlert size={12} className="text-zinc-400" /> Prioridade
                         </label>
-                        <select
+                        <PSelectPortal
                             value={t.Prioridade}
-                            onChange={e => onUpdate(t.id, 'TAREFAS', 'Prioridade', e.target.value)}
-                            className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-[11px] font-bold text-zinc-900 dark:text-zinc-100 uppercase focus:ring-1 focus:ring-zinc-400 p-2 cursor-pointer outline-none transition-all"
-                        >
-                            {PRIORIDADE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                        </select>
+                            onChange={val => onUpdate(t.id, 'TAREFAS', 'Prioridade', val)}
+                            options={PRIORIDADE_OPTIONS.map(opt => ({ value: opt, label: opt }))}
+                            size="sm"
+                        />
                         <div className="absolute top-2 right-2">
                             <SavingIndicator status={savingStatus[`TAREFAS:${t.id}:Prioridade`]} />
                         </div>
@@ -812,14 +810,12 @@ export function TaskDetailPanel({
                         <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                             <User size={12} className="text-zinc-400" /> Responsável
                         </label>
-                        <select
+                        <PSelectPortal
                             value={t.Responsável || ''}
-                            onChange={e => onUpdate(t.id, 'TAREFAS', 'Responsável', e.target.value)}
-                            className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-[11px] font-bold text-zinc-900 dark:text-zinc-100 uppercase focus:ring-1 focus:ring-zinc-400 p-2 cursor-pointer outline-none transition-all"
-                        >
-                            <option value="">Sem Resp.</option>
-                            {collaborators.map((c: any) => <option key={c.id} value={c.Nome}>{c.Nome}</option>)}
-                        </select>
+                            onChange={val => onUpdate(t.id, 'TAREFAS', 'Responsável', val)}
+                            options={[{ value: '', label: 'Sem Resp.' }, ...collaborators.map((c: any) => ({ value: c.Nome, label: c.Nome }))]}
+                            size="sm"
+                        />
                         <div className="absolute top-2 right-2">
                             <SavingIndicator status={savingStatus[`TAREFAS:${t.id}:Responsável`]} />
                         </div>

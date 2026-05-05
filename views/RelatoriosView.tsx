@@ -24,7 +24,7 @@ const RelatoriosView: React.FC<RelatoriosViewProps> = ({ clients, planejamento, 
     const clientPosts = planejamento.filter(p => p.Cliente_ID === selectedClientId);
     const clientFinancas = financas.filter(f => f.Cliente_ID === selectedClientId);
 
-    const completedTasks = clientTasks.filter(t => t.Status === 'concluido').length;
+    const completedTasks = clientTasks.filter(t => ['done', 'concluido', 'Concluído', 'CONCLUÍDO'].includes(t.Status)).length;
     const publishedPosts = clientPosts.filter(p => p["Status do conteúdo"] === 'Concluído').length;
     
     const receita = clientFinancas.filter(f => f.Tipo === 'Entrada').reduce((acc, curr) => acc + (Number(curr.Valor) || 0), 0);
