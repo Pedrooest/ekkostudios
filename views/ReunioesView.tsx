@@ -141,12 +141,12 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
       {/* MEETINGS LIST */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
         {filteredReunioes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-32 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/10">
+          <div className="flex flex-col items-center justify-center py-32 border border-zinc-100 dark:border-zinc-800/50 rounded-3xl text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/10">
             <Handshake size={64} className="mb-6 opacity-5" />
             <p className="text-xs font-black uppercase tracking-[0.3em] opacity-30 mt-4">Nenhuma reunião encontrada.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 stagger">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 card-grid">
             {filteredReunioes.map(r => {
               const client = currentClient(r.cliente_id);
               const clientColor = client?.['Cor (HEX)'] || '#3B82F6';

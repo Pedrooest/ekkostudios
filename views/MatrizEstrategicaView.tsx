@@ -347,7 +347,7 @@ export function MatrizEstrategicaView({
                   return (
                     <tr 
                       key={row.id} 
-                      className={`hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors group cursor-pointer ${selection.includes(row.id) ? 'bg-zinc-900/5 dark:bg-zinc-100/5' : ''}`}
+                      className={`hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all duration-200 group cursor-pointer ${selection.includes(row.id) ? 'bg-zinc-900/5 dark:bg-zinc-100/5' : ''}`}
                       onClick={() => setDrawerItem(row)}
                     >
                       <td className="px-6 py-3 text-center" onClick={e => e.stopPropagation()}>
