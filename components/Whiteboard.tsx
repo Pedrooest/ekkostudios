@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { DatabaseService } from '../DatabaseService';
 import { WhiteboardElement, WhiteboardConnection } from '../types';
 import {
     MousePointer2, Image as ImageIcon, Trash2, ZoomIn, ZoomOut, Maximize,
     Type, StickyNote, Link2, Plus, ArrowUpRight,
     Hand, PenTool, Eraser, CheckSquare, Folder, Square, FileText, ChevronRight,
-    Copy, Layers, ArrowUp, ArrowDown, Grid, Undo2, Redo2, Lock, Unlock
+    Copy, Layers, ArrowUp, ArrowDown, Grid, Undo2, Redo2, Lock, Unlock,
+    Play, ChevronLeft, Download, Magnet, Smile, X as XIcon, Map
 } from 'lucide-react';
 
 const COLORS = [
@@ -30,6 +32,30 @@ const COLOR_HEX: Record<string, string> = {
     'bg-cyan-200 text-cyan-900': '#a5f3fc',
 };
 
+// Top strip color for each post-it color
+const POSTIT_TOP_COLOR: Record<string, string> = {
+    'bg-amber-200 text-amber-900': '#f59e0b',
+    'bg-rose-200 text-rose-900': '#f43f5e',
+    'bg-blue-200 text-blue-900': '#3b82f6',
+    'bg-emerald-200 text-emerald-900': '#10b981',
+    'bg-purple-200 text-purple-900': '#8b5cf6',
+    'bg-orange-200 text-orange-900': '#f97316',
+    'bg-zinc-100 text-zinc-900': '#71717a',
+    'bg-cyan-200 text-cyan-900': '#06b6d4',
+};
+
+// Frame background color swatches
+const FRAME_COLORS = [
+    { label: 'Transparente', bg: 'transparent', border: '#9ca3af' },
+    { label: 'Âmbar', bg: '#fef3c720', border: '#f59e0b' },
+    { label: 'Azul', bg: '#dbeafe20', border: '#3b82f6' },
+    { label: 'Verde', bg: '#d1fae520', border: '#10b981' },
+    { label: 'Rosa', bg: '#ffe4e620', border: '#f43f5e' },
+    { label: 'Roxo', bg: '#ede9fe20', border: '#8b5cf6' },
+];
+
+const EMOJI_LIST = ['💡', '❤️', '⚡', '🎯', '✅', '⚠️'];
+
 type HistoryEntry = { elements: WhiteboardElement[]; connections: WhiteboardConnection[] };
 
 interface WhiteboardProps {
@@ -46,6 +72,139 @@ interface ContextMenu {
     canvasY: number;
     elementId?: string;
 }
+
+// ─── Templates ───────────────────────────────────────────────────────────────
+
+interface TemplateCard {
+    id: string;
+    name: string;
+    icon: string;
+    description: string;
+    build: (genId: () => string, boardId: string) => { elements: WhiteboardElement[]; connections: WhiteboardConnection[] };
+}
+
+const TEMPLATES: TemplateCard[] = [
+    {
+        id: 'brainstorm',
+        name: 'Brainstorming',
+        icon: '💡',
+        description: '6 post-its coloridos em torno de um tema central',
+        build: (genId, boardId) => {
+            const centerX = 300, centerY = 250;
+            const positions = [
+                { x: centerX - 260, y: centerY - 130 },
+                { x: centerX + 60, y: centerY - 200 },
+                { x: centerX + 280, y: centerY - 60 },
+                { x: centerX + 200, y: centerY + 140 },
+                { x: centerX - 60, y: centerY + 200 },
+                { x: centerX - 300, y: centerY + 80 },
+            ];
+            const notes = ['Ideia 1', 'Ideia 2', 'Ideia 3', 'Ideia 4', 'Ideia 5', 'Ideia 6'];
+            const colors = COLORS.slice(0, 6);
+            const central: WhiteboardElement = {
+                id: genId(), parentId: boardId, type: 'text',
+                x: centerX - 80, y: centerY - 20, w: 200, h: 40, content: '✨ Tema Central',
+            };
+            const els: WhiteboardElement[] = [central, ...positions.map((pos, i) => ({
+                id: genId(), parentId: boardId, type: 'postit' as const,
+                x: pos.x, y: pos.y, w: 160, h: 140, content: notes[i], color: colors[i],
+            }))];
+            return { elements: els, connections: [] };
+        },
+    },
+    {
+        id: 'kanban',
+        name: 'Kanban',
+        icon: '📋',
+        description: '3 frames: A Fazer, Em Progresso, Concluído',
+        build: (genId, boardId) => {
+            const cols = ['A Fazer', 'Em Progresso', 'Concluído'];
+            const frameColors = ['#3b82f6', '#f59e0b', '#10b981'];
+            const els: WhiteboardElement[] = [];
+            const conns: WhiteboardConnection[] = [];
+            cols.forEach((col, ci) => {
+                const fx = 50 + ci * 340;
+                const frameId = genId();
+                els.push({ id: frameId, parentId: boardId, type: 'frame', x: fx, y: 50, w: 300, h: 420, content: '', title: col, color: frameColors[ci] });
+                ['Tarefa 1', 'Tarefa 2'].forEach((t, ti) => {
+                    els.push({
+                        id: genId(), parentId: boardId, type: 'task', x: fx + 20, y: 110 + ti * 160, w: 260, h: 130,
+                        content: '', title: t, tasks: [{ id: genId(), text: 'Subtarefa A', done: false }, { id: genId(), text: 'Subtarefa B', done: false }],
+                    });
+                });
+            });
+            return { elements: els, connections: conns };
+        },
+    },
+    {
+        id: 'mindmap',
+        name: 'Mapa Mental',
+        icon: '🧠',
+        description: 'Cartão central com 4 ramos conectados',
+        build: (genId, boardId) => {
+            const center: WhiteboardElement = { id: genId(), parentId: boardId, type: 'card', x: 300, y: 200, w: 200, h: 80, content: 'Ideia central', title: 'Centro' };
+            const branches = [
+                { x: 50, y: 80, title: 'Ramo 1', content: 'Detalhe A' },
+                { x: 560, y: 80, title: 'Ramo 2', content: 'Detalhe B' },
+                { x: 50, y: 340, title: 'Ramo 3', content: 'Detalhe C' },
+                { x: 560, y: 340, title: 'Ramo 4', content: 'Detalhe D' },
+            ];
+            const els: WhiteboardElement[] = [center];
+            const conns: WhiteboardConnection[] = [];
+            branches.forEach(b => {
+                const id = genId();
+                els.push({ id, parentId: boardId, type: 'card', x: b.x, y: b.y, w: 180, h: 70, content: b.content, title: b.title });
+                conns.push({ id: genId(), from: center.id, to: id, parentId: boardId });
+            });
+            return { elements: els, connections: conns };
+        },
+    },
+    {
+        id: 'briefing',
+        name: 'Briefing de Cliente',
+        icon: '📝',
+        description: 'Cartões pré-preenchidos: Objetivo, Público, Tom, Referências',
+        build: (genId, boardId) => {
+            const items = [
+                { title: 'Objetivo', content: 'Descreva o objetivo principal do projeto...' },
+                { title: 'Público-alvo', content: 'Quem é o público? Idade, interesses, comportamento...' },
+                { title: 'Tom de Voz', content: 'Formal? Descontraído? Inspirador? Técnico?' },
+                { title: 'Referências', content: 'Marcas, estilos e conteúdos que inspiram...' },
+            ];
+            const els: WhiteboardElement[] = items.map((item, i) => ({
+                id: genId(), parentId: boardId, type: 'card' as const,
+                x: (i % 2) * 340 + 50, y: Math.floor(i / 2) * 200 + 50, w: 300, h: 160,
+                content: item.content, title: item.title,
+            }));
+            return { elements: els, connections: [] };
+        },
+    },
+    {
+        id: 'content-calendar',
+        name: 'Calendário de Conteúdo',
+        icon: '📅',
+        description: '4 frames de semana, cada um com 2 post-its',
+        build: (genId, boardId) => {
+            const els: WhiteboardElement[] = [];
+            const frameColors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'];
+            for (let w = 0; w < 4; w++) {
+                const fx = 50 + w * 320;
+                const frameId = genId();
+                els.push({ id: frameId, parentId: boardId, type: 'frame', x: fx, y: 50, w: 280, h: 360, content: '', title: `Semana ${w + 1}`, color: frameColors[w] });
+                ['Post 1', 'Post 2'].forEach((p, pi) => {
+                    els.push({
+                        id: genId(), parentId: boardId, type: 'postit' as const,
+                        x: fx + 20, y: 110 + pi * 150, w: 240, h: 120,
+                        content: p, color: COLORS[w % COLORS.length],
+                    });
+                });
+            }
+            return { elements: els, connections: [] };
+        },
+    },
+];
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 export function Whiteboard({ workspaceId }: WhiteboardProps) {
     const canvasRef = useRef<HTMLDivElement>(null);
@@ -67,7 +226,6 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
             elements: JSON.parse(JSON.stringify(els)),
             connections: JSON.parse(JSON.stringify(conns)),
         };
-        // Discard any forward history
         historyRef.current = historyRef.current.slice(0, historyIndexRef.current + 1);
         historyRef.current.push(entry);
         if (historyRef.current.length > 50) historyRef.current.shift();
@@ -112,6 +270,26 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
     const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
     const [gridMode, setGridMode] = useState<GridMode>('dots');
 
+    // Snap to grid
+    const [snapToGrid, setSnapToGrid] = useState(false);
+
+    // Templates panel
+    const [showTemplates, setShowTemplates] = useState(false);
+
+    // Presentation mode
+    const [presentationMode, setPresentationMode] = useState(false);
+    const [presentationIndex, setPresentationIndex] = useState(0);
+    const [presentTransition, setPresentTransition] = useState(false);
+
+    // Minimap
+    const [showMinimap, setShowMinimap] = useState(false);
+
+    // Export dropdown
+    const [showExport, setShowExport] = useState(false);
+
+    // Toast
+    const [toast, setToast] = useState<string | null>(null);
+
     // Tools
     const [activeTool, setActiveTool] = useState<ToolType>('cursor');
     const [penSettings, setPenSettings] = useState({ color: '#6366f1', thickness: 3 });
@@ -133,6 +311,9 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
     const [pendingImagePos, setPendingImagePos] = useState<{ x: number, y: number } | null>(null);
     const [currentDrawPath, setCurrentDrawPath] = useState<string | null>(null);
 
+    // Emoji picker per postit
+    const [emojiPickerFor, setEmojiPickerFor] = useState<string | null>(null);
+
     // Context Menu
     const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
 
@@ -141,6 +322,12 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
         try {
             if (typeof window !== 'undefined' && (window as any).playUISound) (window as any).playUISound(type);
         } catch (e) { /* silent */ }
+    }, []);
+
+    // Show toast helper
+    const showToast = useCallback((msg: string) => {
+        setToast(msg);
+        setTimeout(() => setToast(null), 3000);
     }, []);
 
     // 1. Initial Load
@@ -199,6 +386,8 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
         };
     }, [camera]);
 
+    const snapVal = useCallback((v: number) => snapToGrid ? Math.round(v / 25) * 25 : v, [snapToGrid]);
+
     const handleWheel = useCallback((e: WheelEvent) => {
         e.preventDefault();
         if (e.ctrlKey || e.metaKey) {
@@ -234,58 +423,103 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
     const zoomOut = () => { tryPlaySound('tap'); setCamera(c => ({ ...c, z: Math.max(c.z / 1.2, 0.1) })); };
 
     // =====================================
+    // PRESENTATION MODE
+    // =====================================
+    const frames = visibleElements.filter(e => e.type === 'frame');
+
+    const navigateToFrame = useCallback((idx: number) => {
+        const frame = frames[idx];
+        if (!frame) return;
+        const bounds = canvasRef.current?.getBoundingClientRect();
+        if (!bounds) return;
+        const padding = 80;
+        const scaleX = (bounds.width - padding * 2) / frame.w;
+        const scaleY = (bounds.height - padding * 2) / frame.h;
+        const newZ = Math.min(scaleX, scaleY, 2);
+        const newX = bounds.width / 2 - (frame.x + frame.w / 2) * newZ;
+        const newY = bounds.height / 2 - (frame.y + frame.h / 2) * newZ;
+        setPresentTransition(true);
+        setCamera({ x: newX, y: newY, z: newZ });
+        setTimeout(() => setPresentTransition(false), 700);
+    }, [frames]);
+
+    const enterPresentation = useCallback(() => {
+        if (frames.length === 0) {
+            showToast('Adicione frames ao board para usar o modo apresentação');
+            return;
+        }
+        setPresentationMode(true);
+        setPresentationIndex(0);
+        navigateToFrame(0);
+    }, [frames, navigateToFrame, showToast]);
+
+    const exitPresentation = useCallback(() => {
+        setPresentationMode(false);
+    }, []);
+
+    const prevSlide = useCallback(() => {
+        const newIdx = Math.max(0, presentationIndex - 1);
+        setPresentationIndex(newIdx);
+        navigateToFrame(newIdx);
+    }, [presentationIndex, navigateToFrame]);
+
+    const nextSlide = useCallback(() => {
+        const newIdx = Math.min(frames.length - 1, presentationIndex + 1);
+        setPresentationIndex(newIdx);
+        navigateToFrame(newIdx);
+    }, [presentationIndex, frames.length, navigateToFrame]);
+
+    // =====================================
     // KEYBOARD SHORTCUTS
     // =====================================
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
-            // Don't intercept when editing text
+            if (presentationMode) {
+                if (e.key === 'Escape') { exitPresentation(); return; }
+                if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { nextSlide(); return; }
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { prevSlide(); return; }
+                return;
+            }
+
             const target = e.target as HTMLElement;
             if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
                 if (e.key === 'Escape') { target.blur(); setSelectedIds([]); }
                 return;
             }
 
-            // Undo / Redo
             if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
             if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); redo(); return; }
 
-            // Select all
             if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
                 e.preventDefault();
                 setSelectedIds(visibleElements.filter(el => el.type !== 'frame').map(el => el.id));
                 return;
             }
 
-            // Duplicate
             if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
                 e.preventDefault();
                 if (selectedIds.length > 0) duplicateSelection();
                 return;
             }
 
-            // Delete selection
             if ((e.key === 'Delete' || e.key === 'Backspace') && selectedIds.length > 0) {
                 e.preventDefault();
                 deleteSelectionFn();
                 return;
             }
 
-            // Escape
-            if (e.key === 'Escape') { setSelectedIds([]); setConnectingFrom(null); setContextMenu(null); return; }
+            if (e.key === 'Escape') { setSelectedIds([]); setConnectingFrom(null); setContextMenu(null); setShowTemplates(false); setShowExport(false); return; }
 
-            // Tool shortcuts (when nothing is focused)
             if (e.key === 'v' || e.key === 'V') setActiveTool('cursor');
             if (e.key === 'h' || e.key === 'H') setActiveTool('pan');
             if (e.key === 'c' || e.key === 'C') setActiveTool('connect');
             if (e.key === 'p' || e.key === 'P') setActiveTool('pen');
             if (e.key === 'e' || e.key === 'E') setActiveTool('eraser');
 
-            // Zoom
             if (e.key === '+' || e.key === '=') zoomIn();
             if (e.key === '-') zoomOut();
             if (e.key === '0') resetCamera();
 
-            // Arrow nudge selected elements
             if (selectedIds.length > 0 && ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
                 e.preventDefault();
                 const delta = e.shiftKey ? 10 : 1;
@@ -300,7 +534,7 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
         };
         window.addEventListener('keydown', handler);
         return () => window.removeEventListener('keydown', handler);
-    }, [selectedIds, visibleElements, connections, undo, redo, pushHistory]);
+    }, [selectedIds, visibleElements, connections, undo, redo, pushHistory, presentationMode, exitPresentation, nextSlide, prevSlide]);
 
     // Space to toggle pan temporarily
     useEffect(() => {
@@ -327,6 +561,8 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
         const bounds = canvasRef.current?.getBoundingClientRect();
         let cx = forceX ?? (bounds ? (bounds.width / 2 - camera.x) / camera.z + (Math.random() * 40 - 20) : 100);
         let cy = forceY ?? (bounds ? (bounds.height / 2 - camera.y) / camera.z + (Math.random() * 40 - 20) : 100);
+        cx = snapVal(cx);
+        cy = snapVal(cy);
 
         let newEl: WhiteboardElement = {
             id: generateId(),
@@ -341,7 +577,7 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
         };
 
         if (type === 'postit') {
-            newEl.color = COLORS[Math.floor(Math.random() * 3)]; // amber/rose/blue randomly
+            newEl.color = COLORS[Math.floor(Math.random() * 3)];
             newEl.content = 'Nova nota';
         } else if (type === 'card' || type === 'image') {
             newEl.type = 'card';
@@ -382,7 +618,23 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
             setSelectedIds([newEl.id]);
             if (activeTool !== 'pen') setActiveTool('cursor');
         }
-    }, [currentBoardId, camera, activeTool, connections, pushHistory, tryPlaySound]);
+    }, [currentBoardId, camera, activeTool, connections, pushHistory, tryPlaySound, snapVal]);
+
+    // Apply template
+    const applyTemplate = useCallback((template: TemplateCard) => {
+        const { elements: tEls, connections: tConns } = template.build(generateId, currentBoardId);
+        setElements(prev => {
+            const next = [...prev, ...tEls];
+            setConnections(prevConns => {
+                const nextConns = [...prevConns, ...tConns];
+                pushHistory(next, nextConns);
+                return nextConns;
+            });
+            return next;
+        });
+        setShowTemplates(false);
+        tryPlaySound('success');
+    }, [currentBoardId, pushHistory, tryPlaySound]);
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -408,6 +660,7 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
     const handlePointerDown = (e: React.PointerEvent, elementId: string | null = null) => {
         if ((e.target as HTMLElement).closest('.no-drag')) return;
         if (contextMenu) { setContextMenu(null); return; }
+        if (emojiPickerFor) { setEmojiPickerFor(null); return; }
 
         const { x, y } = getLocalCoordinates(e.clientX, e.clientY);
 
@@ -440,6 +693,15 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
         }
 
         if (elementId && activeTool === 'cursor') {
+            // Block drag/resize for locked elements
+            const el = elements.find(el => el.id === elementId);
+            if (el?.locked) {
+                if (!selectedIds.includes(elementId)) {
+                    setSelectedIds(e.shiftKey ? [...selectedIds, elementId] : [elementId]);
+                }
+                return;
+            }
+
             e.preventDefault(); e.stopPropagation();
             (e.target as HTMLElement).setPointerCapture(e.pointerId);
 
@@ -460,6 +722,7 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
     };
 
     const handleResizeStart = (e: React.PointerEvent, element: WhiteboardElement) => {
+        if (element.locked) return;
         e.preventDefault(); e.stopPropagation();
         (e.target as HTMLElement).setPointerCapture(e.pointerId);
         setIsResizing(element.id);
@@ -482,8 +745,10 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
         if (isResizing && resizeInfo) {
             const dx = x - resizeInfo.startX;
             const dy = y - resizeInfo.startY;
+            const newW = snapVal(Math.max(100, resizeInfo.initialW + dx));
+            const newH = snapVal(Math.max(50, resizeInfo.initialH + dy));
             setElements(els => els.map(el => el.id === isResizing
-                ? { ...el, w: Math.max(100, resizeInfo.initialW + dx), h: Math.max(50, resizeInfo.initialH + dy) }
+                ? { ...el, w: newW, h: newH }
                 : el
             ));
             return;
@@ -494,7 +759,8 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
             const dy = y - dragInfo.startY;
             setElements(els => els.map(el => {
                 const initial = dragInfo.initialElements.find(i => i.id === el.id);
-                return initial ? { ...el, x: initial.initialX + dx, y: initial.initialY + dy } : el;
+                if (!initial) return el;
+                return { ...el, x: snapVal(initial.initialX + dx), y: snapVal(initial.initialY + dy) };
             }));
         }
     };
@@ -530,7 +796,6 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
         }
 
         if (isDragging) {
-            // Push history after drag ends
             setElements(prev => { pushHistory(prev, connections); return prev; });
         }
         if (isResizing) {
@@ -629,6 +894,13 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
         tryPlaySound('tap');
     };
 
+    const toggleLock = (id: string) => {
+        const el = elements.find(e => e.id === id);
+        if (!el) return;
+        updateElement(id, { locked: !el.locked });
+        tryPlaySound('tap');
+    };
+
     const execCommand = (e: React.MouseEvent, cmd: string, val?: string) => {
         e.preventDefault();
         document.execCommand(cmd, false, val);
@@ -689,9 +961,96 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
     const selectedEl = elements.find(e => e.id === selectedIds[0]);
     const isDark = document.documentElement.classList.contains('dark');
 
+    // =====================================
+    // MINIMAP
+    // =====================================
+    const minimapWidth = 180;
+    const minimapHeight = 120;
+
+    const renderMinimap = () => {
+        if (!showMinimap || visibleElements.filter(e => e.type !== 'drawing').length === 0) return null;
+        const nonDrawing = visibleElements.filter(e => e.type !== 'drawing');
+        const minX = Math.min(...nonDrawing.map(e => e.x));
+        const minY = Math.min(...nonDrawing.map(e => e.y));
+        const maxX = Math.max(...nonDrawing.map(e => e.x + (typeof e.w === 'number' ? e.w : 200)));
+        const maxY = Math.max(...nonDrawing.map(e => e.y + (typeof e.h === 'number' ? e.h : 100)));
+        const worldW = Math.max(maxX - minX, 200);
+        const worldH = Math.max(maxY - minY, 200);
+        const scaleX = minimapWidth / worldW;
+        const scaleY = minimapHeight / worldH;
+        const scale = Math.min(scaleX, scaleY) * 0.85;
+
+        const bounds = canvasRef.current?.getBoundingClientRect();
+        const vpW = bounds ? bounds.width / camera.z : 800;
+        const vpH = bounds ? bounds.height / camera.z : 600;
+        const vpX = -camera.x / camera.z;
+        const vpY = -camera.y / camera.z;
+
+        const toMX = (x: number) => (x - minX) * scale + 8;
+        const toMY = (y: number) => (y - minY) * scale + 8;
+
+        const typeColor: Record<string, string> = {
+            postit: '#fde68a', card: '#bfdbfe', task: '#a7f3d0', frame: '#e9d5ff',
+            folder: '#c7d2fe', document: '#f4f4f5', text: '#d1fae5', link: '#fed7aa', image: '#fecdd3',
+        };
+
+        const handleMinimapClick = (e: React.MouseEvent<SVGSVGElement>) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const worldX = (mx - 8) / scale + minX;
+            const worldY = (my - 8) / scale + minY;
+            const canvasBounds = canvasRef.current?.getBoundingClientRect();
+            if (!canvasBounds) return;
+            setCamera(c => ({
+                ...c,
+                x: canvasBounds.width / 2 - worldX * c.z,
+                y: canvasBounds.height / 2 - worldY * c.z,
+            }));
+        };
+
+        return (
+            <div className="absolute bottom-20 right-5 z-40 bg-white/95 dark:bg-zinc-900/95 border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-md" style={{ width: minimapWidth + 16, height: minimapHeight + 16 }}>
+                <svg width={minimapWidth + 16} height={minimapHeight + 16} className="cursor-pointer" onClick={handleMinimapClick}>
+                    {nonDrawing.map(el => (
+                        <rect
+                            key={el.id}
+                            x={toMX(el.x)}
+                            y={toMY(el.y)}
+                            width={Math.max(4, (typeof el.w === 'number' ? el.w : 200) * scale)}
+                            height={Math.max(3, (typeof el.h === 'number' ? el.h : 100) * scale)}
+                            rx={2}
+                            fill={typeColor[el.type] || '#e5e7eb'}
+                            opacity={0.8}
+                        />
+                    ))}
+                    {/* Viewport rectangle */}
+                    <rect
+                        x={toMX(vpX)}
+                        y={toMY(vpY)}
+                        width={Math.max(10, vpW * scale)}
+                        height={Math.max(8, vpH * scale)}
+                        rx={2}
+                        fill="transparent"
+                        stroke="#6366f1"
+                        strokeWidth={1.5}
+                        strokeDasharray="3,2"
+                    />
+                </svg>
+            </div>
+        );
+    };
+
     return (
-        <div className="relative w-full h-full overflow-hidden bg-gray-50 dark:bg-[#0a0a0c] font-sans flex flex-col" onClick={() => { if (contextMenu) setContextMenu(null); }}>
+        <div className="relative w-full h-full overflow-hidden bg-gray-50 dark:bg-[#0a0a0c] font-sans flex flex-col" onClick={() => { if (contextMenu) setContextMenu(null); if (emojiPickerFor) setEmojiPickerFor(null); if (showExport) setShowExport(false); }}>
             <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
+
+            {/* TOAST */}
+            {toast && (
+                <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-[300] bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-5 py-3 rounded-2xl text-sm font-bold shadow-2xl animate-in slide-in-from-bottom-4 fade-in duration-200">
+                    {toast}
+                </div>
+            )}
 
             {/* TOP LEFT: status + breadcrumbs */}
             <div className="absolute top-4 left-4 z-50 flex items-center gap-2 flex-wrap">
@@ -714,8 +1073,9 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
                 </div>
             </div>
 
-            {/* TOP RIGHT: undo/redo + grid toggle */}
+            {/* TOP RIGHT: controls */}
             <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
+                {/* Undo/Redo */}
                 <div className="flex items-center gap-0.5 bg-white/90 dark:bg-zinc-900/90 border border-gray-200 dark:border-zinc-800 backdrop-blur-md p-1 rounded-xl shadow-sm">
                     <button onClick={undo} disabled={!canUndo} title="Desfazer (Ctrl+Z)" className="p-2 rounded-lg transition-all ios-btn text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 disabled:opacity-30 disabled:cursor-not-allowed">
                         <Undo2 size={15} />
@@ -724,12 +1084,64 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
                         <Redo2 size={15} />
                     </button>
                 </div>
+
+                {/* Grid toggle */}
                 <button
                     onClick={() => setGridMode(m => m === 'dots' ? 'grid' : m === 'grid' ? 'none' : 'dots')}
                     title={`Grid: ${gridMode} (clique para alternar)`}
                     className={`p-2.5 bg-white/90 dark:bg-zinc-900/90 border border-gray-200 dark:border-zinc-800 backdrop-blur-md rounded-xl shadow-sm ios-btn transition-all ${gridMode !== 'none' ? 'text-indigo-500' : 'text-gray-400'}`}
                 >
                     <Grid size={15} />
+                </button>
+
+                {/* Snap to grid */}
+                <button
+                    onClick={() => { setSnapToGrid(s => !s); tryPlaySound('tap'); }}
+                    title={`Snap ao grid: ${snapToGrid ? 'ativo' : 'inativo'}`}
+                    className={`p-2.5 bg-white/90 dark:bg-zinc-900/90 border backdrop-blur-md rounded-xl shadow-sm ios-btn transition-all ${snapToGrid ? 'text-emerald-500 border-emerald-400 ring-2 ring-emerald-300/40' : 'border-gray-200 dark:border-zinc-800 text-gray-400'}`}
+                >
+                    <Magnet size={15} />
+                </button>
+
+                {/* Presentation mode */}
+                <button
+                    onClick={enterPresentation}
+                    title="Modo Apresentação"
+                    className="p-2.5 bg-white/90 dark:bg-zinc-900/90 border border-gray-200 dark:border-zinc-800 backdrop-blur-md rounded-xl shadow-sm ios-btn transition-all text-gray-500 hover:text-indigo-600 hover:border-indigo-400"
+                >
+                    <Play size={15} />
+                </button>
+
+                {/* Export */}
+                <div className="relative">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); setShowExport(s => !s); }}
+                        title="Exportar"
+                        className="p-2.5 bg-white/90 dark:bg-zinc-900/90 border border-gray-200 dark:border-zinc-800 backdrop-blur-md rounded-xl shadow-sm ios-btn transition-all text-gray-500 hover:text-indigo-600 hover:border-indigo-400"
+                    >
+                        <Download size={15} />
+                    </button>
+                    {showExport && (
+                        <div className="absolute right-0 top-full mt-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl py-1.5 min-w-[200px] z-[200] animate-in fade-in zoom-in-95 duration-100" onClick={e => e.stopPropagation()}>
+                            <button className="w-full text-left px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 flex items-center gap-2"
+                                onClick={() => { window.print(); setShowExport(false); showToast('Abrindo diálogo de impressão (Ctrl+P)'); }}>
+                                <Download size={12} /> Exportar como PDF
+                            </button>
+                            <button className="w-full text-left px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 flex items-center gap-2"
+                                onClick={() => { showToast('Use Ctrl+P e escolha "Salvar como PDF"'); setShowExport(false); }}>
+                                <Download size={12} /> Dica de exportação
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Minimap toggle */}
+                <button
+                    onClick={() => { setShowMinimap(s => !s); tryPlaySound('tap'); }}
+                    title="Minimapa"
+                    className={`p-2.5 bg-white/90 dark:bg-zinc-900/90 border backdrop-blur-md rounded-xl shadow-sm ios-btn transition-all ${showMinimap ? 'text-indigo-500 border-indigo-400' : 'border-gray-200 dark:border-zinc-800 text-gray-400'}`}
+                >
+                    <Map size={15} />
                 </button>
             </div>
 
@@ -750,7 +1162,7 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
 
             {/* SELECTION HUD */}
             {selectedIds.length > 0 && activeTool === 'cursor' && (
-                <div className="absolute top-16 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 p-1.5 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl animate-in slide-in-from-top-2">
+                <div className="absolute top-16 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 p-1.5 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl animate-in slide-in-from-top-2 flex-wrap max-w-[90vw]">
                     {/* Post-it colors */}
                     {selectedEl?.type === 'postit' && (
                         <div className="flex gap-1 pr-2 border-r border-gray-200 dark:border-zinc-800">
@@ -763,9 +1175,38 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
                         </div>
                     )}
 
+                    {/* Frame colors */}
+                    {selectedEl?.type === 'frame' && (
+                        <div className="flex gap-1 pr-2 border-r border-gray-200 dark:border-zinc-800" title="Cor do frame">
+                            {FRAME_COLORS.map((fc, i) => (
+                                <button key={i} onClick={() => updateElement(selectedIds[0], { color: fc.border === '#9ca3af' ? undefined : fc.border })}
+                                    className="w-5 h-5 rounded-full border-2 ios-btn transition-transform hover:scale-110"
+                                    style={{
+                                        backgroundColor: fc.bg === 'transparent' ? '#f9fafb' : fc.bg,
+                                        borderColor: fc.border,
+                                        outline: selectedEl.color === fc.border || (!selectedEl.color && fc.border === '#9ca3af') ? '2px solid #6366f1' : 'none',
+                                        outlineOffset: '1px',
+                                    }}
+                                    title={fc.label}
+                                />
+                            ))}
+                        </div>
+                    )}
+
                     {/* Count badge */}
                     {selectedIds.length > 1 && (
                         <span className="text-[10px] font-black text-gray-400 px-2">{selectedIds.length} selecionados</span>
+                    )}
+
+                    {/* Lock/Unlock */}
+                    {selectedIds.length === 1 && (
+                        <button
+                            onClick={() => toggleLock(selectedIds[0])}
+                            title={selectedEl?.locked ? 'Desbloquear' : 'Bloquear'}
+                            className={`p-2 rounded-xl ios-btn ${selectedEl?.locked ? 'text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10' : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10'}`}
+                        >
+                            {selectedEl?.locked ? <Lock size={15} /> : <Unlock size={15} />}
+                        </button>
                     )}
 
                     {/* Duplicate */}
@@ -837,6 +1278,13 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
                     {!isMobile && <p className="text-[8px] font-black uppercase tracking-widest text-gray-300 dark:text-zinc-600 px-2 py-1">Estrutura</p>}
                     <ToolBtn onClick={() => createElement('folder')} title="Pasta (sub-board)"><Folder size={16} /></ToolBtn>
                     <ToolBtn onClick={() => createElement('frame')} title="Frame / Zona"><Square size={16} /></ToolBtn>
+
+                    <Divider isMobile={isMobile} />
+
+                    {/* Templates */}
+                    <ToolBtn onClick={() => { setShowTemplates(true); tryPlaySound('tap'); }} title="Templates" active={showTemplates}>
+                        <span className="text-base leading-none">✨</span>
+                    </ToolBtn>
                 </div>
             </div>
 
@@ -861,6 +1309,10 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
                             <CtxItem icon={<Copy size={13} />} label="Duplicar" shortcut="Ctrl+D" onClick={() => { duplicateSelection(); setContextMenu(null); }} />
                             <CtxItem icon={<ArrowUp size={13} />} label="Trazer à frente" onClick={() => { bringToFront(); setContextMenu(null); }} />
                             <CtxItem icon={<ArrowDown size={13} />} label="Enviar atrás" onClick={() => { sendToBack(); setContextMenu(null); }} />
+                            {(() => {
+                                const cEl = elements.find(e => e.id === contextMenu.elementId);
+                                return <CtxItem icon={cEl?.locked ? <Unlock size={13} /> : <Lock size={13} />} label={cEl?.locked ? 'Desbloquear' : 'Bloquear'} onClick={() => { if (contextMenu.elementId) toggleLock(contextMenu.elementId); setContextMenu(null); }} />;
+                            })()}
                             <div className="h-px bg-gray-100 dark:bg-zinc-800 my-1" />
                             <CtxItem icon={<Trash2 size={13} />} label="Excluir" shortcut="Del" onClick={() => { deleteSelectionFn(); setContextMenu(null); }} danger />
                         </>
@@ -880,6 +1332,9 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
                 </div>
             )}
 
+            {/* MINIMAP */}
+            {renderMinimap()}
+
             {/* MAIN CANVAS */}
             <div
                 ref={canvasRef}
@@ -897,8 +1352,13 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
                 onContextMenu={(e) => handleContextMenu(e)}
                 style={getBackgroundStyle()}
             >
-                <div className="absolute inset-0 origin-top-left" style={{ transform: `translate(${camera.x}px, ${camera.y}px) scale(${camera.z})` }}>
-
+                <div
+                    className="absolute inset-0 origin-top-left"
+                    style={{
+                        transform: `translate(${camera.x}px, ${camera.y}px) scale(${camera.z})`,
+                        transition: presentTransition ? 'transform 0.6s cubic-bezier(0.32, 0.72, 0, 1)' : 'none',
+                    }}
+                >
                     {/* SVG LAYER: connections + drawings */}
                     <svg className="absolute pointer-events-none z-0" style={{ top: 0, left: 0, width: 1, height: 1, overflow: 'visible' }}>
                         <defs>
@@ -939,33 +1399,64 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
                                 : el.type === 'frame' ? 'z-0' : 'shadow-xl z-10'
                         }`;
 
-                        const ResizeHandle = () => isSelected && activeTool === 'cursor' ? (
+                        const ResizeHandle = () => isSelected && activeTool === 'cursor' && !el.locked ? (
                             <div
                                 onPointerDown={(e) => handleResizeStart(e, el)}
                                 className="absolute -bottom-1.5 -right-1.5 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full cursor-nwse-resize z-50 pointer-events-auto shadow-sm"
                             />
                         ) : null;
 
-                        // POST-IT
-                        if (el.type === 'postit') return (
-                            <div key={el.id} className={`${baseClasses} touch-none pointer-events-auto`}
-                                style={{ left: el.x, top: el.y, width: el.w, height: el.h }}
-                                onPointerDown={(e) => handlePointerDown(e, el.id)}
-                                onContextMenu={(e) => handleContextMenu(e, el.id)}
-                            >
-                                <ResizeHandle />
-                                <div className={`w-full h-full p-5 shadow-md relative overflow-hidden transition-colors rounded-sm ${el.color || COLORS[0]}`}>
-                                    <div className="absolute top-0 left-0 w-full h-2 bg-black/10" />
-                                    <textarea
-                                        value={el.content}
-                                        onChange={(e) => updateElement(el.id, { content: e.target.value })}
-                                        onBlur={() => pushHistory(elements, connections)}
-                                        className="no-drag w-full h-full bg-transparent resize-none outline-none text-sm font-medium leading-relaxed custom-scrollbar"
-                                        style={{ color: 'inherit' }}
-                                    />
-                                </div>
+                        // Lock badge
+                        const LockBadge = () => el.locked ? (
+                            <div className="absolute top-1 right-1 z-30 bg-amber-400 text-white rounded-full w-5 h-5 flex items-center justify-center shadow pointer-events-none">
+                                <Lock size={10} />
                             </div>
-                        );
+                        ) : null;
+
+                        // POST-IT (redesigned)
+                        if (el.type === 'postit') {
+                            const topColor = POSTIT_TOP_COLOR[el.color || COLORS[0]] || '#f59e0b';
+                            return (
+                                <div key={el.id} className={`${baseClasses} touch-none pointer-events-auto`}
+                                    style={{ left: el.x, top: el.y, width: el.w, height: el.h }}
+                                    onPointerDown={(e) => handlePointerDown(e, el.id)}
+                                    onContextMenu={(e) => handleContextMenu(e, el.id)}
+                                >
+                                    <ResizeHandle />
+                                    <LockBadge />
+                                    <div className={`w-full h-full flex flex-col shadow-md relative overflow-hidden transition-colors rounded-2xl ${el.color || COLORS[0]}`}>
+                                        {/* Colored top strip */}
+                                        <div className="h-2 w-full shrink-0 rounded-t-2xl" style={{ backgroundColor: topColor }} />
+                                        {/* Emoji button top-right */}
+                                        <div className="absolute top-3 right-2 z-10 no-drag">
+                                            <button
+                                                className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-black/10 transition-opacity opacity-0 group-hover:opacity-100 text-sm"
+                                                onClick={(e) => { e.stopPropagation(); setEmojiPickerFor(emojiPickerFor === el.id ? null : el.id); }}
+                                            >
+                                                <Smile size={13} />
+                                            </button>
+                                            {emojiPickerFor === el.id && (
+                                                <div className="absolute right-0 top-7 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-xl p-2 flex gap-1 z-50 animate-in fade-in zoom-in-95 duration-100" onClick={e => e.stopPropagation()}>
+                                                    {EMOJI_LIST.map(em => (
+                                                        <button key={em} className="text-base hover:scale-125 transition-transform ios-btn"
+                                                            onClick={() => { updateElement(el.id, { content: el.content + em }); setEmojiPickerFor(null); }}>
+                                                            {em}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <textarea
+                                            value={el.content}
+                                            onChange={(e) => updateElement(el.id, { content: e.target.value })}
+                                            onBlur={() => pushHistory(elements, connections)}
+                                            className="no-drag flex-1 p-4 pt-2 bg-transparent resize-none outline-none text-sm font-medium leading-relaxed custom-scrollbar"
+                                            style={{ color: 'inherit' }}
+                                        />
+                                    </div>
+                                </div>
+                            );
+                        }
 
                         // TEXT
                         if (el.type === 'text') return (
@@ -974,6 +1465,7 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
                                 onPointerDown={(e) => handlePointerDown(e, el.id)}
                                 onContextMenu={(e) => handleContextMenu(e, el.id)}
                             >
+                                <LockBadge />
                                 <textarea
                                     value={el.content}
                                     onChange={(e) => updateElement(el.id, { content: e.target.value })}
@@ -999,29 +1491,43 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
                                     className="no-drag font-semibold text-gray-900 dark:text-white bg-transparent outline-none w-2/3 truncate"
                                     onClick={e => e.stopPropagation()} placeholder="Pasta"
                                 />
+                                <LockBadge />
                                 <ResizeHandle />
                             </div>
                         );
 
-                        // FRAME
-                        if (el.type === 'frame') return (
-                            <div key={el.id}
-                                className={`${baseClasses} bg-transparent pointer-events-none border-2 border-dashed border-gray-400/40 dark:border-zinc-600/60 rounded-3xl`}
-                                style={{ left: el.x, top: el.y, width: el.w, height: el.h }}
-                            >
-                                <div
-                                    className="absolute top-0 left-0 bg-gray-100/80 dark:bg-zinc-800/80 backdrop-blur-sm px-4 py-2 rounded-br-2xl rounded-tl-2xl pointer-events-auto cursor-grab active:cursor-grabbing border-b border-r border-gray-200/50 dark:border-zinc-700/50"
-                                    onPointerDown={(e) => handlePointerDown(e, el.id)}
-                                    onContextMenu={(e) => handleContextMenu(e, el.id)}
+                        // FRAME (with color support)
+                        if (el.type === 'frame') {
+                            const frameBg = el.color ? el.color + '18' : 'transparent';
+                            const frameBorder = el.color || undefined;
+                            return (
+                                <div key={el.id}
+                                    className={`${baseClasses} pointer-events-none border-2 border-dashed rounded-3xl`}
+                                    style={{
+                                        left: el.x, top: el.y, width: el.w, height: el.h,
+                                        backgroundColor: frameBg,
+                                        borderColor: frameBorder || (isDark ? 'rgba(113,113,122,0.6)' : 'rgba(156,163,175,0.4)'),
+                                    }}
                                 >
-                                    <input value={el.title || ''} onChange={(e) => updateElement(el.id, { title: e.target.value })} onBlur={() => pushHistory(elements, connections)}
-                                        className="bg-transparent outline-none w-32 text-xs font-black text-gray-600 dark:text-gray-300 no-drag uppercase tracking-widest"
-                                        onClick={e => e.stopPropagation()}
-                                    />
+                                    <div
+                                        className="absolute top-0 left-0 backdrop-blur-sm px-4 py-2 rounded-br-2xl rounded-tl-2xl pointer-events-auto cursor-grab active:cursor-grabbing border-b border-r"
+                                        style={{
+                                            backgroundColor: el.color ? el.color + '30' : (isDark ? 'rgba(39,39,42,0.8)' : 'rgba(243,244,246,0.8)'),
+                                            borderColor: el.color ? el.color + '40' : (isDark ? 'rgba(63,63,70,0.5)' : 'rgba(229,231,235,0.5)'),
+                                        }}
+                                        onPointerDown={(e) => handlePointerDown(e, el.id)}
+                                        onContextMenu={(e) => handleContextMenu(e, el.id)}
+                                    >
+                                        <input value={el.title || ''} onChange={(e) => updateElement(el.id, { title: e.target.value })} onBlur={() => pushHistory(elements, connections)}
+                                            className="bg-transparent outline-none w-32 text-xs font-black text-gray-600 dark:text-gray-300 no-drag uppercase tracking-widest"
+                                            onClick={e => e.stopPropagation()}
+                                        />
+                                    </div>
+                                    <LockBadge />
+                                    <ResizeHandle />
                                 </div>
-                                <ResizeHandle />
-                            </div>
-                        );
+                            );
+                        }
 
                         // DOCUMENT
                         if (el.type === 'document') return (
@@ -1057,6 +1563,7 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
                                         dangerouslySetInnerHTML={{ __html: el.htmlContent || '' }}
                                     />
                                 </div>
+                                <LockBadge />
                                 <ResizeHandle />
                             </div>
                         );
@@ -1069,6 +1576,7 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
                                 onPointerDown={(e) => handlePointerDown(e, el.id)}
                                 onContextMenu={(e) => handleContextMenu(e, el.id)}
                             >
+                                <LockBadge />
                                 <input value={el.title || ''} onChange={(e) => updateElement(el.id, { title: e.target.value })}
                                     className="no-drag font-black text-gray-900 dark:text-white bg-transparent outline-none mb-3 text-sm uppercase tracking-wide" placeholder="Checklist"
                                 />
@@ -1109,6 +1617,7 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
                                 onPointerDown={(e) => handlePointerDown(e, el.id)}
                                 onContextMenu={(e) => handleContextMenu(e, el.id)}
                             >
+                                <LockBadge />
                                 {el.imageSrc && <img src={el.imageSrc} alt="Preview" className="w-full h-36 object-cover pointer-events-none" />}
                                 <div className="p-4 flex flex-col gap-2 flex-1">
                                     <input value={el.title || ''} onChange={(e) => updateElement(el.id, { title: e.target.value })}
@@ -1130,6 +1639,7 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
                                 onPointerDown={(e) => handlePointerDown(e, el.id)}
                                 onContextMenu={(e) => handleContextMenu(e, el.id)}
                             >
+                                <LockBadge />
                                 <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-500/10 rounded-xl flex items-center justify-center shrink-0 border border-indigo-100 dark:border-indigo-500/20">
                                     <Link2 size={16} className="text-indigo-500" />
                                 </div>
@@ -1151,6 +1661,111 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
                     })}
                 </div>
             </div>
+
+            {/* ─── TEMPLATES MODAL ─────────────────────────────────────── */}
+            {showTemplates && createPortal(
+                <div className="fixed inset-0 z-[500] flex items-center justify-center p-4" onClick={() => setShowTemplates(false)}>
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+                    <div
+                        className="relative z-10 bg-white dark:bg-[#111114] border border-gray-200 dark:border-zinc-800 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col animate-in zoom-in-95 fade-in duration-200"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-zinc-800">
+                            <div>
+                                <h2 className="text-lg font-black text-gray-900 dark:text-white">Templates</h2>
+                                <p className="text-xs text-gray-400 mt-0.5">Escolha um ponto de partida para o seu board</p>
+                            </div>
+                            <button onClick={() => setShowTemplates(false)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl ios-btn">
+                                <XIcon size={16} />
+                            </button>
+                        </div>
+                        <div className="overflow-y-auto p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 custom-scrollbar">
+                            {TEMPLATES.map(tpl => (
+                                <button
+                                    key={tpl.id}
+                                    onClick={() => applyTemplate(tpl)}
+                                    className="text-left p-5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-500/5 transition-all group ios-btn"
+                                >
+                                    <div className="text-3xl mb-3">{tpl.icon}</div>
+                                    <div className="font-black text-sm text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400">{tpl.name}</div>
+                                    <div className="text-xs text-gray-400 mt-1 leading-relaxed">{tpl.description}</div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {/* ─── PRESENTATION MODE OVERLAY ───────────────────────────── */}
+            {presentationMode && createPortal(
+                <div className="fixed inset-0 z-[600] pointer-events-none">
+                    {/* Dark vignette border */}
+                    <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: 'inset 0 0 80px rgba(0,0,0,0.4)' }} />
+
+                    {/* Top bar */}
+                    <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-4 pointer-events-auto bg-gradient-to-b from-black/40 to-transparent">
+                        <div className="text-white font-black text-sm opacity-80">
+                            {frames[presentationIndex]?.title || `Slide ${presentationIndex + 1}`}
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <span className="text-white/60 text-xs font-bold">{presentationIndex + 1} / {frames.length}</span>
+                            <button
+                                onClick={exitPresentation}
+                                className="text-white/70 hover:text-white p-2 rounded-xl hover:bg-white/10 transition-all ios-btn"
+                                title="Sair (Esc)"
+                            >
+                                <XIcon size={16} />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* No frames message */}
+                    {frames.length === 0 && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-auto">
+                            <div className="text-center text-white">
+                                <p className="text-2xl font-black mb-2">Nenhum frame encontrado</p>
+                                <p className="text-white/60 text-sm">Adicione frames ao board para usar o modo apresentação</p>
+                                <button onClick={exitPresentation} className="mt-6 px-6 py-3 bg-white/20 hover:bg-white/30 rounded-2xl font-bold text-sm transition-all ios-btn">
+                                    Fechar
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Navigation */}
+                    {frames.length > 0 && (
+                        <>
+                            <button
+                                onClick={prevSlide}
+                                disabled={presentationIndex === 0}
+                                className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-auto p-3 bg-white/20 hover:bg-white/30 text-white rounded-2xl backdrop-blur-sm transition-all ios-btn disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                                <ChevronLeft size={20} />
+                            </button>
+                            <button
+                                onClick={nextSlide}
+                                disabled={presentationIndex === frames.length - 1}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-auto p-3 bg-white/20 hover:bg-white/30 text-white rounded-2xl backdrop-blur-sm transition-all ios-btn disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                                <ChevronRight size={20} />
+                            </button>
+
+                            {/* Slide dots */}
+                            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-auto flex gap-2">
+                                {frames.map((_, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => { setPresentationIndex(i); navigateToFrame(i); }}
+                                        className={`w-2 h-2 rounded-full transition-all ios-btn ${i === presentationIndex ? 'bg-white w-6' : 'bg-white/40'}`}
+                                    />
+                                ))}
+                            </div>
+                        </>
+                    )}
+                </div>,
+                document.body
+            )}
         </div>
     );
 }
