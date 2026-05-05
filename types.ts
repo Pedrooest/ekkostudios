@@ -11,6 +11,10 @@ export interface Cliente {
   "Cor (HEX)": string;
   Status: 'Ativo' | 'Pausado' | 'Prospect';
   Fee: number;
+  tempo_contrato?: string;       // ex: '3 meses', '6 meses', '12 meses', 'Indeterminado'
+  dia_pagamento?: number;        // payment day 1-31
+  servicos_realizados?: string;  // free text describing services provided
+  data_inicio_contrato?: string; // YYYY-MM-DD
   logo_url?: string;
   cover_url?: string;
   links?: Array<{ titulo: string; url: string; categoria: string }>;

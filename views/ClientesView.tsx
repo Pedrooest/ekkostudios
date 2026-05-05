@@ -5,7 +5,7 @@ import {
   Globe, Youtube, Music, Linkedin, Pin, Video, MessageCircle, Folder, FileText,
   Figma, Brush, Music2, Swords, Star, Link, Handshake, Mail, StickyNote,
   ChevronDown, ChevronUp, Download, Calendar, Clock, Image as ImageIcon, File,
-  Camera, LayoutTemplate, TrendingUp, CheckSquare
+  Camera, LayoutTemplate, TrendingUp, CheckSquare, DollarSign, FileText as ContractFile
 } from 'lucide-react';
 
 interface ClientesViewProps {
@@ -124,6 +124,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
   const [statusFilter, setStatusFilter] = useState<'Todos' | 'Ativo' | 'Inativo'>('Todos');
   const [selectedClient, setSelectedClient] = useState<any | null>(null);
   const [activeAccordion, setActiveAccordion] = useState<string>('Dados Principais');
+  const [activeTab, setActiveTab] = useState<string>('PERFIL');
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [newLogEntry, setNewLogEntry] = useState({ tipo: 'WhatsApp', data: new Date().toISOString().split('T')[0], hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }), descricao: '' });
   const [newLinkEntry, setNewLinkEntry] = useState({ titulo: '', url: '', categoria: 'Site' });
@@ -459,645 +460,729 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
             </div>
 
             {/* Drawer Body Form */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-4">
-              
-              {/* ACORDEÃO — SEÇÃO 1: DADOS PRINCIPAIS */}
-              <Accordion 
-                title="Dados Principais" 
-                icon={Users} 
-                isOpen={activeAccordion === 'Dados Principais'}
-                onToggle={() => setActiveAccordion(activeAccordion === 'Dados Principais' ? '' : 'Dados Principais')}
-              >
-                <div className="space-y-4 pt-4">
-                  <div className="space-y-1.5 relative">
-                    <div className="flex items-center justify-between ml-1 mb-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">NOME DA MARCA</label>
-                      <span className="text-[8px] text-zinc-300 dark:text-zinc-600 font-bold uppercase tracking-wider flex items-center gap-1">
-                        <span className="w-4 h-4 rounded bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-[7px] font-black text-zinc-400">Aa</span>
-                        clique para alternar caixa
-                      </span>
-                    </div>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={localState?.Nome || ''}
-                        onChange={(e) => setLocalState({ ...localState, Nome: e.target.value })}
-                        onBlur={() => handleBlur('Nome')}
-                        className="w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 text-xs font-bold tracking-widest text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500/50 transition-all pr-16"
-                      />
-                      <CaseToggle value={localState?.Nome || ''} onChange={(v) => { setLocalState({ ...localState, Nome: v }); onUpdate(selectedClient.id, 'CLIENTES', 'Nome', v); }} />
-                    </div>
-                    <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:Nome`]} />
-                  </div>
+            <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col min-h-0">
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5 relative">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">NICHO</label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          value={localState?.Nicho || ''}
-                          onChange={(e) => setLocalState({ ...localState, Nicho: e.target.value })}
-                          onBlur={() => handleBlur('Nicho')}
-                          className="w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 text-xs font-bold tracking-widest text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500/50 transition-all pr-16"
-                        />
-                        <CaseToggle value={localState?.Nicho || ''} onChange={(v) => { setLocalState({ ...localState, Nicho: v }); onUpdate(selectedClient.id, 'CLIENTES', 'Nicho', v); }} />
-                      </div>
-                      <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:Nicho`]} />
-                    </div>
-                    
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">STATUS</label>
-                      <InputSelect
-                        value={selectedClient.Status || 'Ativo'}
-                        onChange={(val) => handleUpdateField('Status', val)}
-                        options={[
-                          { value: 'Ativo', label: 'ATIVO', color: 'emerald' },
-                          { value: 'Inativo', label: 'INATIVO', color: 'slate' }
-                        ]}
-                        className="!h-11 border-2 !border-zinc-100 dark:!border-zinc-800"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5 relative">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">RESPONSÁVEL</label>
-                    <div className="flex items-center gap-2 group w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 focus-within:border-blue-500/50 transition-all">
-                      <Users size={14} className="text-zinc-400 transition-colors group-focus-within:text-blue-500 shrink-0" />
-                      <input 
-                        type="text" 
-                        value={localState?.Responsável || ''} 
-                        onChange={(e) => setLocalState({ ...localState, Responsável: e.target.value })}
-                        onBlur={() => handleBlur('Responsável')}
-                        className="flex-1 bg-transparent border-none outline-none text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 min-w-0 pr-6"
-                      />
-                    </div>
-                    <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:Responsável`]} />
-                  </div>
-
-                    <div className="space-y-1.5 relative">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">WHATSAPP</label>
-                      <div className="flex items-center gap-2 group w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 focus-within:border-emerald-500/50 transition-all">
-                         <Phone size={14} className="text-emerald-500 shrink-0" />
-                         <input 
-                           type="text" 
-                           value={localState?.WhatsApp || ''} 
-                           onChange={(e) => setLocalState({ ...localState, WhatsApp: e.target.value })}
-                           onBlur={() => handleBlur('WhatsApp')}
-                           className="flex-1 bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 min-w-0 pr-6"
-                           placeholder="EX: +55 11 99999-9999"
-                         />
-                      </div>
-                      <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:WhatsApp`]} />
-                    </div>
-
-                    <div className="space-y-1.5 relative">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">INSTAGRAM</label>
-                      <div className="flex items-center gap-2 group w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 focus-within:border-rose-500/50 transition-all">
-                         <Instagram size={14} className="text-rose-500 shrink-0" />
-                         <input 
-                           type="text" 
-                           value={localState?.Instagram || ''} 
-                           onChange={(e) => setLocalState({ ...localState, Instagram: e.target.value })}
-                           onBlur={() => handleBlur('Instagram')}
-                           className="flex-1 bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 min-w-0 pr-6"
-                           placeholder="EX: @USER"
-                         />
-                      </div>
-                      <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:Instagram`]} />
-                    </div>
-                </div>
-              </Accordion>
-
-              {/* SEÇÃO 1 — LINKS E REFERÊNCIAS */}
-              <Accordion 
-                title="Links e Referências" 
-                icon={Link} 
-                count={(selectedClient.links || []).length}
-                isOpen={activeAccordion === 'Links'} 
-                onToggle={() => setActiveAccordion(activeAccordion === 'Links' ? '' : 'Links')}
-              >
-                <div className="space-y-4 pt-4">
-                  <div className="space-y-3">
-                    {(selectedClient.links || []).map((link: any, idx: number) => {
-                      const Icon = ICON_MAP[link.categoria] || Link;
-                      return (
-                        <div key={idx} className="flex items-center gap-3 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl group border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700 transition-all">
-                          <div className="w-8 h-8 rounded-lg bg-white dark:bg-zinc-800 flex items-center justify-center text-zinc-400 shadow-sm">
-                            <Icon size={14} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <a href={link.url} target="_blank" rel="noopener noreferrer" className="block text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100 truncate hover:text-blue-500 transition-colors">
-                              {link.titulo || 'Link sem título'}
-                            </a>
-                            <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter">{link.categoria}</span>
-                          </div>
-                          <button 
-                            onClick={() => {
-                              const newList = selectedClient.links.filter((_: any, i: number) => i !== idx);
-                              handleUpdateField('links', newList);
-                            }}
-                            className="w-8 h-8 flex items-center justify-center rounded-lg text-rose-500 opacity-0 group-hover:opacity-100 hover:bg-rose-500/10 transition-all"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {isAddingLink ? (
-                    <div className="p-4 bg-zinc-50 dark:bg-zinc-800/80 rounded-2xl border-2 border-blue-500/20 space-y-3 animate-fade-blur">
-                      <input 
-                        type="text" 
-                        placeholder="TÍTULO DO LINK"
-                        value={newLinkEntry.titulo}
-                        onChange={e => setNewLinkEntry({ ...newLinkEntry, titulo: e.target.value })}
-                        className="w-full h-10 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100"
-                      />
-                      <input 
-                        type="url" 
-                        placeholder="URL (HTTP://...)"
-                        value={newLinkEntry.url}
-                        onChange={e => setNewLinkEntry({ ...newLinkEntry, url: e.target.value })}
-                        className="w-full h-10 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 text-[10px] font-bold text-zinc-900 dark:text-zinc-100"
-                      />
-                      <InputSelect 
-                        value={newLinkEntry.categoria}
-                        onChange={val => setNewLinkEntry({ ...newLinkEntry, categoria: val })}
-                        options={['Site', 'Instagram', 'YouTube', 'TikTok', 'LinkedIn', 'Pinterest', 'Kwai', 'WhatsApp', 'Google Drive', 'Notion', 'Figma', 'Canva', 'Spotify', 'Concorrente', 'Referência', 'Outro']}
-                        className="!h-10"
-                      />
-                      <div className="flex gap-2">
-                        <Button onClick={() => setIsAddingLink(false)} variant="ghost" className="flex-1 !h-10">Cancelar</Button>
-                        <Button 
-                          onClick={() => {
-                            if (!newLinkEntry.url) return;
-                            const newList = [...(selectedClient.links || []), newLinkEntry];
-                            handleUpdateField('links', newList);
-                            setNewLinkEntry({ titulo: '', url: '', categoria: 'Site' });
-                            setIsAddingLink(false);
-                          }}
-                          className="flex-1 !h-10 !bg-blue-600 !text-white"
+              {/* Tab Bar */}
+              {(() => {
+                const clientColor = selectedClient['Cor (HEX)'] || '#3B82F6';
+                const TABS = ['PERFIL', 'CONTRATO', 'LINKS', 'ASSETS', 'LOG', 'IDENTIDADE', 'METAS'];
+                return (
+                  <>
+                    <div className="flex overflow-x-auto custom-scrollbar shrink-0 border-b border-zinc-100 dark:border-zinc-800 px-2">
+                      {TABS.map(tab => (
+                        <button
+                          key={tab}
+                          onClick={() => setActiveTab(tab)}
+                          className={`shrink-0 px-4 py-3 text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                            activeTab === tab
+                              ? 'border-b-2 text-zinc-900 dark:text-zinc-100'
+                              : 'border-b-2 border-transparent text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'
+                          }`}
+                          style={activeTab === tab ? { borderBottomColor: clientColor, color: clientColor } : {}}
                         >
-                          Salvar Link
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button 
-                      onClick={() => setIsAddingLink(true)}
-                      className="w-full h-11 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl flex items-center justify-center gap-2 text-zinc-400 hover:text-blue-500 hover:border-blue-500/30 transition-all text-[10px] font-black uppercase tracking-widest"
-                    >
-                      <Plus size={14} /> Adicionar Link
-                    </button>
-                  )}
-                </div>
-              </Accordion>
-
-              {/* SEÇÃO 2 — LOG DE COMUNICAÇÃO */}
-              <Accordion 
-                title="Log de Comunicação" 
-                icon={MessageCircle} 
-                count={(selectedClient.log_comunicacao || []).length}
-                isOpen={activeAccordion === 'Log'} 
-                onToggle={() => setActiveAccordion(activeAccordion === 'Log' ? '' : 'Log')}
-              >
-                <div className="space-y-4 pt-4">
-                  <div className="relative space-y-6 before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-px before:bg-zinc-100 dark:before:bg-zinc-800">
-                    {(selectedClient.log_comunicacao || []).sort((a: any, b: any) => new Date(b.data + ' ' + b.hora).getTime() - new Date(a.data + ' ' + a.hora).getTime()).map((log: any, idx: number) => {
-                      const Icon = ICON_MAP[log.tipo] || StickyNote;
-                      return (
-                        <div key={idx} className="relative pl-12 group">
-                          <div className="absolute left-0 top-0 w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-400 z-10 group-hover:scale-110 transition-transform">
-                            <Icon size={14} />
-                          </div>
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[9px] font-black uppercase tracking-widest text-zinc-900 dark:text-white bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md">{log.tipo}</span>
-                              <span className="text-[9px] font-bold text-zinc-400">{new Date(log.data + ' ' + log.hora).toLocaleDateString('pt-BR')} {log.hora}</span>
-                            </div>
-                            <p className="text-[10px] font-medium text-zinc-600 dark:text-zinc-400 leading-relaxed italic border-l-2 border-zinc-100 dark:border-zinc-800 pl-3 mt-1">
-                              "{log.descricao}"
-                            </p>
-                            <button 
-                              onClick={() => {
-                                const newList = selectedClient.log_comunicacao.filter((_: any, i: number) => i !== idx);
-                                handleUpdateField('log_comunicacao', newList);
-                              }}
-                              className="self-end text-[8px] font-black uppercase tracking-widest text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity mt-1"
-                            >
-                              Excluir Log
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <button 
-                    onClick={() => setIsLogModalOpen(true)}
-                    className="w-full h-11 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-zinc-500/10 active:scale-95 transition-all"
-                  >
-                    <Plus size={14} /> Registrar Interação
-                  </button>
-                </div>
-              </Accordion>
-
-              {/* SEÇÃO 3 — BANCO DE ASSETS */}
-              <Accordion 
-                title="Banco de Assets" 
-                icon={Folder} 
-                count={(selectedClient.assets || []).length}
-                isOpen={activeAccordion === 'Assets'} 
-                onToggle={() => setActiveAccordion(activeAccordion === 'Assets' ? '' : 'Assets')}
-              >
-                <div className="space-y-4 pt-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    {(selectedClient.assets || []).map((asset: any, idx: number) => {
-                      const isImg = asset.tipo === 'Foto' || asset.tipo === 'Logo' || asset.tipo === 'Paleta';
-                      return (
-                        <div key={idx} className="group relative aspect-square rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 overflow-hidden flex flex-col items-center justify-center p-3 text-center transition-all hover:shadow-xl hover:-translate-y-1">
-                          {isImg ? (
-                            <img src={asset.dados} alt={asset.nome} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" />
-                          ) : (
-                            <File size={32} className="text-zinc-300 mb-2 group-hover:scale-110 transition-transform" />
-                          )}
-                          
-                          <div className="relative z-10 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center gap-2">
-                             <span className="text-[9px] font-black uppercase tracking-tighter text-zinc-900 dark:text-white line-clamp-1 px-2">{asset.nome}</span>
-                             <div className="flex gap-1">
-                               <a 
-                                 href={asset.dados} 
-                                 download={asset.nome}
-                                 className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-colors"
-                               >
-                                 <Download size={14} />
-                               </a>
-                               <button 
-                                 onClick={() => {
-                                   const newList = selectedClient.assets.filter((_: any, i: number) => i !== idx);
-                                   handleUpdateField('assets', newList);
-                                 }}
-                                 className="w-8 h-8 rounded-lg bg-rose-600 text-white flex items-center justify-center hover:bg-rose-700 transition-colors"
-                               >
-                                 <Trash2 size={14} />
-                               </button>
-                             </div>
-                          </div>
-                          
-                          {!isImg && <span className="absolute bottom-3 text-[8px] font-black uppercase tracking-widest text-zinc-400">{asset.nome}</span>}
-                          <Badge color="blue" className="absolute top-2 left-2 !text-[7px] !px-1.5 !py-0 !rounded-md shadow-sm">{asset.tipo}</Badge>
-                        </div>
-                      );
-                    })}
-
-                    <label className="aspect-square border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-zinc-400 hover:text-blue-500 hover:border-blue-500/30 transition-all cursor-pointer bg-zinc-50/50 dark:bg-zinc-900/20 group">
-                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                        <Plus size={18} />
-                      </div>
-                      <span className="text-[10px] font-black uppercase tracking-widest px-4 text-center">Upload Asset</span>
-                      <input 
-                        type="file" 
-                        className="hidden" 
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          if (file.size > 1 * 1024 * 1024) {
-                            alert('Arquivo muito grande. Máximo permitido: 1MB');
-                            return;
-                          }
-                          const base64 = await toBase64(file);
-                          const tipo = file.type.startsWith('image/') ? 'Foto' : 'Documento';
-                          const newList = [...(selectedClient.assets || []), { nome: file.name, tipo, dados: base64 }];
-                          handleUpdateField('assets', newList);
-                        }}
-                      />
-                    </label>
-                  </div>
-                </div>
-              </Accordion>
-
-              {/* SEÇÃO 4 — IDENTIDADE VISUAL */}
-              <Accordion 
-                title="Identidade Visual" 
-                icon={Palette} 
-                isOpen={activeAccordion === 'Identidade'} 
-                onToggle={() => setActiveAccordion(activeAccordion === 'Identidade' ? '' : 'Identidade')}
-              >
-                <div className="space-y-6 pt-4">
-                  {/* Paleta */}
-                  <div className="space-y-2 relative">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">PALETA ESTRATÉGICA (MAX 6)</label>
-                    <div className="grid grid-cols-6 gap-2">
-                      {Array.from({ length: 6 }).map((_, idx) => {
-                        const color = (selectedClient.paleta_cores || [])[idx] || '';
-                        return (
-                          <div key={idx} className="relative group">
-                            <div 
-                              className={`aspect-square rounded-xl border-2 ${color ? 'border-zinc-100 dark:border-zinc-800' : 'border-dashed border-zinc-200 dark:border-zinc-800'} overflow-hidden relative shadow-sm`}
-                              style={{ backgroundColor: color }}
-                            >
-                              <input 
-                                type="color" 
-                                value={color || '#ffffff'}
-                                onChange={(e) => {
-                                  const newList = [...(selectedClient.paleta_cores || [])];
-                                  newList[idx] = e.target.value.toUpperCase();
-                                  handleUpdateField('paleta_cores', newList);
-                                }}
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                              />
-                            </div>
-                            <input 
-                              type="text" 
-                              value={color.replace('#', '')}
-                              placeholder="HEX"
-                              onChange={(e) => {
-                                const val = e.target.value.toUpperCase().replace('#', '');
-                                if (val.length <= 6) {
-                                  const newList = [...(selectedClient.paleta_cores || [])];
-                                  newList[idx] = '#' + val;
-                                  handleUpdateField('paleta_cores', newList);
-                                }
-                              }}
-                              className="w-full mt-1 bg-transparent border-none text-center text-[8px] font-black uppercase tracking-tighter text-zinc-400 outline-none"
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:paleta_cores`]} />
-                  </div>
-
-                  {/* Fontes */}
-                  <div className="space-y-2 relative">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">FONTES USADAS (MAX 3)</label>
-                    <div className="space-y-2">
-                      {Array.from({ length: 3 }).map((_, idx) => (
-                        <div key={idx} className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-black text-zinc-400 border border-zinc-100 dark:border-zinc-700">
-                            {idx + 1}
-                          </div>
-                          <input 
-                            type="text" 
-                            placeholder="NOME DA FONTE (EX: INTER)"
-                            value={(localState?.fontes || [])[idx] || ''}
-                            onChange={(e) => {
-                              const newList = [...(localState?.fontes || [])];
-                              newList[idx] = e.target.value;
-                              setLocalState({ ...localState, fontes: newList });
-                            }}
-                            onBlur={() => handleBlur('fontes')}
-                            className="flex-1 h-9 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-lg px-3 text-[10px] font-bold uppercase tracking-widest text-zinc-900 dark:text-white outline-none focus:border-blue-500/30 transition-all"
-                          />
-                        </div>
+                          {tab}
+                        </button>
                       ))}
                     </div>
-                    <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:fontes`]} />
-                  </div>
 
-                  {/* Tom de Voz */}
-                  <div className="space-y-2 relative">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">TOM DE VOZ / PERSONALIDADE</label>
-                    <textarea 
-                      rows={3}
-                      value={localState?.tom_de_voz || ''}
-                      onChange={(e) => setLocalState({ ...localState, tom_de_voz: e.target.value })}
-                      onBlur={() => handleBlur('tom_de_voz')}
-                      placeholder="DESCREVA A VOZ DA MARCA: EX: FORMAL, AUTORITÁRIA, DIVERTIDA..."
-                      className="w-full p-4 bg-zinc-50 dark:bg-zinc-800/50 border-2 border-zinc-100 dark:border-zinc-800 rounded-2xl text-[10px] font-medium text-zinc-900 dark:text-zinc-100 outline-none focus:border-blue-500/30 transition-all resize-none pr-10"
-                    />
-                    <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:tom_de_voz`]} />
-                  </div>
-                </div>
-              </Accordion>
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-4">
 
-              {/* SEÇÃO 5 — 🎯 METAS E OKRS */}
-              <Accordion 
-                title="Metas e OKRs" 
-                icon={Target} 
-                count={(selectedClient.metas || []).length}
-                isOpen={activeAccordion === 'Metas'} 
-                onToggle={() => setActiveAccordion(activeAccordion === 'Metas' ? '' : 'Metas')}
-              >
-                <div className="space-y-6 pt-4">
-                  <div className="space-y-4">
-                    {(selectedClient.metas || []).map((meta: any, idx: number) => {
-                      const progress = Math.min(100, Math.max(0, (meta.valor_atual / (meta.valor_meta || 1)) * 100));
-                      return (
-                        <div key={idx} className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-100 dark:border-zinc-800 group transition-all hover:border-blue-500/30">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <h4 className="text-[11px] font-black uppercase tracking-tight text-zinc-900 dark:text-white">{meta.titulo}</h4>
-                                <Badge color={meta.status === 'No prazo' ? 'blue' : meta.status === 'Concluída' ? 'green' : 'red'} className="!text-[7px] !px-1.5 !py-0 !rounded-md">
-                                  {meta.status}
-                                </Badge>
-                              </div>
-                              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">{meta.metrica} • {meta.periodo}</p>
-                            </div>
-                            <button 
-                              onClick={() => {
-                                const newList = selectedClient.metas.filter((_: any, i: number) => i !== idx);
-                                handleUpdateField('metas', newList);
-                              }}
-                              className="text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity p-1"
-                            >
-                              <Trash2 size={12} />
-                            </button>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-end">
-                              <span className="text-[10px] font-black text-blue-500">{progress.toFixed(0)}%</span>
-                              <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter">
-                                {meta.valor_atual} / {meta.valor_meta}
+                      {/* ── PERFIL TAB ── */}
+                      {activeTab === 'PERFIL' && (
+                        <div className="space-y-4">
+                          {/* Nome da Marca */}
+                          <div className="space-y-1.5 relative">
+                            <div className="flex items-center justify-between ml-1 mb-1">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">NOME DA MARCA</label>
+                              <span className="text-[8px] text-zinc-300 dark:text-zinc-600 font-bold uppercase tracking-wider flex items-center gap-1">
+                                <span className="w-4 h-4 rounded bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-[7px] font-black text-zinc-400">Aa</span>
+                                clique para alternar caixa
                               </span>
                             </div>
-                            <div className="h-2 w-full bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
-                              <div 
-                                className="h-full bg-blue-500 transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(59,130,246,0.2)]" 
-                                style={{ width: `${progress}%` }}
+                            <div className="relative">
+                              <input
+                                type="text"
+                                value={localState?.Nome || ''}
+                                onChange={(e) => setLocalState({ ...localState, Nome: e.target.value })}
+                                onBlur={() => handleBlur('Nome')}
+                                className="w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 text-xs font-bold tracking-widest text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500/50 transition-all pr-16"
+                              />
+                              <CaseToggle value={localState?.Nome || ''} onChange={(v) => { setLocalState({ ...localState, Nome: v }); onUpdate(selectedClient.id, 'CLIENTES', 'Nome', v); }} />
+                            </div>
+                            <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:Nome`]} />
+                          </div>
+
+                          {/* Nicho + Status */}
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5 relative">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">NICHO</label>
+                              <div className="relative">
+                                <input
+                                  type="text"
+                                  value={localState?.Nicho || ''}
+                                  onChange={(e) => setLocalState({ ...localState, Nicho: e.target.value })}
+                                  onBlur={() => handleBlur('Nicho')}
+                                  className="w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 text-xs font-bold tracking-widest text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500/50 transition-all pr-16"
+                                />
+                                <CaseToggle value={localState?.Nicho || ''} onChange={(v) => { setLocalState({ ...localState, Nicho: v }); onUpdate(selectedClient.id, 'CLIENTES', 'Nicho', v); }} />
+                              </div>
+                              <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:Nicho`]} />
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">STATUS</label>
+                              <PSelectPortal
+                                value={selectedClient.Status || 'Ativo'}
+                                onChange={(val) => handleUpdateField('Status', val)}
+                                options={[
+                                  { value: 'Ativo', label: 'ATIVO' },
+                                  { value: 'Pausado', label: 'PAUSADO' },
+                                  { value: 'Prospect', label: 'PROSPECT' },
+                                ]}
                               />
                             </div>
-                            <div className="flex items-center gap-2 pt-2">
-                               <button 
-                                 onClick={() => {
-                                   const newList = [...selectedClient.metas];
-                                   newList[idx] = { ...newList[idx], valor_atual: Math.max(0, newList[idx].valor_atual - 1) };
-                                   handleUpdateField('metas', newList);
-                                 }}
-                                 className="w-7 h-7 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-500 hover:text-blue-500 transition-colors shadow-sm"
-                               >
-                                 <Plus size={10} className="rotate-45" />
-                               </button>
-                               <button 
-                                 onClick={() => {
-                                   const newList = [...selectedClient.metas];
-                                   const novoValor = newList[idx].valor_atual + 1;
-                                   newList[idx] = { ...newList[idx], valor_atual: novoValor, status: novoValor >= newList[idx].valor_meta ? 'Concluída' : newList[idx].status };
-                                   handleUpdateField('metas', newList);
-                                 }}
-                                 className="w-7 h-7 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-500 hover:text-blue-500 transition-colors shadow-sm"
-                               >
-                                 <Plus size={10} />
-                               </button>
-                               <input 
-                                 type="number"
-                                 value={meta.valor_atual}
-                                 onChange={(e) => {
-                                   const newList = [...selectedClient.metas];
-                                   newList[idx] = { ...newList[idx], valor_atual: Number(e.target.value) };
-                                   handleUpdateField('metas', newList);
-                                 }}
-                                 className="flex-1 h-7 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-2 text-[9px] font-black outline-none text-center"
-                               />
-                               <PSelectPortal
-                                 value={meta.status}
-                                 onChange={(v) => {
-                                   const newList = [...selectedClient.metas];
-                                   newList[idx] = { ...newList[idx], status: v };
-                                   handleUpdateField('metas', newList);
-                                 }}
-                                 size="sm"
-                                 options={[
-                                   { value: 'No prazo', label: 'NO PRAZO' },
-                                   { value: 'Em risco', label: 'EM RISCO' },
-                                   { value: 'Concluída', label: 'CONCLUÍDA' },
-                                 ]}
-                               />
+                          </div>
+
+                          {/* Responsável + Cor */}
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5 relative">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">RESPONSÁVEL</label>
+                              <div className="flex items-center gap-2 group w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 focus-within:border-blue-500/50 transition-all">
+                                <Users size={14} className="text-zinc-400 transition-colors group-focus-within:text-blue-500 shrink-0" />
+                                <input
+                                  type="text"
+                                  value={localState?.Responsável || ''}
+                                  onChange={(e) => setLocalState({ ...localState, Responsável: e.target.value })}
+                                  onBlur={() => handleBlur('Responsável')}
+                                  className="flex-1 bg-transparent border-none outline-none text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 min-w-0"
+                                />
+                              </div>
+                              <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:Responsável`]} />
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">COR (HEX)</label>
+                              <div
+                                className="flex items-center gap-3 h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-3 cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-600 transition-all"
+                                onClick={() => onOpenColorPicker && onOpenColorPicker(selectedClient.id, selectedClient['Cor (HEX)'] || '#3B82F6')}
+                              >
+                                <div className="w-6 h-6 rounded-lg shrink-0 shadow-sm border border-white/20" style={{ backgroundColor: selectedClient['Cor (HEX)'] || '#3B82F6' }} />
+                                <span className="text-[10px] font-black tracking-widest text-zinc-900 dark:text-zinc-100">{selectedClient['Cor (HEX)'] || '#3B82F6'}</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
 
-                  {isAddingMeta ? (
-                    <div className="p-6 rounded-[28px] bg-white dark:bg-zinc-900 border-2 border-blue-500/20 space-y-5 shadow-2xl animate-in slide-in-from-top-2 duration-300">
-                      <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Meta / Objetivo</label>
-                        <input 
-                          type="text" 
-                          placeholder="EX: FATURAMENTO MENSAL"
-                          value={newMetaEntry.titulo}
-                          onChange={e => setNewMetaEntry({ ...newMetaEntry, titulo: e.target.value })}
-                          className="w-full h-11 bg-zinc-50 dark:bg-zinc-800 border-none rounded-xl px-4 text-[10px] font-bold uppercase focus:ring-2 focus:ring-blue-500/20 transition-all"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Métrica (EX: R$, Unid)</label>
-                          <input 
-                            type="text" 
-                            value={newMetaEntry.metrica}
-                            placeholder="EX: REAIS"
-                            onChange={e => setNewMetaEntry({ ...newMetaEntry, metrica: e.target.value })}
-                            className="w-full h-11 bg-zinc-50 dark:bg-zinc-800 border-none rounded-xl px-4 text-[10px] font-bold uppercase"
-                          />
+                          {/* WhatsApp */}
+                          <div className="space-y-1.5 relative">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">WHATSAPP</label>
+                            <div className="flex items-center gap-2 group w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 focus-within:border-emerald-500/50 transition-all">
+                              <Phone size={14} className="text-emerald-500 shrink-0" />
+                              <input
+                                type="text"
+                                value={localState?.WhatsApp || ''}
+                                onChange={(e) => setLocalState({ ...localState, WhatsApp: e.target.value })}
+                                onBlur={() => handleBlur('WhatsApp')}
+                                className="flex-1 bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 min-w-0"
+                                placeholder="EX: +55 11 99999-9999"
+                              />
+                            </div>
+                            <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:WhatsApp`]} />
+                          </div>
+
+                          {/* Instagram */}
+                          <div className="space-y-1.5 relative">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">INSTAGRAM</label>
+                            <div className="flex items-center gap-2 group w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 focus-within:border-rose-500/50 transition-all">
+                              <Instagram size={14} className="text-rose-500 shrink-0" />
+                              <input
+                                type="text"
+                                value={localState?.Instagram || ''}
+                                onChange={(e) => setLocalState({ ...localState, Instagram: e.target.value })}
+                                onBlur={() => handleBlur('Instagram')}
+                                className="flex-1 bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 min-w-0"
+                                placeholder="EX: @USER"
+                              />
+                            </div>
+                            <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:Instagram`]} />
+                          </div>
+
+                          {/* Objetivo */}
+                          <div className="space-y-1.5 relative">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">OBJETIVO</label>
+                            <textarea
+                              rows={3}
+                              value={localState?.Objetivo || ''}
+                              onChange={(e) => setLocalState({ ...localState, Objetivo: e.target.value })}
+                              onBlur={() => handleBlur('Objetivo')}
+                              placeholder="EX: EXPANSÃO DE MARCA"
+                              className="w-full p-4 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl text-[10px] font-medium text-zinc-900 dark:text-zinc-100 outline-none focus:border-blue-500/30 transition-all resize-none"
+                            />
+                            <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:Objetivo`]} />
+                          </div>
+
+                          {/* Observações */}
+                          <div className="space-y-1.5 relative">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">OBSERVAÇÕES</label>
+                            <textarea
+                              rows={3}
+                              value={localState?.Observações || ''}
+                              onChange={(e) => setLocalState({ ...localState, Observações: e.target.value })}
+                              onBlur={() => handleBlur('Observações')}
+                              placeholder="ANOTAÇÕES GERAIS SOBRE O CLIENTE..."
+                              className="w-full p-4 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl text-[10px] font-medium text-zinc-900 dark:text-zinc-100 outline-none focus:border-blue-500/30 transition-all resize-none"
+                            />
+                            <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:Observações`]} />
+                          </div>
                         </div>
-                        <div className="space-y-2">
-                          <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Periodicidade</label>
-                          <PSelectPortal
-                            value={newMetaEntry.periodo}
-                            onChange={v => setNewMetaEntry({ ...newMetaEntry, periodo: v as any })}
-                            className="w-full"
-                            options={['Mensal','Trimestral','Anual']}
-                          />
+                      )}
+
+                      {/* ── CONTRATO TAB ── */}
+                      {activeTab === 'CONTRATO' && (
+                        <div className="space-y-5">
+                          {/* Section label */}
+                          <div className="flex items-center gap-3 pb-2 border-b border-zinc-100 dark:border-zinc-800">
+                            <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: clientColor + '20' }}>
+                              <Handshake size={15} style={{ color: clientColor }} />
+                            </div>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">Contrato &amp; Serviços</span>
+                          </div>
+
+                          {/* Fee + Dia de Pagamento */}
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5 relative">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">FEE / HONORÁRIO</label>
+                              <div className="flex items-center gap-2 group w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 focus-within:border-blue-500/50 transition-all">
+                                <span className="text-[10px] font-black text-zinc-400 shrink-0">R$</span>
+                                <input
+                                  type="number"
+                                  value={localState?.Fee ?? ''}
+                                  onChange={(e) => setLocalState({ ...localState, Fee: Number(e.target.value) })}
+                                  onBlur={() => handleBlur('Fee')}
+                                  className="flex-1 bg-transparent border-none outline-none text-xs font-bold text-zinc-900 dark:text-zinc-100 min-w-0"
+                                  placeholder="0"
+                                />
+                              </div>
+                              <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:Fee`]} />
+                            </div>
+                            <div className="space-y-1.5 relative">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">DIA DE PGTO</label>
+                              <input
+                                type="number"
+                                min={1}
+                                max={31}
+                                value={localState?.dia_pagamento ?? ''}
+                                onChange={(e) => setLocalState({ ...localState, dia_pagamento: Number(e.target.value) })}
+                                onBlur={() => handleBlur('dia_pagamento')}
+                                placeholder="1–31"
+                                className="w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 text-xs font-bold tracking-widest text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500/50 transition-all"
+                              />
+                              <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:dia_pagamento`]} />
+                            </div>
+                          </div>
+
+                          {/* Tempo de Contrato */}
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">TEMPO DE CONTRATO</label>
+                            <PSelectPortal
+                              value={localState?.tempo_contrato || ''}
+                              onChange={(val) => {
+                                setLocalState({ ...localState, tempo_contrato: val });
+                                onUpdate(selectedClient.id, 'CLIENTES', 'tempo_contrato', val);
+                              }}
+                              options={[
+                                { value: '1 mês', label: '1 MÊS' },
+                                { value: '3 meses', label: '3 MESES' },
+                                { value: '6 meses', label: '6 MESES' },
+                                { value: '12 meses', label: '12 MESES' },
+                                { value: '24 meses', label: '24 MESES' },
+                                { value: 'Indeterminado', label: 'INDETERMINADO' },
+                              ]}
+                            />
+                          </div>
+
+                          {/* Data de Início */}
+                          <div className="space-y-1.5 relative">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">DATA DE INÍCIO</label>
+                            <input
+                              type="date"
+                              value={localState?.data_inicio_contrato || ''}
+                              onChange={(e) => setLocalState({ ...localState, data_inicio_contrato: e.target.value })}
+                              onBlur={() => handleBlur('data_inicio_contrato')}
+                              className="w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 text-xs font-bold tracking-widest text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500/50 transition-all"
+                            />
+                            <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:data_inicio_contrato`]} />
+                          </div>
+
+                          {/* Serviços Realizados */}
+                          <div className="space-y-1.5 relative">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">SERVIÇOS REALIZADOS</label>
+                            <textarea
+                              rows={5}
+                              value={localState?.servicos_realizados || ''}
+                              onChange={(e) => setLocalState({ ...localState, servicos_realizados: e.target.value })}
+                              onBlur={() => handleBlur('servicos_realizados')}
+                              placeholder="Descreva os serviços prestados para este cliente..."
+                              className="w-full p-4 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl text-[10px] font-medium text-zinc-900 dark:text-zinc-100 outline-none focus:border-blue-500/30 transition-all resize-none"
+                            />
+                            <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:servicos_realizados`]} />
+                          </div>
                         </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Valor Meta</label>
-                          <input 
-                            type="number" 
-                            value={newMetaEntry.valor_meta}
-                            onChange={e => setNewMetaEntry({ ...newMetaEntry, valor_meta: Number(e.target.value) })}
-                            className="w-full h-11 bg-zinc-50 dark:bg-zinc-800 border-none rounded-xl px-4 text-[10px] font-bold"
-                          />
+                      )}
+
+                      {/* ── LINKS TAB ── */}
+                      {activeTab === 'LINKS' && (
+                        <div className="space-y-4">
+                          <div className="space-y-3">
+                            {(selectedClient.links || []).map((link: any, idx: number) => {
+                              const Icon = ICON_MAP[link.categoria] || Link;
+                              return (
+                                <div key={idx} className="flex items-center gap-3 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl group border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700 transition-all">
+                                  <div className="w-8 h-8 rounded-lg bg-white dark:bg-zinc-800 flex items-center justify-center text-zinc-400 shadow-sm">
+                                    <Icon size={14} />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="block text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100 truncate hover:text-blue-500 transition-colors">
+                                      {link.titulo || 'Link sem título'}
+                                    </a>
+                                    <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter">{link.categoria}</span>
+                                  </div>
+                                  <button
+                                    onClick={() => {
+                                      const newList = selectedClient.links.filter((_: any, i: number) => i !== idx);
+                                      handleUpdateField('links', newList);
+                                    }}
+                                    className="w-8 h-8 flex items-center justify-center rounded-lg text-rose-500 opacity-0 group-hover:opacity-100 hover:bg-rose-500/10 transition-all"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          {isAddingLink ? (
+                            <div className="p-4 bg-zinc-50 dark:bg-zinc-800/80 rounded-2xl border-2 border-blue-500/20 space-y-3 animate-fade-blur">
+                              <input
+                                type="text"
+                                placeholder="TÍTULO DO LINK"
+                                value={newLinkEntry.titulo}
+                                onChange={e => setNewLinkEntry({ ...newLinkEntry, titulo: e.target.value })}
+                                className="w-full h-10 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100"
+                              />
+                              <input
+                                type="url"
+                                placeholder="URL (HTTP://...)"
+                                value={newLinkEntry.url}
+                                onChange={e => setNewLinkEntry({ ...newLinkEntry, url: e.target.value })}
+                                className="w-full h-10 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 text-[10px] font-bold text-zinc-900 dark:text-zinc-100"
+                              />
+                              <InputSelect
+                                value={newLinkEntry.categoria}
+                                onChange={val => setNewLinkEntry({ ...newLinkEntry, categoria: val })}
+                                options={['Site', 'Instagram', 'YouTube', 'TikTok', 'LinkedIn', 'Pinterest', 'Kwai', 'WhatsApp', 'Google Drive', 'Notion', 'Figma', 'Canva', 'Spotify', 'Concorrente', 'Referência', 'Outro']}
+                                className="!h-10"
+                              />
+                              <div className="flex gap-2">
+                                <Button onClick={() => setIsAddingLink(false)} variant="ghost" className="flex-1 !h-10">Cancelar</Button>
+                                <Button
+                                  onClick={() => {
+                                    if (!newLinkEntry.url) return;
+                                    const newList = [...(selectedClient.links || []), newLinkEntry];
+                                    handleUpdateField('links', newList);
+                                    setNewLinkEntry({ titulo: '', url: '', categoria: 'Site' });
+                                    setIsAddingLink(false);
+                                  }}
+                                  className="flex-1 !h-10 !bg-blue-600 !text-white"
+                                >
+                                  Salvar Link
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setIsAddingLink(true)}
+                              className="w-full h-11 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl flex items-center justify-center gap-2 text-zinc-400 hover:text-blue-500 hover:border-blue-500/30 transition-all text-[10px] font-black uppercase tracking-widest"
+                            >
+                              <Plus size={14} /> Adicionar Link
+                            </button>
+                          )}
                         </div>
-                        <div className="space-y-2">
-                          <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Valor Atual</label>
-                          <input 
-                            type="number" 
-                            value={newMetaEntry.valor_atual}
-                            onChange={e => setNewMetaEntry({ ...newMetaEntry, valor_atual: Number(e.target.value) })}
-                            className="w-full h-11 bg-zinc-50 dark:bg-zinc-800 border-none rounded-xl px-4 text-[10px] font-bold"
-                          />
+                      )}
+
+                      {/* ── ASSETS TAB ── */}
+                      {activeTab === 'ASSETS' && (
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-2 gap-3">
+                            {(selectedClient.assets || []).map((asset: any, idx: number) => {
+                              const isImg = asset.tipo === 'Foto' || asset.tipo === 'Logo' || asset.tipo === 'Paleta';
+                              return (
+                                <div key={idx} className="group relative aspect-square rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 overflow-hidden flex flex-col items-center justify-center p-3 text-center transition-all hover:shadow-xl hover:-translate-y-1">
+                                  {isImg ? (
+                                    <img src={asset.dados} alt={asset.nome} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" />
+                                  ) : (
+                                    <File size={32} className="text-zinc-300 mb-2 group-hover:scale-110 transition-transform" />
+                                  )}
+                                  <div className="relative z-10 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center gap-2">
+                                    <span className="text-[9px] font-black uppercase tracking-tighter text-zinc-900 dark:text-white line-clamp-1 px-2">{asset.nome}</span>
+                                    <div className="flex gap-1">
+                                      <a
+                                        href={asset.dados}
+                                        download={asset.nome}
+                                        className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-colors"
+                                      >
+                                        <Download size={14} />
+                                      </a>
+                                      <button
+                                        onClick={() => {
+                                          const newList = selectedClient.assets.filter((_: any, i: number) => i !== idx);
+                                          handleUpdateField('assets', newList);
+                                        }}
+                                        className="w-8 h-8 rounded-lg bg-rose-600 text-white flex items-center justify-center hover:bg-rose-700 transition-colors"
+                                      >
+                                        <Trash2 size={14} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                  {!isImg && <span className="absolute bottom-3 text-[8px] font-black uppercase tracking-widest text-zinc-400">{asset.nome}</span>}
+                                  <Badge color="blue" className="absolute top-2 left-2 !text-[7px] !px-1.5 !py-0 !rounded-md shadow-sm">{asset.tipo}</Badge>
+                                </div>
+                              );
+                            })}
+                            <label className="aspect-square border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-zinc-400 hover:text-blue-500 hover:border-blue-500/30 transition-all cursor-pointer bg-zinc-50/50 dark:bg-zinc-900/20 group">
+                              <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                                <Plus size={18} />
+                              </div>
+                              <span className="text-[10px] font-black uppercase tracking-widest px-4 text-center">Upload Asset</span>
+                              <input
+                                type="file"
+                                className="hidden"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  if (file.size > 1 * 1024 * 1024) {
+                                    alert('Arquivo muito grande. Máximo permitido: 1MB');
+                                    return;
+                                  }
+                                  const base64 = await toBase64(file);
+                                  const tipo = file.type.startsWith('image/') ? 'Foto' : 'Documento';
+                                  const newList = [...(selectedClient.assets || []), { nome: file.name, tipo, dados: base64 }];
+                                  handleUpdateField('assets', newList);
+                                }}
+                              />
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex gap-2 pt-2">
-                        <Button onClick={() => setIsAddingMeta(false)} variant="ghost" className="flex-1 !h-12 !rounded-xl text-[10px] uppercase font-black">Cancelar</Button>
-                        <Button 
-                          onClick={() => {
-                            if (!newMetaEntry.titulo || !newMetaEntry.valor_meta) return;
-                            const newList = [...(selectedClient.metas || []), { ...newMetaEntry, id: Date.now().toString() }];
-                            handleUpdateField('metas', newList);
-                            setNewMetaEntry({ id: '', titulo: '', metrica: '', valor_atual: 0, valor_meta: 0, periodo: 'Mensal', status: 'No prazo' });
-                            setIsAddingMeta(false);
-                          }}
-                          className="flex-[2] !h-12 !rounded-xl !bg-blue-600 !text-white text-[10px] uppercase font-black shadow-lg shadow-blue-500/20"
-                        >
-                          Salvar Objetivo
-                        </Button>
-                      </div>
+                      )}
+
+                      {/* ── LOG TAB ── */}
+                      {activeTab === 'LOG' && (
+                        <div className="space-y-4">
+                          <div className="relative space-y-6 before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-px before:bg-zinc-100 dark:before:bg-zinc-800">
+                            {(selectedClient.log_comunicacao || []).sort((a: any, b: any) => new Date(b.data + ' ' + b.hora).getTime() - new Date(a.data + ' ' + a.hora).getTime()).map((log: any, idx: number) => {
+                              const Icon = ICON_MAP[log.tipo] || StickyNote;
+                              return (
+                                <div key={idx} className="relative pl-12 group">
+                                  <div className="absolute left-0 top-0 w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-400 z-10 group-hover:scale-110 transition-transform">
+                                    <Icon size={14} />
+                                  </div>
+                                  <div className="flex flex-col gap-1">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-[9px] font-black uppercase tracking-widest text-zinc-900 dark:text-white bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md">{log.tipo}</span>
+                                      <span className="text-[9px] font-bold text-zinc-400">{new Date(log.data + ' ' + log.hora).toLocaleDateString('pt-BR')} {log.hora}</span>
+                                    </div>
+                                    <p className="text-[10px] font-medium text-zinc-600 dark:text-zinc-400 leading-relaxed italic border-l-2 border-zinc-100 dark:border-zinc-800 pl-3 mt-1">
+                                      "{log.descricao}"
+                                    </p>
+                                    <button
+                                      onClick={() => {
+                                        const newList = selectedClient.log_comunicacao.filter((_: any, i: number) => i !== idx);
+                                        handleUpdateField('log_comunicacao', newList);
+                                      }}
+                                      className="self-end text-[8px] font-black uppercase tracking-widest text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity mt-1"
+                                    >
+                                      Excluir Log
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <button
+                            onClick={() => setIsLogModalOpen(true)}
+                            className="w-full h-11 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-zinc-500/10 active:scale-95 transition-all"
+                          >
+                            <Plus size={14} /> Registrar Interação
+                          </button>
+                        </div>
+                      )}
+
+                      {/* ── IDENTIDADE TAB ── */}
+                      {activeTab === 'IDENTIDADE' && (
+                        <div className="space-y-6">
+                          {/* Paleta */}
+                          <div className="space-y-2 relative">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">PALETA ESTRATÉGICA (MAX 6)</label>
+                            <div className="grid grid-cols-6 gap-2">
+                              {Array.from({ length: 6 }).map((_, idx) => {
+                                const color = (selectedClient.paleta_cores || [])[idx] || '';
+                                return (
+                                  <div key={idx} className="relative group">
+                                    <div
+                                      className={`aspect-square rounded-xl border-2 ${color ? 'border-zinc-100 dark:border-zinc-800' : 'border-dashed border-zinc-200 dark:border-zinc-800'} overflow-hidden relative shadow-sm`}
+                                      style={{ backgroundColor: color }}
+                                    >
+                                      <input
+                                        type="color"
+                                        value={color || '#ffffff'}
+                                        onChange={(e) => {
+                                          const newList = [...(selectedClient.paleta_cores || [])];
+                                          newList[idx] = e.target.value.toUpperCase();
+                                          handleUpdateField('paleta_cores', newList);
+                                        }}
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                      />
+                                    </div>
+                                    <input
+                                      type="text"
+                                      value={color.replace('#', '')}
+                                      placeholder="HEX"
+                                      onChange={(e) => {
+                                        const val = e.target.value.toUpperCase().replace('#', '');
+                                        if (val.length <= 6) {
+                                          const newList = [...(selectedClient.paleta_cores || [])];
+                                          newList[idx] = '#' + val;
+                                          handleUpdateField('paleta_cores', newList);
+                                        }
+                                      }}
+                                      className="w-full mt-1 bg-transparent border-none text-center text-[8px] font-black uppercase tracking-tighter text-zinc-400 outline-none"
+                                    />
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:paleta_cores`]} />
+                          </div>
+
+                          {/* Fontes */}
+                          <div className="space-y-2 relative">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">FONTES USADAS (MAX 3)</label>
+                            <div className="space-y-2">
+                              {Array.from({ length: 3 }).map((_, idx) => (
+                                <div key={idx} className="flex items-center gap-2">
+                                  <div className="w-8 h-8 rounded-lg bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-black text-zinc-400 border border-zinc-100 dark:border-zinc-700">
+                                    {idx + 1}
+                                  </div>
+                                  <input
+                                    type="text"
+                                    placeholder="NOME DA FONTE (EX: INTER)"
+                                    value={(localState?.fontes || [])[idx] || ''}
+                                    onChange={(e) => {
+                                      const newList = [...(localState?.fontes || [])];
+                                      newList[idx] = e.target.value;
+                                      setLocalState({ ...localState, fontes: newList });
+                                    }}
+                                    onBlur={() => handleBlur('fontes')}
+                                    className="flex-1 h-9 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-lg px-3 text-[10px] font-bold uppercase tracking-widest text-zinc-900 dark:text-white outline-none focus:border-blue-500/30 transition-all"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                            <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:fontes`]} />
+                          </div>
+
+                          {/* Tom de Voz */}
+                          <div className="space-y-2 relative">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">TOM DE VOZ / PERSONALIDADE</label>
+                            <textarea
+                              rows={3}
+                              value={localState?.tom_de_voz || ''}
+                              onChange={(e) => setLocalState({ ...localState, tom_de_voz: e.target.value })}
+                              onBlur={() => handleBlur('tom_de_voz')}
+                              placeholder="DESCREVA A VOZ DA MARCA: EX: FORMAL, AUTORITÁRIA, DIVERTIDA..."
+                              className="w-full p-4 bg-zinc-50 dark:bg-zinc-800/50 border-2 border-zinc-100 dark:border-zinc-800 rounded-2xl text-[10px] font-medium text-zinc-900 dark:text-zinc-100 outline-none focus:border-blue-500/30 transition-all resize-none"
+                            />
+                            <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:tom_de_voz`]} />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* ── METAS TAB ── */}
+                      {activeTab === 'METAS' && (
+                        <div className="space-y-6">
+                          <div className="space-y-4">
+                            {(selectedClient.metas || []).map((meta: any, idx: number) => {
+                              const progress = Math.min(100, Math.max(0, (meta.valor_atual / (meta.valor_meta || 1)) * 100));
+                              return (
+                                <div key={idx} className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-100 dark:border-zinc-800 group transition-all hover:border-blue-500/30">
+                                  <div className="flex items-start justify-between mb-3">
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2">
+                                        <h4 className="text-[11px] font-black uppercase tracking-tight text-zinc-900 dark:text-white">{meta.titulo}</h4>
+                                        <Badge color={meta.status === 'No prazo' ? 'blue' : meta.status === 'Concluída' ? 'green' : 'red'} className="!text-[7px] !px-1.5 !py-0 !rounded-md">
+                                          {meta.status}
+                                        </Badge>
+                                      </div>
+                                      <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">{meta.metrica} • {meta.periodo}</p>
+                                    </div>
+                                    <button
+                                      onClick={() => {
+                                        const newList = selectedClient.metas.filter((_: any, i: number) => i !== idx);
+                                        handleUpdateField('metas', newList);
+                                      }}
+                                      className="text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                                    >
+                                      <Trash2 size={12} />
+                                    </button>
+                                  </div>
+                                  <div className="space-y-2">
+                                    <div className="flex justify-between items-end">
+                                      <span className="text-[10px] font-black text-blue-500">{progress.toFixed(0)}%</span>
+                                      <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter">
+                                        {meta.valor_atual} / {meta.valor_meta}
+                                      </span>
+                                    </div>
+                                    <div className="h-2 w-full bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
+                                      <div
+                                        className="h-full bg-blue-500 transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(59,130,246,0.2)]"
+                                        style={{ width: `${progress}%` }}
+                                      />
+                                    </div>
+                                    <div className="flex items-center gap-2 pt-2">
+                                      <button
+                                        onClick={() => {
+                                          const newList = [...selectedClient.metas];
+                                          newList[idx] = { ...newList[idx], valor_atual: Math.max(0, newList[idx].valor_atual - 1) };
+                                          handleUpdateField('metas', newList);
+                                        }}
+                                        className="w-7 h-7 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-500 hover:text-blue-500 transition-colors shadow-sm"
+                                      >
+                                        <Plus size={10} className="rotate-45" />
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          const newList = [...selectedClient.metas];
+                                          const novoValor = newList[idx].valor_atual + 1;
+                                          newList[idx] = { ...newList[idx], valor_atual: novoValor, status: novoValor >= newList[idx].valor_meta ? 'Concluída' : newList[idx].status };
+                                          handleUpdateField('metas', newList);
+                                        }}
+                                        className="w-7 h-7 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-500 hover:text-blue-500 transition-colors shadow-sm"
+                                      >
+                                        <Plus size={10} />
+                                      </button>
+                                      <input
+                                        type="number"
+                                        value={meta.valor_atual}
+                                        onChange={(e) => {
+                                          const newList = [...selectedClient.metas];
+                                          newList[idx] = { ...newList[idx], valor_atual: Number(e.target.value) };
+                                          handleUpdateField('metas', newList);
+                                        }}
+                                        className="flex-1 h-7 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-2 text-[9px] font-black outline-none text-center"
+                                      />
+                                      <PSelectPortal
+                                        value={meta.status}
+                                        onChange={(v) => {
+                                          const newList = [...selectedClient.metas];
+                                          newList[idx] = { ...newList[idx], status: v };
+                                          handleUpdateField('metas', newList);
+                                        }}
+                                        size="sm"
+                                        options={[
+                                          { value: 'No prazo', label: 'NO PRAZO' },
+                                          { value: 'Em risco', label: 'EM RISCO' },
+                                          { value: 'Concluída', label: 'CONCLUÍDA' },
+                                        ]}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          {isAddingMeta ? (
+                            <div className="p-6 rounded-[28px] bg-white dark:bg-zinc-900 border-2 border-blue-500/20 space-y-5 shadow-2xl animate-in slide-in-from-top-2 duration-300">
+                              <div className="space-y-2">
+                                <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Meta / Objetivo</label>
+                                <input
+                                  type="text"
+                                  placeholder="EX: FATURAMENTO MENSAL"
+                                  value={newMetaEntry.titulo}
+                                  onChange={e => setNewMetaEntry({ ...newMetaEntry, titulo: e.target.value })}
+                                  className="w-full h-11 bg-zinc-50 dark:bg-zinc-800 border-none rounded-xl px-4 text-[10px] font-bold uppercase focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                />
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Métrica (EX: R$, Unid)</label>
+                                  <input
+                                    type="text"
+                                    value={newMetaEntry.metrica}
+                                    placeholder="EX: REAIS"
+                                    onChange={e => setNewMetaEntry({ ...newMetaEntry, metrica: e.target.value })}
+                                    className="w-full h-11 bg-zinc-50 dark:bg-zinc-800 border-none rounded-xl px-4 text-[10px] font-bold uppercase"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Periodicidade</label>
+                                  <PSelectPortal
+                                    value={newMetaEntry.periodo}
+                                    onChange={v => setNewMetaEntry({ ...newMetaEntry, periodo: v as any })}
+                                    className="w-full"
+                                    options={['Mensal','Trimestral','Anual']}
+                                  />
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Valor Meta</label>
+                                  <input
+                                    type="number"
+                                    value={newMetaEntry.valor_meta}
+                                    onChange={e => setNewMetaEntry({ ...newMetaEntry, valor_meta: Number(e.target.value) })}
+                                    className="w-full h-11 bg-zinc-50 dark:bg-zinc-800 border-none rounded-xl px-4 text-[10px] font-bold"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Valor Atual</label>
+                                  <input
+                                    type="number"
+                                    value={newMetaEntry.valor_atual}
+                                    onChange={e => setNewMetaEntry({ ...newMetaEntry, valor_atual: Number(e.target.value) })}
+                                    className="w-full h-11 bg-zinc-50 dark:bg-zinc-800 border-none rounded-xl px-4 text-[10px] font-bold"
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex gap-2 pt-2">
+                                <Button onClick={() => setIsAddingMeta(false)} variant="ghost" className="flex-1 !h-12 !rounded-xl text-[10px] uppercase font-black">Cancelar</Button>
+                                <Button
+                                  onClick={() => {
+                                    if (!newMetaEntry.titulo || !newMetaEntry.valor_meta) return;
+                                    const newList = [...(selectedClient.metas || []), { ...newMetaEntry, id: Date.now().toString() }];
+                                    handleUpdateField('metas', newList);
+                                    setNewMetaEntry({ id: '', titulo: '', metrica: '', valor_atual: 0, valor_meta: 0, periodo: 'Mensal', status: 'No prazo' });
+                                    setIsAddingMeta(false);
+                                  }}
+                                  className="flex-[2] !h-12 !rounded-xl !bg-blue-600 !text-white text-[10px] uppercase font-black shadow-lg shadow-blue-500/20"
+                                >
+                                  Salvar Objetivo
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setIsAddingMeta(true)}
+                              className="w-full h-12 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl flex items-center justify-center gap-2 text-zinc-400 hover:text-blue-500 hover:border-blue-500/30 transition-all text-[10px] font-black uppercase tracking-widest group bg-zinc-50/30 dark:bg-zinc-900/10"
+                            >
+                              <Plus size={16} className="group-hover:rotate-90 transition-transform" /> Adicionar Meta Estratégica
+                            </button>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="h-4"></div>
                     </div>
-                  ) : (
-                    <button 
-                      onClick={() => setIsAddingMeta(true)}
-                      className="w-full h-12 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl flex items-center justify-center gap-2 text-zinc-400 hover:text-blue-500 hover:border-blue-500/30 transition-all text-[10px] font-black uppercase tracking-widest group bg-zinc-50/30 dark:bg-zinc-900/10"
-                    >
-                      <Plus size={16} className="group-hover:rotate-90 transition-transform" /> Adicionar Meta Estratégica
-                    </button>
-                  )}
-                </div>
-              </Accordion>
-
-              {/* ANTIGO QUADRO DE ESTRATÉGIA — INTEGRADO AO ACORDEÃO */}
-              <Accordion 
-                title="Estratégia & Cor UI" 
-                icon={Target} 
-                isOpen={activeAccordion === 'EstrategiaUI'} 
-                onToggle={() => setActiveAccordion(activeAccordion === 'EstrategiaUI' ? '' : 'EstrategiaUI')}
-              >
-                <div className="space-y-6 pt-4">
-                  <div className="space-y-1.5 relative">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">OBJETIVO PRINCIPAL</label>
-                    <div className="flex items-start gap-2 group w-full bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 py-3 focus-within:border-blue-500/50 transition-all">
-                       <Target size={14} className="text-zinc-400 transition-colors group-focus-within:text-blue-500 shrink-0 mt-0.5" />
-                       <textarea 
-                         value={localState?.Objetivo || ''} 
-                         onChange={(e) => setLocalState({ ...localState, Objetivo: e.target.value })}
-                         onBlur={() => handleBlur('Objetivo')}
-                         rows={3}
-                         className="flex-1 bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 resize-none min-w-0 pr-6"
-                         placeholder="EX: EXPANSÃO DE MARCA"
-                       />
-                    </div>
-                    <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:Objetivo`]} />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">COR IDENTITÁRIA (APP UI)</label>
-                    <div 
-                      className="flex items-center gap-4 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-2xl px-5 py-4 cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-600 transition-all group"
-                      onClick={() => onOpenColorPicker && onOpenColorPicker(selectedClient.id, selectedClient['Cor (HEX)'] || '#3B82F6')}
-                    >
-                      <div 
-                        className="w-10 h-10 shrink-0 border-4 border-white dark:border-zinc-700 bg-transparent rounded-2xl shadow-xl group-hover:scale-110 transition-transform"
-                        style={{ backgroundColor: selectedClient['Cor (HEX)'] || '#3B82F6' }}
-                      ></div>
-                      <div className="flex-1">
-                        <span className="text-sm font-black text-zinc-900 dark:text-zinc-100">{selectedClient['Cor (HEX)'] || '#3B82F6'}</span>
-                        <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 mt-0.5">Brand UI Color</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Accordion>
-
-              <div className="h-4"></div>
+                  </>
+                );
+              })()}
             </div>
 
             {/* Drawer Footer */}
