@@ -324,10 +324,12 @@ export const PSelect: React.FC<{
 };
 
 // ─── Re-export portal-safe version ────────────────────────────────────────────
-// PSelectPortal renders panel via a fixed-position div appended to body
+// PSelectPortal — uses createPortal to render panel at document.body
+// This bypasses any CSS transform/filter on ancestor elements that would
+// break position:fixed (fadeInUp animation, card-grid animations, etc.)
 export const PSelectPortal: React.FC<Parameters<typeof PSelect>[0]> = (props) => {
   const [open, setOpen] = React.useState(false);
-  const [pos, setPos] = React.useState({ top: 0, left: 0, width: 0 });
+  const [pos, setPos] = React.useState({ top: 0, left: 0, width: 0, flip: false });
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const panelRef = React.useRef<HTMLDivElement>(null);
 
@@ -343,19 +345,75 @@ export const PSelectPortal: React.FC<Parameters<typeof PSelect>[0]> = (props) =>
     if (!rect) return;
     const panelH = Math.min(normalized.length * 44 + 16, 280);
     const flip = rect.bottom + panelH > window.innerHeight - 8;
-    setPos({ top: flip ? rect.top - panelH - 4 : rect.bottom + 4, left: rect.left, width: rect.width });
+    // Use viewport-relative coords (getBoundingClientRect already returns those)
+    const left = Math.min(rect.left, window.innerWidth - Math.max(rect.width, 220) - 8);
+    setPos({
+      top: flip ? rect.top - panelH - 4 : rect.bottom + 4,
+      left: Math.max(8, left),
+      width: rect.width,
+      flip,
+    });
     setOpen(true);
     playUISound('open');
   };
 
+  // Reposition on scroll/resize
   React.useEffect(() => {
     if (!open) return;
+    const reposition = () => {
+      const rect = triggerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const panelH = Math.min(normalized.length * 44 + 16, 280);
+      const flip = rect.bottom + panelH > window.innerHeight - 8;
+      const left = Math.min(rect.left, window.innerWidth - Math.max(rect.width, 220) - 8);
+      setPos({ top: flip ? rect.top - panelH - 4 : rect.bottom + 4, left: Math.max(8, left), width: rect.width, flip });
+    };
     const close = (e: MouseEvent) => {
-      if (!triggerRef.current?.contains(e.target as Node) && !panelRef.current?.contains(e.target as Node)) setOpen(false);
+      if (!triggerRef.current?.contains(e.target as Node) && !panelRef.current?.contains(e.target as Node)) {
+        setOpen(false);
+      }
     };
     document.addEventListener('mousedown', close);
-    return () => document.removeEventListener('mousedown', close);
-  }, [open]);
+    window.addEventListener('scroll', reposition, true);
+    window.addEventListener('resize', reposition);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      window.removeEventListener('scroll', reposition, true);
+      window.removeEventListener('resize', reposition);
+    };
+  }, [open, normalized.length]);
+
+  const panel = open && typeof document !== 'undefined' ? (
+    <div
+      ref={panelRef}
+      className="fixed z-[99999] bg-white dark:bg-[#111114] border border-zinc-200/80 dark:border-zinc-800 rounded-2xl shadow-2xl dark:shadow-black/60 overflow-hidden"
+      style={{
+        top: pos.top,
+        left: pos.left,
+        width: Math.max(pos.width, 220),
+        animation: 'pselect-appear 0.18s cubic-bezier(0.34,1.56,0.64,1) both',
+        transformOrigin: pos.flip ? 'bottom center' : 'top center',
+      }}
+    >
+      <div className="max-h-[260px] overflow-y-auto custom-scrollbar py-1.5">
+        {normalized.map(opt => {
+          const isActive = opt.value === props.value;
+          return (
+            <button key={opt.value} type="button"
+              onClick={() => { props.onChange(opt.value); setOpen(false); playUISound('tap'); }}
+              className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 text-xs font-bold transition-colors text-left ${isActive ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/80'}`}
+            >
+              <span className="flex items-center gap-2.5 truncate">
+                {opt.color && <span className="w-2.5 h-2.5 rounded-full shrink-0 border border-black/10" style={{ backgroundColor: opt.color }} />}
+                {opt.label}
+              </span>
+              {isActive && <Check size={12} className="shrink-0 text-blue-500" />}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  ) : null;
 
   return (
     <div className={`relative w-full ${props.className || ''}`}>
@@ -372,28 +430,8 @@ export const PSelectPortal: React.FC<Parameters<typeof PSelect>[0]> = (props) =>
         </span>
         <ChevronDown size={13} className={`shrink-0 text-zinc-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
-      {open && typeof document !== 'undefined' && (
-        <div ref={panelRef} className="fixed z-[9000] bg-white dark:bg-[#111114] border border-zinc-200/80 dark:border-zinc-800 rounded-2xl shadow-2xl dark:shadow-black/50 overflow-hidden animate-bounce-in"
-          style={{ top: pos.top, left: pos.left, width: Math.max(pos.width, 200) }}>
-          <div className="max-h-[260px] overflow-y-auto custom-scrollbar py-1.5">
-            {normalized.map(opt => {
-              const isActive = opt.value === props.value;
-              return (
-                <button key={opt.value} type="button"
-                  onClick={() => { props.onChange(opt.value); setOpen(false); playUISound('tap'); }}
-                  className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 text-xs font-bold transition-colors text-left ${isActive ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/80'}`}
-                >
-                  <span className="flex items-center gap-2.5 truncate">
-                    {opt.color && <span className="w-2.5 h-2.5 rounded-full shrink-0 border border-black/10" style={{ backgroundColor: opt.color }} />}
-                    {opt.label}
-                  </span>
-                  {isActive && <Check size={12} className="shrink-0 text-blue-500" />}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* createPortal: renders at document.body — outside any CSS transform context */}
+      {panel && createPortal(panel, document.body)}
     </div>
   );
 };
