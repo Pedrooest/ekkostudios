@@ -59,9 +59,9 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
 
   const getStatusBadge = (status: Reuniao['status']) => {
     switch (status) {
-      case 'Agendada': return <Badge color="blue" className="text-[9px] font-black uppercase tracking-widest"><Clock size={10} className="mr-1" /> Agendada</Badge>;
-      case 'Realizada': return <Badge color="green" className="text-[9px] font-black uppercase tracking-widest"><CheckCircle2 size={10} className="mr-1" /> Realizada</Badge>;
-      case 'Cancelada': return <Badge color="red" className="text-[9px] font-black uppercase tracking-widest"><XCircle size={10} className="mr-1" /> Cancelada</Badge>;
+      case 'Agendada':  return <Badge color="blue"  className="!flex items-center gap-1 text-[9px] font-black uppercase tracking-widest shrink-0"><Clock size={10} className="shrink-0" /><span>Agendada</span></Badge>;
+      case 'Realizada': return <Badge color="green" className="!flex items-center gap-1 text-[9px] font-black uppercase tracking-widest shrink-0"><CheckCircle2 size={10} className="shrink-0" /><span>Realizada</span></Badge>;
+      case 'Cancelada': return <Badge color="red"   className="!flex items-center gap-1 text-[9px] font-black uppercase tracking-widest shrink-0"><XCircle size={10} className="shrink-0" /><span>Cancelada</span></Badge>;
       default: return null;
     }
   };
@@ -238,10 +238,10 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
 
       {/* EDIT MODAL */}
       {isEditModalOpen && selectedMeeting && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300">
-          <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-md" onClick={() => setIsEditModalOpen(false)} />
-          
-          <div className="relative bg-white dark:bg-zinc-900 w-full max-w-4xl max-h-[90vh] rounded-[32px] overflow-hidden shadow-2xl flex flex-col border border-zinc-200 dark:border-white/10">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-md animate-fade" onClick={() => setIsEditModalOpen(false)} />
+
+          <div className="relative bg-white dark:bg-zinc-900 w-full max-w-4xl max-h-[90vh] rounded-[32px] overflow-hidden shadow-2xl flex flex-col border border-zinc-200 dark:border-white/10 animate-bounce-in">
             
             {/* Modal Header */}
             <div className="px-8 py-6 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between sticky top-0 bg-white dark:bg-zinc-900 z-10">

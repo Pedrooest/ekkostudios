@@ -827,7 +827,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                             </div>
                         )}
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 stagger">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 card-grid">
                             <StatCard label="Receita" value={formatBRL(summary.receita)} icon={TrendingUp} color="emerald" />
                             <StatCard label="Despesas" value={formatBRL(summary.despesas)} icon={TrendingDown} color="rose" />
                             <StatCard label="Lucro Líquido" value={formatBRL(summary.lucro)} icon={Wallet} color={summary.lucro >= 0 ? "emerald" : "rose"} />
@@ -957,10 +957,13 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                 <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
                                     {financasFiltradas
                                         .sort((a,b) => b.data.localeCompare(a.data))
-                                        .map(tx => {
+                                        .map((tx, txIdx) => {
                                             const isAtrasado = tx.status !== 'Pago' && tx.data < new Date().toISOString().split('T')[0];
                                             return (
-                                                <tr key={tx.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 group transition-colors">
+                                                <tr key={tx.id}
+                                                    className="hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 group transition-all duration-150"
+                                                    style={{ animationDelay: `${Math.min(txIdx * 20, 300)}ms`, animation: 'fadeInUp 0.3s cubic-bezier(0.32,0.72,0,1) both' }}
+                                                >
                                                     <td className="px-6 py-4 text-[10px] font-black text-zinc-500">{new Date(tx.data + 'T12:00:00').toLocaleDateString('pt-BR')}</td>
                                                     <td className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
                                                         {new Date(tx.data + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')}
