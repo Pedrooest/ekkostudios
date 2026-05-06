@@ -232,17 +232,25 @@ export function TaskFlowView({
     const [sortField, setSortField] = useState<string>('Data_Entrega');
     const [sortDesc, setSortDesc] = useState<boolean>(false);
 
-    // Client filter is unified with the global App filter via activeClientId prop
+    // LOCAL client filter — doesn't affect global state / other tabs
+    const [localClientFilter, setLocalClientFilter] = useState<string>(activeClientId);
+
     const handleClientChange = (clientId: string) => {
-        onClientChange?.(clientId);
+        setLocalClientFilter(clientId);
+        onClientChange?.(clientId); // no-op in current App.tsx
     };
+
+    // Sync local filter if global filter changes from sidebar
+    React.useEffect(() => {
+        setLocalClientFilter(activeClientId);
+    }, [activeClientId]);
 
     const filteredTasks = useMemo(() => {
         let ft = tasks.filter((t: any) => {
             const matchesSearch = !globalSearch ||
                 (t.Título || '').toLowerCase().includes(globalSearch.toLowerCase()) ||
                 clients.find((c:any)=>c.id === t.Cliente_ID)?.Nome?.toLowerCase().includes(globalSearch.toLowerCase());
-            const matchesClient = !activeClientId || t.Cliente_ID === activeClientId;
+            const matchesClient = !localClientFilter || t.Cliente_ID === localClientFilter;
             return matchesSearch && matchesClient && t.Status !== 'arquivado';
         });
 
@@ -258,7 +266,7 @@ export function TaskFlowView({
             return 0;
         });
         return ft;
-    }, [tasks, globalSearch, sortField, sortDesc, clients, activeClientId]);
+    }, [tasks, globalSearch, sortField, sortDesc, clients, localClientFilter]);
 
     const viewType = useMemo(() => DEFAULT_TASK_VIEWS.find(v => v.id === activeViewId)?.tipo || 'List', [activeViewId]);
 
@@ -349,10 +357,10 @@ export function TaskFlowView({
                         <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 mt-0.5">Operação e Entrega</p>
                     </div>
 
-                    {/* CLIENT FILTER — único, conectado ao filtro global */}
+                    {/* CLIENT FILTER — local only, does NOT affect other tabs */}
                     <div className="ml-2 w-44 shrink-0">
                         <PSelectPortal
-                            value={activeClientId}
+                            value={localClientFilter}
                             onChange={handleClientChange}
                             placeholder="Todos os clientes"
                             size="sm"
@@ -363,13 +371,13 @@ export function TaskFlowView({
                         />
                     </div>
 
-                    {activeClientId && (
+                    {localClientFilter && (
                         <button
                             onClick={() => handleClientChange('')}
                             className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-black uppercase tracking-wider border border-blue-200/50 dark:border-blue-500/20 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all ios-btn"
                         >
                             <X size={10} className="shrink-0" />
-                            {clients.find((c: any) => c.id === activeClientId)?.Nome || 'Cliente'}
+                            {clients.find((c: any) => c.id === localClientFilter)?.Nome || 'Cliente'}
                         </button>
                     )}
                 </div>
@@ -403,7 +411,7 @@ export function TaskFlowView({
                     <DeletionBar count={selection.length} onDelete={() => onDelete(selection, 'TAREFAS')} onArchive={() => onArchive(selection, 'TAREFAS', true)} onClear={onClearSelection} />
 
                     <Button
-                        onClick={() => onAdd('TAREFAS', activeClientId ? { Cliente_ID: activeClientId } : undefined)}
+                        onClick={() => onAdd('TAREFAS', localClientFilter ? { Cliente_ID: localClientFilter } : undefined)}
                         className="!h-9 px-4 !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 !rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-zinc-500/10 active:scale-95 transition-all whitespace-nowrap"
                     >
                         <Plus size={15} className="mr-1.5" /> Nova Tarefa

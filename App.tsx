@@ -1974,7 +1974,7 @@ export default function App() {
             savingStatus={savingStatus}
             planejamento={filterArchived(planejamento)}
             activeClientId={selectedClientIds[0] || ''}
-            onClientChange={(id) => setSelectedClientIds(id ? [id] : [])}
+            onClientChange={() => { /* local-only: TaskFlowView manages its own filter */ }}
           />}
           {activeTab === 'CHECKLISTS' && <ChecklistsTab data={currentChecklists} onAdd={handleAddRow} onUpdate={handleUpdate} onDelete={performDelete} clients={clients} savingStatus={savingStatus} />}
           { activeTab === 'VH' && <VhManagementView clients={clients} collaborators={collaborators} setCollaborators={setCollaborators} onUpdate={handleUpdate} selection={selection} onSelect={toggleSelection} tasks={currentTasks} financas={currentFinancas} savingStatus={savingStatus} /> }
