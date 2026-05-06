@@ -4,9 +4,10 @@ import {
   X, Zap, Instagram, Youtube, Facebook, Linkedin,
   MessageCircle, Send, Globe, Trash2, Clock, Users,
   Layout, Target, Mic2, Flame, Droplets, Snowflake,
-  ChevronDown, CheckCircle2
+  CheckCircle2
 } from 'lucide-react';
 import { Cliente } from '../types';
+import { PSelectPortal } from '../Components';
 
 interface CoboDrawerProps {
   item: any | null;
@@ -46,12 +47,12 @@ const getChannelMeta = (canal: string) => {
 };
 
 const ZONA_CONFIG = [
-  { value: 'Primária',   label: 'Quente',    desc: 'Conversão direta',  icon: <Flame size={14} />,     gradient: 'from-orange-500/20 to-amber-500/10', border: 'border-orange-400/50 dark:border-orange-500/40', text: 'text-orange-600 dark:text-orange-400', activeBg: 'bg-orange-50 dark:bg-orange-500/15' },
-  { value: 'Conversão',  label: 'Conversão', desc: 'Fundo de funil',    icon: <Flame size={14} />,     gradient: 'from-orange-400/20 to-amber-400/10', border: 'border-orange-300/50 dark:border-orange-500/30', text: 'text-orange-500 dark:text-orange-400', activeBg: 'bg-orange-50 dark:bg-orange-500/15' },
-  { value: 'Secundária', label: 'Morna',     desc: 'Nutrição de lead',  icon: <Droplets size={14} />,  gradient: 'from-amber-400/20 to-yellow-400/10', border: 'border-amber-400/50 dark:border-amber-500/40',  text: 'text-amber-600 dark:text-amber-400',  activeBg: 'bg-amber-50 dark:bg-amber-500/15' },
-  { value: 'Nutrição',   label: 'Nutrição',  desc: 'Meio de funil',     icon: <Droplets size={14} />,  gradient: 'from-amber-400/20 to-yellow-400/10', border: 'border-amber-300/50 dark:border-amber-400/30',  text: 'text-amber-500 dark:text-amber-400',  activeBg: 'bg-amber-50 dark:bg-amber-500/15' },
-  { value: 'Paralela',   label: 'Fria',      desc: 'Aquisição fria',    icon: <Snowflake size={14} />, gradient: 'from-blue-400/20 to-sky-400/10',     border: 'border-blue-400/50 dark:border-blue-500/40',    text: 'text-blue-600 dark:text-blue-400',    activeBg: 'bg-blue-50 dark:bg-blue-500/15' },
-  { value: 'Aquisição',  label: 'Aquisição', desc: 'Topo de funil',     icon: <Snowflake size={14} />, gradient: 'from-blue-400/20 to-sky-400/10',     border: 'border-blue-300/50 dark:border-blue-400/30',    text: 'text-blue-500 dark:text-blue-400',    activeBg: 'bg-blue-50 dark:bg-blue-500/15' },
+  { value: 'Quente',   label: 'Quente',    desc: 'Conversão / Fundo de funil',  icon: <Flame size={16} />,     gradient: 'from-orange-500/20 to-amber-500/10', border: 'border-orange-400/60 dark:border-orange-500/50', text: 'text-orange-600 dark:text-orange-400', activeBg: 'bg-orange-50 dark:bg-orange-500/15' },
+  { value: 'Morna',   label: 'Morna',     desc: 'Nutrição / Meio de funil',     icon: <Droplets size={16} />,  gradient: 'from-amber-400/20 to-yellow-400/10', border: 'border-amber-400/60 dark:border-amber-500/50',  text: 'text-amber-600 dark:text-amber-400',  activeBg: 'bg-amber-50 dark:bg-amber-500/15' },
+  { value: 'Fria',    label: 'Fria',      desc: 'Aquisição / Topo de funil',    icon: <Snowflake size={16} />, gradient: 'from-blue-400/20 to-sky-400/10',     border: 'border-blue-400/60 dark:border-blue-500/50',    text: 'text-blue-600 dark:text-blue-400',    activeBg: 'bg-blue-50 dark:bg-blue-500/15' },
+  { value: 'Primária',   label: 'Primária',  desc: 'Canal principal',          icon: <Zap size={16} />,       gradient: 'from-violet-400/20 to-purple-400/10', border: 'border-violet-400/60 dark:border-violet-500/50', text: 'text-violet-600 dark:text-violet-400', activeBg: 'bg-violet-50 dark:bg-violet-500/15' },
+  { value: 'Secundária', label: 'Secundária',desc: 'Canal de suporte',          icon: <Droplets size={16} />,  gradient: 'from-slate-400/20 to-zinc-400/10',   border: 'border-slate-400/60 dark:border-slate-500/50',  text: 'text-slate-600 dark:text-slate-400',  activeBg: 'bg-slate-50 dark:bg-slate-500/15' },
+  { value: 'Paralela',   label: 'Paralela',  desc: 'Canal experimental',        icon: <Snowflake size={16} />, gradient: 'from-cyan-400/20 to-sky-400/10',     border: 'border-cyan-400/60 dark:border-cyan-500/50',    text: 'text-cyan-600 dark:text-cyan-400',    activeBg: 'bg-cyan-50 dark:bg-cyan-500/15' },
 ];
 
 // Reusable field row — no absolute-positioned icons, clean layout
@@ -84,21 +85,6 @@ function PInput({ value, defaultValue, onBlur, placeholder, list, id }: React.In
   );
 }
 
-// Premium select
-function PSelect({ value, onChange, children, className = '' }: React.SelectHTMLAttributes<HTMLSelectElement>) {
-  return (
-    <div className="relative">
-      <select
-        value={value}
-        onChange={onChange}
-        className={`w-full h-11 px-4 pr-9 rounded-2xl border border-zinc-200/80 dark:border-zinc-700/80 bg-zinc-50 dark:bg-zinc-800/60 text-sm font-medium text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-blue-500/25 focus:border-blue-500/60 transition-all duration-200 appearance-none cursor-pointer ${className}`}
-      >
-        {children}
-      </select>
-      <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
-    </div>
-  );
-}
 
 export function CoboDrawer({ item, cliente, onUpdate, onDelete, onClose }: CoboDrawerProps) {
   const [visible, setVisible] = useState(false);
@@ -225,7 +211,7 @@ export function CoboDrawer({ item, cliente, onUpdate, onDelete, onClose }: CoboD
         </div>
 
         {/* Scrollable body */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-6 space-y-6">
+        <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-6 space-y-6 stagger">
 
           {/* ── Section: Distribuição ───────────────────── */}
           <div>
@@ -233,13 +219,12 @@ export function CoboDrawer({ item, cliente, onUpdate, onDelete, onClose }: CoboD
             <div className="space-y-4">
 
               <FieldRow label="Canal" icon={ch.icon}>
-                <PSelect
+                <PSelectPortal
                   value={item.Canal || ''}
-                  onChange={e => handleUpdate('Canal', e.target.value)}
-                >
-                  <option value="">Selecionar canal</option>
-                  {CANAIS.map(c => <option key={c} value={c}>{c}</option>)}
-                </PSelect>
+                  onChange={v => handleUpdate('Canal', v)}
+                  placeholder="Selecionar canal"
+                  options={CANAIS.map(c => ({ value: c, label: c }))}
+                />
               </FieldRow>
 
               <FieldRow label="Frequência de publicação" icon={<Clock size={12} />}>
@@ -310,8 +295,8 @@ export function CoboDrawer({ item, cliente, onUpdate, onDelete, onClose }: CoboD
                         onClick={() => handleUpdate('Zona', z.value)}
                         className={`relative p-3 rounded-2xl border-2 text-left transition-all duration-200 ios-btn overflow-hidden ${
                           isActive
-                            ? `${z.activeBg} ${z.border} shadow-sm`
-                            : 'border-zinc-200 dark:border-zinc-700/60 hover:border-zinc-300 dark:hover:border-zinc-600 bg-zinc-50 dark:bg-zinc-800/40'
+                            ? `${z.activeBg} ${z.border} shadow-lg scale-[1.03]`
+                            : 'border-zinc-200 dark:border-zinc-700/60 hover:border-zinc-300 dark:hover:border-zinc-600 bg-zinc-50 dark:bg-zinc-800/40 hover:scale-[1.02] hover:-translate-y-0.5'
                         }`}
                       >
                         {isActive && (
