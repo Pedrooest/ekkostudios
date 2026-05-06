@@ -109,12 +109,12 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
       {/* FILTERS */}
       <div className="px-8 py-5 flex flex-col sm:flex-row gap-4 border-b border-zinc-100 dark:border-zinc-800/50 bg-white/40 dark:bg-zinc-900/20 backdrop-blur-sm">
         <div className="relative flex-1 group max-w-md">
-          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-zinc-400 group-focus-within:text-zinc-900 dark:group-focus-within:text-zinc-100 transition-colors">
+          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-zinc-400 group-focus-within:text-zinc-900 dark:group-focus-within:text-zinc-100 transition-colors">
             <Search size={14} />
           </div>
           <input
             type="text"
-            className="block w-full pl-11 pr-4 h-11 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-4 focus:ring-zinc-500/10 focus:border-zinc-400 transition-all shadow-sm"
+            className="block w-full pl-10 pr-4 h-11 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-4 focus:ring-zinc-500/10 focus:border-zinc-400 transition-all shadow-sm"
             placeholder="BUSCAR REUNIÃO..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -277,9 +277,9 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
                 >
                   <Trash2 size={16} />
                 </button>
-                <button 
+                <button
                   onClick={() => setIsEditModalOpen(false)}
-                  className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500"
+                  className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 hover:rotate-90 transition-transform"
                 >
                   <X size={20} />
                 </button>
@@ -318,22 +318,22 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
 
                   <div className="space-y-2">
                     <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Título da Reunião</label>
-                    <input 
+                    <input
                       type="text"
                       value={selectedMeeting.titulo}
                       onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'titulo', e.target.value)}
-                      className="w-full h-11 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl text-xs font-bold"
+                      className="w-full h-11 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl text-xs font-bold transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
                     />
                   </div>
 
                   <div className="grid grid-cols-3 gap-4">
                      <div className="space-y-2">
                         <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Data</label>
-                        <input type="date" value={selectedMeeting.data} onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'data', e.target.value)} className="w-full h-11 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl text-[10px] font-bold" />
+                        <input type="date" value={selectedMeeting.data} onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'data', e.target.value)} className="w-full h-11 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl text-[10px] font-bold transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400" />
                      </div>
                      <div className="space-y-2">
                         <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Hora</label>
-                        <input type="time" value={selectedMeeting.hora} onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'hora', e.target.value)} className="w-full h-11 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl text-[10px] font-bold" />
+                        <input type="time" value={selectedMeeting.hora} onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'hora', e.target.value)} className="w-full h-11 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl text-[10px] font-bold transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400" />
                      </div>
                      <div className="space-y-2">
                         <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Formato</label>
@@ -353,11 +353,11 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
                   <div className="space-y-4">
                      <div className="space-y-2">
                         <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Pauta</label>
-                        <textarea value={selectedMeeting.pauta} onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'pauta', e.target.value)} rows={4} className="w-full p-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-2xl text-xs" />
+                        <textarea value={selectedMeeting.pauta} onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'pauta', e.target.value)} rows={4} className="w-full p-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-2xl text-xs transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400" />
                      </div>
                      <div className="space-y-2">
                         <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Decisões</label>
-                        <textarea value={selectedMeeting.decisoes} onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'decisoes', e.target.value)} rows={4} className="w-full p-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-2xl text-xs" />
+                        <textarea value={selectedMeeting.decisoes} onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'decisoes', e.target.value)} rows={4} className="w-full p-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-2xl text-xs transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400" />
                      </div>
                   </div>
                 </div>

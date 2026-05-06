@@ -7,7 +7,7 @@ import {
   Target, Zap, Mic2, Map, Layout, CheckCircle2, AlertCircle, Users, Clock,
   Flame, Droplets, Snowflake
 } from 'lucide-react';
-import { Card, Button, InputSelect, Badge, DeletionBar } from '../Components';
+import { Card, Button, InputSelect, Badge, DeletionBar, PSelectPortal } from '../Components';
 import {
   OPCOES_CANAL_COBO, OPCOES_FREQUENCIA_COBO, OPCOES_PUBLICO_COBO,
   OPCOES_VOZ_COBO, OPCOES_ZONA_COBO, OPCOES_INTENCAO_COBO,
@@ -288,7 +288,7 @@ export function CoboView({
 
       {/* CARDS VIEW */}
       {viewMode === 'cards' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 stagger">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 card-grid">
           {filteredData.map(item => {
             const ch = getChannelStyle(item.Canal);
             const zo = getZonaStyle(item.Zona);
@@ -296,7 +296,7 @@ export function CoboView({
             return (
               <div
                 key={item.id}
-                className={`relative bg-white dark:bg-zinc-900 rounded-2xl border transition-all group cursor-pointer ${isSelected ? 'border-blue-500 ring-2 ring-blue-500/20 shadow-lg' : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-md'}`}
+                className={`relative bg-white dark:bg-zinc-900 rounded-2xl border transition-all duration-300 group cursor-pointer lift active:scale-[0.98] ${isSelected ? 'border-blue-500 ring-2 ring-blue-500/20 shadow-lg' : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-md'}`}
                 onClick={() => setDrawerItem(item)}
               >
                 {/* Checkbox */}
@@ -403,7 +403,7 @@ export function CoboView({
                   const isSelected = selection.includes(item.id);
                   return (
                     <tr key={item.id}
-                      className={`group cursor-pointer transition-colors ${isSelected ? 'bg-blue-50/60 dark:bg-blue-500/5' : 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50'}`}
+                      className={`group cursor-pointer transition-all duration-150 ${isSelected ? 'bg-blue-50/60 dark:bg-blue-500/5' : 'hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40'}`}
                       onClick={() => setDrawerItem(item)}
                     >
                       <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
@@ -418,28 +418,26 @@ export function CoboView({
                           <div className={`w-7 h-7 rounded-lg flex items-center justify-center border shrink-0 ${ch.bg} ${ch.text} ${ch.border}`}>
                             {ch.icon}
                           </div>
-                          <select value={item.Canal || ''} onChange={e => onUpdate(item.id, 'COBO', 'Canal', e.target.value)}
-                            className="bg-transparent outline-none text-[11px] font-bold text-zinc-900 dark:text-zinc-100 uppercase cursor-pointer hover:text-blue-500 transition-colors"
-                            onClick={e => e.stopPropagation()}
-                          >
-                            <option value="">—</option>
-                            {OPCOES_CANAL_COBO.map(o => <option key={o} value={o}>{o}</option>)}
-                          </select>
+                          <PSelectPortal
+                            value={item.Canal || ''}
+                            onChange={v => onUpdate(item.id, 'COBO', 'Canal', v)}
+                            placeholder="Canal"
+                            size="sm"
+                            options={[{ value: '', label: '—' }, ...OPCOES_CANAL_COBO.map(o => ({ value: o, label: o }))]}
+                            className="min-w-[120px]"
+                          />
                         </div>
                       </td>
                       {/* Zona */}
                       <td className="px-5 py-3" onClick={e => e.stopPropagation()}>
-                        <div className={`inline-flex items-center gap-1 text-[9px] font-black px-2 py-1 rounded-full border ${zo.bg} ${zo.text} ${zo.border}`}>
-                          {zo.icon}
-                          <select value={item.Zona || ''} onChange={e => onUpdate(item.id, 'COBO', 'Zona', e.target.value)}
-                            className="bg-transparent outline-none font-black uppercase cursor-pointer"
-                            style={{ color: 'inherit' }}
-                            onClick={e => e.stopPropagation()}
-                          >
-                            <option value="">—</option>
-                            {OPCOES_ZONA_COBO.map(o => <option key={o} value={o}>{o}</option>)}
-                          </select>
-                        </div>
+                        <PSelectPortal
+                          value={item.Zona || ''}
+                          onChange={v => onUpdate(item.id, 'COBO', 'Zona', v)}
+                          placeholder="Zona"
+                          size="sm"
+                          options={[{ value: '', label: '—' }, ...OPCOES_ZONA_COBO.map(o => ({ value: o, label: o }))]}
+                          className="min-w-[100px]"
+                        />
                       </td>
                       {renderEditableCell(item, 'Frequência', 'dl-frequencia-cobo')}
                       {renderEditableCell(item, 'Intenção', 'dl-intencao-cobo')}
