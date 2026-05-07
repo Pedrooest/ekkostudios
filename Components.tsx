@@ -132,8 +132,10 @@ export const FloatingPopover: React.FC<{
         const triggerRect = triggerRef.current.getBoundingClientRect();
         const popoverRect = popoverRef.current?.getBoundingClientRect();
 
-        let top = triggerRect.bottom + window.scrollY + 8;
-        let left = triggerRect.left + window.scrollX;
+        // Use viewport-relative coords directly (getBoundingClientRect is already viewport-relative)
+        // Do NOT add scrollX/Y — position:fixed uses viewport, not document coordinates
+        let top = triggerRect.bottom + 8;
+        let left = triggerRect.left;
         let width = triggerRect.width;
 
         // Auto-flip if not enough space below
@@ -141,15 +143,16 @@ export const FloatingPopover: React.FC<{
           const spaceBelow = window.innerHeight - triggerRect.bottom;
           const spaceAbove = triggerRect.top;
           if (spaceBelow < popoverRect.height && spaceAbove > popoverRect.height) {
-            top = triggerRect.top + window.scrollY - popoverRect.height - 8;
+            top = triggerRect.top - popoverRect.height - 8;
           }
         }
 
-        if (align === 'start') {
-          // Default left
-        } else if (align === 'end') {
-          left = triggerRect.right + window.scrollX - (popoverRect?.width || 0);
+        if (align === 'end') {
+          left = triggerRect.right - (popoverRect?.width || 0);
         }
+
+        // Clamp to viewport
+        left = Math.max(8, Math.min(left, window.innerWidth - (popoverRect?.width || 200) - 8));
 
         setCoords({ top, left, width });
       }
@@ -190,10 +193,8 @@ export const FloatingPopover: React.FC<{
       ref={popoverRef}
       className={`fixed z-[9999] animate-fade shadow-2xl ${className}`}
       style={{
-        top: coords.top - window.scrollY, // Adjust to Fixed by subtracting scrollY since we added it for absolute calc logic, or just use Viewport rects directly. Let's simplify to Fixed.
-        left: coords.left - window.scrollX,
-        // Logic fix: createdPortal renders in body. If we use 'fixed' position, coordinates should be relative to viewport (rect), not document (rect + scroll).
-        // Let's re-do the calc logic in the effect below for clarity.
+        top: coords.top,
+        left: coords.left,
       }}
     >
       {children}
@@ -663,7 +664,7 @@ export const DeletionBar: React.FC<{ count: number; onDelete: () => void; onArch
       <div className="w-px h-4 bg-rose-500/20 mx-1"></div>
       <button onClick={onArchive} className="text-app-text-muted hover:text-app-text-strong text-[10px] font-black uppercase tracking-widest transition-all">Arquivar</button>
       <button onClick={onDelete} className="text-rose-500 hover:text-rose-400 text-[10px] font-black uppercase tracking-widest transition-all ml-2">Excluir Permanente</button>
-      <button onClick={onClear} className="text-[#4B5563] hover:text-app-text-strong text-[10px] font-black uppercase tracking-widest transition-all ml-1 underline">Limpar</button>
+      <button onClick={onClear} className="text-app-text-muted hover:text-app-text-strong text-[10px] font-black uppercase tracking-widest transition-all ml-1 underline">Limpar</button>
     </div>
   );
 };

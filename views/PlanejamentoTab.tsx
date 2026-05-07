@@ -1135,7 +1135,7 @@ export default function PlanejamentoTab({
                                             value={clients.find(c => c.id === selectedEvent?.Cliente_ID)?.Nome || selectedEvent?.Cliente_ID || ''}
                                             onChange={(e) => {
                                                 const val = e.target.value;
-                                                const matchedClient = clients.find(c => c.Nome.toLowerCase() === val.toLowerCase());
+                                                const matchedClient = clients.find(c => (c.Nome || '').toLowerCase() === val.toLowerCase());
                                                 if (selectedEvent) {
                                                     onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Cliente_ID', matchedClient ? matchedClient.id : val);
                                                 }
