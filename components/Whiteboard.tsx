@@ -267,7 +267,7 @@ export function Whiteboard({ workspaceId }: WhiteboardProps) {
 
     // Canvas State
     const [camera, setCamera] = useState({ x: 0, y: 0, z: 1 });
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+    const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 1024 : false);
     const [gridMode, setGridMode] = useState<GridMode>('dots');
 
     // Snap to grid

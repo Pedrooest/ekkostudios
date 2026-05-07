@@ -125,7 +125,7 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
           <PSelectPortal
             value={clientFilter}
             onChange={(val) => setClientFilter(val)}
-            options={[{ value: 'Todos', label: 'TODOS OS CLIENTES' }, ...clients.map(c => ({ value: c.id, label: c.Nome.toUpperCase() }))]}
+            options={[{ value: 'Todos', label: 'TODOS OS CLIENTES' }, ...clients.map(c => ({ value: c.id, label: (c.Nome || '').toUpperCase() }))]}
             className="min-w-[140px]"
           />
 
@@ -167,7 +167,7 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
                         className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-white text-sm shadow-lg shadow-inner"
                         style={{ backgroundColor: clientColor }}
                       >
-                        {client?.Nome.charAt(0).toUpperCase() || '?'}
+                        {(client?.Nome || '?').charAt(0).toUpperCase()}
                       </div>
                       <div className="max-w-[120px] truncate">
                         <p className="text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100 truncate">{client?.Nome || 'Geral'}</p>
@@ -297,7 +297,7 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
                        <PSelectPortal
                          value={selectedMeeting.cliente_id}
                          onChange={(val) => onUpdate(selectedMeeting.id, 'REUNIOES', 'cliente_id', val)}
-                         options={[{ value: '', label: 'Selecione o Cliente' }, ...clients.map(c => ({ value: c.id, label: c.Nome.toUpperCase() }))]}
+                         options={[{ value: '', label: 'Selecione o Cliente' }, ...clients.map(c => ({ value: c.id, label: (c.Nome || '').toUpperCase() }))]}
                          className="w-full"
                        />
                     </div>
