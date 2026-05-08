@@ -4,7 +4,7 @@ import {
     Search, Plus, Calendar, Clock, MapPin,
     Video, CheckCircle2, X, Trash2, Check,
     Briefcase, AlertTriangle, ArrowLeft,
-    CheckSquare, Square, Loader2
+    CheckSquare, Square, Loader2, Sparkles
 } from 'lucide-react';
 import { Button, Card, Badge, InputSelect, PSelectPortal } from '../Components';
 import { Cliente, ChecklistShoot, TipoTabela } from '../types';
@@ -14,6 +14,43 @@ import { Cliente, ChecklistShoot, TipoTabela } from '../types';
 // ==========================================
 const tryPlaySound = (type: string) => {
     if (typeof window !== 'undefined' && (window as any).playUISound) (window as any).playUISound(type);
+};
+
+// ==========================================
+// MAPA DE CORES ESTÁTICAS — Tailwind JIT
+// (não usar template literals: hover:border-${cColor}-300 não funciona em prod)
+// ==========================================
+const CAT_COLORS: Record<string, {
+    bar: string; title: string; hoverBorder: string;
+    checkBg: string; checkShadow: string; inputBorder: string; addBtn: string;
+}> = {
+    blue: {
+        bar: 'bg-blue-500',
+        title: 'text-blue-600 dark:text-blue-400',
+        hoverBorder: 'hover:border-blue-300 dark:hover:border-blue-700',
+        checkBg: 'bg-blue-500 border-blue-500',
+        checkShadow: 'shadow-blue-500/25',
+        inputBorder: 'border-blue-300 dark:border-blue-700',
+        addBtn: 'hover:text-blue-500 dark:hover:text-blue-400',
+    },
+    emerald: {
+        bar: 'bg-emerald-500',
+        title: 'text-emerald-600 dark:text-emerald-400',
+        hoverBorder: 'hover:border-emerald-300 dark:hover:border-emerald-700',
+        checkBg: 'bg-emerald-500 border-emerald-500',
+        checkShadow: 'shadow-emerald-500/25',
+        inputBorder: 'border-emerald-300 dark:border-emerald-700',
+        addBtn: 'hover:text-emerald-500 dark:hover:text-emerald-400',
+    },
+    purple: {
+        bar: 'bg-purple-500',
+        title: 'text-purple-600 dark:text-purple-400',
+        hoverBorder: 'hover:border-purple-300 dark:hover:border-purple-700',
+        checkBg: 'bg-purple-500 border-purple-500',
+        checkShadow: 'shadow-purple-500/25',
+        inputBorder: 'border-purple-300 dark:border-purple-700',
+        addBtn: 'hover:text-purple-500 dark:hover:text-purple-400',
+    },
 };
 
 // ==========================================
@@ -440,38 +477,48 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full items-start">
                         {checklistCategories.map((category: any) => {
                             const cColor = colorByCat[category.id] || 'blue'; // blue, emerald, purple
+                            const cc = CAT_COLORS[cColor];
                             const isScene = category.id === 'gravar';
+                            const checkedCount = category.items.filter((i:any)=>i.checked).length;
+                            const totalCount = category.items.length;
+                            const catProgress = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0;
 
                             return (
                                 <Card key={category.id} className="h-auto flex flex-col shadow-xl !border-0 bg-white dark:bg-zinc-900 !rounded-[2rem] overflow-hidden relative">
-                                    <div className={`absolute top-0 left-0 right-0 h-1.5 ${cColor === 'blue' ? 'bg-blue-500' : cColor === 'emerald' ? 'bg-emerald-500' : 'bg-purple-500'}`}></div>
-                                    <div className="p-5 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center bg-zinc-50/50 dark:bg-zinc-900/50">
-                                        <h3 className={`text-sm font-black uppercase tracking-widest ${cColor === 'blue' ? 'text-blue-600 dark:text-blue-400' : cColor === 'emerald' ? 'text-emerald-600 dark:text-emerald-400' : 'text-purple-600 dark:text-purple-400'}`}>
+                                    {/* Colored progress bar at top */}
+                                    <div className="absolute top-0 left-0 right-0 h-1 bg-zinc-100 dark:bg-zinc-800">
+                                        <div className={`h-full ${cc.bar} transition-all duration-700 ease-out rounded-full`} style={{ width: `${catProgress}%` }} />
+                                    </div>
+                                    <div className="p-5 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center bg-zinc-50/50 dark:bg-zinc-900/50 pt-6">
+                                        <h3 className={`text-sm font-black uppercase tracking-widest ${cc.title}`}>
                                             {category.category}
                                         </h3>
-                                        <span className="text-[10px] font-bold text-zinc-400 bg-white dark:bg-zinc-800 px-2 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-700">
-                                            {category.items.filter((i:any)=>i.checked).length}/{category.items.length}
+                                        <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${checkedCount === totalCount && totalCount > 0 ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400' : 'bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-400'} transition-all`}>
+                                            {checkedCount}/{totalCount}
                                         </span>
                                     </div>
-                                    
-                                    <div className="p-5 space-y-3 flex-1 overflow-y-auto custom-scrollbar-mini min-h-[300px]">
+
+                                    <div className="p-5 space-y-2.5 flex-1 overflow-y-auto custom-scrollbar-mini min-h-[300px]">
                                         {category.items.map((item: any) => (
-                                            <div 
+                                            <div
                                                 key={item.id}
-                                                className={`group flex items-start gap-3 p-3 rounded-xl border transition-all ${item.checked ? `bg-zinc-50 dark:bg-zinc-800/20 border-zinc-200 dark:border-zinc-800` : `bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 shadow-sm hover:border-${cColor}-300 dark:hover:border-${cColor}-700`}`}
+                                                className={`group flex items-start gap-3 p-3 rounded-xl border transition-all duration-200 ${item.checked
+                                                    ? 'bg-zinc-50 dark:bg-zinc-800/20 border-zinc-200 dark:border-zinc-800 opacity-70'
+                                                    : `bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 shadow-sm ${cc.hoverBorder} hover:shadow-md`
+                                                }`}
                                             >
-                                                <div 
+                                                <button
                                                     onClick={() => toggleChecklistItem(activeShoot.id, category.id, item.id)}
-                                                    className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer shrink-0 transition-all ${
-                                                        item.checked 
-                                                            ? `bg-${cColor === 'emerald' ? 'emerald' : cColor === 'blue' ? 'blue' : 'purple'}-500 border-${cColor === 'emerald' ? 'emerald' : cColor === 'blue' ? 'blue' : 'purple'}-500 shadow-lg shadow-${cColor}-500/20` 
-                                                            : 'border-zinc-300 dark:border-zinc-600 hover:border-zinc-400 dark:hover:border-zinc-500'
+                                                    className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer shrink-0 transition-all duration-200 active:scale-90 ${
+                                                        item.checked
+                                                            ? `${cc.checkBg} shadow-lg ${cc.checkShadow} scale-100`
+                                                            : 'border-zinc-300 dark:border-zinc-600 hover:border-zinc-400 dark:hover:border-zinc-500 hover:scale-110'
                                                     }`}
                                                 >
-                                                    {item.checked && <Check size={12} strokeWidth={4} className="text-white shrink-0" />}
-                                                </div>
+                                                    {item.checked && <Check size={11} strokeWidth={3.5} className="text-white shrink-0" />}
+                                                </button>
                                                 <div className="flex-1 min-w-0 pt-0.5">
-                                                    <span className={`block text-[11px] font-bold transition-all uppercase tracking-tight ${item.checked ? 'text-zinc-400 dark:text-zinc-500 line-through opacity-70' : 'text-zinc-800 dark:text-zinc-200'}`}>
+                                                    <span className={`block text-[11px] font-bold transition-all uppercase tracking-tight ${item.checked ? 'text-zinc-400 dark:text-zinc-500 line-through' : 'text-zinc-800 dark:text-zinc-200'}`}>
                                                         {item.text}
                                                     </span>
                                                     {isScene && item.type && (
@@ -480,21 +527,21 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                                                         </Badge>
                                                     )}
                                                 </div>
-                                                <button 
+                                                <button
                                                     onClick={(e) => { e.stopPropagation(); handleRemoveItem(activeShoot.id, category.id, item.id); }}
                                                     className="ml-auto p-1.5 rounded-lg text-zinc-300 hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-500/10 dark:hover:text-rose-500 transition-all flex items-center justify-center shrink-0 mt-0.5 opacity-0 group-hover:opacity-100"
                                                     title="Excluir item"
                                                 >
-                                                    <X size={14} strokeWidth={2.5} className="shrink-0"/>
+                                                    <X size={13} strokeWidth={2.5} className="shrink-0"/>
                                                 </button>
                                             </div>
                                         ))}
 
                                         {/* INLINE NEW ITEM INPUT */}
                                         {addingItemToCategory === category.id && (
-                                            <div className={`group flex items-start gap-3 p-3 rounded-xl border bg-white dark:bg-zinc-900 border-${cColor}-300 dark:border-${cColor}-700 shadow-sm transition-all`}>
-                                                <div className="mt-0.5 shrink-0 transition-colors">
-                                                    <Square size={18} className="text-zinc-300 dark:text-zinc-600 shrink-0" />
+                                            <div className={`group flex items-start gap-3 p-3 rounded-xl border bg-white dark:bg-zinc-900 ${cc.inputBorder} shadow-sm transition-all animate-in fade-in zoom-in-95 duration-150`}>
+                                                <div className="mt-0.5 shrink-0">
+                                                    <Square size={17} className="text-zinc-300 dark:text-zinc-600 shrink-0" />
                                                 </div>
                                                 <div className="flex-1 w-full flex flex-col gap-2">
                                                     {isScene && (
@@ -506,10 +553,10 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                                                             options={['Feed/YouTube','Reels','B-Roll','Entrevista','Cena Específica']}
                                                         />
                                                     )}
-                                                    <input 
-                                                        type="text" 
+                                                    <input
+                                                        type="text"
                                                         autoFocus
-                                                        placeholder={isScene ? "+ Roteiro/Cena" : "Digite e aperte Enter..."}
+                                                        placeholder={isScene ? "+ Roteiro/Cena" : "Digite e Enter para adicionar..."}
                                                         value={newItemTexts[category.id] || ''}
                                                         onChange={(e) => setNewItemTexts({ ...newItemTexts, [category.id]: e.target.value })}
                                                         onBlur={() => {
@@ -539,11 +586,11 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                                         )}
 
                                         {addingItemToCategory !== category.id && (
-                                            <button 
+                                            <button
                                                 onClick={() => setAddingItemToCategory(category.id)}
-                                                className={`flex items-center gap-2 text-xs font-bold text-zinc-400 hover:text-${cColor}-500 py-2 transition-colors inline-block`}
+                                                className={`flex items-center gap-2 text-xs font-bold text-zinc-400 ${cc.addBtn} py-2 transition-all hover:gap-3 duration-200`}
                                             >
-                                                <Plus size={14} className="inline shrink-0"/> Adicionar item
+                                                <Plus size={14} className="shrink-0"/> Adicionar item
                                             </button>
                                         )}
                                     </div>
@@ -597,72 +644,86 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
             {/* LIST AREA (GRID 2 COLS) */}
             <div className={`flex-1 overflow-y-auto px-6 py-8 transition-opacity duration-300 custom-scrollbar ${activeShootId ? 'opacity-0 pointer-events-none absolute inset-0' : 'opacity-100'}`}>
                 <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 stagger">
-                        {filteredShoots.map(shoot => {
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 card-grid">
+                        {filteredShoots.map((shoot, idx) => {
                             const p = calculateProgress(shoot);
                             const clientData = clients.find(c => c.Nome === shoot.client);
                             const clientColor = clientData?.['Cor (HEX)'] || '#6366f1';
-                            
+                            const isDone = shoot.status === 'done';
+                            const isReady = shoot.status === 'ready';
+
                             return (
-                                <Card 
-                                    key={shoot.id} 
+                                <Card
+                                    key={shoot.id}
                                     id={`shoot-card-${shoot.id}`}
                                     onClick={() => { tryPlaySound('tap'); setActiveShootId(shoot.id); }}
-                                    className="cursor-pointer group flex flex-col sm:flex-row shadow-xl shadow-zinc-200/50 dark:shadow-none !border-zinc-200/50 dark:!border-zinc-800 bg-white dark:bg-zinc-900/80 transition-all hover:scale-[1.01] hover:shadow-2xl overflow-hidden p-0 rounded-[2rem]"
+                                    className="cursor-pointer group relative overflow-hidden p-0 rounded-[2rem] shadow-md dark:shadow-none border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:-translate-y-1 hover:shadow-xl dark:hover:border-zinc-700 transition-all duration-300"
                                 >
-                                    <div className="w-full sm:w-2 bg-zinc-100 dark:bg-zinc-800 relative h-2 sm:h-auto">
-                                        <div className="absolute top-0 bottom-0 left-0 right-0 opacity-80" style={{ backgroundColor: clientColor }}></div>
-                                    </div>
-                                    
-                                    <div className="p-6 flex-1 flex flex-col justify-between">
-                                        <div>
-                                            <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
-                                                <Badge color="slate" className="!text-[10px] !uppercase !tracking-widest !bg-zinc-100 dark:!bg-zinc-800 flex items-center gap-1.5 shadow-sm">
-                                                    <span className="w-2 h-2 rounded-full shadow-sm" style={{ backgroundColor: clientColor }}></span>
-                                                    {shoot.client}
-                                                </Badge>
-                                                
-                                                {shoot.status === 'done' ? (
-                                                     <Badge color="blue" className="!bg-indigo-500 !text-white !border-indigo-600 shadow-sm flex items-center gap-1">Concluído <CheckCircle2 size={12}/></Badge>
-                                                ) : shoot.status === 'ready' ? (
-                                                     <Badge color="emerald" className="!bg-emerald-500 !text-white !border-emerald-600 shadow-sm">Em andamento</Badge>
-                                                ) : (
-                                                     <Badge color="slate" className="shadow-sm border border-zinc-200">Planejada</Badge>
-                                                )}
+                                    {/* Top color accent */}
+                                    <div className="h-1 w-full" style={{ backgroundColor: clientColor }} />
+
+                                    {/* Completion overlay for done cards */}
+                                    {isDone && (
+                                        <div className="absolute inset-0 bg-emerald-500/3 pointer-events-none rounded-[2rem]" />
+                                    )}
+
+                                    <div className="p-6 flex flex-col gap-4">
+                                        {/* Row 1: client badge + status */}
+                                        <div className="flex items-center justify-between gap-3">
+                                            <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 min-w-0">
+                                                <span className="w-2 h-2 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: clientColor }}/>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-300 truncate">{shoot.client || '—'}</span>
                                             </div>
-
-                                            <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-50 uppercase tracking-tight mb-3 line-clamp-2 leading-tight group-hover:text-indigo-600 transition-colors">
-                                                {shoot.title}
-                                            </h3>
-
-                                            <div className="flex flex-col gap-2 mb-6">
-                                                <div className="flex items-center gap-2 text-[11px] font-bold text-zinc-500 dark:text-zinc-400 capitalize bg-zinc-50 dark:bg-zinc-800/50 self-start px-2 py-1.5 rounded-lg border border-zinc-100 dark:border-zinc-800/80">
-                                                    <Calendar size={13} className="text-zinc-400"/>
-                                                    <span>{new Date(shoot.date).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'short' })}</span>
-                                                    {shoot.time ? <span className="flex items-center gap-1.5 border-l border-zinc-200 dark:border-zinc-700 pl-2 ml-1"><Clock size={13} className="text-zinc-400"/> {shoot.time}</span> : null}
+                                            {isDone ? (
+                                                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest shrink-0">
+                                                    <CheckCircle2 size={12} className="shrink-0"/> Concluída
                                                 </div>
-                                                {shoot.location && (
-                                                    <div className="flex items-center gap-2 text-[11px] font-bold text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800/50 self-start px-2 py-1.5 rounded-lg border border-zinc-100 dark:border-zinc-800/80 max-w-full">
-                                                        <MapPin size={13} className="text-zinc-400 shrink-0"/>
-                                                        <span className="truncate">{shoot.location}</span>
-                                                    </div>
-                                                )}
-                                            </div>
+                                            ) : isReady ? (
+                                                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest shrink-0">
+                                                    <Sparkles size={11} className="shrink-0"/> Em andamento
+                                                </div>
+                                            ) : (
+                                                <div className="px-2.5 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-[10px] font-black uppercase tracking-widest text-zinc-400 shrink-0">
+                                                    Planejada
+                                                </div>
+                                            )}
                                         </div>
 
-                                        <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800/80">
-                                             <div className="flex justify-between items-end mb-2">
-                                                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Progresso</span>
-                                                 <span className={`text-[10px] font-black uppercase tracking-widest ${p.percentage === 100 && p.total > 0 ? 'text-emerald-500' : 'text-zinc-800 dark:text-zinc-200'}`}>
-                                                     {p.checked} de {p.total} listados
-                                                 </span>
-                                             </div>
-                                             <div className="w-full h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden shadow-inner">
-                                                 <div 
-                                                     className={`h-full bg-zinc-900 dark:bg-zinc-100 rounded-full transition-all duration-700 ease-in-out ${p.percentage === 100 && p.total > 0 ? '!bg-emerald-500' : ''}`}
-                                                     style={{ width: `${p.percentage}%` }}
-                                                 ></div>
-                                             </div>
+                                        {/* Row 2: title */}
+                                        <h3 className="text-[17px] font-black text-zinc-900 dark:text-zinc-50 uppercase tracking-tight line-clamp-2 leading-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-200">
+                                            {shoot.title || 'Sem título'}
+                                        </h3>
+
+                                        {/* Row 3: date + location chips */}
+                                        <div className="flex flex-wrap gap-2">
+                                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 capitalize bg-zinc-50 dark:bg-zinc-800/50 px-2 py-1.5 rounded-lg border border-zinc-100 dark:border-zinc-800">
+                                                <Calendar size={12} className="text-zinc-400 shrink-0"/>
+                                                <span>{new Date(shoot.date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' })}</span>
+                                                {shoot.time && <><span className="opacity-30 mx-0.5">|</span><Clock size={11} className="text-zinc-400 shrink-0"/> <span>{shoot.time}</span></>}
+                                            </div>
+                                            {shoot.location && (
+                                                <div className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800/50 px-2 py-1.5 rounded-lg border border-zinc-100 dark:border-zinc-800 max-w-[200px]">
+                                                    <MapPin size={12} className="text-zinc-400 shrink-0"/>
+                                                    <span className="truncate">{shoot.location}</span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Row 4: progress */}
+                                        <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800/80">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">Progresso do Checklist</span>
+                                                <span className={`text-[10px] font-black uppercase tracking-widest tabular-nums transition-colors ${p.percentage === 100 && p.total > 0 ? 'text-emerald-500' : 'text-zinc-600 dark:text-zinc-400'}`}>
+                                                    {p.checked}/{p.total}
+                                                    {p.percentage === 100 && p.total > 0 && ' ✓'}
+                                                </span>
+                                            </div>
+                                            <div className="w-full h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                                                <div
+                                                    className={`h-full rounded-full transition-all duration-700 ease-out ${p.percentage === 100 && p.total > 0 ? 'bg-emerald-500' : 'bg-zinc-900 dark:bg-zinc-200'}`}
+                                                    style={{ width: `${p.percentage}%` }}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 </Card>
@@ -670,10 +731,12 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                         })}
                     </div>
                     {filteredShoots.length === 0 && (
-                        <div className="text-center py-32 flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-[3rem] mt-8 bg-zinc-50/50 dark:bg-zinc-900/20">
-                            <Video size={48} className="mb-6 text-zinc-300 dark:text-zinc-700/50" strokeWidth={1}/>
-                            <h3 className="text-lg font-black uppercase tracking-tight text-zinc-400 mb-2">Plataforma Livre</h3>
-                            <p className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest w-2/3">Ainda não há nenhuma gravação registrada no calendário da agência.</p>
+                        <div className="text-center py-32 flex flex-col items-center justify-center border border-zinc-200 dark:border-zinc-800 rounded-[3rem] mt-8 bg-zinc-50/30 dark:bg-zinc-900/20">
+                            <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mb-6 shadow-xl shadow-indigo-500/20">
+                                <Video size={32} className="text-white shrink-0" strokeWidth={1.5}/>
+                            </div>
+                            <h3 className="text-lg font-black uppercase tracking-tight text-zinc-700 dark:text-zinc-300 mb-2">Nenhuma Gravação</h3>
+                            <p className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest max-w-xs text-center">Clique em "Nova Gravação" para agendar o próximo dia de captação.</p>
                         </div>
                     )}
                 </div>

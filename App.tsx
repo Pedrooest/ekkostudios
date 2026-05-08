@@ -1783,7 +1783,7 @@ export default function App() {
                            </div>
                         ) : (
                           [...lembretes]
-                            .sort((a,b) => b.data.localeCompare(a.data))
+                            .sort((a,b) => new Date(b.data + 'T00:00:00').getTime() - new Date(a.data + 'T00:00:00').getTime())
                             .map(l => {
                                const isToday = l.data === new Date().toISOString().split('T')[0];
                                const isOverdue = l.data < new Date().toISOString().split('T')[0] && !l.concluido;
