@@ -9,7 +9,7 @@ import {
     CheckCircle2, Eye, AlertCircle, Timer, CheckSquare
 } from 'lucide-react';
 import { playUISound } from '../utils/uiSounds';
-import { PSelectPortal } from '../Components';
+import { PSelectPortal, DatePickerPortal, TimeInput } from '../Components';
 import { getCalendarDays, MONTH_NAMES_BR, WEEKDAYS_BR_SHORT } from '../utils/calendarUtils';
 
 interface PlanningViewProps {
@@ -519,24 +519,17 @@ export function PlanningView({
                                         <CalendarIcon size={10} className="shrink-0" /> Publicação
                                     </label>
                                     <div className="grid grid-cols-2 gap-3">
-                                        <div className="relative">
-                                            <input
-                                                type="date"
-                                                value={selectedEvent?.Data || ''}
-                                                onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Data', e.target.value)}
-                                                className="w-full h-10 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/60 rounded-2xl px-4 text-xs font-bold text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:border-transparent transition-all appearance-none"
-                                                style={{ colorScheme: 'light dark' }}
-                                            />
-                                        </div>
-                                        <div className="relative">
-                                            <input
-                                                type="time"
-                                                value={selectedEvent?.Hora || ''}
-                                                onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Hora', e.target.value)}
-                                                className="w-full h-10 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/60 rounded-2xl px-4 text-xs font-bold text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-                                                style={{ colorScheme: 'light dark' }}
-                                            />
-                                        </div>
+                                        <DatePickerPortal
+                                            value={selectedEvent?.Data || ''}
+                                            onChange={val => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Data', val)}
+                                            clearable={false}
+                                            size="sm"
+                                        />
+                                        <TimeInput
+                                            value={selectedEvent?.Hora || ''}
+                                            onChange={val => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Hora', val)}
+                                            size="sm"
+                                        />
                                     </div>
                                 </div>
 

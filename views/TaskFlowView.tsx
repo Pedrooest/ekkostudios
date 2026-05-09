@@ -15,7 +15,7 @@ import {
 import { sendEmail, templates } from '../utils/emailService';
 import { DatabaseService } from '../DatabaseService';
 import { getCalendarDays, MONTH_NAMES_BR, WEEKDAYS_BR_SHORT } from '../utils/calendarUtils';
-import { Card, Button, DeletionBar, Badge, PSelectPortal } from '../Components';
+import { Card, Button, DeletionBar, Badge, PSelectPortal, DatePickerPortal } from '../Components';
 import { generateId } from '../utils/id';
 import {
     VISOES_TAREFA_PADRAO as DEFAULT_TASK_VIEWS,
@@ -429,15 +429,14 @@ export function TaskFlowView({
                                 const columnTasks = filteredTasks.filter(t => t.Status === status.id);
                                 return (
                                 <div key={status.id} className="w-[300px] flex flex-col max-h-full shrink-0 relative">
-                                    <div className="flex items-center justify-between mb-4 px-1">
-                                        <div className="flex items-center gap-2.5">
-                                            <div className="w-4 h-4 rounded-md shadow-sm flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
-                                                <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: status.cor }} />
+                                    <div className="flex items-center justify-between mb-3 px-1">
+                                        <div className="flex items-center gap-2">
+                                            {/* Color pill header */}
+                                            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl" style={{ backgroundColor: `${status.cor}15` }}>
+                                                <div className="w-2 h-2 rounded-full shadow-sm" style={{ backgroundColor: status.cor }} />
+                                                <h3 className="text-[10px] font-black uppercase tracking-wider" style={{ color: status.cor }}>{status.rotulo}</h3>
                                             </div>
-                                            <h3 className="text-[10px] font-black text-zinc-900 dark:text-white uppercase tracking-[0.1em]">{status.rotulo}</h3>
-                                            <Badge color="slate" className="text-[8px] font-black px-1.5 py-0.5 opacity-60">
-                                                {columnTasks.length}
-                                            </Badge>
+                                            <span className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded-full">{columnTasks.length}</span>
                                         </div>
                                         <button onClick={() => onAdd('TAREFAS', { Status: status.id })} className="p-1.5 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all"><Plus size={14} /></button>
                                     </div>
@@ -880,11 +879,11 @@ export function TaskDetailPanel({
                         <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                             <Clock size={12} className="text-zinc-400" /> Entrega
                         </label>
-                        <input
-                            type="date"
+                        <DatePickerPortal
                             value={t.Data_Entrega || ''}
-                            onChange={e => onUpdate(t.id, 'TAREFAS', 'Data_Entrega', e.target.value)}
-                            className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-[11px] font-bold text-zinc-900 dark:text-zinc-100 uppercase focus:ring-1 focus:ring-zinc-400 p-2 cursor-pointer outline-none transition-all"
+                            onChange={val => onUpdate(t.id, 'TAREFAS', 'Data_Entrega', val)}
+                            size="sm"
+                            clearable
                         />
                         <div className="absolute top-2 right-2">
                             <SavingIndicator status={savingStatus[`TAREFAS:${t.id}:Data_Entrega`]} />

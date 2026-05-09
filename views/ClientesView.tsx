@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { Button, Badge, Card, InputSelect, PSelectPortal } from '../Components';
+import { Button, Badge, Card, InputSelect, PSelectPortal, DatePickerPortal, TimeInput } from '../Components';
 import {
   Users, Search, Plus, X, Phone, Instagram, Target, Palette, Trash2, CheckCircle2,
   Globe, Youtube, Music, Linkedin, Pin, Video, MessageCircle, Folder, FileText,
@@ -700,13 +700,11 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
 
                           {/* Data de Início */}
                           <div className="space-y-1.5 relative">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">DATA DE INÍCIO</label>
-                            <input
-                              type="date"
+                            <DatePickerPortal
+                              label="DATA DE INÍCIO"
                               value={localState?.data_inicio_contrato || ''}
-                              onChange={(e) => setLocalState({ ...localState, data_inicio_contrato: e.target.value })}
-                              onBlur={() => handleBlur('data_inicio_contrato')}
-                              className="w-full h-11 bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 text-xs font-bold tracking-widest text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500/50 transition-all"
+                              onChange={(val) => { setLocalState({ ...localState, data_inicio_contrato: val }); onUpdate(selectedClient.id, 'CLIENTES', 'data_inicio_contrato', val); }}
+                              clearable
                             />
                             <SavingIndicator status={savingStatus[`CLIENTES:${selectedClient.id}:data_inicio_contrato`]} />
                           </div>
@@ -1245,17 +1243,16 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">DATA / HORA</label>
                   <div className="flex gap-2">
-                    <input 
-                      type="date" 
+                    <DatePickerPortal
                       value={newLogEntry.data}
-                      onChange={e => setNewLogEntry({ ...newLogEntry, data: e.target.value })}
-                      className="flex-1 h-12 bg-zinc-50 dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-white outline-none focus:border-blue-500/30"
+                      onChange={val => setNewLogEntry({ ...newLogEntry, data: val })}
+                      clearable={false}
+                      className="flex-1"
                     />
-                    <input 
-                      type="time" 
+                    <TimeInput
                       value={newLogEntry.hora}
-                      onChange={e => setNewLogEntry({ ...newLogEntry, hora: e.target.value })}
-                      className="w-24 h-12 bg-zinc-50 dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-xl px-4 text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-white outline-none focus:border-blue-500/30"
+                      onChange={val => setNewLogEntry({ ...newLogEntry, hora: val })}
+                      className="w-32"
                     />
                   </div>
                 </div>
