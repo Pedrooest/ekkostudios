@@ -1973,7 +1973,7 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'PLANEJAMENTO' && <PlanejamentoTab data={currentPlanejamento} clients={clients} onUpdate={handleUpdate} onAdd={handleAddRow} rdc={currentRdc} matriz={matriz} cobo={cobo} tasks={currentTasks} iaHistory={iaHistory} setActiveTab={setActiveTab} performArchive={performArchive} performDelete={performDelete} library={BibliotecaConteudo} activeClientId={selectedClientIds.length === 1 ? selectedClientIds[0] : undefined} showArchived={showArchived} setShowArchived={setShowArchived} setIsClientFilterOpen={setIsClientFilterOpen} savingStatus={savingStatus} />}
+          {activeTab === 'PLANEJAMENTO' && <PlanejamentoTab data={currentPlanejamento} clients={clients} onUpdate={handleUpdate} onAdd={handleAddRow} rdc={currentRdc} matriz={matriz} cobo={cobo} tasks={filterArchived(tasks)} iaHistory={iaHistory} setActiveTab={setActiveTab} performArchive={performArchive} performDelete={performDelete} library={BibliotecaConteudo} activeClientId={selectedClientIds.length === 1 ? selectedClientIds[0] : undefined} showArchived={showArchived} setShowArchived={setShowArchived} setIsClientFilterOpen={setIsClientFilterOpen} savingStatus={savingStatus} />}
           {activeTab === 'FINANCAS' && <FinancasTab financas={currentFinancas} onAdd={(initial: any) => handleAddRow('FINANCAS', initial)} onUpdate={(id: any, field: any, value: any) => handleUpdate(id, 'FINANCAS', field, value)} onDelete={(ids: any) => performDelete(ids, 'FINANCAS')} clients={clients} currentWorkspace={currentWorkspace} savingStatus={savingStatus} />}
           {activeTab === 'TAREFAS' && <TaskFlowView
             tasks={filterArchived(tasks)}

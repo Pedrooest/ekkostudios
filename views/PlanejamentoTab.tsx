@@ -1101,14 +1101,16 @@ export default function PlanejamentoTab({
                             <button onClick={closeSidebar} className="p-2.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-xl transition-all bg-zinc-50 dark:bg-zinc-800 hover:scale-110 active:scale-95"><X size={20} strokeWidth={3} className="shrink-0" /></button>
                         </div>
 
-                        <div className="p-8 flex-1 overflow-y-auto custom-scrollbar space-y-8 pb-32">
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
-                                    <ImageIcon size={12} strokeWidth={3} className="shrink-0" /> Conteúdo Principal
+                        <div className="p-5 flex-1 overflow-y-auto custom-scrollbar space-y-5 pb-24">
+
+                            {/* ── CONTEÚDO ── */}
+                            <div className="space-y-2">
+                                <label className="text-[9px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1 flex items-center gap-1.5">
+                                    <ImageIcon size={11} strokeWidth={3} className="shrink-0" /> Conteúdo Principal
                                 </label>
                                 <div className="relative">
                                     <textarea
-                                        rows={4}
+                                        rows={3}
                                         defaultValue={selectedEvent?.Conteúdo || ''}
                                         key={`content-${selectedEvent?.id}`}
                                         onBlur={(e) => {
@@ -1117,43 +1119,31 @@ export default function PlanejamentoTab({
                                             }
                                         }}
                                         placeholder="Escreva o conteúdo aqui..."
-                                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 text-xl font-black text-zinc-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 transition-all resize-none shadow-inner italic"
+                                        className="w-full bg-zinc-50 dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 text-[15px] font-black text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all resize-none italic placeholder:text-zinc-300 dark:placeholder:text-zinc-700"
                                     />
                                     <SavingIndicator status={savingStatus[`PLANEJAMENTO:${selectedEvent?.id}:Conteúdo`]} />
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-6">
-                                {/* CLIENTE */}
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
-                                        <User size={12} strokeWidth={3} className="shrink-0" /> Cliente
+                            {/* ── CLIENTE + REDE ── */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1 flex items-center gap-1.5">
+                                        <User size={11} strokeWidth={3} className="shrink-0" /> Cliente
                                     </label>
-                                    <div className="relative group">
-                                        <input
-                                            list={`clients-list-${selectedEvent?.id || 'new'}`}
-                                            value={clients.find(c => c.id === selectedEvent?.Cliente_ID)?.Nome || selectedEvent?.Cliente_ID || ''}
-                                            onChange={(e) => {
-                                                const val = e.target.value;
-                                                const matchedClient = clients.find(c => (c.Nome || '').toLowerCase() === val.toLowerCase());
-                                                if (selectedEvent) {
-                                                    onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Cliente_ID', matchedClient ? matchedClient.id : val);
-                                                }
-                                            }}
-                                            placeholder="Selecione..."
-                                            className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl px-4 py-3 text-xs font-bold text-zinc-800 dark:text-zinc-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 outline-none transition-all uppercase"
-                                        />
-                                        <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:rotate-180 transition-transform shrink-0" />
-                                        <datalist id={`clients-list-${selectedEvent?.id || 'new'}`}>
-                                            {clients.map(c => <option key={c.id} value={c.Nome} />)}
-                                        </datalist>
-                                    </div>
+                                    <PSelectPortal
+                                        value={selectedEvent?.Cliente_ID || ''}
+                                        onChange={(val) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Cliente_ID', val)}
+                                        placeholder="Selecionar..."
+                                        options={clients.map(c => ({ value: c.id, label: c.Nome, color: c['Cor (HEX)'] }))}
+                                        className="w-full"
+                                        size="sm"
+                                    />
                                 </div>
 
-                                {/* REDE SOCIAL */}
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
-                                        <MessageSquare size={12} strokeWidth={3} className="shrink-0" /> Rede
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1 flex items-center gap-1.5">
+                                        <MessageSquare size={11} strokeWidth={3} className="shrink-0" /> Rede
                                     </label>
                                     <PSelectPortal
                                         value={selectedEvent?.Rede_Social || ''}
@@ -1170,10 +1160,13 @@ export default function PlanejamentoTab({
                                             { value: 'OUTRA', label: 'Outra' },
                                         ]}
                                         className="w-full"
+                                        size="sm"
                                     />
                                 </div>
+                            </div>
 
-                                {/* DATA */}
+                            {/* ── DATA + HORA ── */}
+                            <div className="grid grid-cols-2 gap-3">
                                 <DatePickerPortal
                                     label="Publicação"
                                     value={selectedEvent?.Data || ''}
@@ -1181,8 +1174,6 @@ export default function PlanejamentoTab({
                                     clearable={false}
                                     size="sm"
                                 />
-
-                                {/* HORA */}
                                 <TimeInput
                                     label="Horário"
                                     value={selectedEvent?.Hora || '09:00'}
@@ -1191,8 +1182,9 @@ export default function PlanejamentoTab({
                                 />
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1">Status do Conteúdo</label>
+                            {/* ── STATUS ── */}
+                            <div className="space-y-1.5">
+                                <label className="text-[9px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1">Status do Conteúdo</label>
                                 <PSelectPortal
                                     value={selectedEvent?.["Status do conteúdo"] || 'EM ESPERA'}
                                     onChange={(val) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Status do conteúdo', val)}
@@ -1204,6 +1196,7 @@ export default function PlanejamentoTab({
                                         { value: 'CONCLUÍDO', label: 'CONCLUÍDO' },
                                     ]}
                                     className="w-full"
+                                    size="sm"
                                 />
                             </div>
 
@@ -1265,12 +1258,16 @@ export default function PlanejamentoTab({
                                 const isDone = (t: any) => ['done','Concluído','CONCLUÍDO'].includes(t.Status);
 
                                 const TaskRow = ({ t }: { t: any }) => (
-                                    <div className="flex items-center gap-3 p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/50 shadow-sm">
-                                        <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: statusDot[t.Status] || '#94a3b8' }} />
-                                        <span className={`flex-1 text-[11px] font-bold truncate ${isDone(t) ? 'line-through text-zinc-400' : 'text-zinc-700 dark:text-zinc-300'}`}>{t.Título}</span>
-                                        <span className="shrink-0 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full"
-                                            style={{ backgroundColor: (statusDot[t.Status] || '#94a3b8') + '20', color: statusDot[t.Status] || '#94a3b8' }}
-                                        >{t.Prioridade}</span>
+                                    <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors group/row">
+                                        <div className="w-1.5 h-1.5 rounded-full shrink-0 mt-0.5" style={{ backgroundColor: statusDot[t.Status] || '#94a3b8' }} />
+                                        <span className={`flex-1 text-[10px] font-bold truncate ${isDone(t) ? 'line-through text-zinc-400' : 'text-zinc-700 dark:text-zinc-200'}`}>
+                                            {t.Título}
+                                        </span>
+                                        {t.Prioridade && (
+                                            <span className="shrink-0 text-[8px] font-black uppercase px-1.5 py-0.5 rounded-md"
+                                                style={{ backgroundColor: (statusDot[t.Status] || '#94a3b8') + '18', color: statusDot[t.Status] || '#94a3b8' }}
+                                            >{t.Prioridade}</span>
+                                        )}
                                     </div>
                                 );
 
@@ -1278,63 +1275,73 @@ export default function PlanejamentoTab({
                                 const totalAll = directlyLinked.length + clientTasks.length;
 
                                 return (
-                                    <div className="mb-8 p-5 rounded-3xl bg-zinc-50 dark:bg-zinc-950/50 border border-zinc-100 dark:border-zinc-800/60 space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <h4 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">
-                                                <CheckSquare size={12} className="shrink-0 text-blue-500" />
+                                    <div className="rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-100 dark:border-zinc-800 overflow-hidden">
+                                        {/* Section header */}
+                                        <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
+                                            <h4 className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+                                                <CheckSquare size={11} className="shrink-0 text-blue-500" />
                                                 Tarefas
                                             </h4>
                                             {totalAll > 0 && (
-                                                <span className="px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-black border border-blue-100 dark:border-blue-500/20">
+                                                <span className="px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[8px] font-black border border-blue-100 dark:border-blue-500/20">
                                                     {totalDone}/{totalAll} concluídas
                                                 </span>
                                             )}
                                         </div>
 
-                                        {/* Directly linked */}
-                                        {directlyLinked.length > 0 && (
-                                            <div className="space-y-2">
-                                                <p className="text-[8px] font-black uppercase tracking-widest text-blue-500/70 ml-1">📌 Vinculadas a este post</p>
-                                                {directlyLinked.map((t: any) => <TaskRow key={t.id} t={t} />)}
-                                            </div>
-                                        )}
+                                        <div className="p-3 space-y-3">
+                                            {/* Directly linked */}
+                                            {directlyLinked.length > 0 && (
+                                                <div className="space-y-1.5">
+                                                    <p className="text-[8px] font-black uppercase tracking-widest text-blue-500 ml-1 flex items-center gap-1">
+                                                        <span>📌</span> Vinculadas a este post
+                                                    </p>
+                                                    {directlyLinked.map((t: any) => <TaskRow key={t.id} t={t} />)}
+                                                </div>
+                                            )}
 
-                                        {/* Other client tasks */}
-                                        {clientTasks.length > 0 && (
-                                            <div className="space-y-2">
-                                                <p className="text-[8px] font-black uppercase tracking-widest text-zinc-400 ml-1">📋 Outras tarefas do cliente</p>
-                                                {clientTasks.slice(0, 5).map((t: any) => <TaskRow key={t.id} t={t} />)}
-                                                {clientTasks.length > 5 && (
-                                                    <p className="text-center text-[9px] font-black text-zinc-400 uppercase tracking-wider">+{clientTasks.length - 5} mais na aba de Tarefas</p>
-                                                )}
-                                            </div>
-                                        )}
+                                            {/* Other client tasks */}
+                                            {clientTasks.length > 0 && (
+                                                <div className="space-y-1.5">
+                                                    <p className="text-[8px] font-black uppercase tracking-widest text-zinc-400 ml-1 flex items-center gap-1">
+                                                        <span>📋</span> Outras tarefas do cliente
+                                                    </p>
+                                                    {clientTasks.slice(0, 4).map((t: any) => <TaskRow key={t.id} t={t} />)}
+                                                    {clientTasks.length > 4 && (
+                                                        <p className="text-center text-[9px] font-bold text-zinc-400 py-1">+{clientTasks.length - 4} mais na aba Tarefas</p>
+                                                    )}
+                                                </div>
+                                            )}
 
-                                        {totalAll === 0 && (
-                                            <p className="text-center text-[10px] font-bold text-zinc-400 py-2 italic">Nenhuma tarefa para este cliente ainda.</p>
-                                        )}
+                                            {totalAll === 0 && (
+                                                <div className="text-center py-4">
+                                                    <p className="text-[10px] font-bold text-zinc-400">Nenhuma tarefa para este cliente.</p>
+                                                    <p className="text-[9px] text-zinc-300 dark:text-zinc-600 mt-0.5">Crie uma abaixo ou na aba Fluxo de Tarefas.</p>
+                                                </div>
+                                            )}
 
-                                        <button
-                                            onClick={async () => {
-                                                if (!selectedEvent) return;
-                                                tryPlaySound('success');
-                                                await onAdd('TAREFAS', {
-                                                    Cliente_ID: selectedEvent.Cliente_ID,
-                                                    Título: `📅 ${(selectedEvent.Conteúdo || 'Post do planejamento').slice(0, 60)}`,
-                                                    Área: 'Conteúdo',
-                                                    Status: 'todo',
-                                                    Prioridade: 'Média',
-                                                    Data_Entrega: selectedEvent.Data,
-                                                    Relacionado_A: 'Planejamento',
-                                                    Relacionado_ID: selectedEvent.id,
-                                                    Relacionado_Conteudo: selectedEvent.Conteúdo
-                                                });
-                                            }}
-                                            className="ios-btn w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-dashed border-zinc-200 dark:border-zinc-700/50 text-[10px] font-black uppercase tracking-wider text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-400/60 hover:bg-blue-50/50 dark:hover:bg-blue-500/5 transition-all"
-                                        >
-                                            <Plus size={14} className="shrink-0" />
-                                            Criar tarefa vinculada
-                                        </button>
+                                            <button
+                                                onClick={async () => {
+                                                    if (!selectedEvent) return;
+                                                    tryPlaySound('success');
+                                                    await onAdd('TAREFAS', {
+                                                        Cliente_ID: selectedEvent.Cliente_ID,
+                                                        Título: `📅 ${(selectedEvent.Conteúdo || 'Post do planejamento').slice(0, 60)}`,
+                                                        Área: 'Conteúdo',
+                                                        Status: 'todo',
+                                                        Prioridade: 'Média',
+                                                        Data_Entrega: selectedEvent.Data,
+                                                        Relacionado_A: 'Planejamento',
+                                                        Relacionado_ID: selectedEvent.id,
+                                                        Relacionado_Conteudo: selectedEvent.Conteúdo
+                                                    });
+                                                }}
+                                                className="ios-btn w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700/50 text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-400/60 hover:bg-blue-50/50 dark:hover:bg-blue-500/5 transition-all"
+                                            >
+                                                <Plus size={12} className="shrink-0" />
+                                                + Criar tarefa vinculada
+                                            </button>
+                                        </div>
                                     </div>
                                 );
                             })()}
