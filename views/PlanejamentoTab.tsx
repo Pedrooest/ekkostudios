@@ -24,7 +24,7 @@ import { getCalendarDays, MONTH_NAMES_BR, WEEKDAYS_BR_SHORT } from '../utils/cal
 import { useGoogleCalendar } from '../hooks/useGoogleCalendar';
 import { sendEmail, templates } from '../utils/emailService';
 import { DatabaseService } from '../DatabaseService';
-import { PSelectPortal } from '../Components';
+import { PSelectPortal, DatePickerPortal, TimeInput } from '../Components';
 
 // ==========================================
 // FUNÇÕES AUXILIARES DE SOM
@@ -1174,30 +1174,21 @@ export default function PlanejamentoTab({
                                 </div>
 
                                 {/* DATA */}
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
-                                        <CalendarIcon size={12} strokeWidth={3} className="shrink-0" /> Publicação
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={selectedEvent?.Data || ''}
-                                        onChange={(e) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Data', e.target.value)}
-                                        className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl px-4 py-3 text-xs font-bold text-zinc-800 dark:text-zinc-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 outline-none transition-all"
-                                    />
-                                </div>
+                                <DatePickerPortal
+                                    label="Publicação"
+                                    value={selectedEvent?.Data || ''}
+                                    onChange={(val) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Data', val)}
+                                    clearable={false}
+                                    size="sm"
+                                />
 
                                 {/* HORA */}
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
-                                        <Clock size={12} strokeWidth={3} className="shrink-0" /> Horário
-                                    </label>
-                                    <input
-                                        type="time"
-                                        value={selectedEvent?.Hora || '09:00'}
-                                        onChange={(e) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Hora', e.target.value)}
-                                        className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl px-4 py-3 text-xs font-bold text-zinc-800 dark:text-zinc-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 outline-none transition-all uppercase"
-                                    />
-                                </div>
+                                <TimeInput
+                                    label="Horário"
+                                    value={selectedEvent?.Hora || '09:00'}
+                                    onChange={(val) => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Hora', val)}
+                                    size="sm"
+                                />
                             </div>
 
                             <div className="space-y-2">

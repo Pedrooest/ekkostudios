@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Lembrete, LembreteTipo, Cliente } from '../types';
 import ReactDOM from 'react-dom';
 import { X, Save, Calendar, Clock, Tag, User, AlignLeft } from 'lucide-react';
-import { PSelectPortal } from '../Components';
+import { PSelectPortal, DatePickerPortal, TimeInput } from '../Components';
 import { playUISound } from '../utils/uiSounds';
 
 interface LembreteModalProps {
@@ -83,32 +83,17 @@ export function LembreteModal({ lembrete, clients, onClose, onSave }: LembreteMo
           </div>
 
           <div className="grid grid-cols-2 gap-6">
-            {/* Data */}
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                <Calendar size={12} /> Data
-              </label>
-              <input
-                type="date"
-                required
-                value={formData.data}
-                onChange={e => setFormData({ ...formData, data: e.target.value })}
-                className="w-full bg-gray-50 dark:bg-zinc-900/50 border border-gray-200 dark:border-white/5 rounded-2xl px-5 py-4 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-bold"
-              />
-            </div>
-
-            {/* Hora */}
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                <Clock size={12} /> Hora
-              </label>
-              <input
-                type="time"
-                value={formData.hora}
-                onChange={e => setFormData({ ...formData, hora: e.target.value })}
-                className="w-full bg-gray-50 dark:bg-zinc-900/50 border border-gray-200 dark:border-white/5 rounded-2xl px-5 py-4 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-bold"
-              />
-            </div>
+            <DatePickerPortal
+              label="Data"
+              value={formData.data || ''}
+              onChange={v => setFormData({ ...formData, data: v })}
+              clearable={false}
+            />
+            <TimeInput
+              label="Hora"
+              value={formData.hora || ''}
+              onChange={v => setFormData({ ...formData, hora: v })}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-6">

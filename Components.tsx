@@ -2,7 +2,7 @@
 import React from 'react';
 import { BottomSheet } from './components/BottomSheet';
 import { playUISound } from './utils/uiSounds';
-import { X as XIcon, Minus, Plus, Check, ChevronDown } from 'lucide-react';
+import { X as XIcon, Minus, Plus, Check, ChevronDown, Calendar, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'success';
@@ -437,11 +437,223 @@ export const PSelectPortal: React.FC<Parameters<typeof PSelect>[0]> = (props) =>
   );
 };
 
-// Re-write of the logic block mainly to correct the Fixed positioning logic inside the tool call:
-/*
-  Correct Logic for Fixed Positioning (Portal):
-  Top = triggerRect.bottom (space below)
-*/
+// ─────────────────────────────────────────────────────────────────────────────
+// DatePickerPortal — custom premium calendar picker via createPortal
+// Replaces native <input type="date"> with consistent, branded UI
+// ─────────────────────────────────────────────────────────────────────────────
+const PT_MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const PT_WEEKDAYS = ['D','S','T','Q','Q','S','S'];
+
+export const DatePickerPortal: React.FC<{
+  value: string;          // YYYY-MM-DD or ''
+  onChange: (val: string) => void;
+  label?: string;
+  placeholder?: string;
+  className?: string;
+  clearable?: boolean;
+  size?: 'sm' | 'md';
+}> = ({ value, onChange, label, placeholder = 'Selecionar data...', className = '', clearable = true, size = 'md' }) => {
+  const [open, setOpen] = React.useState(false);
+  const [pos, setPos] = React.useState({ top: 0, left: 0, flip: false });
+  const [viewYear, setViewYear] = React.useState(() => value ? parseInt(value.slice(0, 4)) : new Date().getFullYear());
+  const [viewMonth, setViewMonth] = React.useState(() => value ? parseInt(value.slice(5, 7)) - 1 : new Date().getMonth());
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const panelRef = React.useRef<HTMLDivElement>(null);
+
+  const CAL_H = 332;
+  const CAL_W = 276;
+
+  const formatDisplay = (d: string) => {
+    if (!d) return '';
+    const dt = new Date(d + 'T12:00:00');
+    return dt.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+  };
+
+  const openPanel = () => {
+    const rect = triggerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const flip = rect.bottom + CAL_H > window.innerHeight - 8;
+    const left = Math.min(rect.left, window.innerWidth - CAL_W - 8);
+    setPos({ top: flip ? rect.top - CAL_H - 4 : rect.bottom + 4, left: Math.max(8, left), flip });
+    if (value) {
+      setViewYear(parseInt(value.slice(0, 4)));
+      setViewMonth(parseInt(value.slice(5, 7)) - 1);
+    }
+    setOpen(true);
+    playUISound('open');
+  };
+
+  React.useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => {
+      if (!triggerRef.current?.contains(e.target as Node) && !panelRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const reposition = () => {
+      const rect = triggerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const flip = rect.bottom + CAL_H > window.innerHeight - 8;
+      const left = Math.min(rect.left, window.innerWidth - CAL_W - 8);
+      setPos({ top: flip ? rect.top - CAL_H - 4 : rect.bottom + 4, left: Math.max(8, left), flip });
+    };
+    document.addEventListener('mousedown', close);
+    window.addEventListener('scroll', reposition, true);
+    window.addEventListener('resize', reposition);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      window.removeEventListener('scroll', reposition, true);
+      window.removeEventListener('resize', reposition);
+    };
+  }, [open]);
+
+  // Build calendar grid (42 cells, Mon-first)
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const firstDow = new Date(viewYear, viewMonth, 1).getDay(); // 0=Sun
+  const startPad = (firstDow + 6) % 7; // convert to Mon=0
+  const cells: Array<{ day: number; month: number; year: number; currMonth: boolean }> = [];
+  for (let i = startPad - 1; i >= 0; i--) {
+    const d = new Date(viewYear, viewMonth, -i);
+    cells.push({ day: d.getDate(), month: d.getMonth(), year: d.getFullYear(), currMonth: false });
+  }
+  for (let i = 1; i <= daysInMonth; i++) cells.push({ day: i, month: viewMonth, year: viewYear, currMonth: true });
+  while (cells.length < 42) {
+    const d = new Date(viewYear, viewMonth + 1, cells.length - daysInMonth - startPad + 1);
+    cells.push({ day: d.getDate(), month: d.getMonth(), year: d.getFullYear(), currMonth: false });
+  }
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const toStr = (c: { year: number; month: number; day: number }) =>
+    `${c.year}-${String(c.month + 1).padStart(2, '0')}-${String(c.day).padStart(2, '0')}`;
+
+  const prevMonth = () => { if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); } else setViewMonth(m => m - 1); };
+  const nextMonth = () => { if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); } else setViewMonth(m => m + 1); };
+
+  const h = size === 'sm' ? 'h-9 text-[10px]' : 'h-11 text-xs';
+
+  const panel = open && typeof document !== 'undefined' ? (
+    <div
+      ref={panelRef}
+      className="fixed z-[99999] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl dark:shadow-black/60 overflow-hidden select-none"
+      style={{
+        top: pos.top,
+        left: pos.left,
+        width: CAL_W,
+        animation: 'pselect-appear 0.2s cubic-bezier(0.34,1.56,0.64,1) both',
+        transformOrigin: pos.flip ? 'bottom center' : 'top center',
+      }}
+    >
+      {/* Month navigation */}
+      <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+        <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 transition-colors">
+          <ChevronLeft size={16} />
+        </button>
+        <span className="text-[11px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100">
+          {PT_MONTHS[viewMonth]} {viewYear}
+        </span>
+        <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 transition-colors">
+          <ChevronRight size={16} />
+        </button>
+      </div>
+
+      {/* Weekday headers */}
+      <div className="grid grid-cols-7 px-3 pt-3 pb-1">
+        {PT_WEEKDAYS.map((d, i) => (
+          <div key={i} className="text-center text-[9px] font-black uppercase tracking-wider text-zinc-400">{d}</div>
+        ))}
+      </div>
+
+      {/* Day grid */}
+      <div className="grid grid-cols-7 px-3 pb-3 gap-y-0.5">
+        {cells.map((c, i) => {
+          const str = toStr(c);
+          const isSelected = str === value;
+          const isToday = str === todayStr;
+          return (
+            <button
+              key={i}
+              onClick={() => { onChange(str); setOpen(false); playUISound('tap'); }}
+              className={`h-8 w-full flex items-center justify-center rounded-lg text-[11px] font-bold transition-all duration-150
+                ${isSelected ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25' :
+                  isToday ? 'bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 font-black' :
+                  c.currMonth ? 'text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800' :
+                  'text-zinc-300 dark:text-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
+                }
+              `}
+            >
+              {c.day}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-100 dark:border-zinc-800">
+        {clearable && value ? (
+          <button onClick={() => { onChange(''); setOpen(false); }} className="text-[10px] font-black text-zinc-400 hover:text-rose-500 transition-colors uppercase tracking-widest">
+            Limpar
+          </button>
+        ) : <span />}
+        <button
+          onClick={() => { onChange(todayStr); setOpen(false); playUISound('tap'); }}
+          className="text-[10px] font-black text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors uppercase tracking-widest"
+        >
+          Hoje
+        </button>
+      </div>
+    </div>
+  ) : null;
+
+  return (
+    <div className={`relative w-full ${className}`}>
+      {label && <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-1.5 ml-1">{label}</label>}
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={open ? () => setOpen(false) : openPanel}
+        className={`ios-btn w-full ${h} flex items-center gap-2.5 px-4 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl font-bold text-left transition-all ${open ? 'border-blue-500/60 ring-2 ring-blue-500/15' : 'hover:border-zinc-300 dark:hover:border-zinc-600'}`}
+      >
+        <Calendar size={size === 'sm' ? 13 : 15} className="text-zinc-400 shrink-0" />
+        <span className={`flex-1 truncate ${value ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-400 dark:text-zinc-500'}`}>
+          {value ? formatDisplay(value) : placeholder}
+        </span>
+        {value && clearable && (
+          <span onClick={(e) => { e.stopPropagation(); onChange(''); }} className="p-0.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-400 hover:text-zinc-700 transition-colors">
+            <XIcon size={11} />
+          </span>
+        )}
+      </button>
+      {panel && createPortal(panel, document.body)}
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TimeInput — styled time input (native under the hood, premium UI)
+// ─────────────────────────────────────────────────────────────────────────────
+export const TimeInput: React.FC<{
+  value: string;
+  onChange: (val: string) => void;
+  label?: string;
+  className?: string;
+  size?: 'sm' | 'md';
+}> = ({ value, onChange, label, className = '', size = 'md' }) => {
+  const h = size === 'sm' ? 'h-9' : 'h-11';
+  return (
+    <div className={`relative w-full ${className}`}>
+      {label && <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-1.5 ml-1">{label}</label>}
+      <div className={`relative flex items-center gap-2.5 px-4 ${h} bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl hover:border-zinc-300 dark:hover:border-zinc-600 focus-within:border-blue-500/60 focus-within:ring-2 focus-within:ring-blue-500/15 transition-all cursor-pointer`}>
+        <Clock size={size === 'sm' ? 13 : 15} className="text-zinc-400 shrink-0 pointer-events-none" />
+        <input
+          type="time"
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          className="flex-1 bg-transparent border-none outline-none text-xs font-bold text-zinc-900 dark:text-zinc-100 min-w-0 cursor-pointer [color-scheme:light] dark:[color-scheme:dark]"
+        />
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 export const InputSelect: React.FC<{
   value: string | number;

@@ -6,7 +6,7 @@ import {
     Briefcase, AlertTriangle, ArrowLeft,
     CheckSquare, Square, Loader2, Sparkles
 } from 'lucide-react';
-import { Button, Card, Badge, InputSelect, PSelectPortal } from '../Components';
+import { Button, Card, Badge, InputSelect, PSelectPortal, DatePickerPortal, TimeInput } from '../Components';
 import { Cliente, ChecklistShoot, TipoTabela } from '../types';
 
 // ==========================================
@@ -321,24 +321,19 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-xs font-black text-zinc-600 dark:text-zinc-400 mb-1.5 ml-1 block uppercase tracking-wide">* Data Prevista</label>
-                                    <input
-                                        type="date"
-                                        value={newShootData.date}
-                                        onChange={(e) => setNewShootData({ ...newShootData, date: e.target.value })}
-                                        className="w-full h-10 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm font-medium rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="text-xs font-black text-zinc-600 dark:text-zinc-400 mb-1.5 ml-1 block uppercase tracking-wide">Horário Início</label>
-                                    <input
-                                        type="time"
-                                        value={newShootData.time}
-                                        onChange={(e) => setNewShootData({ ...newShootData, time: e.target.value })}
-                                        className="w-full h-10 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm font-medium rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
-                                    />
-                                </div>
+                                <DatePickerPortal
+                                    label="* Data Prevista"
+                                    value={newShootData.date}
+                                    onChange={(val) => setNewShootData({ ...newShootData, date: val })}
+                                    clearable={false}
+                                    size="sm"
+                                />
+                                <TimeInput
+                                    label="Horário Início"
+                                    value={newShootData.time}
+                                    onChange={(val) => setNewShootData({ ...newShootData, time: val })}
+                                    size="sm"
+                                />
                             </div>
 
                             <div>
