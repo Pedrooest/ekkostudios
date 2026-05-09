@@ -17,7 +17,7 @@ import {
     LineChart, Line, CartesianGrid 
 } from 'recharts';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { StatCard, Badge, Button, InputSelect, Card, PSelectPortal } from '../Components';
+import { StatCard, Badge, Button, InputSelect, Card, PSelectPortal, DatePickerPortal } from '../Components';
 import { generateId } from '../utils/id';
 
 // ==========================================
@@ -804,24 +804,26 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                         </div>
 
                         {filterPeriod === 'personalizado' && (
-                            <div className="flex items-center gap-3 p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl animate-in fade-in slide-in-from-top-2">
+                            <div className="flex flex-wrap items-center gap-3 p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl animate-in fade-in slide-in-from-top-2">
                                 <div className="flex items-center gap-2">
                                     <span className="text-[10px] font-black uppercase text-zinc-400">De</span>
-                                    <input 
-                                        type="date" 
+                                    <DatePickerPortal
                                         value={customDateRange.start}
-                                        onChange={(e) => setCustomDateRange(prev => ({ ...prev, start: e.target.value }))}
-                                        className="bg-zinc-100 dark:bg-zinc-800 border-none rounded-xl text-xs font-bold text-zinc-700 dark:text-zinc-300 focus:ring-1 focus:ring-blue-500"
+                                        onChange={(val) => setCustomDateRange(prev => ({ ...prev, start: val }))}
+                                        size="sm"
+                                        clearable={false}
+                                        className="w-44"
                                     />
                                 </div>
                                 <ArrowRight size={14} className="text-zinc-400 shrink-0" />
                                 <div className="flex items-center gap-2">
                                     <span className="text-[10px] font-black uppercase text-zinc-400">Até</span>
-                                    <input 
-                                        type="date" 
+                                    <DatePickerPortal
                                         value={customDateRange.end}
-                                        onChange={(e) => setCustomDateRange(prev => ({ ...prev, end: e.target.value }))}
-                                        className="bg-zinc-100 dark:bg-zinc-800 border-none rounded-xl text-xs font-bold text-zinc-700 dark:text-zinc-300 focus:ring-1 focus:ring-blue-500"
+                                        onChange={(val) => setCustomDateRange(prev => ({ ...prev, end: val }))}
+                                        size="sm"
+                                        clearable={false}
+                                        className="w-44"
                                     />
                                 </div>
                             </div>
@@ -1466,10 +1468,11 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-[0.1em] text-zinc-400 ml-1">DATA EFETIVA</label>
-                                    <div className="flex items-center gap-2 w-full h-14 bg-zinc-50 dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-2xl px-4 focus-within:border-zinc-900/10 dark:focus-within:border-white/10 transition-all">
-                                        <Calendar className="text-zinc-400 shrink-0" size={16} />
-                                        <input type="date" required value={formData.data} onChange={e => setFormData({...formData, data: e.target.value})} className="flex-1 bg-transparent border-none outline-none text-xs font-black uppercase text-zinc-900 dark:text-zinc-100 min-w-0" />
-                                    </div>
+                                    <DatePickerPortal
+                                        value={formData.data}
+                                        onChange={val => setFormData({...formData, data: val})}
+                                        clearable={false}
+                                    />
                                 </div>
                             </div>
 
