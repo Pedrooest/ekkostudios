@@ -563,12 +563,19 @@ export function TaskFlowView({
                                                         <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">{Tarefa.Prioridade}</span>
                                                     </div>
                                                 </td>
-                                                <td className={`w-[100px] p-3 text-[9px] font-black uppercase tracking-widest ${isOverdue ? 'text-rose-600' : 'text-zinc-400'}`}>
-                                                    {Tarefa.Data_Entrega || '--/--'}
+                                                <td className="w-[100px] p-3">
+                                                    {Tarefa.Data_Entrega ? (
+                                                        <span className={`inline-flex items-center gap-1 text-[9px] font-black rounded-md px-1.5 py-0.5 ${isOverdue ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400' : 'text-zinc-400'}`}>
+                                                            {isOverdue && <span>⚠</span>}
+                                                            {new Date(Tarefa.Data_Entrega + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-[9px] text-zinc-300 dark:text-zinc-600">—</span>
+                                                    )}
                                                 </td>
                                                 <td className="w-[80px] p-3">
-                                                    <div className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center text-[9px] font-black border border-zinc-200 dark:border-zinc-800 transition-all shrink-0">
-                                                        {Tarefa.Responsável?.slice(0, 1).toUpperCase() || '?'}
+                                                    <div className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center text-[9px] font-black border border-zinc-200 dark:border-zinc-700 shrink-0" title={Tarefa.Responsável || 'Sem responsável'}>
+                                                        {Tarefa.Responsável?.[0]?.toUpperCase() || '?'}
                                                     </div>
                                                 </td>
                                             </tr>

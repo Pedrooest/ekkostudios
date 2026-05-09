@@ -68,10 +68,10 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
 
   const getFormatIcon = (formato: Reuniao['formato']) => {
     switch (formato) {
-      case 'Presencial': return <MapPin size={14} />;
-      case 'Online': return <Monitor size={14} />;
-      case 'Híbrido': return <Video size={14} />;
-      default: return <Monitor size={14} />;
+      case 'Presencial': return <MapPin size={11} className="text-zinc-400 shrink-0" />;
+      case 'Online':     return <Monitor size={11} className="text-zinc-400 shrink-0" />;
+      case 'Híbrido':    return <Video size={11} className="text-zinc-400 shrink-0" />;
+      default:           return <Monitor size={11} className="text-zinc-400 shrink-0" />;
     }
   };
 
@@ -141,9 +141,14 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
       {/* MEETINGS LIST */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
         {filteredReunioes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-32 border border-zinc-100 dark:border-zinc-800/50 rounded-3xl text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/10">
-            <Handshake size={64} className="mb-6 opacity-5" />
-            <p className="text-xs font-black uppercase tracking-[0.3em] opacity-30 mt-4">Nenhuma reunião encontrada.</p>
+          <div className="flex flex-col items-center justify-center py-32 border border-zinc-200 dark:border-zinc-800 rounded-[32px] bg-zinc-50/50 dark:bg-zinc-900/20 gap-5">
+            <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-zinc-700 to-zinc-900 dark:from-zinc-800 dark:to-zinc-950 flex items-center justify-center shadow-xl shadow-zinc-500/10">
+              <Handshake size={32} className="text-white" strokeWidth={1.5} />
+            </div>
+            <div className="text-center space-y-1">
+              <p className="text-sm font-black uppercase tracking-tight text-zinc-700 dark:text-zinc-300">Nenhuma reunião</p>
+              <p className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest">Clique em "Nova Reunião" para começar.</p>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 card-grid">
@@ -155,82 +160,88 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
 
               const isRealizada = r.status === 'Realizada';
               const isCancelada = r.status === 'Cancelada';
-              const isPast = new Date(r.data + 'T23:59:59') < new Date() && !isRealizada;
+              const isPast = new Date(r.data + 'T23:59:59') < new Date() && !isRealizada && !isCancelada;
+              const nextSteps = Array.isArray(r.proximos_passos) ? r.proximos_passos : [];
 
               return (
                 <div
                   key={r.id}
                   onClick={() => { setSelectedMeeting(r); setIsEditModalOpen(true); }}
-                  className={`group relative cursor-pointer rounded-[24px] overflow-hidden border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl active:scale-[0.98]
-                    ${isCancelada ? 'border-zinc-200 dark:border-zinc-800 opacity-60 saturate-50' :
-                      isRealizada ? 'border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/30 dark:bg-emerald-500/5' :
-                      'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-700'
+                  className={`group relative cursor-pointer rounded-2xl overflow-hidden border transition-all duration-300 hover:-translate-y-1 active:scale-[0.98] flex flex-col
+                    shadow-sm hover:shadow-xl dark:shadow-black/20 dark:hover:shadow-black/50
+                    ${isCancelada
+                      ? 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 opacity-60 saturate-50'
+                      : isRealizada
+                        ? 'border-emerald-200 dark:border-emerald-900/40 bg-white dark:bg-zinc-900 hover:border-emerald-300 dark:hover:border-emerald-800'
+                        : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-700'
                     }
                   `}
                 >
-                  {/* Top color bar */}
-                  <div className="h-1 w-full" style={{ backgroundColor: clientColor }} />
+                  {/* Top color bar (client color) */}
+                  <div className="h-[3px] w-full shrink-0" style={{ backgroundColor: clientColor }} />
 
-                  <div className="p-5 flex flex-col gap-4">
-                    {/* Row 1: client avatar + status badge */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-3 min-w-0">
+                  <div className="p-5 flex flex-col gap-3 flex-1">
+
+                    {/* Row 1: avatar + nome cliente + status */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
                         <div
-                          className="w-10 h-10 rounded-2xl flex items-center justify-center font-black text-white text-sm shrink-0 shadow-md"
+                          className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-white text-[13px] shrink-0 shadow-sm"
                           style={{ backgroundColor: clientColor }}
                         >
                           {(client?.Nome || '?').charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100 truncate">{client?.Nome || 'Geral'}</p>
-                          <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-tight truncate">{client?.Nicho || 'Estratégia'}</p>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100 truncate leading-tight">{client?.Nome || 'Geral'}</p>
+                          <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-tight truncate leading-tight mt-0.5">{client?.Nicho || 'Estratégia'}</p>
                         </div>
                       </div>
-                      {getStatusBadge(r.status)}
+                      <div className="shrink-0">{getStatusBadge(r.status)}</div>
                     </div>
 
-                    {/* Row 2: title */}
-                    <h3 className="text-[15px] font-black text-zinc-900 dark:text-white leading-snug group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
-                      {r.titulo}
+                    {/* Row 2: título */}
+                    <h3 className="text-sm font-black text-zinc-900 dark:text-white leading-snug group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors line-clamp-2 min-h-[40px]">
+                      {r.titulo || 'Sem título'}
                     </h3>
 
-                    {/* Row 3: date + time + format chips */}
-                    <div className="flex flex-wrap gap-2">
-                      <div className="flex items-center gap-1.5 bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/50 rounded-lg px-2 py-1.5">
-                        <Calendar size={11} className="text-zinc-400 shrink-0" />
-                        <span className="text-[10px] font-bold uppercase text-zinc-600 dark:text-zinc-300 tracking-wide">{formattedDate}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/50 rounded-lg px-2 py-1.5">
-                        <Clock size={11} className="text-zinc-400 shrink-0" />
-                        <span className="text-[10px] font-bold text-zinc-600 dark:text-zinc-300">{r.hora}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/50 rounded-lg px-2 py-1.5">
+                    {/* Row 3: chips data / hora / formato */}
+                    <div className="flex flex-wrap gap-1.5">
+                      <span className="inline-flex items-center gap-1 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-2 py-1">
+                        <Calendar size={10} className="text-zinc-400 shrink-0" />
+                        <span className="text-[9px] font-bold text-zinc-600 dark:text-zinc-300 capitalize">{formattedDate}</span>
+                      </span>
+                      <span className="inline-flex items-center gap-1 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-2 py-1">
+                        <Clock size={10} className="text-zinc-400 shrink-0" />
+                        <span className="text-[9px] font-bold text-zinc-600 dark:text-zinc-300">{r.hora || '--:--'}</span>
+                      </span>
+                      <span className="inline-flex items-center gap-1 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-2 py-1">
                         {getFormatIcon(r.formato)}
-                        <span className="text-[10px] font-bold uppercase text-zinc-600 dark:text-zinc-300">{r.formato}</span>
-                      </div>
-                      {isPast && !isRealizada && (
-                        <div className="flex items-center gap-1.5 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-700/40 rounded-lg px-2 py-1.5">
-                          <span className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wide">Aguardando</span>
-                        </div>
+                        <span className="text-[9px] font-bold text-zinc-600 dark:text-zinc-300 uppercase">{r.formato}</span>
+                      </span>
+                      {isPast && (
+                        <span className="inline-flex items-center gap-1 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-700/40 rounded-lg px-2 py-1">
+                          <span className="text-[9px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wide">Pendente</span>
+                        </span>
                       )}
                     </div>
 
-                    {/* Row 4: próximos passos preview */}
-                    {r.proximos_passos && r.proximos_passos.length > 0 && (
-                      <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 space-y-1.5">
-                        <p className="text-[8px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-1.5 mb-2">
-                          <ChevronRight size={9} className="text-blue-500 shrink-0" /> {r.proximos_passos.length} próximo{r.proximos_passos.length > 1 ? 's passos' : ' passo'}
+                    {/* Row 4: próximos passos — só se tiver */}
+                    {nextSteps.length > 0 && (
+                      <div className="mt-auto pt-3 border-t border-zinc-100 dark:border-zinc-800/80 space-y-1.5">
+                        <p className="text-[8px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-1 mb-1.5">
+                          <ChevronRight size={9} className="text-blue-500 shrink-0" />
+                          {nextSteps.length} próximo{nextSteps.length > 1 ? 's passos' : ' passo'}
                         </p>
-                        {r.proximos_passos.slice(0, 2).map((step, idx) => (
+                        {nextSteps.slice(0, 2).map((step, idx) => (
                           <div key={idx} className="flex items-center gap-2">
                             <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${step.checkbox ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-600'}`} />
                             <span className={`text-[9px] font-bold truncate ${step.checkbox ? 'text-zinc-400 line-through' : 'text-zinc-600 dark:text-zinc-300'}`}>
-                              {step.texto}
+                              {step.texto || '—'}
                             </span>
                           </div>
                         ))}
-                        {r.proximos_passos.length > 2 && (
-                          <span className="text-[8px] font-black text-zinc-400 uppercase tracking-wider">+{r.proximos_passos.length - 2} mais</span>
+                        {nextSteps.length > 2 && (
+                          <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-wider">+{nextSteps.length - 2} mais</span>
                         )}
                       </div>
                     )}
