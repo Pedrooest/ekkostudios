@@ -452,7 +452,8 @@ export const DatePickerPortal: React.FC<{
   className?: string;
   clearable?: boolean;
   size?: 'sm' | 'md';
-}> = ({ value, onChange, label, placeholder = 'Selecionar data...', className = '', clearable = true, size = 'md' }) => {
+  compact?: boolean;      // usa formato curto "06 mai 26" sem dia da semana
+}> = ({ value, onChange, label, placeholder = 'Selecionar...', className = '', clearable = true, size = 'md', compact = true }) => {
   const [open, setOpen] = React.useState(false);
   const [pos, setPos] = React.useState({ top: 0, left: 0, flip: false });
   const [viewYear, setViewYear] = React.useState(() => value ? parseInt(value.slice(0, 4)) : new Date().getFullYear());
@@ -463,9 +464,14 @@ export const DatePickerPortal: React.FC<{
   const CAL_H = 332;
   const CAL_W = 276;
 
-  const formatDisplay = (d: string) => {
+  const formatDisplay = (d: string, compact = false) => {
     if (!d) return '';
     const dt = new Date(d + 'T12:00:00');
+    if (compact) {
+      // "06 mai 26" — cabe em campos estreitos
+      return dt.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: '2-digit' });
+    }
+    // "qua., 06 mai. 2026" — para campos largos
     return dt.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
   };
 
@@ -613,7 +619,7 @@ export const DatePickerPortal: React.FC<{
       >
         <Calendar size={size === 'sm' ? 13 : 15} className="text-zinc-400 shrink-0" />
         <span className={`flex-1 truncate ${value ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-400 dark:text-zinc-500'}`}>
-          {value ? formatDisplay(value) : placeholder}
+          {value ? formatDisplay(value, compact) : placeholder}
         </span>
         {value && clearable && (
           <span onClick={(e) => { e.stopPropagation(); onChange(''); }} className="p-0.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-400 hover:text-zinc-700 transition-colors">
@@ -646,7 +652,7 @@ export const TimeInput: React.FC<{
           type="time"
           value={value}
           onChange={e => onChange(e.target.value)}
-          className="flex-1 bg-transparent border-none outline-none text-xs font-bold text-zinc-900 dark:text-zinc-100 min-w-0 cursor-pointer [color-scheme:light] dark:[color-scheme:dark]"
+          className="flex-1 bg-transparent border-none outline-none text-xs font-bold text-zinc-900 dark:text-zinc-100 min-w-0 cursor-pointer [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden [&::-webkit-clear-button]:hidden"
         />
       </div>
     </div>

@@ -255,196 +255,254 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
 
       {/* EDIT MODAL */}
       {isEditModalOpen && selectedMeeting && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5">
           <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-md animate-fade" onClick={() => setIsEditModalOpen(false)} />
 
-          <div className="relative bg-white dark:bg-zinc-900 w-full max-w-4xl max-h-[90vh] rounded-[32px] overflow-hidden shadow-2xl flex flex-col border border-zinc-200 dark:border-white/10 animate-bounce-in">
-            
-            {/* Modal Header */}
-            <div className="px-8 py-6 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between sticky top-0 bg-white dark:bg-zinc-900 z-10">
-              <div className="flex items-center gap-4">
-                <div 
-                  className="w-12 h-12 rounded-2xl flex items-center justify-center text-white"
+          <div className="relative bg-white dark:bg-zinc-900 w-full max-w-4xl max-h-[92vh] rounded-[28px] overflow-hidden shadow-2xl flex flex-col border border-zinc-200 dark:border-white/10 animate-bounce-in">
+
+            {/* ── HEADER ── */}
+            <div className="px-6 py-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between sticky top-0 bg-white dark:bg-zinc-900 z-10 gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md"
                   style={{ backgroundColor: currentClient(selectedMeeting.cliente_id)?.['Cor (HEX)'] || '#3B82F6' }}
                 >
-                  <Handshake size={24} />
+                  <Handshake size={18} />
                 </div>
-                <div>
-                  <h2 className="text-base font-black uppercase tracking-tight text-zinc-900 dark:text-white truncate max-w-[200px] sm:max-w-md">
-                    {selectedMeeting.titulo || 'Detalhes da Reunião'}
+                <div className="min-w-0">
+                  <h2 className="text-sm font-black uppercase tracking-tight text-zinc-900 dark:text-white truncate">
+                    {selectedMeeting.titulo || 'Nova Reunião'}
                   </h2>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-0.5">
-                    {currentClient(selectedMeeting.cliente_id)?.Nome || 'Geral'} • {selectedMeeting.data}
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400">
+                    {currentClient(selectedMeeting.cliente_id)?.Nome || 'Geral'} · {selectedMeeting.data ? new Date(selectedMeeting.data + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <button onClick={handleExportPDF} className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 hover:text-blue-500 transition-colors">
-                   <Printer size={16} />
+              <div className="flex items-center gap-2 shrink-0">
+                <button onClick={handleExportPDF} className="w-9 h-9 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 hover:text-blue-500 transition-colors" title="Imprimir">
+                  <Printer size={15} />
                 </button>
-                <button 
-                  onClick={() => {
-                    if (confirm('Deseja excluir esta reunião?')) {
-                      onDelete([selectedMeeting.id], 'REUNIOES');
-                      setIsEditModalOpen(false);
-                    }
-                  }}
-                  className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                <button
+                  onClick={() => { if (confirm('Deseja excluir esta reunião?')) { onDelete([selectedMeeting.id], 'REUNIOES'); setIsEditModalOpen(false); } }}
+                  className="w-9 h-9 rounded-xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                  title="Excluir"
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={15} />
                 </button>
                 <button
                   onClick={() => setIsEditModalOpen(false)}
-                  className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 hover:rotate-90 transition-transform"
+                  className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 hover:rotate-90 transition-all"
                 >
-                  <X size={20} />
+                  <X size={18} />
                 </button>
               </div>
             </div>
 
-            {/* Modal Body */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                
-                <div className="lg:col-span-7 space-y-8">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                       <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Cliente</label>
-                       <PSelectPortal
-                         value={selectedMeeting.cliente_id}
-                         onChange={(val) => onUpdate(selectedMeeting.id, 'REUNIOES', 'cliente_id', val)}
-                         options={[{ value: '', label: 'Selecione o Cliente' }, ...clients.map(c => ({ value: c.id, label: (c.Nome || '').toUpperCase() }))]}
-                         className="w-full"
-                       />
+            {/* ── BODY ── */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+              <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-zinc-100 dark:divide-zinc-800">
+
+                {/* Left column — form */}
+                <div className="lg:col-span-7 p-6 space-y-5">
+
+                  {/* Cliente + Status */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Cliente</label>
+                      <PSelectPortal
+                        value={selectedMeeting.cliente_id}
+                        onChange={(val) => onUpdate(selectedMeeting.id, 'REUNIOES', 'cliente_id', val)}
+                        options={[{ value: '', label: 'Selecione...' }, ...clients.map(c => ({ value: c.id, label: (c.Nome || '').toUpperCase() }))]}
+                        className="w-full"
+                        size="sm"
+                      />
                     </div>
-                    <div className="space-y-2">
-                       <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Status</label>
-                       <PSelectPortal
-                         value={selectedMeeting.status}
-                         onChange={(val) => onUpdate(selectedMeeting.id, 'REUNIOES', 'status', val)}
-                         options={[
-                           { value: 'Agendada', label: 'Agendada' },
-                           { value: 'Realizada', label: 'Realizada' },
-                           { value: 'Cancelada', label: 'Cancelada' },
-                         ]}
-                         className="w-full"
-                       />
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Status</label>
+                      <PSelectPortal
+                        value={selectedMeeting.status}
+                        onChange={(val) => onUpdate(selectedMeeting.id, 'REUNIOES', 'status', val)}
+                        options={[
+                          { value: 'Agendada', label: 'Agendada' },
+                          { value: 'Realizada', label: 'Realizada' },
+                          { value: 'Cancelada', label: 'Cancelada' },
+                        ]}
+                        className="w-full"
+                        size="sm"
+                      />
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  {/* Título */}
+                  <div className="space-y-1.5">
                     <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Título da Reunião</label>
                     <input
                       type="text"
                       value={selectedMeeting.titulo}
                       onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'titulo', e.target.value)}
-                      className="w-full h-11 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl text-xs font-bold transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                      className="w-full h-10 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs font-bold transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
                     />
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
-                     <div>
-                        <DatePickerPortal
-                          label="Data"
-                          value={selectedMeeting.data}
-                          onChange={(val) => onUpdate(selectedMeeting.id, 'REUNIOES', 'data', val)}
-                          clearable={false}
-                        />
-                     </div>
-                     <div>
-                        <TimeInput
-                          label="Hora"
-                          value={selectedMeeting.hora}
-                          onChange={(val) => onUpdate(selectedMeeting.id, 'REUNIOES', 'hora', val)}
-                        />
-                     </div>
-                     <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Formato</label>
-                        <PSelectPortal
-                           value={selectedMeeting.formato}
-                           onChange={(val) => onUpdate(selectedMeeting.id, 'REUNIOES', 'formato', val)}
-                           options={[
-                             { value: 'Online', label: 'Online' },
-                             { value: 'Presencial', label: 'Presencial' },
-                             { value: 'Híbrido', label: 'Híbrido' },
-                           ]}
-                           className="w-full"
-                        />
-                     </div>
+                  {/* Data + Hora + Formato */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <DatePickerPortal
+                      label="Data"
+                      value={selectedMeeting.data}
+                      onChange={(val) => onUpdate(selectedMeeting.id, 'REUNIOES', 'data', val)}
+                      clearable={false}
+                      size="sm"
+                    />
+                    <TimeInput
+                      label="Hora"
+                      value={selectedMeeting.hora}
+                      onChange={(val) => onUpdate(selectedMeeting.id, 'REUNIOES', 'hora', val)}
+                      size="sm"
+                    />
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Formato</label>
+                      <PSelectPortal
+                        value={selectedMeeting.formato}
+                        onChange={(val) => onUpdate(selectedMeeting.id, 'REUNIOES', 'formato', val)}
+                        options={[
+                          { value: 'Online', label: 'Online' },
+                          { value: 'Presencial', label: 'Presencial' },
+                          { value: 'Híbrido', label: 'Híbrido' },
+                        ]}
+                        className="w-full"
+                        size="sm"
+                      />
+                    </div>
                   </div>
 
-                  <div className="space-y-4">
-                     <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Pauta</label>
-                        <textarea value={selectedMeeting.pauta} onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'pauta', e.target.value)} rows={4} className="w-full p-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-2xl text-xs transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400" />
-                     </div>
-                     <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Decisões</label>
-                        <textarea value={selectedMeeting.decisoes} onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'decisoes', e.target.value)} rows={4} className="w-full p-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-2xl text-xs transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400" />
-                     </div>
+                  {/* Pauta + Decisões lado a lado se tela grande, empilhado em mobile */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Pauta</label>
+                      <textarea
+                        value={selectedMeeting.pauta}
+                        onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'pauta', e.target.value)}
+                        rows={5}
+                        placeholder="O que será discutido nesta reunião?"
+                        className="w-full p-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 resize-none placeholder:text-zinc-300 dark:placeholder:text-zinc-600"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 ml-1">Decisões</label>
+                      <textarea
+                        value={selectedMeeting.decisoes}
+                        onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'decisoes', e.target.value)}
+                        rows={5}
+                        placeholder="O que foi decidido nesta reunião?"
+                        className="w-full p-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 resize-none placeholder:text-zinc-300 dark:placeholder:text-zinc-600"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="lg:col-span-5 space-y-6">
-                  <div className="p-6 bg-zinc-50 dark:bg-zinc-800/30 rounded-3xl border border-zinc-100 dark:border-zinc-800">
-                    <div className="flex items-center justify-between mb-6">
-                       <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-white">Próximos Passos</h3>
-                       <button 
-                         onClick={() => {
-                           const newSteps = [...(selectedMeeting.proximos_passos || []), { id: Date.now().toString(), checkbox: false, texto: '', responsavel: '', prazo: '' }];
-                           onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps);
-                         }}
-                         className="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center shadow-lg shadow-blue-500/20"
-                       >
-                         <Plus size={14} />
-                       </button>
-                    </div>
+                {/* Right column — próximos passos */}
+                <div className="lg:col-span-5 p-6 flex flex-col gap-4 bg-zinc-50/50 dark:bg-zinc-800/20">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-700 dark:text-zinc-300">Próximos Passos</h3>
+                    <button
+                      onClick={() => {
+                        const newSteps = [...(selectedMeeting.proximos_passos || []), { id: Date.now().toString(), checkbox: false, texto: '', responsavel: '', prazo: '' }];
+                        onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps);
+                      }}
+                      className="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center shadow-md shadow-blue-500/25 hover:bg-blue-600 transition-colors"
+                    >
+                      <Plus size={14} />
+                    </button>
+                  </div>
 
-                    <div className="space-y-3">
-                      {(selectedMeeting.proximos_passos || []).map((step, idx) => (
-                        <div key={idx} className="bg-white dark:bg-zinc-900 p-4 rounded-xl shadow-sm border border-zinc-100 dark:border-zinc-800 flex flex-col gap-3 group">
-                           <div className="flex items-start gap-3">
-                              <button 
-                                onClick={() => {
-                                  const newSteps = [...selectedMeeting.proximos_passos];
-                                  newSteps[idx] = { ...newSteps[idx], checkbox: !newSteps[idx].checkbox };
-                                  onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps);
-                                }}
-                                className={`mt-0.5 h-4 w-4 rounded border flex items-center justify-center text-[8px] ${step.checkbox ? 'bg-green-500 border-green-500 text-white' : 'border-zinc-300'}`}
-                              >
-                                {step.checkbox && <CheckCircle2 size={10} />}
-                              </button>
-                              <input 
-                                type="text"
-                                value={step.texto}
-                                onChange={(e) => {
-                                  const newSteps = [...selectedMeeting.proximos_passos];
-                                  newSteps[idx] = { ...newSteps[idx], texto: e.target.value };
-                                  onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps);
-                                }}
-                                className={`flex-1 bg-transparent border-none p-0 text-[11px] font-bold focus:ring-0 ${step.checkbox ? 'text-zinc-400 line-through' : ''}`}
-                                placeholder="Ação..."
-                              />
-                           </div>
-                           <div className="flex items-center gap-3">
-                              <input type="text" value={step.responsavel} onChange={(e) => { const newSteps = [...selectedMeeting.proximos_passos]; newSteps[idx] = { ...newSteps[idx], responsavel: e.target.value }; onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps); }} className="flex-1 bg-zinc-50 dark:bg-zinc-800 rounded-lg p-2 text-[8px] font-black uppercase tracking-widest border-none" placeholder="QUEM" />
-                              <input type="text" value={step.prazo} onChange={(e) => { const newSteps = [...selectedMeeting.proximos_passos]; newSteps[idx] = { ...newSteps[idx], prazo: e.target.value }; onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps); }} className="flex-1 bg-zinc-50 dark:bg-zinc-800 rounded-lg p-2 text-[8px] font-black uppercase tracking-widest border-none" placeholder="QUANDO" />
-                              <button onClick={() => { const newSteps = selectedMeeting.proximos_passos.filter((_, i) => i !== idx); onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps); }} className="text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                                 <Trash2 size={12} />
-                              </button>
-                           </div>
-                        </div>
-                      ))}
+                  {(selectedMeeting.proximos_passos || []).length === 0 && (
+                    <div className="flex-1 flex flex-col items-center justify-center gap-3 py-10 text-center">
+                      <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+                        <CheckCircle2 size={22} className="text-zinc-300 dark:text-zinc-600" />
+                      </div>
+                      <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Nenhuma ação definida</p>
+                      <p className="text-[9px] text-zinc-300 dark:text-zinc-600">Clique em + para adicionar</p>
                     </div>
+                  )}
+
+                  <div className="space-y-2.5 overflow-y-auto custom-scrollbar">
+                    {(selectedMeeting.proximos_passos || []).map((step, idx) => (
+                      <div key={step.id || idx} className="bg-white dark:bg-zinc-900 p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 flex flex-col gap-2.5 group shadow-sm">
+                        <div className="flex items-center gap-2.5">
+                          <button
+                            onClick={() => {
+                              const newSteps = [...(selectedMeeting.proximos_passos || [])];
+                              newSteps[idx] = { ...newSteps[idx], checkbox: !newSteps[idx].checkbox };
+                              onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps);
+                            }}
+                            className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all shrink-0 ${step.checkbox ? 'bg-emerald-500 border-emerald-500' : 'border-zinc-300 dark:border-zinc-600 hover:border-zinc-400'}`}
+                          >
+                            {step.checkbox && <CheckCircle2 size={10} className="text-white" />}
+                          </button>
+                          <input
+                            type="text"
+                            value={step.texto}
+                            onChange={(e) => {
+                              const newSteps = [...(selectedMeeting.proximos_passos || [])];
+                              newSteps[idx] = { ...newSteps[idx], texto: e.target.value };
+                              onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps);
+                            }}
+                            className={`flex-1 bg-transparent border-none p-0 text-[11px] font-bold outline-none ${step.checkbox ? 'text-zinc-400 line-through' : 'text-zinc-800 dark:text-zinc-200'}`}
+                            placeholder="Descreva a ação..."
+                          />
+                          <button
+                            onClick={() => {
+                              const newSteps = (selectedMeeting.proximos_passos || []).filter((_, i) => i !== idx);
+                              onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps);
+                            }}
+                            className="text-zinc-300 hover:text-red-500 dark:text-zinc-600 dark:hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <input
+                            type="text"
+                            value={step.responsavel}
+                            onChange={(e) => { const newSteps = [...(selectedMeeting.proximos_passos || [])]; newSteps[idx] = { ...newSteps[idx], responsavel: e.target.value }; onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps); }}
+                            className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-2.5 py-1.5 text-[9px] font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-400 focus:outline-none focus:border-blue-400"
+                            placeholder="QUEM"
+                          />
+                          <input
+                            type="text"
+                            value={step.prazo}
+                            onChange={(e) => { const newSteps = [...(selectedMeeting.proximos_passos || [])]; newSteps[idx] = { ...newSteps[idx], prazo: e.target.value }; onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps); }}
+                            className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-2.5 py-1.5 text-[9px] font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-400 focus:outline-none focus:border-blue-400"
+                            placeholder="QUANDO"
+                          />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="p-8 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-3 bg-zinc-50 dark:bg-zinc-900/50">
-               <button onClick={() => setIsEditModalOpen(false)} className="px-6 py-2.5 rounded-xl text-[10px] font-black uppercase bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300">Fechar</button>
-               <button onClick={() => { handleStatusChange(selectedMeeting, 'Realizada'); setIsEditModalOpen(false); }} className="px-6 py-2.5 rounded-xl text-[10px] font-black uppercase bg-blue-600 text-white shadow-lg shadow-blue-500/20">Finalizar Reunião</button>
+            {/* ── FOOTER ── */}
+            <div className="px-6 py-4 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between gap-3 bg-white dark:bg-zinc-900/80 shrink-0">
+              <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest hidden sm:block">
+                {(selectedMeeting.proximos_passos || []).length} próximos passos · {(selectedMeeting.proximos_passos || []).filter(s => s.checkbox).length} concluídos
+              </span>
+              <div className="flex items-center gap-2.5 ml-auto">
+                <button
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                >
+                  Fechar
+                </button>
+                <button
+                  onClick={() => { handleStatusChange(selectedMeeting, 'Realizada'); setIsEditModalOpen(false); }}
+                  className="px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-blue-600 text-white shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-colors"
+                >
+                  Finalizar Reunião
+                </button>
+              </div>
             </div>
           </div>
         </div>
