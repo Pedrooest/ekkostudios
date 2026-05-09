@@ -209,7 +209,7 @@ const RelatoriosView: React.FC<RelatoriosViewProps> = ({ clients, planejamento, 
                   <ResponsiveContainer width="100%" height={180}>
                     <BarChart data={stats.platformData} barCategoryGap="35%" margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#27272a' : '#f4f4f5'} />
-                      <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 700, fill: isDark ? '#71717a' : '#a1a1aa', textTransform: 'uppercase' }} axisLine={false} tickLine={false} />
+                      <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 700, fill: isDark ? '#71717a' : '#a1a1aa' }} axisLine={false} tickLine={false} />
                       <YAxis tick={{ fontSize: 9, fill: isDark ? '#71717a' : '#a1a1aa' }} axisLine={false} tickLine={false} allowDecimals={false} />
                       <Tooltip
                         contentStyle={{ borderRadius: '12px', border: 'none', background: isDark ? '#18181b' : '#fff', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', fontSize: '11px', fontWeight: 700 }}
