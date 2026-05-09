@@ -963,10 +963,14 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                             const isAtrasado = tx.status !== 'Pago' && tx.data < new Date().toISOString().split('T')[0];
                                             return (
                                                 <tr key={tx.id}
-                                                    className="hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 group transition-all duration-150"
+                                                    className="hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 group transition-all duration-150 relative"
                                                     style={{ animationDelay: `${Math.min(txIdx * 20, 300)}ms`, animation: 'fadeInUp 0.3s cubic-bezier(0.32,0.72,0,1) both' }}
                                                 >
-                                                    <td className="px-6 py-4 text-[10px] font-black text-zinc-500">{new Date(tx.data + 'T12:00:00').toLocaleDateString('pt-BR')}</td>
+                                                    <td className="pl-0 pr-6 py-4 text-[10px] font-black text-zinc-500 relative">
+                                                        {/* Left color accent bar */}
+                                                        <div className={`absolute left-0 top-2 bottom-2 w-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity ${tx.tipo === 'entrada' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                                                        <span className="pl-6">{new Date(tx.data + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
+                                                    </td>
                                                     <td className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
                                                         {new Date(tx.data + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')}
                                                     </td>

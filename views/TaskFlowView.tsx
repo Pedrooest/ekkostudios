@@ -98,71 +98,85 @@ const SortableTaskCard = React.memo(function SortableTaskCard({ Tarefa, clients,
     const attachmentsCount = Array.isArray(Tarefa.Anexos) ? Tarefa.Anexos.length : 0;
     const hasStats = checklistTotal > 0 || commentsCount > 0 || attachmentsCount > 0;
 
+    // Format date nicely
+    const formatDate = (d: string) => {
+        if (!d) return null;
+        return new Date(d + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
+    };
+
     return (
         <div
             ref={setNodeRef} style={style} {...attributes} {...listeners}
             onClick={() => onSelectTask(Tarefa.id)}
-            className={`bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl shadow-sm hover:shadow-xl lift group flex flex-col gap-3 relative overflow-hidden cursor-grab active:cursor-grabbing ${selection.includes(Tarefa.id) ? 'ring-2 ring-zinc-900 dark:ring-white bg-zinc-50 dark:bg-zinc-800' : ''} ${isDragging ? 'ring-2 ring-zinc-900 z-50 shadow-2xl scale-[1.02]' : ''}`}
+            className={`bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-md dark:shadow-black/25 hover:shadow-xl dark:hover:shadow-black/50 hover:-translate-y-0.5 group flex flex-col gap-3 relative overflow-hidden cursor-grab active:cursor-grabbing transition-all duration-200 ${selection.includes(Tarefa.id) ? 'ring-2 ring-zinc-900 dark:ring-white bg-zinc-50 dark:bg-zinc-800' : ''} ${isDragging ? 'ring-2 ring-zinc-900 z-50 shadow-2xl scale-[1.02]' : ''}`}
         >
-            <div className="absolute top-0 left-0 w-1 h-full opacity-40" style={{ backgroundColor: statusCor }} />
+            {/* Top accent bar — status color */}
+            <div className="h-0.5 w-full absolute top-0 left-0 right-0 opacity-70 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: statusCor }} />
 
-            <div className="flex justify-between items-start pointer-events-none gap-2">
-                <Badge color="slate" className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 opacity-60">
-                    {Cliente?.Nome || 'AGÊNCIA'}
-                </Badge>
-                {Tarefa.Prioridade && (
-                    <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest shrink-0 ${prio.color}`} title={`Prioridade: ${Tarefa.Prioridade}`}>
-                        <PriorityIcon size={9} className="shrink-0" />
-                        <span>{Tarefa.Prioridade}</span>
+            <div className="p-4 pt-5 flex flex-col gap-3">
+                {/* Row 1: client + priority */}
+                <div className="flex justify-between items-start gap-2 pointer-events-none">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 px-2 py-0.5 rounded-md truncate max-w-[130px]">
+                        {Cliente?.Nome || 'AGÊNCIA'}
+                    </span>
+                    {Tarefa.Prioridade && (
+                        <span className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest shrink-0 border ${prio.color}`} title={`Prioridade: ${Tarefa.Prioridade}`}>
+                            <PriorityIcon size={8} className="shrink-0" />
+                            <span>{Tarefa.Prioridade}</span>
+                        </span>
+                    )}
+                </div>
+
+                {/* Row 2: title */}
+                <h4 className="text-[13px] font-black text-zinc-900 dark:text-zinc-100 tracking-tight leading-snug group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors pointer-events-none line-clamp-2" title={Tarefa.Título}>
+                    {Tarefa.Título}
+                </h4>
+
+                {/* Planning badge */}
+                {Tarefa.Relacionado_A === 'Planejamento' && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-black uppercase tracking-wider border border-blue-200/50 dark:border-blue-500/20 w-fit">
+                        📅 Planejamento
                     </span>
                 )}
-            </div>
 
-            <h4 className="text-[13px] font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight leading-snug group-hover:text-blue-500 transition-colors pointer-events-none mt-1 line-clamp-2" title={Tarefa.Título}>
-                {Tarefa.Título}
-            </h4>
-
-            {Tarefa.Relacionado_A === 'Planejamento' && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-black uppercase tracking-wider border border-blue-200/50 dark:border-blue-500/20">
-                    <span>📅</span> Planejamento
-                </span>
-            )}
-
-            {hasStats && (
-                <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 pointer-events-none">
-                    {checklistTotal > 0 && (
-                        <span className={`flex items-center gap-1 ${checklistDone === checklistTotal ? 'text-emerald-500' : ''}`} title={`Checklist: ${checklistDone} de ${checklistTotal} concluídos`}>
-                            <CheckSquare size={11} className="shrink-0" />
-                            {checklistDone}/{checklistTotal}
-                        </span>
-                    )}
-                    {commentsCount > 0 && (
-                        <span className="flex items-center gap-1" title={`${commentsCount} ${commentsCount === 1 ? 'comentário' : 'comentários'}`}>
-                            <MessageSquare size={11} className="shrink-0" />
-                            {commentsCount}
-                        </span>
-                    )}
-                    {attachmentsCount > 0 && (
-                        <span className="flex items-center gap-1" title={`${attachmentsCount} ${attachmentsCount === 1 ? 'anexo' : 'anexos'}`}>
-                            <Paperclip size={11} className="shrink-0" />
-                            {attachmentsCount}
-                        </span>
-                    )}
-                </div>
-            )}
-
-            <div className="flex items-center justify-between mt-1 pt-3 border-t border-zinc-100 dark:border-zinc-800 pointer-events-none">
-                <div className={`flex items-center gap-2 text-[9px] font-black uppercase tracking-widest ${isOverdue ? 'text-rose-600' : 'text-zinc-400'}`}>
-                    {Tarefa.Data_Entrega ? <span className="flex items-center gap-1.5"><Clock size={10} /> {Tarefa.Data_Entrega}</span> : <span className="flex items-center gap-1.5 opacity-30"><Clock size={10} /> S/ DATA</span>}
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center text-[9px] font-black border border-zinc-200 dark:border-zinc-800 transition-all shrink-0">
-                        {Tarefa.Responsável?.slice(0, 1).toUpperCase() || '?'}
+                {/* Stats row */}
+                {hasStats && (
+                    <div className="flex items-center gap-3 text-[9px] font-bold text-zinc-400 dark:text-zinc-500 pointer-events-none">
+                        {checklistTotal > 0 && (
+                            <span className={`flex items-center gap-1 ${checklistDone === checklistTotal ? 'text-emerald-500' : ''}`}>
+                                <CheckSquare size={10} className="shrink-0" />
+                                {checklistDone}/{checklistTotal}
+                            </span>
+                        )}
+                        {commentsCount > 0 && (
+                            <span className="flex items-center gap-1">
+                                <MessageSquare size={10} className="shrink-0" />
+                                {commentsCount}
+                            </span>
+                        )}
+                        {attachmentsCount > 0 && (
+                            <span className="flex items-center gap-1">
+                                <Paperclip size={10} className="shrink-0" />
+                                {attachmentsCount}
+                            </span>
+                        )}
                     </div>
-                    {/* Visual indicator for task updates (like status change via drag & drop) */}
-                    {Object.keys(savingStatus || {}).some(k => k.startsWith(`TAREFAS:${Tarefa.id}:`)) && (
-                        <SavingIndicator status={Object.entries(savingStatus || {}).find(([k]) => k.startsWith(`TAREFAS:${Tarefa.id}:`))?.[1] as any} />
-                    )}
+                )}
+
+                {/* Footer: date + responsavel */}
+                <div className="flex items-center justify-between pt-2.5 border-t border-zinc-100 dark:border-zinc-800/80 pointer-events-none">
+                    <div className={`flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wide ${isOverdue ? 'text-rose-500 bg-rose-50 dark:bg-rose-500/10 px-1.5 py-0.5 rounded-md' : 'text-zinc-400'}`}>
+                        <Clock size={9} className="shrink-0" />
+                        {Tarefa.Data_Entrega ? formatDate(Tarefa.Data_Entrega) : <span className="opacity-30">Sem data</span>}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <div className="w-6 h-6 rounded-lg text-zinc-900 dark:text-zinc-100 flex items-center justify-center text-[9px] font-black border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 shrink-0" title={Tarefa.Responsável || 'Sem responsável'}>
+                            {Tarefa.Responsável?.[0]?.toUpperCase() || '?'}
+                        </div>
+                        {Object.keys(savingStatus || {}).some(k => k.startsWith(`TAREFAS:${Tarefa.id}:`)) && (
+                            <SavingIndicator status={Object.entries(savingStatus || {}).find(([k]) => k.startsWith(`TAREFAS:${Tarefa.id}:`))?.[1] as any} />
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
