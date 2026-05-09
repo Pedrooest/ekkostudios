@@ -11,6 +11,12 @@ export interface Cliente {
   "Cor (HEX)": string;
   Status: 'Ativo' | 'Pausado' | 'Prospect';
   Fee: number;
+  tempo_contrato?: string;       // ex: '3 meses', '6 meses', '12 meses', 'Indeterminado'
+  dia_pagamento?: number;        // payment day 1-31
+  servicos_realizados?: string;  // free text describing services provided
+  data_inicio_contrato?: string; // YYYY-MM-DD
+  logo_url?: string;
+  cover_url?: string;
   links?: Array<{ titulo: string; url: string; categoria: string }>;
   log_comunicacao?: Array<{ tipo: string; data: string; hora: string; descricao: string }>;
   assets?: Array<{ nome: string; tipo: string; dados: string }>;
@@ -124,6 +130,7 @@ export interface ItemPlanejamento {
   Observações?: string;
   Gancho?: string;
   CTA?: string;
+  imagem_url?: string;
   Fonte_Origem?: 'RDC' | 'Estratégia' | 'COBO' | 'Tarefa' | 'IA' | 'Manual' | 'Gemini';
   Origem_ID?: string;
   google_event_id?: string;
@@ -352,10 +359,15 @@ export interface PerfilUsuario {
   full_name: string;
   email: string;
   avatar_url?: string;
+  banner_url?: string;
+  accent_color?: string;
   role?: string;
   status: 'online' | 'ocupado' | 'ausente' | 'offline';
   descricao?: string;
   prioridades?: string[];
+  skills?: string[];
+  timezone?: string;
+  social_links?: { label: string; url: string }[];
 }
 
 export type DadosModelagemSistematica = Record<string, Record<string, string>>; // clientId -> { "day-rowId": "value" }
@@ -411,6 +423,8 @@ export interface WhiteboardElement {
   tasks?: { id: string, text: string, done: boolean }[];
   // Rich Text Tool
   htmlContent?: string;
+  // Lock
+  locked?: boolean;
 }
 
 export interface WhiteboardConnection {

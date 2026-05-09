@@ -115,7 +115,7 @@ export function VhManagementView({
     }, [simulator, collaborators]);
 
     return (
-        <div className="view-root flex flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors">
+        <div className="view-root flex flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors animate-fade">
             
             {/* SUB-NAVIGATION HEADER */}
             <div className="flex items-center justify-between flex-wrap gap-3 px-6 py-4 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
@@ -154,14 +154,14 @@ export function VhManagementView({
                     {subTab === 'dashboard' && (
                         <>
                             {/* KPI row */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 stagger">
                                 <StatCard label="Faturamento" value={formatBRL(dashboardData.totalFees)} icon={Banknote} color="emerald" />
                                 <StatCard label="Custo Op." value={formatBRL(dashboardData.totalCosts)} icon={Calculator} color="rose" />
                                 <StatCard label="Lucro Bruto" value={formatBRL(dashboardData.profit)} icon={TrendingUp} color="blue" />
                                 <StatCard label="Margem" value={`${dashboardData.margin.toFixed(1)}%`} icon={Percent} color="orange" />
                             </div>
 
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 stagger">
                                 {/* VH Chart */}
                                 <Card title="Valor Hora por Colaborador">
                                     <div className="h-[250px] w-full pt-4">
@@ -169,18 +169,18 @@ export function VhManagementView({
                                             <AreaChart data={dashboardData.collabData}>
                                                 <defs>
                                                     <linearGradient id="colorVh" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor="#71717a" stopOpacity={0.1} />
-                                                        <stop offset="95%" stopColor="#71717a" stopOpacity={0} />
+                                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15} />
+                                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                                                     </linearGradient>
                                                 </defs>
-                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
-                                                <XAxis dataKey="name" stroke="#a1a1aa" fontSize={10} axisLine={false} tickLine={false} />
-                                                <YAxis stroke="#a1a1aa" fontSize={10} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val}`} />
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(113,113,122,0.1)" />
+                                                <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#71717a', fontWeight: 700 }} axisLine={false} tickLine={false} />
+                                                <YAxis tick={{ fontSize: 10, fill: '#71717a', fontWeight: 700 }} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val}`} />
                                                 <Tooltip
-                                                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e4e4e7', borderRadius: '8px', fontSize: '10px' }}
-                                                    labelStyle={{ fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '4px' }}
+                                                    contentStyle={{ backgroundColor: '#09090b', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', fontSize: '10px', color: '#e4e4e7', fontWeight: 'bold', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }}
+                                                    labelStyle={{ fontWeight: 900, textTransform: 'uppercase', marginBottom: '4px' }}
                                                 />
-                                                <Area type="monotone" dataKey="vh" stroke="#3f3f46" strokeWidth={2} fillOpacity={1} fill="url(#colorVh)" name="R$/h" />
+                                                <Area type="monotone" dataKey="vh" stroke="#6366f1" strokeWidth={2.5} fillOpacity={1} fill="url(#colorVh)" name="R$/h" />
                                             </AreaChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -196,7 +196,7 @@ export function VhManagementView({
                                                 <YAxis stroke="#a1a1aa" fontSize={10} axisLine={false} tickLine={false} tickFormatter={(val) => `${val}%`} />
                                                 <Tooltip 
                                                     cursor={{ fill: 'rgba(0,0,0,0.02)' }}
-                                                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e4e4e7', borderRadius: '8px', fontSize: '10px' }} 
+                                                    contentStyle={{ backgroundColor: 'var(--color-surface, #18181b)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', fontSize: '10px', color: '#e4e4e7', fontWeight: 'bold' }} 
                                                 />
                                                 <Bar dataKey="margin" name="Margem" radius={[4, 4, 0, 0]}>
                                                     {clientMetrics.map((entry, index) => (

@@ -9,12 +9,13 @@ import {
     List, LayoutGrid, Calendar as LucideCalendar, Search, Filter,
     ArrowUpDown, Plus, Clock, MessageSquare, Box, ExternalLink,
     X, Trash2, Zap, LayoutDashboard, Image as ImageIcon, CheckCircle2, FileText, ShieldAlert, Eye, History as HistoryIcon, Loader2, User,
-    Columns, CalendarDays, ChevronLeft, ChevronRight, CheckSquare, ArrowUp, ArrowDown, Check, Mail, Flag, Paperclip
+    Columns, CalendarDays, ChevronLeft, ChevronRight, CheckSquare, ArrowUp, ArrowDown, Check, Mail, Flag, Paperclip,
+    Film, Music, Archive, Code2, Download
 } from 'lucide-react';
 import { sendEmail, templates } from '../utils/emailService';
 import { DatabaseService } from '../DatabaseService';
 import { getCalendarDays, MONTH_NAMES_BR, WEEKDAYS_BR_SHORT } from '../utils/calendarUtils';
-import { Card, Button, DeletionBar, Badge } from '../Components';
+import { Card, Button, DeletionBar, Badge, PSelectPortal, DatePickerPortal } from '../Components';
 import { generateId } from '../utils/id';
 import {
     VISOES_TAREFA_PADRAO as DEFAULT_TASK_VIEWS,
@@ -40,12 +41,16 @@ interface TaskFlowViewProps {
     onSelect: (id: string) => void;
     onClearSelection: () => void;
     savingStatus?: Record<string, 'saving' | 'success' | 'error'>;
+    planejamento?: any[];
+    // Client filter — unified with global App filter
+    activeClientId?: string;
+    onClientChange?: (clientId: string) => void;
 }
 
 const SavingIndicator = ({ status }: { status?: 'saving' | 'success' | 'error' }) => {
     if (!status) return null;
     return (
-        <div className="flex items-center gap-1 pointer-events-none z-10 animate-fade">
+        <div className="flex items-center gap-1 pointer-events-none z-10 animate-fade-blur">
             {status === 'saving' && (
                 <div className="w-2.5 h-2.5 border-2 border-zinc-400/30 border-t-zinc-400 rounded-full animate-spin"></div>
             )}
@@ -93,65 +98,85 @@ const SortableTaskCard = React.memo(function SortableTaskCard({ Tarefa, clients,
     const attachmentsCount = Array.isArray(Tarefa.Anexos) ? Tarefa.Anexos.length : 0;
     const hasStats = checklistTotal > 0 || commentsCount > 0 || attachmentsCount > 0;
 
+    // Format date nicely
+    const formatDate = (d: string) => {
+        if (!d) return null;
+        return new Date(d + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
+    };
+
     return (
         <div
             ref={setNodeRef} style={style} {...attributes} {...listeners}
             onClick={() => onSelectTask(Tarefa.id)}
-            className={`bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl shadow-sm hover:shadow-xl lift group flex flex-col gap-3 relative overflow-hidden cursor-grab active:cursor-grabbing ${selection.includes(Tarefa.id) ? 'ring-2 ring-zinc-900 dark:ring-white bg-zinc-50 dark:bg-zinc-800' : ''} ${isDragging ? 'ring-2 ring-zinc-900 z-50 shadow-2xl scale-[1.02]' : ''}`}
+            className={`bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-md dark:shadow-black/25 hover:shadow-xl dark:hover:shadow-black/50 hover:-translate-y-0.5 group flex flex-col gap-3 relative overflow-hidden cursor-grab active:cursor-grabbing transition-all duration-200 ${selection.includes(Tarefa.id) ? 'ring-2 ring-zinc-900 dark:ring-white bg-zinc-50 dark:bg-zinc-800' : ''} ${isDragging ? 'ring-2 ring-zinc-900 z-50 shadow-2xl scale-[1.02]' : ''}`}
         >
-            <div className="absolute top-0 left-0 w-1 h-full opacity-40" style={{ backgroundColor: statusCor }} />
+            {/* Top accent bar — status color */}
+            <div className="h-0.5 w-full absolute top-0 left-0 right-0 opacity-70 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: statusCor }} />
 
-            <div className="flex justify-between items-start pointer-events-none gap-2">
-                <Badge color="slate" className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 opacity-60">
-                    {Cliente?.Nome || 'AGÊNCIA'}
-                </Badge>
-                {Tarefa.Prioridade && (
-                    <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest shrink-0 ${prio.color}`} title={`Prioridade: ${Tarefa.Prioridade}`}>
-                        <PriorityIcon size={9} className="shrink-0" />
-                        <span>{Tarefa.Prioridade}</span>
+            <div className="p-4 pt-5 flex flex-col gap-3">
+                {/* Row 1: client + priority */}
+                <div className="flex justify-between items-start gap-2 pointer-events-none">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 px-2 py-0.5 rounded-md truncate max-w-[130px]">
+                        {Cliente?.Nome || 'AGÊNCIA'}
+                    </span>
+                    {Tarefa.Prioridade && (
+                        <span className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest shrink-0 border ${prio.color}`} title={`Prioridade: ${Tarefa.Prioridade}`}>
+                            <PriorityIcon size={8} className="shrink-0" />
+                            <span>{Tarefa.Prioridade}</span>
+                        </span>
+                    )}
+                </div>
+
+                {/* Row 2: title */}
+                <h4 className="text-[13px] font-black text-zinc-900 dark:text-zinc-100 tracking-tight leading-snug group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors pointer-events-none line-clamp-2" title={Tarefa.Título}>
+                    {Tarefa.Título}
+                </h4>
+
+                {/* Planning badge */}
+                {Tarefa.Relacionado_A === 'Planejamento' && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-black uppercase tracking-wider border border-blue-200/50 dark:border-blue-500/20 w-fit">
+                        📅 Planejamento
                     </span>
                 )}
-            </div>
 
-            <h4 className="text-[13px] font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight leading-snug group-hover:text-blue-500 transition-colors pointer-events-none mt-1 line-clamp-2" title={Tarefa.Título}>
-                {Tarefa.Título}
-            </h4>
-
-            {hasStats && (
-                <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 pointer-events-none">
-                    {checklistTotal > 0 && (
-                        <span className={`flex items-center gap-1 ${checklistDone === checklistTotal ? 'text-emerald-500' : ''}`} title={`Checklist: ${checklistDone} de ${checklistTotal} concluídos`}>
-                            <CheckSquare size={11} className="shrink-0" />
-                            {checklistDone}/{checklistTotal}
-                        </span>
-                    )}
-                    {commentsCount > 0 && (
-                        <span className="flex items-center gap-1" title={`${commentsCount} ${commentsCount === 1 ? 'comentário' : 'comentários'}`}>
-                            <MessageSquare size={11} className="shrink-0" />
-                            {commentsCount}
-                        </span>
-                    )}
-                    {attachmentsCount > 0 && (
-                        <span className="flex items-center gap-1" title={`${attachmentsCount} ${attachmentsCount === 1 ? 'anexo' : 'anexos'}`}>
-                            <Paperclip size={11} className="shrink-0" />
-                            {attachmentsCount}
-                        </span>
-                    )}
-                </div>
-            )}
-
-            <div className="flex items-center justify-between mt-1 pt-3 border-t border-zinc-100 dark:border-zinc-800 pointer-events-none">
-                <div className={`flex items-center gap-2 text-[9px] font-black uppercase tracking-widest ${isOverdue ? 'text-rose-600' : 'text-zinc-400'}`}>
-                    {Tarefa.Data_Entrega ? <span className="flex items-center gap-1.5"><Clock size={10} /> {Tarefa.Data_Entrega}</span> : <span className="flex items-center gap-1.5 opacity-30"><Clock size={10} /> S/ DATA</span>}
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center text-[9px] font-black border border-zinc-200 dark:border-zinc-800 transition-all shrink-0">
-                        {Tarefa.Responsável?.slice(0, 1).toUpperCase() || '?'}
+                {/* Stats row */}
+                {hasStats && (
+                    <div className="flex items-center gap-3 text-[9px] font-bold text-zinc-400 dark:text-zinc-500 pointer-events-none">
+                        {checklistTotal > 0 && (
+                            <span className={`flex items-center gap-1 ${checklistDone === checklistTotal ? 'text-emerald-500' : ''}`}>
+                                <CheckSquare size={10} className="shrink-0" />
+                                {checklistDone}/{checklistTotal}
+                            </span>
+                        )}
+                        {commentsCount > 0 && (
+                            <span className="flex items-center gap-1">
+                                <MessageSquare size={10} className="shrink-0" />
+                                {commentsCount}
+                            </span>
+                        )}
+                        {attachmentsCount > 0 && (
+                            <span className="flex items-center gap-1">
+                                <Paperclip size={10} className="shrink-0" />
+                                {attachmentsCount}
+                            </span>
+                        )}
                     </div>
-                    {/* Visual indicator for task updates (like status change via drag & drop) */}
-                    {Object.keys(savingStatus || {}).some(k => k.startsWith(`TAREFAS:${Tarefa.id}:`)) && (
-                        <SavingIndicator status={Object.entries(savingStatus || {}).find(([k]) => k.startsWith(`TAREFAS:${Tarefa.id}:`))?.[1] as any} />
-                    )}
+                )}
+
+                {/* Footer: date + responsavel */}
+                <div className="flex items-center justify-between pt-2.5 border-t border-zinc-100 dark:border-zinc-800/80 pointer-events-none">
+                    <div className={`flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wide ${isOverdue ? 'text-rose-500 bg-rose-50 dark:bg-rose-500/10 px-1.5 py-0.5 rounded-md' : 'text-zinc-400'}`}>
+                        <Clock size={9} className="shrink-0" />
+                        {Tarefa.Data_Entrega ? formatDate(Tarefa.Data_Entrega) : <span className="opacity-30">Sem data</span>}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <div className="w-6 h-6 rounded-lg text-zinc-900 dark:text-zinc-100 flex items-center justify-center text-[9px] font-black border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 shrink-0" title={Tarefa.Responsável || 'Sem responsável'}>
+                            {Tarefa.Responsável?.[0]?.toUpperCase() || '?'}
+                        </div>
+                        {Object.keys(savingStatus || {}).some(k => k.startsWith(`TAREFAS:${Tarefa.id}:`)) && (
+                            <SavingIndicator status={Object.entries(savingStatus || {}).find(([k]) => k.startsWith(`TAREFAS:${Tarefa.id}:`))?.[1] as any} />
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
@@ -212,15 +237,37 @@ function TaskCardOverlay({ Tarefa, clients, getPriorityInfo, statusCor }: any) {
 export function TaskFlowView({
     tasks, clients, collaborators, activeViewId, setActiveViewId,
     onUpdate, onDelete, onArchive, onAdd, onSelectTask,
-    selection, onSelect, onClearSelection, savingStatus = {}
+    selection, onSelect, onClearSelection, savingStatus = {},
+    planejamento = [],
+    activeClientId = '',
+    onClientChange
 }: TaskFlowViewProps) {
     const [globalSearch, setGlobalSearch] = useState('');
     const [sortField, setSortField] = useState<string>('Data_Entrega');
     const [sortDesc, setSortDesc] = useState<boolean>(false);
 
+    // LOCAL client filter — doesn't affect global state / other tabs
+    const [localClientFilter, setLocalClientFilter] = useState<string>(activeClientId);
+
+    const handleClientChange = (clientId: string) => {
+        setLocalClientFilter(clientId);
+        onClientChange?.(clientId); // no-op in current App.tsx
+    };
+
+    // Sync local filter if global filter changes from sidebar
+    React.useEffect(() => {
+        setLocalClientFilter(activeClientId);
+    }, [activeClientId]);
+
     const filteredTasks = useMemo(() => {
-        let ft = tasks.filter((t: any) => (!globalSearch || t.Título.toLowerCase().includes(globalSearch.toLowerCase()) || clients.find((c:any)=>c.id === t.Cliente_ID)?.Nome?.toLowerCase().includes(globalSearch.toLowerCase())) && t.Status !== 'arquivado');
-        
+        let ft = tasks.filter((t: any) => {
+            const matchesSearch = !globalSearch ||
+                (t.Título || '').toLowerCase().includes(globalSearch.toLowerCase()) ||
+                clients.find((c:any)=>c.id === t.Cliente_ID)?.Nome?.toLowerCase().includes(globalSearch.toLowerCase());
+            const matchesClient = !localClientFilter || t.Cliente_ID === localClientFilter;
+            return matchesSearch && matchesClient && t.Status !== 'arquivado';
+        });
+
         ft.sort((a: any, b: any) => {
             let valA = a[sortField] || '';
             let valB = b[sortField] || '';
@@ -233,7 +280,7 @@ export function TaskFlowView({
             return 0;
         });
         return ft;
-    }, [tasks, globalSearch, sortField, sortDesc, clients]);
+    }, [tasks, globalSearch, sortField, sortDesc, clients, localClientFilter]);
 
     const viewType = useMemo(() => DEFAULT_TASK_VIEWS.find(v => v.id === activeViewId)?.tipo || 'List', [activeViewId]);
 
@@ -311,53 +358,77 @@ export function TaskFlowView({
     }, []);
 
     return (
-        <div className="view-root flex flex-col h-full bg-white dark:bg-zinc-950 overflow-hidden animate-fade">
-            {/* MODERN TOP HEADER */}
-            <div className="shrink-0 flex items-center justify-between flex-wrap gap-4 px-6 py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md sticky top-0 z-10">
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900 shadow-lg shadow-zinc-500/10">
-                            <CheckSquare size={20} className="shrink-0" />
-                        </div>
-                        <div>
-                            <h1 className="text-lg font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100">Tarefas</h1>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-0.5 opacity-60">Operação e Entrega Estratégica</p>
-                        </div>
+        <div className="view-root flex flex-col h-full bg-white dark:bg-zinc-950 overflow-hidden animate-fade-blur">
+            {/* HEADER */}
+            <div className="shrink-0 flex items-center justify-between flex-wrap gap-3 px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md sticky top-0 z-10">
+                {/* Left: title + client filter (unified) */}
+                <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900 shadow-lg shrink-0">
+                        <CheckSquare size={17} className="shrink-0" />
                     </div>
+                    <div className="hidden sm:block shrink-0">
+                        <h1 className="text-sm font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100 leading-none">Tarefas</h1>
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 mt-0.5">Operação e Entrega</p>
+                    </div>
+
+                    {/* CLIENT FILTER — local only, does NOT affect other tabs */}
+                    <div className="ml-2 w-44 shrink-0">
+                        <PSelectPortal
+                            value={localClientFilter}
+                            onChange={handleClientChange}
+                            placeholder="Todos os clientes"
+                            size="sm"
+                            options={[
+                                { value: '', label: 'Todos os clientes' },
+                                ...clients.map((c: any) => ({ value: c.id, label: c.Nome, color: c['Cor (HEX)'] }))
+                            ]}
+                        />
+                    </div>
+
+                    {localClientFilter && (
+                        <button
+                            onClick={() => handleClientChange('')}
+                            className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-black uppercase tracking-wider border border-blue-200/50 dark:border-blue-500/20 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all ios-btn"
+                        >
+                            <X size={10} className="shrink-0" />
+                            {clients.find((c: any) => c.id === localClientFilter)?.Nome || 'Cliente'}
+                        </button>
+                    )}
                 </div>
 
-                <div className="flex items-center gap-3">
+                {/* Right: views + search + actions */}
+                <div className="flex items-center gap-2 flex-wrap">
                     <div className="hidden lg:flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl border border-zinc-200 dark:border-zinc-700">
                         {DEFAULT_TASK_VIEWS.map((v: any) => (
                             <button
                                 key={v.id}
                                 onClick={() => setActiveViewId(v.id)}
-                                className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeViewId === v.id ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm shadow-zinc-500/10 active:scale-95' : 'text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeViewId === v.id ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm active:scale-95' : 'text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}
                             >
-                                {v.tipo === 'List' || (v as any).type === 'List' ? <List size={14} /> : v.tipo === 'Board' || (v as any).type === 'Board' ? <Columns size={14} /> : <CalendarDays size={14} />}
-                                {v.nome || (v as any).name}
+                                {v.tipo === 'List' || (v as any).type === 'List' ? <List size={13} /> : v.tipo === 'Board' || (v as any).type === 'Board' ? <Columns size={13} /> : <CalendarDays size={13} />}
+                                <span className="hidden xl:inline">{v.nome || (v as any).name}</span>
                             </button>
                         ))}
                     </div>
 
-                    <div className="flex items-center gap-2 group h-10 w-48 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 focus-within:ring-4 focus-within:ring-zinc-500/5 transition-all">
-                        <Search className="text-zinc-400 group-focus-within:text-zinc-900 dark:group-focus-within:text-white transition-colors shrink-0" size={14} />
+                    <div className="flex items-center gap-2 h-9 min-w-0 w-40 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+                        <Search className="text-zinc-400 shrink-0" size={13} />
                         <input
                             type="text"
                             value={globalSearch}
                             onChange={e => setGlobalSearch(e.target.value)}
-                            placeholder="BUSCAR TAREFA..."
-                            className="flex-1 bg-transparent border-none outline-none text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100"
+                            placeholder="Buscar..."
+                            className="flex-1 min-w-0 bg-transparent border-none outline-none text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
                         />
                     </div>
 
                     <DeletionBar count={selection.length} onDelete={() => onDelete(selection, 'TAREFAS')} onArchive={() => onArchive(selection, 'TAREFAS', true)} onClear={onClearSelection} />
-                    
+
                     <Button
-                        onClick={() => onAdd('TAREFAS')}
-                        className="!h-10 px-4 !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 !rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-zinc-500/10 active:scale-95 transition-all"
+                        onClick={() => onAdd('TAREFAS', localClientFilter ? { Cliente_ID: localClientFilter } : undefined)}
+                        className="!h-9 px-4 !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 !rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-zinc-500/10 active:scale-95 transition-all whitespace-nowrap"
                     >
-                        <Plus size={16} className="mr-2" /> Nova Tarefa
+                        <Plus size={15} className="mr-1.5" /> Nova Tarefa
                     </Button>
                 </div>
             </div>
@@ -372,15 +443,14 @@ export function TaskFlowView({
                                 const columnTasks = filteredTasks.filter(t => t.Status === status.id);
                                 return (
                                 <div key={status.id} className="w-[300px] flex flex-col max-h-full shrink-0 relative">
-                                    <div className="flex items-center justify-between mb-4 px-1">
-                                        <div className="flex items-center gap-2.5">
-                                            <div className="w-4 h-4 rounded-md shadow-sm flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
-                                                <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: status.cor }} />
+                                    <div className="flex items-center justify-between mb-3 px-1">
+                                        <div className="flex items-center gap-2">
+                                            {/* Color pill header */}
+                                            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl" style={{ backgroundColor: `${status.cor}15` }}>
+                                                <div className="w-2 h-2 rounded-full shadow-sm" style={{ backgroundColor: status.cor }} />
+                                                <h3 className="text-[10px] font-black uppercase tracking-wider" style={{ color: status.cor }}>{status.rotulo}</h3>
                                             </div>
-                                            <h3 className="text-[10px] font-black text-zinc-900 dark:text-white uppercase tracking-[0.1em]">{status.rotulo}</h3>
-                                            <Badge color="slate" className="text-[8px] font-black px-1.5 py-0.5 opacity-60">
-                                                {columnTasks.length}
-                                            </Badge>
+                                            <span className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded-full">{columnTasks.length}</span>
                                         </div>
                                         <button onClick={() => onAdd('TAREFAS', { Status: status.id })} className="p-1.5 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all"><Plus size={14} /></button>
                                     </div>
@@ -493,12 +563,19 @@ export function TaskFlowView({
                                                         <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">{Tarefa.Prioridade}</span>
                                                     </div>
                                                 </td>
-                                                <td className={`w-[100px] p-3 text-[9px] font-black uppercase tracking-widest ${isOverdue ? 'text-rose-600' : 'text-zinc-400'}`}>
-                                                    {Tarefa.Data_Entrega || '--/--'}
+                                                <td className="w-[100px] p-3">
+                                                    {Tarefa.Data_Entrega ? (
+                                                        <span className={`inline-flex items-center gap-1 text-[9px] font-black rounded-md px-1.5 py-0.5 ${isOverdue ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400' : 'text-zinc-400'}`}>
+                                                            {isOverdue && <span>⚠</span>}
+                                                            {new Date(Tarefa.Data_Entrega + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-[9px] text-zinc-300 dark:text-zinc-600">—</span>
+                                                    )}
                                                 </td>
                                                 <td className="w-[80px] p-3">
-                                                    <div className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center text-[9px] font-black border border-zinc-200 dark:border-zinc-800 transition-all shrink-0">
-                                                        {Tarefa.Responsável?.slice(0, 1).toUpperCase() || '?'}
+                                                    <div className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center text-[9px] font-black border border-zinc-200 dark:border-zinc-700 shrink-0" title={Tarefa.Responsável || 'Sem responsável'}>
+                                                        {Tarefa.Responsável?.[0]?.toUpperCase() || '?'}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -783,13 +860,12 @@ export function TaskDetailPanel({
                         <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                             <HistoryIcon size={12} className="text-zinc-400" /> Status
                         </label>
-                        <select
+                        <PSelectPortal
                             value={t.Status}
-                            onChange={e => onUpdate(t.id, 'TAREFAS', 'Status', e.target.value)}
-                            className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-[11px] font-bold text-zinc-900 dark:text-zinc-100 uppercase focus:ring-1 focus:ring-zinc-400 p-2 cursor-pointer outline-none transition-all"
-                        >
-                            {DEFAULT_TASK_STATUSES.map(s => <option key={s.id} value={s.id}>{s.rotulo}</option>)}
-                        </select>
+                            onChange={val => onUpdate(t.id, 'TAREFAS', 'Status', val)}
+                            options={DEFAULT_TASK_STATUSES.map(s => ({ value: s.id, label: s.rotulo }))}
+                            size="sm"
+                        />
                         <div className="absolute top-2 right-2">
                             <SavingIndicator status={savingStatus[`TAREFAS:${t.id}:Status`]} />
                         </div>
@@ -798,13 +874,12 @@ export function TaskDetailPanel({
                         <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                             <ShieldAlert size={12} className="text-zinc-400" /> Prioridade
                         </label>
-                        <select
+                        <PSelectPortal
                             value={t.Prioridade}
-                            onChange={e => onUpdate(t.id, 'TAREFAS', 'Prioridade', e.target.value)}
-                            className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-[11px] font-bold text-zinc-900 dark:text-zinc-100 uppercase focus:ring-1 focus:ring-zinc-400 p-2 cursor-pointer outline-none transition-all"
-                        >
-                            {PRIORIDADE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                        </select>
+                            onChange={val => onUpdate(t.id, 'TAREFAS', 'Prioridade', val)}
+                            options={PRIORIDADE_OPTIONS.map(opt => ({ value: opt, label: opt }))}
+                            size="sm"
+                        />
                         <div className="absolute top-2 right-2">
                             <SavingIndicator status={savingStatus[`TAREFAS:${t.id}:Prioridade`]} />
                         </div>
@@ -813,14 +888,12 @@ export function TaskDetailPanel({
                         <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                             <User size={12} className="text-zinc-400" /> Responsável
                         </label>
-                        <select
+                        <PSelectPortal
                             value={t.Responsável || ''}
-                            onChange={e => onUpdate(t.id, 'TAREFAS', 'Responsável', e.target.value)}
-                            className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-[11px] font-bold text-zinc-900 dark:text-zinc-100 uppercase focus:ring-1 focus:ring-zinc-400 p-2 cursor-pointer outline-none transition-all"
-                        >
-                            <option value="">Sem Resp.</option>
-                            {collaborators.map((c: any) => <option key={c.id} value={c.Nome}>{c.Nome}</option>)}
-                        </select>
+                            onChange={val => onUpdate(t.id, 'TAREFAS', 'Responsável', val)}
+                            options={[{ value: '', label: 'Sem Resp.' }, ...collaborators.map((c: any) => ({ value: c.Nome, label: c.Nome }))]}
+                            size="sm"
+                        />
                         <div className="absolute top-2 right-2">
                             <SavingIndicator status={savingStatus[`TAREFAS:${t.id}:Responsável`]} />
                         </div>
@@ -829,11 +902,11 @@ export function TaskDetailPanel({
                         <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                             <Clock size={12} className="text-zinc-400" /> Entrega
                         </label>
-                        <input
-                            type="date"
+                        <DatePickerPortal
                             value={t.Data_Entrega || ''}
-                            onChange={e => onUpdate(t.id, 'TAREFAS', 'Data_Entrega', e.target.value)}
-                            className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-[11px] font-bold text-zinc-900 dark:text-zinc-100 uppercase focus:ring-1 focus:ring-zinc-400 p-2 cursor-pointer outline-none transition-all"
+                            onChange={val => onUpdate(t.id, 'TAREFAS', 'Data_Entrega', val)}
+                            size="sm"
+                            clearable
                         />
                         <div className="absolute top-2 right-2">
                             <SavingIndicator status={savingStatus[`TAREFAS:${t.id}:Data_Entrega`]} />
@@ -951,33 +1024,102 @@ export function TaskDetailPanel({
                 <section>
                     <div className="flex items-center justify-between mb-4 border-b border-zinc-200 dark:border-zinc-800 pb-2">
                         <h4 className="text-[10px] font-black uppercase text-zinc-900 dark:text-zinc-100 tracking-[0.2em] flex items-center gap-2">
-                            <ImageIcon size={14} className="text-zinc-400" /> Ativos e Mídia
+                            <Paperclip size={14} className="text-zinc-400" /> Arquivos e Mídia
+                            {(t.Anexos || []).length > 0 && (
+                                <span className="text-[9px] bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 px-2 py-0.5 rounded-full font-bold">
+                                    {(t.Anexos || []).length}
+                                </span>
+                            )}
                         </h4>
                         <button
                             onClick={() => fileInputRef.current?.click()}
-                            className="text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors flex items-center gap-2"
+                            className="text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700"
                         >
-                            {uploading ? <Loader2 size={12} className="animate-spin" /> : <><Plus size={12} /> Upload</>}
+                            {uploading ? <Loader2 size={11} className="animate-spin" /> : <><Plus size={11} /> Adicionar</>}
                         </button>
-                        <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" multiple accept="image/*" />
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileUpload}
+                            className="hidden"
+                            multiple
+                            accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar"
+                        />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                        {(t.Anexos || []).map(file => (
-                            <div key={file.id} className="group relative aspect-video rounded-xl overflow-hidden bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 transition-all shadow-sm">
-                                <img src={file.dados} alt={file.nomeArquivo} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-[1px]">
-                                    <button onClick={() => setLightboxImage(file.dados)} className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md transition-all shadow-lg"><Eye size={16} /></button>
-                                    <button onClick={() => updateAttachments((t.Anexos || []).filter(a => a.id !== file.id))} className="w-8 h-8 rounded-lg bg-rose-500/30 hover:bg-rose-500 text-rose-100 flex items-center justify-center backdrop-blur-md transition-all shadow-lg"><Trash2 size={16} /></button>
+                    {/* Drop zone + grid */}
+                    <div
+                        className="space-y-2"
+                        onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('ring-2', 'ring-blue-400', 'rounded-2xl'); }}
+                        onDragLeave={(e) => { e.currentTarget.classList.remove('ring-2', 'ring-blue-400', 'rounded-2xl'); }}
+                        onDrop={(e) => {
+                            e.preventDefault();
+                            e.currentTarget.classList.remove('ring-2', 'ring-blue-400', 'rounded-2xl');
+                            if (e.dataTransfer.files.length > 0) processFiles(e.dataTransfer.files);
+                        }}
+                    >
+                        {(t.Anexos || []).length > 0 ? (
+                            <>
+                                {/* Image grid */}
+                                {(t.Anexos || []).some(f => f.tipoMime?.startsWith('image/')) && (
+                                    <div className="grid grid-cols-2 gap-2 mb-2">
+                                        {(t.Anexos || []).filter(f => f.tipoMime?.startsWith('image/')).map(file => (
+                                            <div key={file.id} className="group relative aspect-video rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 transition-all shadow-sm">
+                                                <img src={file.dados} alt={file.nomeArquivo} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[1px]">
+                                                    <button onClick={() => setLightboxImage(file.dados)} className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/40 text-white flex items-center justify-center backdrop-blur-md transition-all shadow-lg" title="Visualizar"><Eye size={14} /></button>
+                                                    <a href={file.dados} download={file.nomeArquivo} className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/40 text-white flex items-center justify-center backdrop-blur-md transition-all shadow-lg" title="Baixar"><Download size={14} /></a>
+                                                    <button onClick={() => updateAttachments((t.Anexos || []).filter(a => a.id !== file.id))} className="w-8 h-8 rounded-lg bg-rose-500/60 hover:bg-rose-500 text-white flex items-center justify-center backdrop-blur-md transition-all shadow-lg" title="Remover"><Trash2 size={14} /></button>
+                                                </div>
+                                                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <p className="text-[9px] text-white font-bold truncate">{file.nomeArquivo}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                {/* Non-image files list */}
+                                {(t.Anexos || []).filter(f => !f.tipoMime?.startsWith('image/')).map(file => {
+                                    const isVideo = file.tipoMime?.startsWith('video/');
+                                    const isAudio = file.tipoMime?.startsWith('audio/');
+                                    const isPdf = file.tipoMime === 'application/pdf';
+                                    const isArchive = file.tipoMime?.includes('zip') || file.tipoMime?.includes('rar');
+                                    const isCode = file.tipoMime?.includes('javascript') || file.tipoMime?.includes('json') || file.tipoMime?.includes('xml') || file.nomeArquivo?.match(/\.(js|ts|json|xml|html|css)$/i);
+                                    const FileIcon = isVideo ? Film : isAudio ? Music : isPdf ? FileText : isArchive ? Archive : isCode ? Code2 : FileText;
+                                    const iconColor = isVideo ? 'text-purple-500' : isAudio ? 'text-pink-500' : isPdf ? 'text-red-500' : isArchive ? 'text-amber-500' : 'text-blue-500';
+                                    const sizeStr = file.tamanho ? (file.tamanho > 1024 * 1024 ? `${(file.tamanho / 1024 / 1024).toFixed(1)}MB` : `${Math.round(file.tamanho / 1024)}KB`) : '';
+                                    return (
+                                        <div key={file.id} className="group flex items-center gap-3 p-3 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 transition-all">
+                                            <div className={`w-9 h-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 ${iconColor}`}>
+                                                <FileIcon size={16} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">{file.nomeArquivo}</p>
+                                                <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wide">{file.tipoMime?.split('/')[1]?.toUpperCase() || 'FILE'}{sizeStr ? ` · ${sizeStr}` : ''}</p>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <a href={file.dados} download={file.nomeArquivo} className="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-blue-500 hover:text-white text-zinc-400 flex items-center justify-center transition-all" title="Baixar">
+                                                    <Download size={12} />
+                                                </a>
+                                                <button onClick={() => updateAttachments((t.Anexos || []).filter(a => a.id !== file.id))} className="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-rose-500 hover:text-white text-zinc-400 flex items-center justify-center transition-all" title="Remover">
+                                                    <Trash2 size={12} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </>
+                        ) : (
+                            <div
+                                className="border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl py-8 flex flex-col items-center justify-center gap-3 text-zinc-400 group hover:border-zinc-400 dark:hover:border-zinc-600 transition-all cursor-pointer"
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center border border-zinc-200 dark:border-zinc-700 group-hover:scale-105 transition-transform">
+                                    <Paperclip size={18} />
                                 </div>
-                            </div>
-                        ))}
-                        {(!t.Anexos || t.Anexos.length === 0) && (
-                            <div className="col-span-2 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl py-8 flex flex-col items-center justify-center gap-3 text-zinc-400 group hover:border-zinc-400 dark:hover:border-zinc-600 transition-all cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                                <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center border border-zinc-200 dark:border-zinc-700 group-hover:scale-105 transition-transform"><ImageIcon size={18} /></div>
                                 <div className="text-center">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest">Arraste Ativos Aqui</p>
-                                    <p className="text-[8px] font-bold uppercase opacity-60 mt-0.5">Imagens até 20MB</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest">Arraste arquivos aqui</p>
+                                    <p className="text-[8px] font-bold uppercase opacity-60 mt-0.5">Imagens, PDFs, vídeos, docs · até 20MB</p>
                                 </div>
                             </div>
                         )}

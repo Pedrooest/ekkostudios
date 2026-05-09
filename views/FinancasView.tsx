@@ -17,7 +17,7 @@ import {
     LineChart, Line, CartesianGrid 
 } from 'recharts';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { StatCard, Badge, Button, InputSelect, Card } from '../Components';
+import { StatCard, Badge, Button, InputSelect, Card, PSelectPortal, DatePickerPortal } from '../Components';
 import { generateId } from '../utils/id';
 
 // ==========================================
@@ -222,7 +222,7 @@ const CalendarView: React.FC<{
 const SavingIndicator = ({ status }: { status?: 'saving' | 'success' | 'error' }) => {
     if (!status) return null;
     return (
-        <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none z-10 animate-fade">
+        <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none z-10 animate-fade-blur">
             {status === 'saving' && (
                 <div className="w-2.5 h-2.5 border-2 border-zinc-400/30 border-t-zinc-400 rounded-full animate-spin"></div>
             )}
@@ -735,7 +735,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
     };
 
     return (
-        <div className="view-root flex-1 min-h-0 flex flex-col bg-white dark:bg-zinc-950 overflow-hidden animate-fade">
+        <div className="view-root flex-1 min-h-0 flex flex-col bg-white dark:bg-zinc-950 overflow-hidden animate-fade-blur">
             {/* Header */}
             <div className="shrink-0 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 px-6 py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md sticky top-0 z-10">
                 <div className="flex items-center gap-3">
@@ -804,30 +804,32 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                         </div>
 
                         {filterPeriod === 'personalizado' && (
-                            <div className="flex items-center gap-3 p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl animate-in fade-in slide-in-from-top-2">
+                            <div className="flex flex-wrap items-center gap-3 p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl animate-in fade-in slide-in-from-top-2">
                                 <div className="flex items-center gap-2">
                                     <span className="text-[10px] font-black uppercase text-zinc-400">De</span>
-                                    <input 
-                                        type="date" 
+                                    <DatePickerPortal
                                         value={customDateRange.start}
-                                        onChange={(e) => setCustomDateRange(prev => ({ ...prev, start: e.target.value }))}
-                                        className="bg-zinc-100 dark:bg-zinc-800 border-none rounded-xl text-xs font-bold text-zinc-700 dark:text-zinc-300 focus:ring-1 focus:ring-blue-500"
+                                        onChange={(val) => setCustomDateRange(prev => ({ ...prev, start: val }))}
+                                        size="sm"
+                                        clearable={false}
+                                        className="w-44"
                                     />
                                 </div>
                                 <ArrowRight size={14} className="text-zinc-400 shrink-0" />
                                 <div className="flex items-center gap-2">
                                     <span className="text-[10px] font-black uppercase text-zinc-400">Até</span>
-                                    <input 
-                                        type="date" 
+                                    <DatePickerPortal
                                         value={customDateRange.end}
-                                        onChange={(e) => setCustomDateRange(prev => ({ ...prev, end: e.target.value }))}
-                                        className="bg-zinc-100 dark:bg-zinc-800 border-none rounded-xl text-xs font-bold text-zinc-700 dark:text-zinc-300 focus:ring-1 focus:ring-blue-500"
+                                        onChange={(val) => setCustomDateRange(prev => ({ ...prev, end: val }))}
+                                        size="sm"
+                                        clearable={false}
+                                        className="w-44"
                                     />
                                 </div>
                             </div>
                         )}
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 card-grid">
                             <StatCard label="Receita" value={formatBRL(summary.receita)} icon={TrendingUp} color="emerald" />
                             <StatCard label="Despesas" value={formatBRL(summary.despesas)} icon={TrendingDown} color="rose" />
                             <StatCard label="Lucro Líquido" value={formatBRL(summary.lucro)} icon={Wallet} color={summary.lucro >= 0 ? "emerald" : "rose"} />
@@ -836,14 +838,14 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                             <StatCard label="MRR Atual" value={formatBRL(mrrValue)} icon={Repeat} color="indigo" />
                         </div>
 
-                        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 stagger">
                             <Card title="Fluxo Semestral (R$)" className="xl:col-span-2 shadow-sm border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 !p-6 rounded-3xl">
                                 <div className="h-[280px] w-full mt-4">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                                             <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#71717a', fontWeight: 'bold' }} />
                                             <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#71717a', fontWeight: 'bold' }} tickFormatter={(v) => `R$${v/1000}k`} />
-                                            <Tooltip cursor={{ fill: 'rgba(0,0,0,0.02)' }} contentStyle={{ borderRadius: '12px', border: 'none', background: '#18181b', color: '#fff', fontSize: '11px', fontWeight: 'bold' }} />
+                                            <Tooltip cursor={{ fill: 'rgba(0,0,0,0.02)' }} contentStyle={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.08)', background: document.documentElement.classList.contains('dark') ? '#18181b' : '#fff', color: document.documentElement.classList.contains('dark') ? '#f4f4f5' : '#111827', fontSize: '11px', fontWeight: 'bold' }} />
                                             <Legend wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }} />
                                             <Bar dataKey="Receita" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={20} />
                                             <Bar dataKey="Despesa" fill="#f43f5e" radius={[4, 4, 0, 0]} maxBarSize={20} />
@@ -862,7 +864,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                                         <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                                                     ))}
                                                 </Pie>
-                                                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', background: '#18181b', color: '#fff', fontSize: '11px' }} formatter={(v:any) => formatBRL(v)} />
+                                                <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.08)', background: document.documentElement.classList.contains('dark') ? '#18181b' : '#fff', color: document.documentElement.classList.contains('dark') ? '#f4f4f5' : '#111827', fontSize: '11px' }} formatter={(v:any) => formatBRL(v)} />
                                             </PieChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -925,15 +927,20 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                     className="w-full h-10 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl pl-9 pr-4 text-[11px] font-black uppercase tracking-widest outline-none focus:border-emerald-500 transition-colors"
                                 />
                             </div>
-                            <select value={filterTipo} onChange={e => setFilterTipo(e.target.value)} className="h-10 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 text-[10px] font-black uppercase outline-none focus:border-emerald-500 text-zinc-700 dark:text-zinc-300">
-                                <option value="all">Tipos</option>
-                                <option value="entrada">Receitas</option>
-                                <option value="saida">Despesas</option>
-                            </select>
-                            <select value={filterCliente} onChange={e => setFilterCliente(e.target.value)} className="h-10 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 text-[10px] font-black uppercase outline-none focus:border-emerald-500 text-zinc-700 dark:text-zinc-300">
-                                <option value="all">Clientes (Todos)</option>
-                                {clients?.map((cl:any) => <option key={cl.id} value={cl.id}>{cl.Nome}</option>)}
-                            </select>
+                            <PSelectPortal
+                                value={filterTipo}
+                                onChange={val => setFilterTipo(val)}
+                                options={[
+                                    { value: 'all', label: 'Tipos' },
+                                    { value: 'entrada', label: 'Receitas' },
+                                    { value: 'saida', label: 'Despesas' },
+                                ]}
+                            />
+                            <PSelectPortal
+                                value={filterCliente}
+                                onChange={val => setFilterCliente(val)}
+                                options={[{ value: 'all', label: 'Clientes (Todos)' }, ...(clients?.map((cl: any) => ({ value: cl.id, label: cl.Nome })) ?? [])]}
+                            />
                         </div>
                         <div className="table-responsive flex-1 overflow-auto custom-scrollbar">
                             <table className="w-full text-left border-collapse table-fixed min-w-[800px]">
@@ -952,11 +959,18 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                 <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
                                     {financasFiltradas
                                         .sort((a,b) => b.data.localeCompare(a.data))
-                                        .map(tx => {
+                                        .map((tx, txIdx) => {
                                             const isAtrasado = tx.status !== 'Pago' && tx.data < new Date().toISOString().split('T')[0];
                                             return (
-                                                <tr key={tx.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 group transition-colors">
-                                                    <td className="px-6 py-4 text-[10px] font-black text-zinc-500">{new Date(tx.data + 'T12:00:00').toLocaleDateString('pt-BR')}</td>
+                                                <tr key={tx.id}
+                                                    className="hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 group transition-all duration-150 relative"
+                                                    style={{ animationDelay: `${Math.min(txIdx * 20, 300)}ms`, animation: 'fadeInUp 0.3s cubic-bezier(0.32,0.72,0,1) both' }}
+                                                >
+                                                    <td className="pl-0 pr-6 py-4 text-[10px] font-black text-zinc-500 relative">
+                                                        {/* Left color accent bar */}
+                                                        <div className={`absolute left-0 top-2 bottom-2 w-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity ${tx.tipo === 'entrada' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                                                        <span className="pl-6">{new Date(tx.data + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
+                                                    </td>
                                                     <td className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
                                                         {new Date(tx.data + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')}
                                                     </td>
@@ -1051,7 +1065,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                 =============================================================== */}
                 {activeInternalTab === 'SOCIOS' && (
                     <div className="animate-in fade-in slide-in-from-bottom-2 space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 stagger">
                             {[
                                 { id: 1, config: sociosConfig.socio1, gradient: 'from-blue-600 via-indigo-600 to-purple-600', shadow: 'shadow-indigo-500/20', iconColor: 'text-indigo-500' },
                                 { id: 2, config: sociosConfig.socio2, gradient: 'from-emerald-500 via-teal-500 to-cyan-500', shadow: 'shadow-teal-500/20', iconColor: 'text-teal-500' }
@@ -1139,7 +1153,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#3f3f46" opacity={0.1} />
                                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 'bold'}} />
                                                 <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 'bold'}} tickFormatter={v => `R$${v/1000}k`} />
-                                                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', background: '#18181b', color: '#fff' }} />
+                                                <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.08)', background: document.documentElement.classList.contains('dark') ? '#18181b' : '#fff', color: document.documentElement.classList.contains('dark') ? '#f4f4f5' : '#111827' }} />
                                                 <Legend />
                                                 <Line type="monotone" dataKey="Receita" stroke="#3b82f6" strokeWidth={3} dot={false} />
                                                 <Line type="monotone" dataKey="Despesa" stroke="#f43f5e" strokeWidth={3} dot={false} />
@@ -1227,7 +1241,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                 =============================================================== */}
                 {activeInternalTab === 'MRR' && (
                     <div className="animate-in fade-in slide-in-from-bottom-2 space-y-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 stagger">
                             <Card className="lg:col-span-3 !p-8 shadow-sm border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-[32px]">
                                 <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
                                     <div>
@@ -1259,7 +1273,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#3f3f46" opacity={0.1} />
                                             <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 'bold'}} />
                                             <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 'bold'}} hide />
-                                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', background: '#18181b', color: '#fff' }} />
+                                            <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.08)', background: document.documentElement.classList.contains('dark') ? '#18181b' : '#fff', color: document.documentElement.classList.contains('dark') ? '#f4f4f5' : '#111827' }} />
                                             <Area type="monotone" dataKey="Receita" stroke="#6366f1" strokeWidth={4} fillOpacity={1} fill="url(#colorMrr)" />
                                         </AreaChart>
                                     </ResponsiveContainer>
@@ -1417,7 +1431,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
             {/* MODERN MODAL VIA PORTAL */}
             {isModalOpen && ReactDOM.createPortal(
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md animate-fade" onClick={() => setIsModalOpen(false)}></div>
+                    <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md animate-fade-blur" onClick={() => setIsModalOpen(false)}></div>
                     <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-zoom-in ring-1 ring-white/10 max-h-[90vh]">
                         
                         <div className="px-8 py-6 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center bg-zinc-50/50 dark:bg-zinc-900/50">
@@ -1458,10 +1472,11 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-[0.1em] text-zinc-400 ml-1">DATA EFETIVA</label>
-                                    <div className="flex items-center gap-2 w-full h-14 bg-zinc-50 dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-800 rounded-2xl px-4 focus-within:border-zinc-900/10 dark:focus-within:border-white/10 transition-all">
-                                        <Calendar className="text-zinc-400 shrink-0" size={16} />
-                                        <input type="date" required value={formData.data} onChange={e => setFormData({...formData, data: e.target.value})} className="flex-1 bg-transparent border-none outline-none text-xs font-black uppercase text-zinc-900 dark:text-zinc-100 min-w-0" />
-                                    </div>
+                                    <DatePickerPortal
+                                        value={formData.data}
+                                        onChange={val => setFormData({...formData, data: val})}
+                                        clearable={false}
+                                    />
                                 </div>
                             </div>
 
@@ -1529,7 +1544,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
             {/* MODAL DE RETIRADA */}
             {isWithdrawalModalOpen && ReactDOM.createPortal(
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-sm animate-fade" onClick={() => setIsWithdrawalModalOpen(false)}></div>
+                    <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-sm animate-fade-blur" onClick={() => setIsWithdrawalModalOpen(false)}></div>
                     <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[32px] shadow-2xl flex flex-col overflow-hidden animate-zoom-in">
                         <div className="p-8 text-center">
                             <div className={`w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center text-4xl font-black text-white bg-gradient-to-br ${withdrawalData.socio === 1 ? 'from-blue-600 to-indigo-600' : 'from-emerald-500 to-teal-500'}`}>

@@ -203,8 +203,22 @@ import { PortalPopover } from './components/PortalPopover';
 
 // Fallback shown while a lazy-loaded view is being fetched.
 const RouteFallback = () => (
-  <div className="flex items-center justify-center w-full h-full min-h-[300px]">
-    <Loader2 className="w-8 h-8 animate-spin text-app-text-muted" />
+  <div className="w-full h-full p-4 sm:p-6 space-y-4 animate-pulse">
+    {/* Header skeleton */}
+    <div className="h-8 w-64 bg-zinc-200 dark:bg-zinc-800 rounded-xl" />
+    <div className="h-4 w-40 bg-zinc-100 dark:bg-zinc-800/60 rounded-lg" />
+    {/* Metric cards skeleton */}
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+      {[...Array(8)].map((_, i) => (
+        <div key={i} className="h-28 rounded-2xl bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800" />
+      ))}
+    </div>
+    {/* Chart + list skeleton */}
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+      <div className="lg:col-span-2 h-72 rounded-2xl bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800" />
+      <div className="h-72 rounded-2xl bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800" />
+      <div className="h-72 rounded-2xl bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800" />
+    </div>
   </div>
 );
 
@@ -292,7 +306,12 @@ export default function App() {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    const handleResize = () => {
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+      // Auto-collapse sidebar when resizing to mobile
+      if (mobile) setSidebarCollapsed(true);
+    };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -444,12 +463,13 @@ export default function App() {
 
     // 3. Contas a vencer em 3 dias
     financas.forEach(f => {
-      if (f.Data === in3DaysStr && f.Status === 'Pendente') {
+      const lancNome = f.Lançamento || f.Descrição || f.Categoria || 'Conta';
+      if (f.Data === in3DaysStr && f.Status === 'Pendente' && lancNome) {
         newReminders.push({
-          titulo: `Conta "${f.Lançamento}" vence em 3 dias`,
+          titulo: `"${lancNome}" vence em 3 dias`,
           data: todayStr,
           tipo: 'Pagamento',
-          cliente_id: f.Cliente_ID,
+          cliente_id: f.Cliente_ID || null,
           auto_gerado: true,
           auto_id: `financa_vence_3d:${f.id}`
         });
@@ -461,12 +481,14 @@ export default function App() {
     financas.filter(f => (f.Tipo === 'Assinatura' || f.Tipo === 'Entrada') && f.Dia_Pagamento).forEach(f => {
         const diaPag = Number(f.Dia_Pagamento);
         const diff = (diaPag - dayToday + 31) % 31;
-        if (diff >= 0 && diff <= 5) {
+        const clienteNome = clients.find(c => c.id === f.Cliente_ID)?.Nome;
+        const lancNome = f.Lançamento || f.Descrição || f.Categoria || 'Assinatura';
+        if (diff >= 0 && diff <= 5 && lancNome) {
             newReminders.push({
-                titulo: `Cobrança de cliente em ${diff} dias: ${f.Lançamento}`,
+                titulo: `Cobrança em ${diff} dia${diff !== 1 ? 's' : ''}: ${lancNome}${clienteNome ? ` — ${clienteNome}` : ''}`,
                 data: todayStr,
                 tipo: 'Contrato',
-                cliente_id: f.Cliente_ID,
+                cliente_id: f.Cliente_ID || null,
                 auto_gerado: true,
                 auto_id: `mrr_cobranca_5d:${f.id}:${today.getMonth()}`
             });
@@ -727,54 +749,92 @@ export default function App() {
   }, [currentWorkspace?.id, loadWorkspaceData]);
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // SMART notificacoes (CHECKS)
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // SMART NOTIFICATIONS — disparam uma única vez por sessão/dia com dedupKey
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   useEffect(() => {
-    console.log('ActiveTab Changed', { activeTab });
-    if (!currentUser || activeTab === 'DASHBOARD') return;
+    if (!currentUser || !currentWorkspace) return;
+    const today = new Date().toISOString().split('T')[0];
 
-    const checkSmart = () => {
-      const today = new Date().toISOString().split('T')[0];
-
-      // 1. Overdue Tasks
-      const lateCount = tasks.filter(t => t.Status !== 'concluido' && t.Data_Entrega && t.Data_Entrega < today).length;
-      if (lateCount > 0) {
-        addNotification('warning', 'Tarefas Atrasadas', `Você tem ${lateCount} tarefas vencidas. Revise o fluxo.`);
+    const runChecks = () => {
+      // 1. Tarefas atrasadas
+      const lateTasks = tasks.filter(t => t.Status !== 'concluido' && t.Data_Entrega && t.Data_Entrega < today);
+      if (lateTasks.length > 0) {
+        addNotification('warning', `${lateTasks.length} tarefa${lateTasks.length > 1 ? 's' : ''} atrasada${lateTasks.length > 1 ? 's' : ''}`,
+          lateTasks.length === 1
+            ? `"${lateTasks[0].Título || 'Sem título'}" está vencida. Revise o fluxo.`
+            : `${lateTasks.length} tarefas vencidas. A mais antiga: "${lateTasks[0].Título || 'Sem título'}".`,
+          `overdue-tasks-${today}`
+        );
       }
 
-      // 2. Planning Check
-      if (activeTab === 'PLANEJAMENTO') {
-        const hasToday = planejamento.some(p => p.Data === today);
-        if (!hasToday) {
-          addNotification('info', 'Aviso de Planejamento', 'Ainda não há conteúdos planejados para hoje.');
-        }
+      // 2. Tarefas urgentes sem responsável
+      const unassigned = tasks.filter(t => t.Status !== 'concluido' && (t.Prioridade === 'Urgente' || t.Prioridade === 'Alta') && !t.Responsável);
+      if (unassigned.length > 0) {
+        addNotification('warning', 'Tarefas sem responsável',
+          `${unassigned.length} tarefa${unassigned.length > 1 ? 's' : ''} de alta prioridade sem responsável atribuído.`,
+          `unassigned-urgent-${today}`
+        );
       }
 
-      // 3. VH Limit (Simple example)
-      if (activeTab === 'VH') {
-        const totalHours = tasks
-          .filter(t => t.Status === 'concluido')
-          .reduce((acc, t) => acc + (Number(t.Tempo_Gasto_H) || 0), 0);
-        if (totalHours > 160) {
-          addNotification('warning', 'Limite VH', 'O volume de horas executadas está acima da média esperada.');
-        }
+      // 3. Reuniões hoje
+      const reunioesHoje = reunioes.filter(r => r.data === today && r.status !== 'Realizada' && r.status !== 'Cancelada');
+      if (reunioesHoje.length > 0) {
+        addNotification('info', `${reunioesHoje.length} reunião${reunioesHoje.length > 1 ? 'ões' : ''} hoje`,
+          reunioesHoje.map(r => `${r.titulo} às ${r.hora || '—'}`).join(' · '),
+          `reunioes-hoje-${today}`
+        );
+      }
+
+      // 4. Conteúdos planejados para hoje sem publicação
+      const postsHoje = planejamento.filter(p => p.Data === today && p["Status do conteúdo"] !== 'Concluído');
+      if (postsHoje.length > 0) {
+        addNotification('info', `${postsHoje.length} post${postsHoje.length > 1 ? 's' : ''} pendente${postsHoje.length > 1 ? 's' : ''} hoje`,
+          postsHoje.map(p => `${p.Rede_Social}: ${(p.Conteúdo || '').substring(0, 40)}`).join(' · '),
+          `posts-hoje-${today}`
+        );
+      }
+
+      // 5. Lembretes vencidos
+      const lembretesVencidos = lembretes.filter(l => !l.concluido && l.data < today);
+      if (lembretesVencidos.length > 0) {
+        addNotification('warning', `${lembretesVencidos.length} lembrete${lembretesVencidos.length > 1 ? 's' : ''} vencido${lembretesVencidos.length > 1 ? 's' : ''}`,
+          lembretesVencidos.slice(0, 2).map(l => l.titulo).join(', ') + (lembretesVencidos.length > 2 ? ` e mais ${lembretesVencidos.length - 2}` : ''),
+          `lembretes-vencidos-${today}`
+        );
+      }
+
+      // 6. Clientes sem conteúdo planejado nos próximos 7 dias
+      const next7 = new Date(); next7.setDate(next7.getDate() + 7);
+      const next7Str = next7.toISOString().split('T')[0];
+      const clientsWithContent = new Set(planejamento.filter(p => p.Data >= today && p.Data <= next7Str).map(p => p.Cliente_ID));
+      const clientsWithoutContent = clients.filter(c => !clientsWithContent.has(c.id));
+      if (clientsWithoutContent.length > 0 && clients.length > 0) {
+        addNotification('info', 'Clientes sem conteúdo esta semana',
+          `${clientsWithoutContent.length} cliente${clientsWithoutContent.length > 1 ? 's' : ''} sem publicações planejadas nos próximos 7 dias.`,
+          `clients-no-content-${today}`
+        );
       }
     };
 
-    // Run after a short delay to avoid spamming on load
-    const timer = setTimeout(checkSmart, 5000);
+    // Roda com delay após a carga inicial dos dados
+    const timer = setTimeout(runChecks, 3000);
     return () => clearTimeout(timer);
-  }, [currentUser, tasks.length, planejamento.length, activeTab]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.id, currentWorkspace?.id, tasks.length, planejamento.length, reunioes.length, lembretes.length, clients.length]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('ekko_os_ui_v17');
+    // Remove chaves antigas para garantir que novas abas apareçam
+    ['ekko_os_ui_v17', 'ekko_os_ui_v16', 'ekko_os_ui_v15'].forEach(k => localStorage.removeItem(k));
+
+    const ALL_TABS: TipoTabela[] = ['DASHBOARD', 'CLIENTES', 'REUNIOES', 'ORGANICKIA', 'RDC', 'MATRIZ', 'COBO', 'PLANEJAMENTO', 'FINANCAS', 'TAREFAS', 'RELATORIOS', 'CHECKLISTS', 'VH', 'WHITEBOARD', 'LEMBRETES'];
+
+    const saved = localStorage.getItem('ekko_os_ui_v18');
     if (saved) {
       const p = JSON.parse(saved);
       if (p.tabOrder) {
-        // Merge saved order with new tabs to ensure missing ones appear
-        const defaultOrder: TipoTabela[] = ['DASHBOARD', 'CLIENTES', 'ORGANICKIA', 'RDC', 'MATRIZ', 'COBO', 'PLANEJAMENTO', 'FINANCAS', 'TAREFAS', 'CHECKLISTS', 'VH', 'WHITEBOARD'];
-        const uniqueTabs = new Set([...p.tabOrder, ...defaultOrder]);
-        setTabOrder(Array.from(uniqueTabs));
+        // ALL_TABS tem prioridade — garante que TODAS as abas apareçam sempre
+        const uniqueTabs = new Set([...ALL_TABS, ...p.tabOrder.filter((t: string) => ALL_TABS.includes(t as TipoTabela))]);
+        setTabOrder(Array.from(uniqueTabs) as TipoTabela[]);
       }
       if (p.vhConfig) setVhConfig(p.vhConfig);
       if (p.BibliotecaConteudo) setContentLibrary(p.BibliotecaConteudo);
@@ -787,7 +847,7 @@ export default function App() {
 
   useEffect(() => {
     // Only persist UI state to LocalStorage
-    localStorage.setItem('ekko_os_ui_v17', JSON.stringify({
+    localStorage.setItem('ekko_os_ui_v18', JSON.stringify({
       tabOrder, vhConfig, BibliotecaConteudo, selectedClientIdIA, iaAudioInsight, iaPdfInsight, iaHistory
     }));
   }, [tabOrder, vhConfig, BibliotecaConteudo, selectedClientIdIA, iaAudioInsight, iaPdfInsight, iaHistory]);
@@ -796,7 +856,15 @@ export default function App() {
     setSelection([]);
   }, [activeTab]);
 
-  const addNotification = useCallback((tipo: NotificacaoApp['tipo'], titulo: string, mensagem: string) => {
+  // Deduplication: track which notification keys already fired this session
+  const shownNotifKeys = useRef<Set<string>>(new Set());
+
+  const addNotification = useCallback((tipo: NotificacaoApp['tipo'], titulo: string, mensagem: string, dedupKey?: string) => {
+    // If a dedupKey is provided, skip if already shown this session
+    if (dedupKey) {
+      if (shownNotifKeys.current.has(dedupKey)) return;
+      shownNotifKeys.current.add(dedupKey);
+    }
     const newNotif: NotificacaoApp = {
       id: generateId(),
       tipo,
@@ -806,6 +874,9 @@ export default function App() {
       lida: false
     };
     setNotificacoes(prev => [newNotif, ...prev].slice(0, 50));
+    // Show as toast too
+    setToasts(prev => [newNotif, ...prev].slice(0, 3));
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== newNotif.id)), 4000);
   }, []);
 
   useEffect(() => {
@@ -1068,7 +1139,7 @@ export default function App() {
     } else if (tab === 'COBO') newItem = { ...defaultProps, Cliente_ID: defaultClientId, Canal: 'Instagram', Frequência: '', Público: '', Voz: '', Zona: '', Intenção: '', Formato: '', ...initial };
     else if (tab === 'MATRIZ') newItem = { ...defaultProps, Cliente_ID: defaultClientId, Rede_Social: 'Instagram', Função: 'Hub', "Quem fala": '', "Papel estratégico": '', "Tipo de conteúdo": '', "Resultado esperado": '', ...initial };
     else if (tab === 'RDC') newItem = { ...defaultProps, Cliente_ID: defaultClientId, "Ideia de Conteúdo": '', Rede_Social: 'Instagram', "Tipo de conteúdo": '', "Resolução (1–5)": 1, "Demanda (1–5)": 1, "Competição (1–5)": 1, "Score (R×D×C)": 1, Decisão: 'Preencha R/D/C', ...initial };
-    else if (tab === 'CHECKLISTS') newItem = { ...defaultProps, titulo: 'Novo Checklist', data: new Date().toISOString().split('T')[0], cliente_id: defaultClientId, local: '', observacoes: '', status: 'Pendente', hora: '10:00', itens_levar: [], itens_trazer: [], itens_gravar: [], ...initial };
+    else if (tab === 'CHECKLISTS') newItem = { ...defaultProps, title: 'Nova Gravação', date: new Date().toISOString().split('T')[0], client: '', location: '', notes: '', status: 'pending', time: '10:00', itens_levar: [], itens_trazer: [], itens_gravar: [], ...initial };
     else if (tab === 'REUNIOES') newItem = { ...defaultProps, cliente_id: initial.cliente_id || defaultClientId, titulo: initial.titulo || 'Nova Reunião', data: initial.data || new Date().toISOString().split('T')[0], hora: initial.hora || '10:00', formato: 'Online', participantes: '', pauta: '', decisoes: '', proximos_passos: [], status: 'Agendada', ...initial };
     else if (tab === 'LEMBRETES') newItem = { ...defaultProps, titulo: 'Novo Lembrete', data: new Date().toISOString().split('T')[0], hora: '09:00', tipo: 'Tarefa', cliente_id: initial.cliente_id || null, descricao: '', concluido: false, auto_gerado: false, ...initial };
 
@@ -1586,7 +1657,11 @@ export default function App() {
               >
                 <Bell size={16} />
                 {(notificacoes.some(n => !n.lida) || pendingRemindersCount > 0) && (
-                  <span className={`absolute top-1 right-1 ${pendingRemindersCount > 0 ? 'min-w-[14px] h-[14px] px-0.5 bg-red-500' : 'w-2 h-2 bg-blue-500'} rounded-full text-[8px] font-black text-white flex items-center justify-center`}>
+                  <span className={`absolute top-0.5 right-0.5 flex items-center justify-center rounded-full text-[8px] font-black text-white
+                    ${pendingRemindersCount > 0
+                      ? 'min-w-[16px] h-[16px] px-0.5 bg-red-500 shadow-sm shadow-red-500/40 animate-pulse'
+                      : 'w-2.5 h-2.5 bg-blue-500'
+                    }`}>
                     {pendingRemindersCount > 0 ? pendingRemindersCount : ''}
                   </span>
                 )}
@@ -1621,15 +1696,32 @@ export default function App() {
                     {activeNotifTab === 'notificacoes' ? (
                       <div className="divide-y divide-app-border/50">
                         <div className="p-3 flex justify-between items-center bg-app-bg/30 sticky top-0 z-10 backdrop-blur-md">
-                           <span className="text-[8px] font-bold uppercase text-app-text-muted tracking-widest">Recentes</span>
+                           <span className="text-[8px] font-bold uppercase text-app-text-muted tracking-widest">
+                             Recentes
+                             {notificacoes.filter(n => !n.lida).length > 0 && (
+                               <span className="ml-2 text-[7px] bg-blue-500 text-white px-1.5 py-0.5 rounded-full font-black">
+                                 {notificacoes.filter(n => !n.lida).length} nova{notificacoes.filter(n => !n.lida).length !== 1 ? 's' : ''}
+                               </span>
+                             )}
+                           </span>
                            {notificacoes.length > 0 && (
-                             <button
-                               onClick={() => { playUISound('tap'); setNotificacoes([]); }}
-                               className="text-[8px] font-black uppercase text-rose-500 hover:text-rose-600 transition-colors flex items-center gap-1"
-                               title="Excluir todas as notificações"
-                             >
-                               <Trash2 size={10} /> Limpar tudo
-                             </button>
+                             <div className="flex items-center gap-2">
+                               {notificacoes.some(n => !n.lida) && (
+                                 <button
+                                   onClick={() => { playUISound('tap'); setNotificacoes(prev => prev.map(n => ({ ...n, lida: true }))); }}
+                                   className="text-[8px] font-black uppercase text-blue-500 hover:text-blue-600 transition-colors flex items-center gap-1"
+                                 >
+                                   <CheckIcon size={9} /> Marcar lidas
+                                 </button>
+                               )}
+                               <button
+                                 onClick={() => { playUISound('tap'); setNotificacoes([]); shownNotifKeys.current.clear(); }}
+                                 className="text-[8px] font-black uppercase text-rose-500 hover:text-rose-600 transition-colors flex items-center gap-1"
+                                 title="Limpar todas as notificações"
+                               >
+                                 <Trash2 size={9} /> Limpar
+                               </button>
+                             </div>
                            )}
                         </div>
                         {notificacoes.length === 0 ? (
@@ -1668,8 +1760,38 @@ export default function App() {
                     ) : (
                       <div className="divide-y divide-app-border/50">
                         <div className="p-3 flex justify-between items-center bg-app-bg/30 sticky top-0 z-10 backdrop-blur-md">
-                           <span className="text-[8px] font-bold uppercase text-app-text-muted tracking-widest">Meus Lembretes</span>
-                           <button onClick={() => { playUISound('tap'); setIsLembreteModalOpen(true); setEditingLembrete(null); }} className="text-[8px] font-black uppercase text-app-accent-blue bg-app-accent-blue/10 px-2 py-1 rounded-md hover:bg-app-accent-blue/20 transition-all">+ Criar</button>
+                           <span className="text-[8px] font-bold uppercase text-app-text-muted tracking-widest">
+                             Meus Lembretes
+                             {pendingRemindersCount > 0 && (
+                               <span className="ml-2 text-[7px] bg-red-500 text-white px-1.5 py-0.5 rounded-full font-black">{pendingRemindersCount}</span>
+                             )}
+                           </span>
+                           <div className="flex items-center gap-2">
+                             {lembretes.length > 0 && (() => {
+                               const todayStr = new Date().toISOString().split('T')[0];
+                               // Limpar: concluídos + vencidos + auto-gerados de hoje (que já foram vistos)
+                               const toClean = lembretes.filter(l =>
+                                 l.concluido ||
+                                 (l.data < todayStr && !l.concluido) ||
+                                 (l.auto_gerado && l.data <= todayStr)
+                               );
+                               if (toClean.length === 0) return null;
+                               const autoCount = toClean.filter(l => l.auto_gerado).length;
+                               const label = autoCount > 0 && toClean.length === autoCount
+                                 ? `Limpar automáticos (${autoCount})`
+                                 : `Limpar (${toClean.length})`;
+                               return (
+                                 <button
+                                   onClick={() => { playUISound('tap'); performDelete(toClean.map(l => l.id), 'LEMBRETES'); }}
+                                   className="text-[8px] font-black uppercase text-rose-500 hover:text-rose-600 transition-colors flex items-center gap-1 px-2 py-1 rounded-md hover:bg-rose-50 dark:hover:bg-rose-500/10"
+                                   title={`Remove ${toClean.length} lembrete(s)`}
+                                 >
+                                   <Trash2 size={9} /> {label}
+                                 </button>
+                               );
+                             })()}
+                             <button onClick={() => { playUISound('tap'); setIsLembreteModalOpen(true); setEditingLembrete(null); }} className="text-[8px] font-black uppercase text-app-accent-blue bg-app-accent-blue/10 px-2 py-1 rounded-md hover:bg-app-accent-blue/20 transition-all">+ Criar</button>
+                           </div>
                         </div>
                         
                         {lembretes.length === 0 ? (
@@ -1679,7 +1801,7 @@ export default function App() {
                            </div>
                         ) : (
                           [...lembretes]
-                            .sort((a,b) => b.data.localeCompare(a.data))
+                            .sort((a,b) => new Date(b.data + 'T00:00:00').getTime() - new Date(a.data + 'T00:00:00').getTime())
                             .map(l => {
                                const isToday = l.data === new Date().toISOString().split('T')[0];
                                const isOverdue = l.data < new Date().toISOString().split('T')[0] && !l.concluido;
@@ -1753,6 +1875,7 @@ export default function App() {
                 <ProfilePopover
                   profile={perfilUsuario}
                   tasks={tasks}
+                  planejamento={planejamento}
                   onUpdate={(updates) => {
                     const newProfile = { ...perfilUsuario, ...updates };
                     setPerfilUsuario(newProfile);
@@ -1827,7 +1950,7 @@ export default function App() {
         <div className={`flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar bg-app-bg ${(activeTab === 'WHITEBOARD' || activeTab === 'CLIENTES' || activeTab === 'PLANEJAMENTO' || activeTab === 'CHECKLISTS') ? 'p-0 overflow-hidden' : 'p-4 sm:p-6 pb-[calc(100px+env(safe-area-inset-bottom))] sm:pb-6'}`}>
           <Suspense fallback={<RouteFallback />}>
           {activeTab === 'DASHBOARD' && <DashboardView clients={clients} tasks={currentTasks} financas={currentFinancas} planejamento={currentPlanejamento} rdc={currentRdc} setActiveTab={setActiveTab} perfilUsuario={perfilUsuario} />}
-          {activeTab === 'CLIENTES' && <ClientesView clients={filterArchived(clients)} onUpdate={handleUpdate} onDelete={performDelete} onAdd={() => handleAddRow('CLIENTES')} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} savingStatus={savingStatus} />}
+          {activeTab === 'CLIENTES' && <ClientesView clients={filterArchived(clients)} tasks={tasks} planejamento={planejamento} onUpdate={handleUpdate} onDelete={performDelete} onAdd={() => handleAddRow('CLIENTES')} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} savingStatus={savingStatus} />}
           {activeTab === 'REUNIOES' && <ReunioesView reunioes={reunioes} clients={clients} onUpdate={handleUpdate} onDelete={performDelete} onAdd={() => handleAddRow('REUNIOES')} savingStatus={savingStatus} />}
           {activeTab === 'RDC' && <TableView tab="RDC" data={currentRdc} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('RDC')} library={BibliotecaConteudo} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} savingStatus={savingStatus} />}
           {activeTab === 'MATRIZ' && <MatrizEstrategicaView data={currentMatriz} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('MATRIZ')} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} savingStatus={savingStatus} />}
@@ -1852,7 +1975,25 @@ export default function App() {
 
           {activeTab === 'PLANEJAMENTO' && <PlanejamentoTab data={currentPlanejamento} clients={clients} onUpdate={handleUpdate} onAdd={handleAddRow} rdc={currentRdc} matriz={matriz} cobo={cobo} tasks={filterArchived(tasks)} iaHistory={iaHistory} setActiveTab={setActiveTab} performArchive={performArchive} performDelete={performDelete} library={BibliotecaConteudo} activeClientId={selectedClientIds.length === 1 ? selectedClientIds[0] : undefined} showArchived={showArchived} setShowArchived={setShowArchived} setIsClientFilterOpen={setIsClientFilterOpen} savingStatus={savingStatus} />}
           {activeTab === 'FINANCAS' && <FinancasTab financas={currentFinancas} onAdd={(initial: any) => handleAddRow('FINANCAS', initial)} onUpdate={(id: any, field: any, value: any) => handleUpdate(id, 'FINANCAS', field, value)} onDelete={(ids: any) => performDelete(ids, 'FINANCAS')} clients={clients} currentWorkspace={currentWorkspace} savingStatus={savingStatus} />}
-          {activeTab === 'TAREFAS' && <TaskFlowView tasks={currentTasks} clients={clients} collaborators={collaborators} activeViewId={activeTaskViewId} setActiveViewId={setActiveTaskViewId} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('TAREFAS')} onSelectTask={setSelectedTaskId} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} savingStatus={savingStatus} />}
+          {activeTab === 'TAREFAS' && <TaskFlowView
+            tasks={filterArchived(tasks)}
+            clients={clients}
+            collaborators={collaborators}
+            activeViewId={activeTaskViewId}
+            setActiveViewId={setActiveTaskViewId}
+            onUpdate={handleUpdate}
+            onDelete={performDelete}
+            onArchive={performArchive}
+            onAdd={(initialData?: any) => handleAddRow('TAREFAS', initialData)}
+            onSelectTask={setSelectedTaskId}
+            selection={selection}
+            onSelect={toggleSelection}
+            onClearSelection={() => setSelection([])}
+            savingStatus={savingStatus}
+            planejamento={filterArchived(planejamento)}
+            activeClientId={selectedClientIds[0] || ''}
+            onClientChange={() => { /* local-only: TaskFlowView manages its own filter */ }}
+          />}
           {activeTab === 'CHECKLISTS' && <ChecklistsTab data={currentChecklists} onAdd={handleAddRow} onUpdate={handleUpdate} onDelete={performDelete} clients={clients} savingStatus={savingStatus} />}
           { activeTab === 'VH' && <VhManagementView clients={clients} collaborators={collaborators} setCollaborators={setCollaborators} onUpdate={handleUpdate} selection={selection} onSelect={toggleSelection} tasks={currentTasks} financas={currentFinancas} savingStatus={savingStatus} /> }
           { activeTab === 'RELATORIOS' && <RelatoriosView clients={clients} planejamento={planejamento} tasks={tasks} financas={financas} rdc={rdc} /> }
@@ -2179,15 +2320,6 @@ export default function App() {
             </div>
           </div>
         </div>
-      )}
-
-      {isLembreteModalOpen && (
-        <LembreteModal
-          lembrete={editingLembrete}
-          clients={clients}
-          onClose={() => { setIsLembreteModalOpen(false); setEditingLembrete(null); }}
-          onSave={handleSaveLembrete}
-        />
       )}
 
       {isLembreteModalOpen && (

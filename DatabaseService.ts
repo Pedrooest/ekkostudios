@@ -83,13 +83,13 @@ const MAPA_COLUNAS: Record<string, Record<string, string>> = {
         cliente_id: 'cliente_id'
     },
     checklists: {
-        titulo: 'titulo',
-        data: 'data',
-        cliente_id: 'cliente_id',
-        local: 'local',
-        observacoes: 'observacoes',
+        client: 'client',
+        title: 'title',
+        date: 'date',
+        time: 'time',
+        location: 'location',
+        notes: 'notes',
         status: 'status',
-        hora: 'hora',
         itens_levar: 'itens_levar',
         itens_trazer: 'itens_trazer',
         itens_gravar: 'itens_gravar'
@@ -169,9 +169,9 @@ const VALID_FIELDS: Record<string, string[]> = {
         '__archived', 'created_at', 'created_by', 'updated_by'
     ],
     checklists: [
-        'id', 'workspace_id', 'titulo', 'data', 'cliente_id', 'local',
-        'observacoes', 'status', 'itens_levar', 'itens_trazer',
-        'itens_gravar', 'updated_at', 'hora',
+        'id', 'workspace_id', 'client', 'title', 'date', 'time',
+        'location', 'notes', 'status', 'itens_levar', 'itens_trazer',
+        'itens_gravar', 'updated_at',
         '__archived', 'created_at', 'created_by', 'updated_by'
     ],
     reunioes: [

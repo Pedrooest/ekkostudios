@@ -4,9 +4,12 @@ import {
     Filter, Image as ImageIcon, Archive, Database,
     ChevronLeft, ChevronRight, FolderOpen, Copy, Trash2,
     ChevronDown, Download, Loader2, Moon, Sun,
-    Calendar as CalendarIcon, LayoutGrid, Columns, List
+    Calendar as CalendarIcon, LayoutGrid, Columns, List,
+    Zap, Target, Globe, MessageSquare, Sparkles, Hash,
+    CheckCircle2, Eye, AlertCircle, Timer, CheckSquare
 } from 'lucide-react';
 import { playUISound } from '../utils/uiSounds';
+import { PSelectPortal, DatePickerPortal, TimeInput } from '../Components';
 import { getCalendarDays, MONTH_NAMES_BR, WEEKDAYS_BR_SHORT } from '../utils/calendarUtils';
 
 interface PlanningViewProps {
@@ -38,18 +41,6 @@ export function PlanningView({
     const [activeStatus, setActiveStatus] = useState('ALL');
     const [currentDate, setCurrentDate] = useState(new Date());
     const [viewMode, setViewMode] = useState<'month' | 'week' | 'list'>('month');
-
-    // Escape listener
-    useEffect(() => {
-        const handleEsc = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
-                setSidebarView(null);
-                setIsExportModalOpen(false);
-            }
-        };
-        window.addEventListener('keydown', handleEsc);
-        return () => window.removeEventListener('keydown', handleEsc);
-    }, []);
 
     // Filtros e Sidebars
     const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
@@ -416,6 +407,19 @@ export function PlanningView({
                                                             <div className="text-[10px] font-bold leading-tight text-zinc-900 dark:text-white truncate">
                                                                 {evt.Conteúdo}
                                                             </div>
+                                                            {(() => {
+                                                                const linkedTasks = tasks.filter((t: any) => t.Relacionado_ID === evt.id && !t.__archived);
+                                                                if (linkedTasks.length === 0) return null;
+                                                                const done = linkedTasks.filter((t: any) => ['done', 'Concluído', 'CONCLUÍDO'].includes(t.Status)).length;
+                                                                return (
+                                                                    <div className="flex items-center gap-1 mt-1">
+                                                                        <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white/60 dark:bg-white/5 border border-white/20" style={{ color: styles.text }}>
+                                                                            <CheckSquare size={7} className="shrink-0" />
+                                                                            <span className="text-[8px] font-black">{done}/{linkedTasks.length}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })()}
                                                         </div>
                                                     </div>
                                                 );
@@ -430,138 +434,344 @@ export function PlanningView({
 
                 </div>
 
-                {/* SIDEBAR EDIT */}
-                {sidebarView === 'edit' && (
+                {/* SIDEBAR EDIT — PREMIUM REDESIGN */}
+                {sidebarView === 'edit' && (() => {
+                    const clientColor = getClientColor(selectedEvent?.Cliente_ID || '');
+                    const statusConfig: Record<string, { color: string; bg: string; icon: React.ReactNode }> = {
+                        'EM ESPERA':              { color: '#94a3b8', bg: '#f1f5f9', icon: <Timer size={10} /> },
+                        'PRODUÇÃO':               { color: '#f59e0b', bg: '#fffbeb', icon: <Zap size={10} /> },
+                        'AGUARDANDO APROVAÇÃO':   { color: '#3b82f6', bg: '#eff6ff', icon: <Eye size={10} /> },
+                        'PUBLICADO':              { color: '#10b981', bg: '#f0fdf4', icon: <CheckCircle2 size={10} /> },
+                        'CONCLUÍDO':              { color: '#8b5cf6', bg: '#faf5ff', icon: <Check size={10} /> },
+                        'ARQUIVADO':              { color: '#6b7280', bg: '#f9fafb', icon: <Archive size={10} /> },
+                    };
+                    const currentStatus = selectedEvent?.['Status do conteúdo'] || 'EM ESPERA';
+                    const statusCfg = statusConfig[currentStatus] || statusConfig['EM ESPERA'];
+
+                    return (
                     <div className="fixed inset-0 z-[100] flex justify-end">
-                        <div className="absolute inset-0 bg-zinc-950/20 backdrop-blur-sm" onClick={() => setSidebarView(null)}></div>
-                        <div className="relative w-full sm:w-[450px] bg-white dark:bg-zinc-900 shadow-2xl flex flex-col h-full animate-in slide-in-from-right duration-300">
-                            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
-                                <h2 className="text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-tight">Detalhes do Post</h2>
-                                <button onClick={() => setSidebarView(null)} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-zinc-400 transition-colors">
-                                    <X size={20} className="shrink-0" />
-                                </button>
+                        {/* Backdrop */}
+                        <div
+                            className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
+                            style={{ animation: 'fadeIn 0.2s ease' }}
+                            onClick={() => { playUISound('close'); setSidebarView(null); }}
+                        />
+
+                        {/* Panel */}
+                        <div
+                            className="relative w-full sm:w-[480px] bg-white dark:bg-[#0f0f11] shadow-2xl flex flex-col h-full overflow-hidden"
+                            style={{ animation: 'slideInRight 0.32s cubic-bezier(0.32,0.72,0,1)' }}
+                        >
+                            {/* Color accent top bar */}
+                            <div className="h-1 w-full shrink-0" style={{ background: `linear-gradient(90deg, ${clientColor}, ${clientColor}88)` }} />
+
+                            {/* Header */}
+                            <div className="flex items-center justify-between px-6 py-4 shrink-0 border-b border-zinc-100 dark:border-zinc-800/80">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: clientColor + '18', color: clientColor }}>
+                                        <CalendarIcon size={16} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500">Planejamento</p>
+                                        <h2 className="text-sm font-black text-zinc-900 dark:text-white leading-tight">Detalhes do Item</h2>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {/* Status chip */}
+                                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider"
+                                        style={{ color: statusCfg.color, backgroundColor: statusCfg.bg }}
+                                    >
+                                        {statusCfg.icon}
+                                        {currentStatus === 'AGUARDANDO APROVAÇÃO' ? 'APROVAÇÃO' : currentStatus}
+                                    </div>
+                                    <button
+                                        onClick={() => { playUISound('close'); setSidebarView(null); }}
+                                        className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-all ios-btn"
+                                    >
+                                        <X size={18} />
+                                    </button>
+                                </div>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1">Conteúdo principal</label>
+                            {/* Scrollable body */}
+                            <div className="flex-1 overflow-y-auto custom-scrollbar">
+                                {/* ── CONTEÚDO ── */}
+                                <div className="px-6 pt-5 pb-4 space-y-1.5">
+                                    <label className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+                                        <MessageSquare size={10} className="shrink-0" /> Conteúdo Principal
+                                    </label>
                                     <textarea
                                         rows={4}
                                         value={selectedEvent?.Conteúdo || ''}
                                         onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Conteúdo', e.target.value)}
-                                        className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-4 text-sm font-medium text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none"
-                                        placeholder="O que será postado?"
+                                        className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/60 rounded-2xl p-4 text-sm font-bold text-zinc-900 dark:text-zinc-100 placeholder:font-normal placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all resize-none leading-relaxed"
+                                        style={{ '--tw-ring-color': clientColor + '40' } as any}
+                                        placeholder="O que será publicado neste post?"
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1">Cliente</label>
-                                        <select
-                                            value={selectedEvent?.Cliente_ID || ''}
-                                            onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Cliente_ID', e.target.value)}
-                                            className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-2.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500 appearance-none"
-                                        >
-                                            <option value="">Selecionar Cliente</option>
-                                            {clients.map(c => <option key={c.id} value={c.id}>{c.Nome}</option>)}
-                                        </select>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1">Formato</label>
-                                        <select
-                                            value={selectedEvent?.["Tipo de conteúdo"] || ''}
-                                            onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Tipo de conteúdo', e.target.value)}
-                                            className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-2.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500 appearance-none"
-                                        >
-                                            <option value="">Selecionar Formato</option>
-                                            <option value="Reels Viral">Reels Viral</option>
-                                            <option value="Carrossel Edu.">Carrossel Edu.</option>
-                                            <option value="Estático">Estático</option>
-                                            <option value="Stories">Stories</option>
-                                        </select>
-                                    </div>
-                                </div>
+                                {/* ── DIVISOR ── */}
+                                <div className="mx-6 h-px bg-zinc-100 dark:bg-zinc-800/60" />
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1">Data</label>
-                                        <input
-                                            type="date"
+                                {/* ── PUBLICAÇÃO ── */}
+                                <div className="px-6 py-4 space-y-3">
+                                    <label className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+                                        <CalendarIcon size={10} className="shrink-0" /> Publicação
+                                    </label>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <DatePickerPortal
                                             value={selectedEvent?.Data || ''}
-                                            onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Data', e.target.value)}
-                                            className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-2.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500"
+                                            onChange={val => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Data', val)}
+                                            clearable={false}
+                                            size="sm"
                                         />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1">Hora</label>
-                                        <input
-                                            type="time"
+                                        <TimeInput
                                             value={selectedEvent?.Hora || ''}
-                                            onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Hora', e.target.value)}
-                                            className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-2.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500"
+                                            onChange={val => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Hora', val)}
+                                            size="sm"
                                         />
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1">Rede Social</label>
-                                        <select
-                                            value={selectedEvent?.Rede_Social || ''}
-                                            onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Rede_Social', e.target.value)}
-                                            className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-2.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500 appearance-none"
-                                        >
-                                            <option value="">INSTAGRAM</option>
-                                            <option value="LINKEDIN">LINKEDIN</option>
-                                            <option value="YOUTUBE">YOUTUBE</option>
-                                        </select>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1">Status</label>
-                                        <select
-                                            value={selectedEvent?.["Status do conteúdo"] || ''}
-                                            onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Status do conteúdo', e.target.value)}
-                                            className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-2.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500 appearance-none"
-                                        >
-                                            <option value="EM ESPERA">EM ESPERA</option>
-                                            <option value="PRODUÇÃO">PRODUÇÃO</option>
-                                            <option value="AGUARDANDO APROVAÇÃO">APROVAÇÃO</option>
-                                            <option value="PUBLICADO">PUBLICADO</option>
-                                        </select>
+                                <div className="mx-6 h-px bg-zinc-100 dark:bg-zinc-800/60" />
+
+                                {/* ── DISTRIBUIÇÃO ── */}
+                                <div className="px-6 py-4 space-y-3">
+                                    <label className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+                                        <Globe size={10} className="shrink-0" /> Distribuição
+                                    </label>
+                                    <div className="space-y-2.5">
+                                        <PSelectPortal
+                                            label="Cliente"
+                                            value={selectedEvent?.Cliente_ID || ''}
+                                            onChange={v => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Cliente_ID', v)}
+                                            placeholder="Selecionar cliente..."
+                                            options={clients.map((c: any) => ({ value: c.id, label: c.Nome, color: c['Cor (HEX)'] }))}
+                                        />
+                                        <div className="grid grid-cols-2 gap-2.5">
+                                            <PSelectPortal
+                                                label="Rede Social"
+                                                value={selectedEvent?.Rede_Social || ''}
+                                                onChange={v => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Rede_Social', v)}
+                                                placeholder="Rede..."
+                                                options={[
+                                                    { value: 'INSTAGRAM', label: 'Instagram', color: '#e1306c' },
+                                                    { value: 'LINKEDIN', label: 'LinkedIn', color: '#0a66c2' },
+                                                    { value: 'YOUTUBE', label: 'YouTube', color: '#ff0000' },
+                                                    { value: 'TIKTOK', label: 'TikTok', color: '#000000' },
+                                                    { value: 'FACEBOOK', label: 'Facebook', color: '#1877f2' },
+                                                    { value: 'TWITTER', label: 'Twitter/X', color: '#14171a' },
+                                                    { value: 'PINTEREST', label: 'Pinterest', color: '#e60023' },
+                                                ]}
+                                            />
+                                            <PSelectPortal
+                                                label="Formato"
+                                                value={selectedEvent?.['Tipo de conteúdo'] || ''}
+                                                onChange={v => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Tipo de conteúdo', v)}
+                                                placeholder="Formato..."
+                                                options={['Reels', 'Carrossel', 'Estático', 'Stories', 'BTS', 'Live', 'Short', 'Vídeo Longo']}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-bold text-blue-500 uppercase tracking-wider ml-1">Observações</label>
+                                <div className="mx-6 h-px bg-zinc-100 dark:bg-zinc-800/60" />
+
+                                {/* ── STATUS & INTENÇÃO ── */}
+                                <div className="px-6 py-4 space-y-3">
+                                    <label className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+                                        <Target size={10} className="shrink-0" /> Status & Estratégia
+                                    </label>
+                                    <div className="grid grid-cols-2 gap-2.5">
+                                        <PSelectPortal
+                                            label="Status"
+                                            value={selectedEvent?.['Status do conteúdo'] || 'EM ESPERA'}
+                                            onChange={v => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Status do conteúdo', v)}
+                                            options={[
+                                                { value: 'EM ESPERA',            label: 'Em Espera',   color: '#94a3b8' },
+                                                { value: 'PRODUÇÃO',             label: 'Produção',    color: '#f59e0b' },
+                                                { value: 'AGUARDANDO APROVAÇÃO', label: 'Aprovação',   color: '#3b82f6' },
+                                                { value: 'PUBLICADO',            label: 'Publicado',   color: '#10b981' },
+                                                { value: 'CONCLUÍDO',            label: 'Concluído',   color: '#8b5cf6' },
+                                                { value: 'ARQUIVADO',            label: 'Arquivado',   color: '#6b7280' },
+                                            ]}
+                                        />
+                                        <PSelectPortal
+                                            label="Intenção"
+                                            value={selectedEvent?.Intenção || ''}
+                                            onChange={v => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Intenção', v)}
+                                            placeholder="Intenção..."
+                                            options={['Autoridade', 'Conexão', 'Venda', 'Educação', 'Entretenimento', 'Engajamento']}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="mx-6 h-px bg-zinc-100 dark:bg-zinc-800/60" />
+
+                                {/* ── GANCHO & CTA ── */}
+                                <div className="px-6 py-4 space-y-3">
+                                    <label className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+                                        <Sparkles size={10} className="shrink-0" /> Gancho & CTA
+                                    </label>
+                                    <div className="space-y-2.5">
+                                        <div>
+                                            <p className="text-[9px] font-black uppercase tracking-wider text-zinc-400 ml-1 mb-1">⚡ Gancho</p>
+                                            <input
+                                                value={selectedEvent?.Gancho || ''}
+                                                onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Gancho', e.target.value)}
+                                                className="w-full h-10 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/60 rounded-2xl px-4 text-xs font-semibold text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all"
+                                                placeholder="Primeira frase que prende a atenção..."
+                                            />
+                                        </div>
+                                        <div>
+                                            <p className="text-[9px] font-black uppercase tracking-wider text-zinc-400 ml-1 mb-1">👁 CTA</p>
+                                            <input
+                                                value={selectedEvent?.CTA || ''}
+                                                onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'CTA', e.target.value)}
+                                                className="w-full h-10 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/60 rounded-2xl px-4 text-xs font-semibold text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all"
+                                                placeholder="Chamada para ação..."
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mx-6 h-px bg-zinc-100 dark:bg-zinc-800/60" />
+
+                                {/* ── OBSERVAÇÕES ── */}
+                                <div className="px-6 py-4 pb-6 space-y-1.5">
+                                    <label className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+                                        <Hash size={10} className="shrink-0" /> Observações Táticas
+                                    </label>
                                     <textarea
-                                        rows={4}
+                                        rows={3}
                                         value={selectedEvent?.Observações || ''}
                                         onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Observações', e.target.value)}
-                                        className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-4 text-sm font-medium text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-blue-500 transition-all resize-none shadow-inner"
-                                        placeholder="Notas adicionais..."
+                                        className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/60 rounded-2xl p-4 text-xs font-medium text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all resize-none"
+                                        placeholder="Adicione notas, links de referências, briefings..."
                                     />
+                                </div>
+
+                                {/* ── TAREFAS VINCULADAS ── */}
+                                <div className="mx-6 h-px bg-zinc-100 dark:bg-zinc-800/60" />
+                                <div className="px-6 py-4 pb-4 space-y-3">
+                                    {(() => {
+                                        const linkedTasks = selectedEvent
+                                            ? tasks.filter((t: any) => t.Relacionado_ID === selectedEvent.id && !t.__archived)
+                                            : [];
+                                        const statusColor: Record<string, string> = {
+                                            'todo': '#94a3b8', 'em andamento': '#f59e0b', 'done': '#10b981',
+                                            'Concluído': '#10b981', 'CONCLUÍDO': '#10b981',
+                                            'Em produção': '#f59e0b', 'Revisão': '#3b82f6',
+                                        };
+                                        return (
+                                            <>
+                                                <label className="flex items-center justify-between text-[9px] font-black uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+                                                    <span className="flex items-center gap-1.5"><CheckSquare size={10} className="shrink-0" /> Tarefas Vinculadas</span>
+                                                    {linkedTasks.length > 0 && (
+                                                        <span className="px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-black">
+                                                            {linkedTasks.filter((t: any) => ['done','Concluído','CONCLUÍDO'].includes(t.Status)).length}/{linkedTasks.length}
+                                                        </span>
+                                                    )}
+                                                </label>
+
+                                                {/* Lista de tarefas vinculadas */}
+                                                {linkedTasks.length > 0 && (
+                                                    <div className="space-y-2">
+                                                        {linkedTasks.map((t: any) => (
+                                                            <div key={t.id} className="flex items-center gap-3 p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-100 dark:border-zinc-800/60 group">
+                                                                <div className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-white dark:ring-zinc-900"
+                                                                    style={{ backgroundColor: statusColor[t.Status] || '#94a3b8' }}
+                                                                />
+                                                                <span className="flex-1 text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 truncate leading-tight">
+                                                                    {t.Título}
+                                                                </span>
+                                                                <span className="shrink-0 text-[9px] font-black uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                                                                    {t.Prioridade}
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {/* Botão criar nova tarefa vinculada */}
+                                                <button
+                                                    onClick={async () => {
+                                                        if (!selectedEvent) return;
+                                                        playUISound('success');
+                                                        await onAdd('TAREFAS', {
+                                                            Cliente_ID: selectedEvent.Cliente_ID,
+                                                            Título: `📅 ${selectedEvent.Conteúdo?.slice(0, 60) || 'Post do planejamento'}`,
+                                                            Área: 'Conteúdo',
+                                                            Status: 'todo',
+                                                            Prioridade: 'Média',
+                                                            Data_Entrega: selectedEvent.Data,
+                                                            Relacionado_A: 'Planejamento',
+                                                            Relacionado_ID: selectedEvent.id,
+                                                            Relacionado_Conteudo: selectedEvent.Conteúdo
+                                                        });
+                                                    }}
+                                                    className="ios-btn w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl border-2 border-dashed border-zinc-200 dark:border-zinc-700/60 bg-zinc-50/50 dark:bg-zinc-900/30 text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400 hover:border-blue-400/60 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-500/10 transition-all"
+                                                >
+                                                    <Plus size={14} className="shrink-0" />
+                                                    Criar tarefa vinculada
+                                                </button>
+                                            </>
+                                        );
+                                    })()}
                                 </div>
                             </div>
 
-                            <div className="p-6 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 space-y-4">
-                                <div className="grid grid-cols-3 gap-2">
-                                    <button className="flex flex-col items-center justify-center p-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-[10px] font-bold text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all">
-                                        <Copy size={16} className="mb-1 shrink-0" /> Duplicar
+                            {/* Footer */}
+                            <div className="shrink-0 border-t border-zinc-100 dark:border-zinc-800/80 bg-white dark:bg-[#0f0f11]">
+                                {/* Action buttons row */}
+                                <div className="flex items-center gap-2 px-6 pt-4 pb-2">
+                                    <button
+                                        onClick={() => { playUISound('tap'); }}
+                                        className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl border border-zinc-200 dark:border-zinc-700/60 bg-zinc-50 dark:bg-zinc-800/60 text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:border-zinc-300 transition-all ios-btn"
+                                    >
+                                        <Copy size={13} className="shrink-0" /> Duplicar
                                     </button>
-                                    <button onClick={() => selectedEvent && performArchive([selectedEvent.id], 'PLANEJAMENTO', true)} className="flex flex-col items-center justify-center p-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-[10px] font-bold text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all">
-                                        <Archive size={16} className="mb-1 shrink-0" /> Arquivar
+                                    <button
+                                        onClick={() => { playUISound('tap'); selectedEvent && performArchive([selectedEvent.id], 'PLANEJAMENTO', true); setSidebarView(null); }}
+                                        className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl border border-zinc-200 dark:border-zinc-700/60 bg-zinc-50 dark:bg-zinc-800/60 text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:border-zinc-300 transition-all ios-btn"
+                                    >
+                                        <Archive size={13} className="shrink-0" /> Arquivar
                                     </button>
-                                    <button onClick={() => selectedEvent && performDelete([selectedEvent.id], 'PLANEJAMENTO')} className="flex flex-col items-center justify-center p-2 rounded-lg border border-rose-100 dark:border-rose-900/20 bg-rose-50/30 dark:bg-rose-900/10 text-[10px] font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/20 transition-all">
-                                        <Trash2 size={16} className="mb-1 shrink-0" /> Excluir
+                                    <button
+                                        onClick={() => { playUISound('close'); selectedEvent && performDelete([selectedEvent.id], 'PLANEJAMENTO'); setSidebarView(null); }}
+                                        className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl border border-rose-200/60 dark:border-rose-900/30 bg-rose-50/50 dark:bg-rose-900/10 text-[10px] font-black uppercase tracking-wider text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all ios-btn"
+                                    >
+                                        <Trash2 size={13} className="shrink-0" /> Excluir
                                     </button>
                                 </div>
-                                <button onClick={() => setSidebarView(null)} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98]">
-                                    Salvar Alterações
-                                </button>
+
+                                {/* Save CTA */}
+                                <div className="px-6 pb-6 pt-2">
+                                    <button
+                                        onClick={() => { playUISound('success'); setSidebarView(null); }}
+                                        className="ios-btn w-full py-3.5 rounded-2xl text-sm font-black uppercase tracking-widest text-white shadow-lg transition-all active:scale-[0.97] flex items-center justify-center gap-2"
+                                        style={{ background: `linear-gradient(135deg, ${clientColor}, ${clientColor}cc)`, boxShadow: `0 8px 24px ${clientColor}40` }}
+                                    >
+                                        <Check size={16} className="shrink-0" />
+                                        Salvar Alterações
+                                    </button>
+                                </div>
                             </div>
                         </div>
+
+                        <style>{`
+                            @keyframes slideInRight {
+                                from { transform: translateX(100%); opacity: 0; }
+                                to   { transform: translateX(0);    opacity: 1; }
+                            }
+                            @keyframes fadeIn {
+                                from { opacity: 0; }
+                                to   { opacity: 1; }
+                            }
+                        `}</style>
                     </div>
-                )}
+                    );
+                })()}
 
                 {/* SIDEBAR BANCO */}
                 {sidebarView === 'banco' && (
@@ -664,14 +874,12 @@ export function PlanningView({
                                 </div>
 
                                 <div className="flex items-center gap-3">
-                                    <select
+                                    <PSelectPortal
                                         value={exportSelectedClient}
-                                        onChange={(e) => setExportSelectedClient(e.target.value)}
-                                        className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-1.5 text-[10px] font-bold text-zinc-600 dark:text-zinc-300 focus:outline-none"
-                                    >
-                                        <option value="Todos">Todos os Clientes</option>
-                                        {clients.map(c => <option key={c.id} value={c.Nome}>{c.Nome}</option>)}
-                                    </select>
+                                        onChange={setExportSelectedClient}
+                                        size="sm"
+                                        options={[{ value: 'Todos', label: 'Todos os Clientes' }, ...clients.map((c: any) => ({ value: c.Nome, label: c.Nome }))]}
+                                    />
                                     <button onClick={() => setIsExportModalOpen(false)} className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-zinc-400 transition-colors">
                                         <X size={20} className="shrink-0" />
                                     </button>
