@@ -1850,7 +1850,7 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'PLANEJAMENTO' && <PlanejamentoTab data={currentPlanejamento} clients={clients} onUpdate={handleUpdate} onAdd={handleAddRow} rdc={currentRdc} matriz={matriz} cobo={cobo} tasks={currentTasks} iaHistory={iaHistory} setActiveTab={setActiveTab} performArchive={performArchive} performDelete={performDelete} library={BibliotecaConteudo} activeClientId={selectedClientIds.length === 1 ? selectedClientIds[0] : undefined} showArchived={showArchived} setShowArchived={setShowArchived} setIsClientFilterOpen={setIsClientFilterOpen} savingStatus={savingStatus} />}
+          {activeTab === 'PLANEJAMENTO' && <PlanejamentoTab data={currentPlanejamento} clients={clients} onUpdate={handleUpdate} onAdd={handleAddRow} rdc={currentRdc} matriz={matriz} cobo={cobo} tasks={filterArchived(tasks)} iaHistory={iaHistory} setActiveTab={setActiveTab} performArchive={performArchive} performDelete={performDelete} library={BibliotecaConteudo} activeClientId={selectedClientIds.length === 1 ? selectedClientIds[0] : undefined} showArchived={showArchived} setShowArchived={setShowArchived} setIsClientFilterOpen={setIsClientFilterOpen} savingStatus={savingStatus} />}
           {activeTab === 'FINANCAS' && <FinancasTab financas={currentFinancas} onAdd={(initial: any) => handleAddRow('FINANCAS', initial)} onUpdate={(id: any, field: any, value: any) => handleUpdate(id, 'FINANCAS', field, value)} onDelete={(ids: any) => performDelete(ids, 'FINANCAS')} clients={clients} currentWorkspace={currentWorkspace} savingStatus={savingStatus} />}
           {activeTab === 'TAREFAS' && <TaskFlowView tasks={currentTasks} clients={clients} collaborators={collaborators} activeViewId={activeTaskViewId} setActiveViewId={setActiveTaskViewId} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('TAREFAS')} onSelectTask={setSelectedTaskId} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} savingStatus={savingStatus} />}
           {activeTab === 'CHECKLISTS' && <ChecklistsTab data={currentChecklists} onAdd={handleAddRow} onUpdate={handleUpdate} onDelete={performDelete} clients={clients} savingStatus={savingStatus} />}
@@ -1906,6 +1906,7 @@ export default function App() {
                     onAdd={handleAddRow}
                     viewMode={taskDetailViewMode as any}
                     setViewMode={setTaskDetailViewMode}
+                    setActiveTab={setActiveTab}
                   />
                 </Suspense>
               </div>

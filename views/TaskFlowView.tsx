@@ -637,12 +637,14 @@ interface TaskDetailPanelProps {
     viewMode: 'sidebar' | 'modal';
     setViewMode: (mode: 'sidebar' | 'modal') => void;
     savingStatus?: Record<string, 'saving' | 'success' | 'error'>;
+    setActiveTab?: (tab: string) => void;
 }
 
 export function TaskDetailPanel({
     taskId, tasks, clients, collaborators, onClose,
     onUpdate, onArchive, onDelete, onAdd,
-    viewMode, setViewMode, savingStatus = {}
+    viewMode, setViewMode, savingStatus = {},
+    setActiveTab
 }: TaskDetailPanelProps) {
     const t = tasks.find((Tarefa: Tarefa) => Tarefa.id === taskId);
     const [newCheckItem, setNewCheckItem] = useState('');
@@ -857,6 +859,29 @@ export function TaskDetailPanel({
                         <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all shadow-sm ${notifyResponsible ? 'left-5' : 'left-1'}`}></div>
                     </button>
                 </div>
+
+                {/* PLANEJAMENTO LINK */}
+                {t.Relacionado_A === 'Planejamento' && t.Relacionado_Conteudo && (
+                    <section className="bg-violet-50/60 dark:bg-violet-500/5 border border-violet-200/60 dark:border-violet-500/15 rounded-2xl p-4">
+                        <div className="flex items-start gap-3">
+                            <div className="w-7 h-7 rounded-xl bg-violet-100 dark:bg-violet-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                                <CalendarDays size={14} className="text-violet-600 dark:text-violet-400" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-[9px] font-black uppercase tracking-[0.15em] text-violet-500 dark:text-violet-400 mb-1">Vinculado ao Planejamento</p>
+                                <p className="text-[11px] font-bold text-zinc-800 dark:text-zinc-200 leading-snug line-clamp-2">{t.Relacionado_Conteudo}</p>
+                            </div>
+                            {setActiveTab && (
+                                <button
+                                    onClick={() => { onClose(); setActiveTab('PLANEJAMENTO'); }}
+                                    className="shrink-0 text-[9px] font-black text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-500/20 px-2.5 py-1.5 rounded-xl transition-all border border-violet-200 dark:border-violet-500/20 uppercase tracking-widest"
+                                >
+                                    Ver →
+                                </button>
+                            )}
+                        </div>
+                    </section>
+                )}
 
                 {/* DESCRIPTION */}
                 <section className="relative">
