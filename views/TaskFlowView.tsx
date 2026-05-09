@@ -715,13 +715,14 @@ interface TaskDetailPanelProps {
     setViewMode: (mode: 'sidebar' | 'modal') => void;
     savingStatus?: Record<string, 'saving' | 'success' | 'error'>;
     setActiveTab?: (tab: string) => void;
+    planejamento?: any[];
 }
 
 export function TaskDetailPanel({
     taskId, tasks, clients, collaborators, onClose,
     onUpdate, onArchive, onDelete, onAdd,
     viewMode, setViewMode, savingStatus = {},
-    setActiveTab
+    setActiveTab, planejamento = []
 }: TaskDetailPanelProps) {
     const t = tasks.find((Tarefa: Tarefa) => Tarefa.id === taskId);
     const [newCheckItem, setNewCheckItem] = useState('');
@@ -934,27 +935,89 @@ export function TaskDetailPanel({
                 </div>
 
                 {/* PLANEJAMENTO LINK */}
-                {t.Relacionado_A === 'Planejamento' && t.Relacionado_Conteudo && (
-                    <section className="bg-violet-50/60 dark:bg-violet-500/5 border border-violet-200/60 dark:border-violet-500/15 rounded-2xl p-4">
-                        <div className="flex items-start gap-3">
-                            <div className="w-7 h-7 rounded-xl bg-violet-100 dark:bg-violet-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                                <CalendarDays size={14} className="text-violet-600 dark:text-violet-400" />
+                {t.Relacionado_A === 'Planejamento' && (() => {
+                    const planItem = planejamento.find((p: any) => p.id === t.Relacionado_ID);
+                    const planClient = clients.find((c: any) => c.id === (planItem?.Cliente_ID || t.Cliente_ID));
+                    const REDE_LABELS: Record<string, string> = {
+                        INSTAGRAM: '📸 Instagram', YOUTUBE: '▶️ YouTube', TIKTOK: '🎵 TikTok',
+                        LINKEDIN: '💼 LinkedIn', FACEBOOK: '📘 Facebook', 'X/TWITTER': '🐦 Twitter',
+                        PINTEREST: '📌 Pinterest', BLOG: '📝 Blog',
+                    };
+                    const formatDateBR = (d: string) => {
+                        if (!d) return null;
+                        return new Date(d + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', year: '2-digit' });
+                    };
+                    const STATUS_PLAN: Record<string, string> = {
+                        'EM ESPERA': 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500',
+                        'PRODUÇÃO': 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400',
+                        'AGUARDANDO APROVAÇÃO': 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400',
+                        'PUBLICADO': 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+                        'CONCLUÍDO': 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+                    };
+                    return (
+                        <section className="bg-violet-50/60 dark:bg-violet-500/5 border border-violet-200/60 dark:border-violet-500/15 rounded-2xl overflow-hidden">
+                            {/* Header */}
+                            <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-violet-100 dark:border-violet-500/10">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-5 h-5 rounded-lg bg-violet-100 dark:bg-violet-500/10 flex items-center justify-center">
+                                        <CalendarDays size={11} className="text-violet-600 dark:text-violet-400" />
+                                    </div>
+                                    <p className="text-[9px] font-black uppercase tracking-[0.15em] text-violet-500 dark:text-violet-400">Conteúdo vinculado</p>
+                                </div>
+                                {setActiveTab && (
+                                    <button
+                                        onClick={() => { onClose(); setActiveTab('PLANEJAMENTO'); }}
+                                        className="text-[8px] font-black text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-500/20 px-2 py-1 rounded-lg transition-all border border-violet-200 dark:border-violet-500/20 uppercase tracking-widest"
+                                    >
+                                        Abrir →
+                                    </button>
+                                )}
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-[9px] font-black uppercase tracking-[0.15em] text-violet-500 dark:text-violet-400 mb-1">Vinculado ao Planejamento</p>
-                                <p className="text-[11px] font-bold text-zinc-800 dark:text-zinc-200 leading-snug line-clamp-2">{t.Relacionado_Conteudo}</p>
+                            {/* Body */}
+                            <div className="p-4 space-y-3">
+                                {/* Content text */}
+                                <p className="text-[12px] font-bold text-zinc-800 dark:text-zinc-200 leading-snug">
+                                    {planItem?.Conteúdo || t.Relacionado_Conteudo || '—'}
+                                </p>
+                                {/* Meta chips */}
+                                <div className="flex flex-wrap gap-2">
+                                    {planItem?.Rede_Social && (
+                                        <span className="text-[9px] font-black px-2 py-0.5 rounded-lg bg-violet-100 dark:bg-violet-500/10 text-violet-700 dark:text-violet-300 border border-violet-200/50 dark:border-violet-500/20">
+                                            {REDE_LABELS[planItem.Rede_Social?.toUpperCase()] || planItem.Rede_Social}
+                                        </span>
+                                    )}
+                                    {(planItem?.Data || t.Data_Entrega) && (
+                                        <span className="text-[9px] font-black px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 flex items-center gap-1">
+                                            <CalendarDays size={9} className="shrink-0" />
+                                            {formatDateBR(planItem?.Data || t.Data_Entrega)}
+                                        </span>
+                                    )}
+                                    {planItem?.Hora && (
+                                        <span className="text-[9px] font-black px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
+                                            🕐 {planItem.Hora}
+                                        </span>
+                                    )}
+                                    {planClient && (
+                                        <span className="text-[9px] font-black px-2 py-0.5 rounded-lg border" style={{ backgroundColor: planClient['Cor (HEX)'] + '15', borderColor: planClient['Cor (HEX)'] + '30', color: planClient['Cor (HEX)'] }}>
+                                            {planClient.Nome}
+                                        </span>
+                                    )}
+                                    {planItem?.['Status do conteúdo'] && (
+                                        <span className={`text-[8px] font-black px-2 py-0.5 rounded-lg ${STATUS_PLAN[planItem['Status do conteúdo']] || STATUS_PLAN['EM ESPERA']}`}>
+                                            {planItem['Status do conteúdo']}
+                                        </span>
+                                    )}
+                                </div>
+                                {/* Observations if present */}
+                                {planItem?.Observações && (
+                                    <p className="text-[10px] text-zinc-500 dark:text-zinc-500 leading-relaxed border-t border-violet-100 dark:border-violet-500/10 pt-2 italic">
+                                        {planItem.Observações}
+                                    </p>
+                                )}
                             </div>
-                            {setActiveTab && (
-                                <button
-                                    onClick={() => { onClose(); setActiveTab('PLANEJAMENTO'); }}
-                                    className="shrink-0 text-[9px] font-black text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-500/20 px-2.5 py-1.5 rounded-xl transition-all border border-violet-200 dark:border-violet-500/20 uppercase tracking-widest"
-                                >
-                                    Ver →
-                                </button>
-                            )}
-                        </div>
-                    </section>
-                )}
+                        </section>
+                    );
+                })()}
 
                 {/* DESCRIPTION */}
                 <section className="relative">

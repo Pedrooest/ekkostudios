@@ -2048,6 +2048,7 @@ export default function App() {
                     viewMode={taskDetailViewMode as any}
                     setViewMode={setTaskDetailViewMode}
                     setActiveTab={setActiveTab}
+                    planejamento={planejamento}
                   />
                 </Suspense>
               </div>

@@ -1231,11 +1231,13 @@ export default function PlanejamentoTab({
                                                 onClick={async () => {
                                                     tryPlaySound('tap');
                                                     const newId = await onAdd('TAREFAS', {
-                                                        Titulo: selectedEvent.Conteúdo?.slice(0, 60) || 'Nova tarefa',
+                                                        Título: selectedEvent.Conteúdo?.slice(0, 60) || 'Nova tarefa',
                                                         Cliente_ID: selectedEvent.Cliente_ID,
+                                                        Data_Entrega: selectedEvent.Data || '',
+                                                        Área: 'Conteúdo',
                                                         Relacionado_A: 'Planejamento',
                                                         Relacionado_ID: selectedEvent.id,
-                                                        Relacionado_Conteudo: selectedEvent.Conteúdo?.slice(0, 80) || '',
+                                                        Relacionado_Conteudo: selectedEvent.Conteúdo || '',
                                                     });
                                                     if (newId) {
                                                         setActiveTab('TAREFAS');
@@ -1262,7 +1264,7 @@ export default function PlanejamentoTab({
                                                     <div className={`shrink-0 px-1.5 py-0.5 rounded-lg text-[8px] font-black uppercase border ${sc}`}>
                                                         {(t.Status || 'A FAZER').split(' ')[0]}
                                                     </div>
-                                                    <span className="flex-1 text-[10px] font-bold text-zinc-800 dark:text-zinc-200 truncate">{t.Titulo || t.Conteúdo || '—'}</span>
+                                                    <span className="flex-1 text-[10px] font-bold text-zinc-800 dark:text-zinc-200 truncate">{t.Título || t.Titulo || t.Conteúdo || '—'}</span>
                                                     <button
                                                         onClick={() => setActiveTab('TAREFAS')}
                                                         className="opacity-0 group-hover:opacity-100 text-violet-500 hover:text-violet-700 transition-all text-[8px] font-black uppercase shrink-0"
@@ -1286,13 +1288,22 @@ export default function PlanejamentoTab({
                                                                 <div className={`shrink-0 px-1.5 py-0.5 rounded-lg text-[8px] font-black uppercase border ${sc}`}>
                                                                     {(t.Status || 'A FAZER').split(' ')[0]}
                                                                 </div>
-                                                                <span className="flex-1 text-[10px] font-bold text-zinc-600 dark:text-zinc-400 truncate">{t.Titulo || t.Conteúdo || '—'}</span>
+                                                                <span className="flex-1 text-[10px] font-bold text-zinc-600 dark:text-zinc-400 truncate">{t.Título || t.Titulo || t.Conteúdo || '—'}</span>
                                                                 <button
                                                                     onClick={async () => {
                                                                         tryPlaySound('tap');
+                                                                        // Link task → planning item
                                                                         await onUpdate(t.id, 'TAREFAS', 'Relacionado_A', 'Planejamento');
                                                                         await onUpdate(t.id, 'TAREFAS', 'Relacionado_ID', selectedEvent.id);
-                                                                        await onUpdate(t.id, 'TAREFAS', 'Relacionado_Conteudo', selectedEvent.Conteúdo?.slice(0, 80) || '');
+                                                                        await onUpdate(t.id, 'TAREFAS', 'Relacionado_Conteudo', selectedEvent.Conteúdo || '');
+                                                                        // Sync client if not set
+                                                                        if (!t.Cliente_ID && selectedEvent.Cliente_ID) {
+                                                                            await onUpdate(t.id, 'TAREFAS', 'Cliente_ID', selectedEvent.Cliente_ID);
+                                                                        }
+                                                                        // Sync due date if not set
+                                                                        if ((!t.Data_Entrega || t.Data_Entrega === new Date().toISOString().split('T')[0]) && selectedEvent.Data) {
+                                                                            await onUpdate(t.id, 'TAREFAS', 'Data_Entrega', selectedEvent.Data);
+                                                                        }
                                                                     }}
                                                                     className="opacity-0 group-hover/ct:opacity-100 text-[8px] font-black text-violet-500 hover:text-violet-700 uppercase tracking-widest px-1.5 py-0.5 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/10 transition-all shrink-0 border border-transparent hover:border-violet-200 dark:hover:border-violet-500/20"
                                                                     title="Vincular a este conteúdo"
