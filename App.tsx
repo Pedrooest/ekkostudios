@@ -2047,6 +2047,7 @@ export default function App() {
                     onAdd={handleAddRow}
                     viewMode={taskDetailViewMode as any}
                     setViewMode={setTaskDetailViewMode}
+                    setActiveTab={setActiveTab}
                   />
                 </Suspense>
               </div>

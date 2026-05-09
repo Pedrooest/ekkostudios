@@ -1218,6 +1218,116 @@ export default function PlanejamentoTab({
                                     <SavingIndicator status={savingStatus[`PLANEJAMENTO:${selectedEvent?.id}:Observações`]} />
                                 </div>
                             </div>
+
+                            {/* ── TAREFAS VINCULADAS ── */}
+                            {selectedEvent && (() => {
+                                const linkedTasks = tasks.filter((t: any) => t.Relacionado_ID === selectedEvent.id);
+                                const clientTasks = tasks.filter((t: any) =>
+                                    t.Cliente_ID === selectedEvent.Cliente_ID &&
+                                    t.Relacionado_ID !== selectedEvent.id &&
+                                    !t.__archived
+                                );
+                                const STATUS_COLORS: Record<string, string> = {
+                                    'CONCLUÍDA': 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+                                    'EM ANDAMENTO': 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+                                    'A FAZER': 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700',
+                                    'BLOQUEADA': 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+                                };
+                                return (
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[11px] font-black text-violet-600 dark:text-violet-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
+                                                <CheckCircle2 size={12} strokeWidth={3} className="shrink-0" /> Tarefas Vinculadas
+                                                {linkedTasks.length > 0 && (
+                                                    <span className="px-1.5 py-0.5 bg-violet-100 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 rounded-full text-[9px] font-black">{linkedTasks.length}</span>
+                                                )}
+                                            </label>
+                                            <button
+                                                onClick={async () => {
+                                                    tryPlaySound('tap');
+                                                    const newId = await onAdd('TAREFAS', {
+                                                        Titulo: selectedEvent.Conteúdo?.slice(0, 60) || 'Nova tarefa',
+                                                        Cliente_ID: selectedEvent.Cliente_ID,
+                                                        Relacionado_A: 'Planejamento',
+                                                        Relacionado_ID: selectedEvent.id,
+                                                        Relacionado_Conteudo: selectedEvent.Conteúdo?.slice(0, 80) || '',
+                                                    });
+                                                    if (newId) {
+                                                        setActiveTab('TAREFAS');
+                                                    }
+                                                }}
+                                                className="text-[9px] font-black uppercase tracking-widest text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/10 px-2.5 py-1.5 rounded-xl transition-all flex items-center gap-1 border border-violet-200 dark:border-violet-500/20"
+                                            >
+                                                <Plus size={10} strokeWidth={3} className="shrink-0" /> Nova
+                                            </button>
+                                        </div>
+
+                                        {/* Linked tasks */}
+                                        {linkedTasks.length === 0 && clientTasks.length === 0 && (
+                                            <div className="bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 text-center">
+                                                <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-600">Nenhuma tarefa vinculada</p>
+                                                <p className="text-[9px] text-zinc-300 dark:text-zinc-700 mt-0.5">Clique em "+ Nova" para criar</p>
+                                            </div>
+                                        )}
+
+                                        {linkedTasks.map((t: any) => {
+                                            const sc = STATUS_COLORS[t.Status] || STATUS_COLORS['A FAZER'];
+                                            return (
+                                                <div key={t.id} className="flex items-center gap-2.5 bg-violet-50/50 dark:bg-violet-500/5 border border-violet-200/50 dark:border-violet-500/10 rounded-xl px-3 py-2 group">
+                                                    <div className={`shrink-0 px-1.5 py-0.5 rounded-lg text-[8px] font-black uppercase border ${sc}`}>
+                                                        {(t.Status || 'A FAZER').split(' ')[0]}
+                                                    </div>
+                                                    <span className="flex-1 text-[10px] font-bold text-zinc-800 dark:text-zinc-200 truncate">{t.Titulo || t.Conteúdo || '—'}</span>
+                                                    <button
+                                                        onClick={() => setActiveTab('TAREFAS')}
+                                                        className="opacity-0 group-hover:opacity-100 text-violet-500 hover:text-violet-700 transition-all text-[8px] font-black uppercase shrink-0"
+                                                    >→</button>
+                                                </div>
+                                            );
+                                        })}
+
+                                        {/* Client tasks (unlinked) */}
+                                        {clientTasks.length > 0 && (
+                                            <details className="group/det">
+                                                <summary className="cursor-pointer text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest select-none flex items-center gap-1 hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors py-1">
+                                                    <ChevronDown size={10} strokeWidth={3} className="shrink-0 group-open/det:rotate-180 transition-transform" />
+                                                    {clientTasks.length} tarefa{clientTasks.length !== 1 ? 's' : ''} do cliente
+                                                </summary>
+                                                <div className="mt-2 space-y-1.5">
+                                                    {clientTasks.slice(0, 8).map((t: any) => {
+                                                        const sc = STATUS_COLORS[t.Status] || STATUS_COLORS['A FAZER'];
+                                                        return (
+                                                            <div key={t.id} className="flex items-center gap-2.5 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 rounded-xl px-3 py-2 group/ct">
+                                                                <div className={`shrink-0 px-1.5 py-0.5 rounded-lg text-[8px] font-black uppercase border ${sc}`}>
+                                                                    {(t.Status || 'A FAZER').split(' ')[0]}
+                                                                </div>
+                                                                <span className="flex-1 text-[10px] font-bold text-zinc-600 dark:text-zinc-400 truncate">{t.Titulo || t.Conteúdo || '—'}</span>
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        tryPlaySound('tap');
+                                                                        await onUpdate(t.id, 'TAREFAS', 'Relacionado_A', 'Planejamento');
+                                                                        await onUpdate(t.id, 'TAREFAS', 'Relacionado_ID', selectedEvent.id);
+                                                                        await onUpdate(t.id, 'TAREFAS', 'Relacionado_Conteudo', selectedEvent.Conteúdo?.slice(0, 80) || '');
+                                                                    }}
+                                                                    className="opacity-0 group-hover/ct:opacity-100 text-[8px] font-black text-violet-500 hover:text-violet-700 uppercase tracking-widest px-1.5 py-0.5 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/10 transition-all shrink-0 border border-transparent hover:border-violet-200 dark:hover:border-violet-500/20"
+                                                                    title="Vincular a este conteúdo"
+                                                                >+Link</button>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </details>
+                                        )}
+
+                                        <button
+                                            onClick={() => setActiveTab('TAREFAS')}
+                                            className="w-full py-2 text-[9px] font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-600 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/5 rounded-xl transition-all border border-zinc-100 dark:border-zinc-800 hover:border-violet-200 dark:hover:border-violet-500/20 flex items-center justify-center gap-1.5"
+                                        >
+                                            Ver todas as tarefas →
+                                        </button>
+                                    </div>
+                                );
+                            })()}
                         </div>
 
                         <div className="p-8 bg-zinc-50/50 dark:bg-zinc-950/50 border-t border-zinc-100 dark:border-zinc-800 backdrop-blur-xl shrink-0">
