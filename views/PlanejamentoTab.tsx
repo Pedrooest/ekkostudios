@@ -786,36 +786,33 @@ export default function PlanejamentoTab({
                             ))}
                         </div>
 
-                        <div className={`grid grid-cols-7 overflow-y-auto bg-zinc-50 dark:bg-zinc-950 ${calendarSubMode === 'month' ? 'auto-rows-[minmax(130px,1fr)]' : 'auto-rows-[minmax(400px,1fr)]'}`} style={{ flex: '1 1 0', minHeight: 0 }}>
+                        <div className={`grid grid-cols-7 bg-zinc-50 dark:bg-zinc-950 ${calendarSubMode === 'month' ? 'auto-rows-[auto]' : 'auto-rows-[minmax(400px,1fr)]'} overflow-y-auto`} style={{ flex: '1 1 0', minHeight: 0 }}>
                             {calendarDays.map((diaObj, idx) => {
                                 const evts = getEventosDoDia(diaObj.dateStr);
                                 const isToday = diaObj.dateStr === new Date().toISOString().split('T')[0];
-                                const VISIBLE_MAX = 3;
-                                const hidden = evts.length - VISIBLE_MAX;
 
                                 return (
                                     <div
                                         key={idx}
-                                        className={`p-2 lg:p-3 border-r border-b border-zinc-200 dark:border-zinc-800 transition-all relative flex flex-col group/day ${diaObj.isNextMonth || diaObj.isPrevMonth ? 'bg-zinc-50/50 dark:bg-zinc-900/20 opacity-30 grayscale-[0.5]' :
+                                        className={`p-2 border-r border-b border-zinc-200 dark:border-zinc-800 transition-all relative flex flex-col group/day min-h-[110px] ${diaObj.isNextMonth || diaObj.isPrevMonth ? 'bg-zinc-50/50 dark:bg-zinc-900/20 opacity-30 grayscale-[0.5]' :
                                                 isToday ? 'bg-blue-600/5 dark:bg-blue-900/10' : 'bg-white dark:bg-zinc-900 hover:bg-white dark:hover:bg-zinc-800/50'
                                             }`}
                                     >
-                                        <div className="flex justify-between items-start mb-2 shrink-0">
-                                            <span className={`w-7 h-7 flex items-center justify-center text-[11px] rounded-xl transition-all ${isToday ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 font-black scale-110' : 'text-zinc-400 dark:text-zinc-500 font-bold group-hover/day:text-zinc-900 dark:group-hover/day:text-zinc-200'}`}>
+                                        {/* Day number row */}
+                                        <div className="flex justify-between items-center mb-1.5 shrink-0">
+                                            <span className={`w-6 h-6 flex items-center justify-center text-[10px] rounded-lg transition-all ${isToday ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30 font-black' : 'text-zinc-400 dark:text-zinc-500 font-bold group-hover/day:text-zinc-900 dark:group-hover/day:text-zinc-200'}`}>
                                                 {diaObj.day}
                                             </span>
                                             {evts.length > 0 && (
-                                                <div className="flex -space-x-1.5 opacity-0 group-hover/day:opacity-100 transition-opacity">
-                                                    {Array.from(new Set(evts.map(e => e.Rede_Social))).slice(0, 3).map((rede, ridx) => {
-                                                        const style = getRedeStyle(rede);
-                                                        return <div key={ridx} className={`w-4 h-4 rounded-full border border-white dark:border-zinc-900 ${style.bg} flex items-center justify-center`}><style.icon size={8} className={style.text} /></div>
-                                                    })}
-                                                </div>
+                                                <span className="text-[8px] font-black text-zinc-300 dark:text-zinc-600 opacity-0 group-hover/day:opacity-100 transition-opacity">
+                                                    {evts.length}
+                                                </span>
                                             )}
                                         </div>
 
-                                        <div className="space-y-1.5 flex-1">
-                                            {evts.slice(0, VISIBLE_MAX).map(evento => {
+                                        {/* Events — ALL shown, compact single-line pills */}
+                                        <div className="space-y-1 flex-1">
+                                            {evts.map(evento => {
                                                 const redeStyle = getRedeStyle(evento.Rede_Social);
                                                 const Icon = redeStyle.icon;
                                                 const client = clients.find(c => c.id === evento.Cliente_ID);
@@ -823,8 +820,11 @@ export default function PlanejamentoTab({
                                                     <div
                                                         key={evento.id}
                                                         onClick={() => openEditSidebar(evento.id)}
-                                                        className={`group/card relative p-2 rounded-lg border-l-[3px] ${redeStyle.bg} bg-opacity-30 dark:bg-opacity-10 text-left cursor-pointer transition-all hover:translate-x-0.5 active:scale-[0.98] ios-btn flex flex-col gap-1 shadow-sm`}
-                                                        style={{ borderLeftColor: client?.['Cor (HEX)'] || '#3B82F6' }}
+                                                        className={`group/card relative flex items-center gap-1.5 px-1.5 py-1 rounded-md border-l-[2px] cursor-pointer transition-all hover:translate-x-0.5 active:scale-[0.98] ios-btn overflow-hidden`}
+                                                        style={{
+                                                            borderLeftColor: client?.['Cor (HEX)'] || '#3B82F6',
+                                                            backgroundColor: (client?.['Cor (HEX)'] ? client['Cor (HEX)'] + '12' : '#3B82F612'),
+                                                        }}
                                                         onMouseEnter={(e) => {
                                                             const rect = e.currentTarget.getBoundingClientRect();
                                                             hoverTimerRef.current = setTimeout(() => setHoverPreview({ evento, rect }), 350);
@@ -834,42 +834,27 @@ export default function PlanejamentoTab({
                                                             setHoverPreview(null);
                                                         }}
                                                     >
-                                                        <div className="flex items-center justify-between">
-                                                            <div className={`flex items-center gap-1 ${redeStyle.text}`}>
-                                                                <Icon size={9} strokeWidth={3} className="shrink-0" />
-                                                                <span className="text-[8px] font-black uppercase tracking-wider opacity-80">{evento.Hora || '09:00'}</span>
-                                                            </div>
-                                                            <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: client?.['Cor (HEX)'] || '#3B82F6' }} />
+                                                        <div className={`flex items-center gap-0.5 shrink-0 ${redeStyle.text}`}>
+                                                            <Icon size={8} strokeWidth={3} className="shrink-0" />
+                                                            <span className="text-[7px] font-black uppercase opacity-80 hidden sm:inline">{evento.Hora || '09:00'}</span>
                                                         </div>
-                                                        <div className="text-[9px] font-bold leading-snug text-zinc-800 dark:text-zinc-200 line-clamp-2">
+                                                        <span className="text-[9px] font-semibold leading-none text-zinc-800 dark:text-zinc-200 truncate flex-1 min-w-0">
                                                             {evento.Conteúdo}
-                                                        </div>
-                                                        <button
-                                                            onClick={(e) => { e.stopPropagation(); handleExportToGoogle(evento); }}
-                                                            className={`absolute top-1 right-1 p-0.5 rounded transition-all opacity-0 group-hover/card:opacity-100 ${evento.google_event_id ? 'bg-emerald-500 text-white' : 'bg-white/80 dark:bg-zinc-800/80 text-zinc-400 hover:text-blue-500'}`}
-                                                            title={evento.google_event_id ? "Exportado" : "Exportar para Google Agenda"}
-                                                        >
-                                                            {evento.google_event_id ? <CalendarCheck size={10} /> : <CalendarPlus size={10} />}
-                                                        </button>
+                                                        </span>
+                                                        {evento.google_event_id && (
+                                                            <CalendarCheck size={8} className="text-emerald-500 shrink-0 opacity-0 group-hover/card:opacity-100" />
+                                                        )}
                                                     </div>
                                                 );
                                             })}
-                                            {hidden > 0 && (
-                                                <button
-                                                    onClick={() => openEditSidebar(evts[VISIBLE_MAX].id)}
-                                                    className="w-full text-[8px] font-black uppercase tracking-widest text-blue-500 hover:text-blue-700 dark:hover:text-blue-300 py-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-center"
-                                                >
-                                                    +{hidden} mais
-                                                </button>
-                                            )}
                                         </div>
 
                                         {/* Hover Add Button */}
                                         <button
                                             onClick={() => handleAddContent(diaObj.dateStr)}
-                                            className="absolute bottom-1.5 right-1.5 p-1 rounded-lg bg-blue-600 text-white opacity-0 group-hover/day:opacity-100 transition-all hover:scale-110 shadow-lg z-10"
+                                            className="absolute bottom-1 right-1 p-1 rounded-md bg-blue-600 text-white opacity-0 group-hover/day:opacity-100 transition-all hover:scale-110 shadow-md z-10"
                                         >
-                                            <Plus size={11} strokeWidth={3} />
+                                            <Plus size={9} strokeWidth={3} />
                                         </button>
                                     </div>
                                 );
