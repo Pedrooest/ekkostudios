@@ -203,8 +203,22 @@ import { PortalPopover } from './components/PortalPopover';
 
 // Fallback shown while a lazy-loaded view is being fetched.
 const RouteFallback = () => (
-  <div className="flex items-center justify-center w-full h-full min-h-[300px]">
-    <Loader2 className="w-8 h-8 animate-spin text-app-text-muted" />
+  <div className="w-full h-full p-4 sm:p-6 space-y-4 animate-pulse">
+    {/* Header skeleton */}
+    <div className="h-8 w-64 bg-zinc-200 dark:bg-zinc-800 rounded-xl" />
+    <div className="h-4 w-40 bg-zinc-100 dark:bg-zinc-800/60 rounded-lg" />
+    {/* Metric cards skeleton */}
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+      {[...Array(8)].map((_, i) => (
+        <div key={i} className="h-28 rounded-2xl bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800" />
+      ))}
+    </div>
+    {/* Chart + list skeleton */}
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+      <div className="lg:col-span-2 h-72 rounded-2xl bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800" />
+      <div className="h-72 rounded-2xl bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800" />
+      <div className="h-72 rounded-2xl bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800" />
+    </div>
   </div>
 );
 
@@ -1643,7 +1657,11 @@ export default function App() {
               >
                 <Bell size={16} />
                 {(notificacoes.some(n => !n.lida) || pendingRemindersCount > 0) && (
-                  <span className={`absolute top-1 right-1 ${pendingRemindersCount > 0 ? 'min-w-[14px] h-[14px] px-0.5 bg-red-500' : 'w-2 h-2 bg-blue-500'} rounded-full text-[8px] font-black text-white flex items-center justify-center`}>
+                  <span className={`absolute top-0.5 right-0.5 flex items-center justify-center rounded-full text-[8px] font-black text-white
+                    ${pendingRemindersCount > 0
+                      ? 'min-w-[16px] h-[16px] px-0.5 bg-red-500 shadow-sm shadow-red-500/40 animate-pulse'
+                      : 'w-2.5 h-2.5 bg-blue-500'
+                    }`}>
                     {pendingRemindersCount > 0 ? pendingRemindersCount : ''}
                   </span>
                 )}
