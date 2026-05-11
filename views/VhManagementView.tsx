@@ -174,8 +174,8 @@ export function VhManagementView({
                                                     </linearGradient>
                                                 </defs>
                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(113,113,122,0.1)" />
-                                                <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#71717a', fontWeight: 700 }} axisLine={false} tickLine={false} />
-                                                <YAxis tick={{ fontSize: 10, fill: '#71717a', fontWeight: 700 }} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val}`} />
+                                                <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#71717a', fontWeight: 700 }} axisLine={false} tickLine={false} />
+                                                <YAxis tick={{ fontSize: 11, fill: '#71717a', fontWeight: 700 }} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val}`} />
                                                 <Tooltip
                                                     contentStyle={{ backgroundColor: '#09090b', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', fontSize: '10px', color: '#e4e4e7', fontWeight: 'bold', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }}
                                                     labelStyle={{ fontWeight: 900, textTransform: 'uppercase', marginBottom: '4px' }}
@@ -192,8 +192,8 @@ export function VhManagementView({
                                         <ResponsiveContainer width="100%" height="100%">
                                             <BarChart data={clientMetrics.slice(0, 8)}>
                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.01)" />
-                                                <XAxis dataKey="name" stroke="#a1a1aa" fontSize={10} axisLine={false} tickLine={false} />
-                                                <YAxis stroke="#a1a1aa" fontSize={10} axisLine={false} tickLine={false} tickFormatter={(val) => `${val}%`} />
+                                                <XAxis dataKey="name" stroke="#a1a1aa" fontSize={11} axisLine={false} tickLine={false} />
+                                                <YAxis stroke="#a1a1aa" fontSize={11} axisLine={false} tickLine={false} tickFormatter={(val) => `${val}%`} />
                                                 <Tooltip 
                                                     cursor={{ fill: 'rgba(0,0,0,0.02)' }}
                                                     contentStyle={{ backgroundColor: 'var(--color-surface, #18181b)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', fontSize: '10px', color: '#e4e4e7', fontWeight: 'bold' }} 
@@ -233,26 +233,26 @@ export function VhManagementView({
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-left">
                                         <thead>
-                                            <tr className="bg-zinc-50 dark:bg-zinc-800/30 uppercase text-[10px] font-bold text-zinc-500 tracking-wider">
-                                                <th className="px-6 py-4">Cliente</th>
-                                                <th className="px-6 py-4">Fee Mensal</th>
-                                                <th className="px-6 py-4">Custo Ops (H)</th>
-                                                <th className="px-6 py-4">Lucro Bruto</th>
-                                                <th className="px-6 py-4 text-right">Margem</th>
+                                            <tr className="bg-zinc-100/80 dark:bg-zinc-800/60 border-b-2 border-zinc-200 dark:border-zinc-700">
+                                                <th className="px-6 py-3.5 text-left text-[9px] font-black uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-400">Cliente</th>
+                                                <th className="px-6 py-3.5 text-left text-[9px] font-black uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-400">Fee Mensal</th>
+                                                <th className="px-6 py-3.5 text-left text-[9px] font-black uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-400">Custo Ops</th>
+                                                <th className="px-6 py-3.5 text-left text-[9px] font-black uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-400">Lucro Bruto</th>
+                                                <th className="px-6 py-3.5 text-right text-[9px] font-black uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-400">Margem</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                                             {clientMetrics.map(metric => (
-                                                <tr key={metric.id} className="group hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-all font-mono text-xs">
-                                                    <td className="px-6 py-4 font-sans font-bold text-zinc-900 dark:text-white">{metric.name}</td>
-                                                    <td className="px-6 py-4 text-zinc-600 dark:text-zinc-400">{formatBRL(metric.fee)}</td>
-                                                    <td className="px-6 py-4 text-zinc-600 dark:text-zinc-400">
-                                                        <div className="flex flex-col">
+                                                <tr key={metric.id} className="group hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-all">
+                                                    <td className="px-6 py-4 font-bold text-sm text-zinc-900 dark:text-white">{metric.name}</td>
+                                                    <td className="px-6 py-4 text-sm font-mono text-zinc-600 dark:text-zinc-400">{formatBRL(metric.fee)}</td>
+                                                    <td className="px-6 py-4 text-sm font-mono text-zinc-600 dark:text-zinc-400">
+                                                        <div className="flex flex-col gap-0.5">
                                                             <span>{formatBRL(metric.cost)}</span>
-                                                            <span className="text-[9px] font-black uppercase text-zinc-400 flex items-center gap-1"><Clock size={10} /> {metric.hours.toFixed(1)}h</span>
+                                                            <span className="text-[9px] font-black uppercase text-zinc-400 flex items-center gap-1"><Clock size={9} /> {metric.hours.toFixed(1)}h</span>
                                                         </div>
                                                     </td>
-                                                    <td className={`px-6 py-4 font-bold ${metric.profit > 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                                    <td className={`px-6 py-4 text-sm font-bold font-mono ${metric.profit > 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
                                                         {formatBRL(metric.profit)}
                                                     </td>
                                                     <td className="px-6 py-4 text-right">
