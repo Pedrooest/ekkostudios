@@ -4,7 +4,8 @@ import {
     Search, Plus, Calendar, Clock, MapPin,
     Video, CheckCircle2, X, Trash2, Check,
     Briefcase, AlertTriangle, ArrowLeft,
-    CheckSquare, Square, Loader2, Sparkles
+    CheckSquare, Square, Loader2, Sparkles,
+    Package, RefreshCcw, Clapperboard
 } from 'lucide-react';
 import { Button, Card, Badge, InputSelect, PSelectPortal, DatePickerPortal, TimeInput } from '../Components';
 import { Cliente, ChecklistShoot, TipoTabela } from '../types';
@@ -397,9 +398,9 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
         const colorByCat: Record<string, string> = { 'levar': 'blue', 'trazer': 'emerald', 'gravar': 'purple' };
         
         const checklistCategories = [
-            { id: 'levar', category: '📦 O QUE LEVAR', color: 'blue', items: activeShoot.itens_levar || [] },
-            { id: 'trazer', category: '🔄 O QUE TRAZER DE VOLTA', color: 'emerald', items: activeShoot.itens_trazer || [] },
-            { id: 'gravar', category: '🎬 O QUE GRAVAR', color: 'purple', items: activeShoot.itens_gravar || [] }
+            { id: 'levar', category: 'O QUE LEVAR', icon: Package, color: 'blue', items: activeShoot.itens_levar || [] },
+            { id: 'trazer', category: 'O QUE TRAZER DE VOLTA', icon: RefreshCcw, color: 'emerald', items: activeShoot.itens_trazer || [] },
+            { id: 'gravar', category: 'O QUE GRAVAR', icon: Clapperboard, color: 'purple', items: activeShoot.itens_gravar || [] }
         ];
 
         return (
@@ -470,27 +471,40 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                 {/* 3 Columns Flex Layout */}
                 <div className="flex-1 overflow-x-hidden overflow-y-auto px-6 py-6 custom-scrollbar">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full items-start">
-                        {checklistCategories.map((category: any) => {
-                            const cColor = colorByCat[category.id] || 'blue'; // blue, emerald, purple
+                                        {checklistCategories.map((category: any) => {
+                            const cColor = colorByCat[category.id] || 'blue';
                             const cc = CAT_COLORS[cColor];
                             const isScene = category.id === 'gravar';
                             const checkedCount = category.items.filter((i:any)=>i.checked).length;
                             const totalCount = category.items.length;
                             const catProgress = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0;
+                            const CatIcon = category.icon;
+                            const allDone = checkedCount === totalCount && totalCount > 0;
 
                             return (
                                 <Card key={category.id} className="h-auto flex flex-col shadow-xl !border-0 bg-white dark:bg-zinc-900 !rounded-[2rem] overflow-hidden relative">
                                     {/* Colored progress bar at top */}
                                     <div className="absolute top-0 left-0 right-0 h-1 bg-zinc-100 dark:bg-zinc-800">
-                                        <div className={`h-full ${cc.bar} transition-all duration-700 ease-out rounded-full`} style={{ width: `${catProgress}%` }} />
+                                        <div className={`h-full ${allDone ? 'bg-emerald-500' : cc.bar} transition-all duration-700 ease-out`} style={{ width: `${catProgress}%` }} />
                                     </div>
-                                    <div className="p-5 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center bg-zinc-50/50 dark:bg-zinc-900/50 pt-6">
-                                        <h3 className={`text-sm font-black uppercase tracking-widest ${cc.title}`}>
-                                            {category.category}
-                                        </h3>
-                                        <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${checkedCount === totalCount && totalCount > 0 ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400' : 'bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-400'} transition-all`}>
-                                            {checkedCount}/{totalCount}
-                                        </span>
+                                    <div className="px-5 pt-6 pb-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-900/50">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${allDone ? 'bg-emerald-50 dark:bg-emerald-500/10' : 'bg-zinc-100 dark:bg-zinc-800'}`}>
+                                                {allDone
+                                                    ? <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+                                                    : <CatIcon size={16} className={`${cc.title} shrink-0`} />
+                                                }
+                                            </div>
+                                            <h3 className={`text-[11px] font-black uppercase tracking-widest ${allDone ? 'text-emerald-600 dark:text-emerald-400' : cc.title}`}>
+                                                {category.category}
+                                            </h3>
+                                        </div>
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border transition-all ${allDone ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400' : 'bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-500'}`}>
+                                                {checkedCount}/{totalCount}
+                                            </span>
+                                            <span className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 w-7 text-right">{catProgress}%</span>
+                                        </div>
                                     </div>
 
                                     <div className="p-5 space-y-2.5 flex-1 overflow-y-auto custom-scrollbar-mini min-h-[300px]">

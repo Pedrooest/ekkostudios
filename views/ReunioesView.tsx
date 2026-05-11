@@ -204,23 +204,25 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
                       {r.titulo || 'Sem título'}
                     </h3>
 
-                    {/* Row 3: chips data / hora / formato */}
-                    <div className="flex flex-wrap gap-1.5">
-                      <span className="inline-flex items-center gap-1 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-2 py-1">
+                    {/* Row 3: data+hora fundidos + formato */}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="inline-flex items-center gap-1.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-2.5 py-1">
                         <Calendar size={10} className="text-zinc-400 shrink-0" />
                         <span className="text-[9px] font-bold text-zinc-600 dark:text-zinc-300 capitalize">{formattedDate}</span>
-                      </span>
-                      <span className="inline-flex items-center gap-1 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-2 py-1">
-                        <Clock size={10} className="text-zinc-400 shrink-0" />
-                        <span className="text-[9px] font-bold text-zinc-600 dark:text-zinc-300">{r.hora || '--:--'}</span>
+                        {r.hora && (
+                          <>
+                            <span className="text-zinc-300 dark:text-zinc-600 text-[9px] leading-none">·</span>
+                            <span className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">{r.hora}</span>
+                          </>
+                        )}
                       </span>
                       <span className="inline-flex items-center gap-1 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-2 py-1">
                         {getFormatIcon(r.formato)}
-                        <span className="text-[9px] font-bold text-zinc-600 dark:text-zinc-300 uppercase">{r.formato}</span>
+                        <span className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400 uppercase">{r.formato}</span>
                       </span>
                       {isPast && (
                         <span className="inline-flex items-center gap-1 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-700/40 rounded-lg px-2 py-1">
-                          <span className="text-[9px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wide">Pendente</span>
+                          <span className="text-[9px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wide">⚠ Pendente</span>
                         </span>
                       )}
                     </div>
