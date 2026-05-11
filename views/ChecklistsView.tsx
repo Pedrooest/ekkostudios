@@ -653,7 +653,7 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
             {/* LIST AREA (GRID 2 COLS) */}
             <div className={`flex-1 overflow-y-auto px-6 py-8 transition-opacity duration-300 custom-scrollbar ${activeShootId ? 'opacity-0 pointer-events-none absolute inset-0' : 'opacity-100'}`}>
                 <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 card-grid">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 card-grid stagger">
                         {filteredShoots.map((shoot, idx) => {
                             const p = calculateProgress(shoot);
                             const clientData = clients.find(c => c.Nome === shoot.client);

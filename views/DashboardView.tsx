@@ -77,11 +77,6 @@ const MetricCard = React.memo(({ label, value, icon: Icon, color, trend, onClick
             {/* Colored top accent bar */}
             <div className={`absolute top-0 left-0 right-0 h-0.5 ${c.bar} opacity-60 group-hover:opacity-100 transition-opacity`} />
 
-            {/* Large ghost icon background */}
-            <div className="absolute -right-3 -bottom-3 opacity-[0.04] pointer-events-none text-zinc-900 dark:text-white">
-                <Icon size={72} />
-            </div>
-
             <div className="flex items-start justify-between relative z-10 mb-4">
                 <div className={`p-2.5 rounded-xl border ${c.icon}`}>
                     <Icon size={17} strokeWidth={2.5} className="shrink-0" />

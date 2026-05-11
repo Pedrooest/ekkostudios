@@ -261,7 +261,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5 card-grid">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5 card-grid stagger">
             {filteredClients.map(client => {
               const bgHex = client['Cor (HEX)'] || '#3B82F6';
               const initial = (client.Nome || '?').charAt(0).toUpperCase();
@@ -355,19 +355,33 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                       ))}
                     </div>
 
-                    {/* Social links + color strip */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-zinc-400">
-                        {client.WhatsApp && <Phone size={12} className="hover:text-emerald-500 transition-colors cursor-pointer" onClick={(e) => { e.stopPropagation(); window.open(`https://wa.me/${client.WhatsApp.replace(/\D/g,'')}`, '_blank'); }} />}
-                        {client.Instagram && <Instagram size={12} className="hover:text-rose-500 transition-colors cursor-pointer" onClick={(e) => { e.stopPropagation(); window.open(`https://instagram.com/${client.Instagram.replace('@','')}`, '_blank'); }} />}
-                        {(client.links || []).some((l: any) => l.categoria === 'Site') && <Globe size={12} className="hover:text-blue-500 transition-colors" />}
+                    {/* Footer: social links + palette */}
+                    <div className="flex items-center justify-between pt-1 border-t border-zinc-50 dark:border-zinc-800/60">
+                      <div className="flex items-center gap-2.5 text-zinc-300 dark:text-zinc-600">
+                        {client.WhatsApp && (
+                          <button onClick={(e) => { e.stopPropagation(); window.open(`https://wa.me/${client.WhatsApp.replace(/\D/g,'')}`, '_blank'); }}
+                            className="hover:text-emerald-500 transition-colors" title="WhatsApp">
+                            <Phone size={13} />
+                          </button>
+                        )}
+                        {client.Instagram && (
+                          <button onClick={(e) => { e.stopPropagation(); window.open(`https://instagram.com/${client.Instagram.replace('@','')}`, '_blank'); }}
+                            className="hover:text-rose-500 transition-colors" title="Instagram">
+                            <Instagram size={13} />
+                          </button>
+                        )}
+                        {(client.links || []).some((l: any) => l.categoria === 'Site') && (
+                          <Globe size={13} className="hover:text-blue-500 transition-colors" />
+                        )}
                       </div>
-                      {/* Paleta strip */}
-                      <div className="flex items-center gap-0.5">
-                        {[bgHex, ...(client.paleta_cores || []).slice(0, 3)].slice(0, 4).map((c: string, i: number) => (
-                          <div key={i} className="w-3 h-3 rounded-full border border-white dark:border-zinc-900 shadow-sm" style={{ backgroundColor: c }} />
-                        ))}
-                      </div>
+                      {/* Palette dots */}
+                      {(client.paleta_cores || []).length > 0 && (
+                        <div className="flex items-center gap-1">
+                          {[bgHex, ...(client.paleta_cores || []).slice(0, 2)].slice(0, 3).map((c: string, i: number) => (
+                            <div key={i} className="w-2.5 h-2.5 rounded-full shadow-sm ring-1 ring-white/50 dark:ring-zinc-900/50" style={{ backgroundColor: c }} />
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -468,22 +482,44 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                 const TABS = ['PERFIL', 'CONTRATO', 'LINKS', 'ASSETS', 'LOG', 'IDENTIDADE', 'METAS'];
                 return (
                   <>
-                    <div className="flex overflow-x-auto custom-scrollbar shrink-0 border-b border-zinc-100 dark:border-zinc-800 px-2">
-                      {TABS.map(tab => (
-                        <button
-                          key={tab}
-                          onClick={() => setActiveTab(tab)}
-                          className={`shrink-0 px-4 py-3 text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-                            activeTab === tab
-                              ? 'border-b-2 text-zinc-900 dark:text-zinc-100'
-                              : 'border-b-2 border-transparent text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'
-                          }`}
-                          style={activeTab === tab ? { borderBottomColor: clientColor, color: clientColor } : {}}
-                        >
-                          {tab}
-                        </button>
-                      ))}
-                    </div>
+                    {(() => {
+                      const TAB_META: Record<string, { icon: any; label: string }> = {
+                        'PERFIL':     { icon: Users,         label: 'Perfil' },
+                        'CONTRATO':   { icon: ContractFile,  label: 'Contrato' },
+                        'LINKS':      { icon: Link,          label: 'Links' },
+                        'ASSETS':     { icon: ImageIcon,     label: 'Assets' },
+                        'LOG':        { icon: Clock,         label: 'Log' },
+                        'IDENTIDADE': { icon: Palette,       label: 'Identidade' },
+                        'METAS':      { icon: Target,        label: 'Metas' },
+                      };
+                      return (
+                        <div className="flex overflow-x-auto custom-scrollbar shrink-0 border-b border-zinc-100 dark:border-zinc-800 px-3 gap-0.5">
+                          {TABS.map(tab => {
+                            const meta = TAB_META[tab] || { icon: FileText, label: tab };
+                            const TabIcon = meta.icon;
+                            const isActive = activeTab === tab;
+                            return (
+                              <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`shrink-0 flex items-center gap-1.5 px-3 py-3 text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap rounded-t-lg relative ${
+                                  isActive
+                                    ? 'text-zinc-900 dark:text-zinc-100'
+                                    : 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
+                                }`}
+                                style={isActive ? { color: clientColor } : {}}
+                              >
+                                <TabIcon size={11} className="shrink-0" strokeWidth={isActive ? 2.5 : 2} />
+                                <span className="hidden sm:inline">{meta.label}</span>
+                                {isActive && (
+                                  <span className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full" style={{ backgroundColor: clientColor }} />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
 
                     <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-4">
 

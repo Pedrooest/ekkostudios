@@ -151,7 +151,7 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 card-grid">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 card-grid stagger">
             {filteredReunioes.map(r => {
               const client = currentClient(r.cliente_id);
               const clientColor = client?.['Cor (HEX)'] || '#3B82F6';
