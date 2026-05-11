@@ -144,50 +144,63 @@ const RelatoriosView: React.FC<RelatoriosViewProps> = ({ clients, planejamento, 
           </div>
 
           {/* Resumo Executivo */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 card-grid">
-            <div className="bg-app-surface rounded-[24px] border border-app-border p-6 flex items-center gap-5">
-              <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center shrink-0">
-                <Globe size={24} className="text-indigo-500" />
-              </div>
-              <div>
-                <p className="text-[9px] font-black uppercase tracking-widest text-app-text-muted mb-0.5">Posts Publicados</p>
-                <p className="text-2xl font-black text-app-text-strong tabular-nums">{stats?.postsDone || 0}<span className="text-sm text-app-text-muted font-bold">/{stats?.postsTotal || 0}</span></p>
-                <div className="flex items-center gap-1.5 mt-1">
-                  <div className="flex-1 h-1 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                    <div className="h-full bg-indigo-500 rounded-full transition-all duration-700" style={{ width: `${stats?.postsPerc || 0}%` }}/>
-                  </div>
-                  <span className="text-[9px] font-black text-indigo-500">{stats?.postsPerc || 0}%</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 card-grid stagger">
+            {/* Posts card */}
+            <div className="bg-app-surface rounded-[24px] border border-app-border p-6 relative overflow-hidden group hover:-translate-y-0.5 hover:shadow-xl transition-all duration-300">
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-indigo-500 opacity-60 group-hover:opacity-100 transition-opacity" />
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-11 h-11 rounded-xl bg-indigo-500/10 flex items-center justify-center shrink-0">
+                  <Globe size={20} className="text-indigo-500" />
                 </div>
+                <span className="text-2xl font-black text-indigo-500 tabular-nums">{stats?.postsPerc || 0}%</span>
+              </div>
+              <p className="text-[9px] font-black uppercase tracking-widest text-app-text-muted mb-1">Posts Publicados</p>
+              <p className="text-3xl font-black text-app-text-strong tabular-nums leading-none mb-3">
+                {stats?.postsDone || 0}<span className="text-base text-app-text-muted font-bold ml-1">/ {stats?.postsTotal || 0}</span>
+              </p>
+              <div className="h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                <div className="h-full bg-indigo-500 rounded-full transition-all duration-700 ease-out" style={{ width: `${stats?.postsPerc || 0}%` }}/>
               </div>
             </div>
-            <div className="bg-app-surface rounded-[24px] border border-app-border p-6 flex items-center gap-5">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center shrink-0">
-                <CheckCircle2 size={24} className="text-emerald-500" />
-              </div>
-              <div>
-                <p className="text-[9px] font-black uppercase tracking-widest text-app-text-muted mb-0.5">Tarefas Concluídas</p>
-                <p className="text-2xl font-black text-app-text-strong tabular-nums">{stats?.tasksDone || 0}<span className="text-sm text-app-text-muted font-bold">/{stats?.tasksTotal || 0}</span></p>
-                <div className="flex items-center gap-1.5 mt-1">
-                  <div className="flex-1 h-1 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 rounded-full transition-all duration-700" style={{ width: `${stats?.tasksPerc || 0}%` }}/>
-                  </div>
-                  <span className="text-[9px] font-black text-emerald-500">{stats?.tasksPerc || 0}%</span>
+
+            {/* Tasks card */}
+            <div className="bg-app-surface rounded-[24px] border border-app-border p-6 relative overflow-hidden group hover:-translate-y-0.5 hover:shadow-xl transition-all duration-300">
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-emerald-500 opacity-60 group-hover:opacity-100 transition-opacity" />
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-11 h-11 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+                  <CheckCircle2 size={20} className="text-emerald-500" />
                 </div>
+                <span className="text-2xl font-black text-emerald-500 tabular-nums">{stats?.tasksPerc || 0}%</span>
+              </div>
+              <p className="text-[9px] font-black uppercase tracking-widest text-app-text-muted mb-1">Tarefas Concluídas</p>
+              <p className="text-3xl font-black text-app-text-strong tabular-nums leading-none mb-3">
+                {stats?.tasksDone || 0}<span className="text-base text-app-text-muted font-bold ml-1">/ {stats?.tasksTotal || 0}</span>
+              </p>
+              <div className="h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                <div className="h-full bg-emerald-500 rounded-full transition-all duration-700 ease-out" style={{ width: `${stats?.tasksPerc || 0}%` }}/>
               </div>
             </div>
-            <div className={`rounded-[24px] border p-6 flex items-center gap-5 ${(stats?.saldo || 0) >= 0 ? 'bg-emerald-50 dark:bg-emerald-500/5 border-emerald-200 dark:border-emerald-900/30' : 'bg-red-50 dark:bg-red-500/5 border-red-200 dark:border-red-900/30'}`}>
-              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${(stats?.saldo || 0) >= 0 ? 'bg-emerald-500/15' : 'bg-red-500/15'}`}>
-                <DollarSign size={24} className={(stats?.saldo || 0) >= 0 ? 'text-emerald-600' : 'text-red-500'} />
+
+            {/* Financial card */}
+            <div className={`rounded-[24px] border p-6 relative overflow-hidden group hover:-translate-y-0.5 hover:shadow-xl transition-all duration-300 ${(stats?.saldo || 0) >= 0 ? 'bg-emerald-50 dark:bg-emerald-500/5 border-emerald-200 dark:border-emerald-900/30' : 'bg-red-50 dark:bg-red-500/5 border-red-200 dark:border-red-900/30'}`}>
+              <div className={`absolute top-0 left-0 right-0 h-0.5 opacity-60 group-hover:opacity-100 transition-opacity ${(stats?.saldo || 0) >= 0 ? 'bg-emerald-500' : 'bg-red-500'}`} />
+              <div className="flex items-start justify-between mb-4">
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${(stats?.saldo || 0) >= 0 ? 'bg-emerald-500/15' : 'bg-red-500/15'}`}>
+                  <DollarSign size={20} className={(stats?.saldo || 0) >= 0 ? 'text-emerald-600' : 'text-red-500'} />
+                </div>
+                <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg ${(stats?.saldo || 0) >= 0 ? 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' : 'bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-400'}`}>
+                  {(stats?.saldo || 0) >= 0 ? '↑ Positivo' : '↓ Negativo'}
+                </span>
               </div>
-              <div>
-                <p className="text-[9px] font-black uppercase tracking-widest text-app-text-muted mb-0.5">Resultado Financeiro</p>
-                <p className={`text-xl font-black tabular-nums ${(stats?.saldo || 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
-                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(stats?.saldo || 0)}
-                </p>
-                <p className="text-[9px] font-bold text-app-text-muted mt-0.5">
-                  R$ {new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 }).format(stats?.receita || 0)} in · R$ {new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 }).format(stats?.despesa || 0)} out
-                </p>
-              </div>
+              <p className="text-[9px] font-black uppercase tracking-widest text-app-text-muted mb-1">Resultado Financeiro</p>
+              <p className={`text-3xl font-black tabular-nums leading-none mb-2 ${(stats?.saldo || 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
+                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(stats?.saldo || 0)}
+              </p>
+              <p className="text-[9px] font-bold text-app-text-muted">
+                <span className="text-emerald-600">+{new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 }).format(stats?.receita || 0)}</span>
+                <span className="mx-1 opacity-40">·</span>
+                <span className="text-red-500">-{new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 }).format(stats?.despesa || 0)}</span>
+              </p>
             </div>
           </div>
 

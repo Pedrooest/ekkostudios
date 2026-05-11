@@ -330,21 +330,33 @@ export const DashboardView = React.memo(({ clients = [], tasks = [], financas = 
             </header>
 
             {/* 2. METRIC CARDS */}
-            <div className="space-y-3">
+            <div className="space-y-4">
                 {/* Linha 1: Operacional */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 card-grid">
-                    <MetricCard label="Clientes Ativos"         value={operationalStats.activeClients}       icon={Users}        color="blue"    onClick={() => setActiveTab('CLIENTES')} />
-                    <MetricCard label="Tarefas Pendentes"       value={operationalStats.pendingTasks}        icon={ListChecks}   color="orange"  onClick={() => setActiveTab('TAREFAS')} />
-                    <MetricCard label="Tasks Concluídas (Mês)"  value={operationalStats.completedThisMonth}  icon={CheckCircle2} color="emerald" onClick={() => setActiveTab('TAREFAS')} />
-                    <MetricCard label="Posts Publicados (Mês)"  value={operationalStats.publishedThisMonth}  icon={Layers}       color="indigo"  onClick={() => setActiveTab('PLANEJAMENTO')} />
+                <div>
+                    <div className="flex items-center gap-3 mb-2.5">
+                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-600">Operacional</span>
+                        <div className="flex-1 h-px bg-zinc-100 dark:bg-zinc-800" />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 card-grid stagger">
+                        <MetricCard label="Clientes Ativos"         value={operationalStats.activeClients}       icon={Users}        color="blue"    onClick={() => setActiveTab('CLIENTES')} />
+                        <MetricCard label="Tarefas Pendentes"       value={operationalStats.pendingTasks}        icon={ListChecks}   color="orange"  onClick={() => setActiveTab('TAREFAS')} />
+                        <MetricCard label="Tasks Concluídas (Mês)"  value={operationalStats.completedThisMonth}  icon={CheckCircle2} color="emerald" onClick={() => setActiveTab('TAREFAS')} />
+                        <MetricCard label="Posts Publicados (Mês)"  value={operationalStats.publishedThisMonth}  icon={Layers}       color="indigo"  onClick={() => setActiveTab('PLANEJAMENTO')} />
+                    </div>
                 </div>
 
                 {/* Linha 2: Financeiro */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 card-grid">
-                    <MetricCard label="Receita do Mês"   value={financialStats.revenue.current}  icon={TrendingUp}   color="emerald" trend={financialStats.revenue.trend}   onClick={() => setActiveTab('FINANCAS')} />
-                    <MetricCard label="Despesas do Mês"  value={financialStats.expenses.current} icon={TrendingDown} color="rose"    trend={financialStats.expenses.trend}  onClick={() => setActiveTab('FINANCAS')} />
-                    <MetricCard label="Lucro Líquido"    value={financialStats.profit.current}   icon={DollarSign}   color="amber"   trend={financialStats.profit.trend}    onClick={() => setActiveTab('FINANCAS')} />
-                    <MetricCard label="MRR Operacional"  value={financialStats.mrr.current}      icon={Target}       color="cyan"                                           onClick={() => setActiveTab('CLIENTES')} />
+                <div>
+                    <div className="flex items-center gap-3 mb-2.5">
+                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-600">Financeiro</span>
+                        <div className="flex-1 h-px bg-zinc-100 dark:bg-zinc-800" />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 card-grid stagger">
+                        <MetricCard label="Receita do Mês"   value={financialStats.revenue.current}  icon={TrendingUp}   color="emerald" trend={financialStats.revenue.trend}   onClick={() => setActiveTab('FINANCAS')} />
+                        <MetricCard label="Despesas do Mês"  value={financialStats.expenses.current} icon={TrendingDown} color="rose"    trend={financialStats.expenses.trend}  onClick={() => setActiveTab('FINANCAS')} />
+                        <MetricCard label="Lucro Líquido"    value={financialStats.profit.current}   icon={DollarSign}   color="amber"   trend={financialStats.profit.trend}    onClick={() => setActiveTab('FINANCAS')} />
+                        <MetricCard label="MRR Operacional"  value={financialStats.mrr.current}      icon={Target}       color="cyan"                                           onClick={() => setActiveTab('CLIENTES')} />
+                    </div>
                 </div>
             </div>
 
