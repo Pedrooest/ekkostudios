@@ -244,6 +244,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
     const [searchQuery, setSearchQuery] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
+    const [withdrawalSuggestion, setWithdrawalSuggestion] = useState(0); // valor calculado sugerido
     const [isContractModalOpen, setIsContractModalOpen] = useState(false);
     
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -668,24 +669,49 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
 
     // Handlers para Retiradas
     const handleSaveWithdrawal = async () => {
-        if (!withdrawalData.valor || !workspaceId) return;
+        const valorNumerico = parseNumericValue(withdrawalData.valor);
+        if (!valorNumerico || valorNumerico <= 0 || !workspaceId) return;
         tryPlaySound('success');
-        
+
+        const socioNome = withdrawalData.socio === 1 ? sociosConfig.socio1.nome : sociosConfig.socio2.nome;
+        const mesRef = withdrawalData.mes_referencia
+            ? new Date(withdrawalData.mes_referencia + '-01').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+            : '';
+
         try {
+            // 1. Salvar na tabela de retiradas_socios
             const novaRetirada = {
                 workspace_id: workspaceId,
                 socio: withdrawalData.socio,
-                valor: parseNumericValue(withdrawalData.valor),
+                valor: valorNumerico,
                 data: withdrawalData.data,
                 mes_referencia: withdrawalData.mes_referencia,
                 observacao: withdrawalData.observacao
             };
-
             const result = await (window as any).DatabaseService.createRetiradaSocio(novaRetirada);
-            if (result) {
-                setRetiradas(prev => [...prev, result]);
-                setIsWithdrawalModalOpen(false);
+            if (result) setRetiradas(prev => [...prev, result]);
+
+            // 2. Registrar como Saída no extrato de Finanças
+            if (onAdd) {
+                const descricao = [
+                    `Retirada — ${socioNome}`,
+                    mesRef ? `Ref: ${mesRef}` : '',
+                    withdrawalData.observacao || ''
+                ].filter(Boolean).join(' · ');
+
+                await onAdd({
+                    'Tipo': 'Saída',
+                    'Categoria': 'Pró-Labore',
+                    'Descrição': descricao,
+                    'Valor': valorNumerico,
+                    'Data': withdrawalData.data,
+                    'Status': 'Pago',
+                    'Recorrência': 'Única',
+                    'Cliente_ID': null
+                });
             }
+
+            setIsWithdrawalModalOpen(false);
         } catch (err) {
             console.error('Erro ao salvar retirada:', err);
         }
@@ -1140,7 +1166,8 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                                     </div>
                                                     <button 
                                                         onClick={() => {
-                                                            setWithdrawalData(prev => ({ ...prev, socio: s.id as 1|2, valor: repasseValue.toFixed(2) }));
+                                                            setWithdrawalData(prev => ({ ...prev, socio: s.id as 1|2, valor: '', observacao: '' }));
+                                                            setWithdrawalSuggestion(repasseValue);
                                                             setIsWithdrawalModalOpen(true);
                                                         }}
                                                         className={`p-4 rounded-2xl border flex flex-col items-center justify-center gap-1 transition-all ${jaRetirado > 0 ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-600' : 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20 text-blue-600 hover:scale-[1.02] shadow-sm hover:shadow-blue-500/10'}`}
@@ -1557,52 +1584,113 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
             {/* MODAL DE RETIRADA */}
             {isWithdrawalModalOpen && ReactDOM.createPortal(
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-sm animate-fade-blur" onClick={() => setIsWithdrawalModalOpen(false)}></div>
-                    <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[32px] shadow-2xl flex flex-col overflow-hidden animate-zoom-in">
-                        <div className="p-8 text-center">
-                            <div className={`w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center text-4xl font-black text-white bg-gradient-to-br ${withdrawalData.socio === 1 ? 'from-blue-600 to-indigo-600' : 'from-emerald-500 to-teal-500'}`}>
-                                {withdrawalData.socio === 1 ? sociosConfig.socio1.nome.charAt(0) : sociosConfig.socio2.nome.charAt(0)}
-                            </div>
-                            <h3 className="text-lg font-black text-zinc-900 dark:text-white uppercase mb-2">Confirmar Retirada</h3>
-                            <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest mb-8">
-                                Registrando saída para {withdrawalData.socio === 1 ? sociosConfig.socio1.nome : sociosConfig.socio2.nome}
-                            </p>
+                    <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-sm animate-fade-blur" onClick={() => setIsWithdrawalModalOpen(false)} />
+                    <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[28px] shadow-2xl overflow-hidden animate-fade-up">
 
-                            <div className="space-y-4">
-                                <div className="p-4 bg-zinc-50 dark:bg-zinc-950 rounded-2xl border border-zinc-100 dark:border-zinc-800">
-                                    <label className="text-[9px] font-black text-zinc-400 uppercase block mb-2">Valor da Retirada</label>
-                                    <input 
-                                        type="number" 
+                        {/* Header */}
+                        <div className={`px-7 pt-7 pb-5 border-b border-zinc-100 dark:border-zinc-800 flex items-center gap-4`}>
+                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl font-black text-white bg-gradient-to-br shadow-lg shrink-0 ${withdrawalData.socio === 1 ? 'from-blue-600 to-indigo-600 shadow-indigo-500/20' : 'from-emerald-500 to-teal-500 shadow-teal-500/20'}`}>
+                                {(withdrawalData.socio === 1 ? sociosConfig.socio1.nome : sociosConfig.socio2.nome).charAt(0).toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500">Retirada de Sócio</p>
+                                <h3 className="text-base font-black text-zinc-900 dark:text-white uppercase truncate">
+                                    {withdrawalData.socio === 1 ? sociosConfig.socio1.nome : sociosConfig.socio2.nome}
+                                </h3>
+                            </div>
+                            <button onClick={() => setIsWithdrawalModalOpen(false)} className="p-2 rounded-xl text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all shrink-0">
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        <div className="p-7 space-y-4">
+                            {/* Valor — livre, com sugestão */}
+                            <div className="space-y-2">
+                                <label className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.15em] ml-1 flex items-center justify-between">
+                                    <span>Valor da Retirada</span>
+                                    {withdrawalSuggestion > 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setWithdrawalData(prev => ({ ...prev, valor: withdrawalSuggestion.toFixed(2) }))}
+                                            className="text-[9px] font-black text-blue-500 hover:text-blue-700 bg-blue-50 dark:bg-blue-500/10 px-2 py-0.5 rounded-lg border border-blue-200 dark:border-blue-500/20 transition-all hover:scale-105"
+                                        >
+                                            Usar calculado: {formatBRL(withdrawalSuggestion)}
+                                        </button>
+                                    )}
+                                </label>
+                                <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-950 border-2 border-zinc-200 dark:border-zinc-800 focus-within:border-blue-500 dark:focus-within:border-blue-500 rounded-2xl px-5 py-4 transition-all">
+                                    <span className="text-zinc-400 font-black text-sm shrink-0">R$</span>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        autoFocus
+                                        placeholder="0,00"
                                         value={withdrawalData.valor}
                                         onChange={e => setWithdrawalData(prev => ({ ...prev, valor: e.target.value }))}
-                                        className="bg-transparent border-none outline-none text-2xl font-black text-zinc-900 dark:text-white text-center w-full"
-                                    />
-                                </div>
-                                <div className="p-4 bg-zinc-50 dark:bg-zinc-950 rounded-2xl border border-zinc-100 dark:border-zinc-800">
-                                    <label className="text-[9px] font-black text-zinc-400 uppercase block mb-2">Referência (Mês/Ano)</label>
-                                    <input 
-                                        type="month" 
-                                        value={withdrawalData.mes_referencia}
-                                        onChange={e => setWithdrawalData(prev => ({ ...prev, mes_referencia: e.target.value }))}
-                                        className="bg-transparent border-none outline-none text-sm font-black text-zinc-900 dark:text-white text-center w-full uppercase"
+                                        className="flex-1 bg-transparent border-none outline-none text-2xl font-black text-zinc-900 dark:text-white tabular-nums placeholder:text-zinc-300 dark:placeholder:text-zinc-700"
                                     />
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4 mt-10">
-                                <button 
-                                    onClick={() => setIsWithdrawalModalOpen(false)}
-                                    className="py-4 text-[10px] font-black uppercase text-zinc-500 hover:text-rose-500"
-                                >
-                                    Cancelar
-                                </button>
-                                <button 
-                                    onClick={handleSaveWithdrawal}
-                                    className="py-4 bg-emerald-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 shadow-lg shadow-emerald-500/20"
-                                >
-                                    Confirmar ✓
-                                </button>
+                            {/* Data */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.15em] ml-1">Data da Saída</label>
+                                    <input
+                                        type="date"
+                                        value={withdrawalData.data}
+                                        onChange={e => setWithdrawalData(prev => ({ ...prev, data: e.target.value }))}
+                                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.15em] ml-1">Referência</label>
+                                    <input
+                                        type="month"
+                                        value={withdrawalData.mes_referencia}
+                                        onChange={e => setWithdrawalData(prev => ({ ...prev, mes_referencia: e.target.value }))}
+                                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all"
+                                    />
+                                </div>
                             </div>
+
+                            {/* Observação */}
+                            <div className="space-y-1.5">
+                                <label className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.15em] ml-1">Observação (opcional)</label>
+                                <input
+                                    type="text"
+                                    placeholder="Ex: Pró-labore março, comissão, adiantamento..."
+                                    value={withdrawalData.observacao}
+                                    onChange={e => setWithdrawalData(prev => ({ ...prev, observacao: e.target.value }))}
+                                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2.5 text-xs font-medium text-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all placeholder:text-zinc-300 dark:placeholder:text-zinc-700"
+                                />
+                            </div>
+
+                            {/* Info: vai registrar como saída */}
+                            <div className="flex items-start gap-2.5 bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-200 dark:border-emerald-500/20 rounded-xl px-4 py-3">
+                                <CheckCircle2 size={14} className="text-emerald-500 shrink-0 mt-0.5" />
+                                <p className="text-[9px] font-bold text-emerald-700 dark:text-emerald-400 leading-relaxed">
+                                    Será registrado como <strong>Saída (Pró-Labore)</strong> no extrato financeiro e no histórico de retiradas.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="px-7 pb-7 flex gap-3">
+                            <button
+                                onClick={() => setIsWithdrawalModalOpen(false)}
+                                className="flex-1 py-3.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-900 dark:hover:text-white border border-zinc-200 dark:border-zinc-800 rounded-2xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleSaveWithdrawal}
+                                disabled={!withdrawalData.valor || parseNumericValue(withdrawalData.valor) <= 0}
+                                className="flex-1 py-3.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+                            >
+                                <Check size={14} className="shrink-0" /> Registrar Saída
+                            </button>
                         </div>
                     </div>
                 </div>,
