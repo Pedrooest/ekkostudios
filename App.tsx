@@ -1530,36 +1530,43 @@ export default function App() {
           <Logo collapsed={sidebarCollapsed} theme={theme} />
         </div>
         
-        <nav className="flex-1 py-4 px-2 space-y-6 overflow-y-auto custom-scrollbar flex flex-col">
+        <nav className="flex-1 py-3 px-2 space-y-5 overflow-y-auto custom-scrollbar flex flex-col">
           {/* GRUPOS DE ABAS */}
           {[
             { label: 'Visão Geral', tabs: ['DASHBOARD', 'CLIENTES', 'REUNIOES', 'ORGANICKIA'] },
             { label: 'Estratégia', tabs: ['RDC', 'MATRIZ', 'COBO'] },
             { label: 'Execução', tabs: ['PLANEJAMENTO', 'TAREFAS', 'CHECKLISTS'] },
-            { label: 'Gestão/Extras', tabs: ['FINANCAS', 'VH', 'RELATORIOS', 'WHITEBOARD'] }
+            { label: 'Gestão', tabs: ['FINANCAS', 'VH', 'RELATORIOS', 'WHITEBOARD'] }
           ].map((group, gIdx) => (
-            <div key={group.label} className="space-y-1">
+            <div key={group.label} className="space-y-0.5">
               {!sidebarCollapsed && (
-                <p className="px-4 text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-400 mb-2">
+                <p className="px-3 text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-600 mb-1.5 mt-1">
                   {group.label}
                 </p>
               )}
+              {sidebarCollapsed && gIdx > 0 && (
+                <div className="h-px bg-zinc-100 dark:bg-zinc-800 mx-auto w-8 mb-2" />
+              )}
               {group.tabs.filter(t => tabOrder.includes(t as TipoTabela)).map(tab => {
                 const TabIcon = getIcon(tab as TipoTabela);
+                const isActive = activeTab === tab;
                 return (
                   <button
                     key={`nav-tab-${tab}`}
                     onClick={() => { playUISound('tap'); setActiveTab(tab as TipoTabela); if (window.innerWidth < 1024) setSidebarCollapsed(true); }}
                     title={sidebarCollapsed ? TABLE_LABELS[tab as TipoTabela] : undefined}
-                    className={`w-full flex items-center transition-all group rounded-lg h-9 relative
-                      ${activeTab === tab ? 'bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60'}
-                      ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}`}
+                    className={`w-full flex items-center transition-all duration-200 group rounded-xl h-9 relative
+                      ${isActive
+                        ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm'
+                        : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/70'}
+                      ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-2.5'}`}
                   >
-                    {activeTab === tab && (
-                      <span aria-hidden className="absolute left-0 inset-y-1.5 w-1 rounded-r-full bg-purple-600 dark:bg-purple-400" />
+                    <TabIcon size={16} className={`shrink-0 transition-all ${isActive ? '' : 'group-hover:scale-110'}`} strokeWidth={isActive ? 2.5 : 2} />
+                    {!sidebarCollapsed && (
+                      <span className={`text-[10px] font-black uppercase tracking-widest truncate min-w-0 flex-1 text-left ${isActive ? '' : 'font-bold'}`}>
+                        {TABLE_LABELS[tab as TipoTabela]}
+                      </span>
                     )}
-                    <TabIcon size={18} className="shrink-0 transition-transform group-hover:scale-110" />
-                    {!sidebarCollapsed && <span className="text-[11px] font-bold uppercase tracking-widest truncate min-w-0 flex-1 text-left">{TABLE_LABELS[tab as TipoTabela]}</span>}
                   </button>
                 );
               })}
@@ -1567,18 +1574,18 @@ export default function App() {
           ))}
         </nav>
 
-        <div className="p-2 border-t border-zinc-100 dark:border-zinc-800 space-y-1 bg-white dark:bg-zinc-900 flex flex-col">
-          <button onClick={() => { playUISound('tap'); setIsLibraryEditorOpen(true); }} title={sidebarCollapsed ? "Configurações Globais" : undefined} className={`w-full flex items-center transition-all group rounded-lg h-9 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60 ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}`}>
-            <Layers size={18} className="shrink-0 transition-transform group-hover:scale-110" />
-            {!sidebarCollapsed && <span className="text-[11px] font-bold uppercase tracking-widest truncate min-w-0 flex-1 text-left">Tipos</span>}
+        <div className="p-2 border-t border-zinc-100 dark:border-zinc-800 space-y-0.5 bg-white dark:bg-zinc-900 flex flex-col">
+          <button onClick={() => { playUISound('tap'); setIsLibraryEditorOpen(true); }} title={sidebarCollapsed ? "Configurações Globais" : undefined} className={`w-full flex items-center transition-all duration-200 group rounded-xl h-9 text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-2.5'}`}>
+            <Layers size={16} className="shrink-0 group-hover:scale-110 transition-transform" strokeWidth={2} />
+            {!sidebarCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest truncate">Tipos</span>}
           </button>
-          <button onClick={() => { playUISound('tap'); setIsReorderOpen(true); }} title={sidebarCollapsed ? "Ordenar Abas" : undefined} className={`w-full flex items-center transition-all group rounded-lg h-9 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60 ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}`}>
-            <Move size={18} className="shrink-0 transition-transform group-hover:scale-110" />
-            {!sidebarCollapsed && <span className="text-[11px] font-bold uppercase tracking-widest truncate min-w-0 flex-1 text-left">Ordem</span>}
+          <button onClick={() => { playUISound('tap'); setIsReorderOpen(true); }} title={sidebarCollapsed ? "Ordenar Abas" : undefined} className={`w-full flex items-center transition-all duration-200 group rounded-xl h-9 text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-2.5'}`}>
+            <Move size={16} className="shrink-0 group-hover:scale-110 transition-transform" strokeWidth={2} />
+            {!sidebarCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest truncate">Ordenar</span>}
           </button>
-          <button onClick={() => { playUISound('tap'); setSidebarCollapsed(!sidebarCollapsed); }} title={sidebarCollapsed ? "Expandir Sidebar" : "Recolher Sidebar"} className={`w-full flex items-center transition-all group rounded-lg h-9 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60 ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}`}>
-            {sidebarCollapsed ? <Maximize2 size={18} className="shrink-0 transition-transform group-hover:scale-110" /> : <ArrowLeft size={18} className="shrink-0 transition-transform group-hover:scale-110" />}
-            {!sidebarCollapsed && <span className="text-[11px] font-bold uppercase tracking-widest truncate min-w-0 flex-1 text-left">{sidebarCollapsed ? 'Expandir' : 'Recolher'}</span>}
+          <button onClick={() => { playUISound('tap'); setSidebarCollapsed(!sidebarCollapsed); }} title={sidebarCollapsed ? "Expandir" : "Recolher"} className={`w-full flex items-center transition-all duration-200 group rounded-xl h-9 text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-2.5'}`}>
+            {sidebarCollapsed ? <Maximize2 size={16} className="shrink-0 group-hover:scale-110 transition-transform" strokeWidth={2} /> : <ArrowLeft size={16} className="shrink-0 group-hover:scale-110 transition-transform" strokeWidth={2} />}
+            {!sidebarCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest truncate">{sidebarCollapsed ? 'Expandir' : 'Recolher'}</span>}
           </button>
         </div>
       </aside>
