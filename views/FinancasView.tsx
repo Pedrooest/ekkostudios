@@ -19,6 +19,7 @@ import {
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { StatCard, Badge, Button, InputSelect, Card, PSelectPortal, DatePickerPortal } from '../Components';
 import { generateId } from '../utils/id';
+import { DatabaseService } from '../DatabaseService';
 
 // ==========================================
 // UTILS
@@ -303,9 +304,9 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
     // Buscar retiradas
     useEffect(() => {
         const loadRetiradas = async () => {
-            if (workspaceId !== 'default' && (window as any).DatabaseService) {
+            if (workspaceId && workspaceId !== 'default') {
                 try {
-                    const data = await (window as any).DatabaseService.fetchRetiradasSocios(workspaceId);
+                    const data = await DatabaseService.fetchRetiradasSocios(workspaceId);
                     setRetiradas(data || []);
                 } catch (err) {
                     console.error('Erro ao carregar retiradas:', err);
@@ -665,7 +666,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
     // Handlers para Retiradas
     const handleSaveWithdrawal = async () => {
         const valorNumerico = parseNumericValue(withdrawalData.valor);
-        if (!valorNumerico || valorNumerico <= 0 || !workspaceId) return;
+        if (!valorNumerico || valorNumerico <= 0) return;
         tryPlaySound('success');
 
         const socioNome = withdrawalData.socio === 1 ? sociosConfig.socio1.nome : sociosConfig.socio2.nome;
@@ -673,43 +674,45 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
             ? new Date(withdrawalData.mes_referencia + '-01').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
             : '';
 
-        try {
-            // 1. Salvar na tabela de retiradas_socios
-            const novaRetirada = {
-                workspace_id: workspaceId,
-                socio: withdrawalData.socio,
-                valor: valorNumerico,
-                data: withdrawalData.data,
-                mes_referencia: withdrawalData.mes_referencia,
-                observacao: withdrawalData.observacao
-            };
-            const result = await (window as any).DatabaseService.saveRetiradaSocio(novaRetirada, workspaceId);
-            if (result) setRetiradas(prev => [...prev, result]);
+        const descricao = [
+            `Retirada — ${socioNome}`,
+            mesRef ? `Ref: ${mesRef}` : '',
+            withdrawalData.observacao || ''
+        ].filter(Boolean).join(' · ');
 
-            // 2. Registrar como Saída no extrato de Finanças
-            if (onAdd) {
-                const descricao = [
-                    `Retirada — ${socioNome}`,
-                    mesRef ? `Ref: ${mesRef}` : '',
-                    withdrawalData.observacao || ''
-                ].filter(Boolean).join(' · ');
-
-                await onAdd({
-                    'Tipo': 'Saída',
-                    'Categoria': 'Pró-Labore',
-                    'Descrição': descricao,
-                    'Valor': valorNumerico,
-                    'Data': withdrawalData.data,
-                    'Status': 'Pago',
-                    'Recorrência': 'Única',
-                    'Cliente_ID': null
-                });
-            }
-
-            setIsWithdrawalModalOpen(false);
-        } catch (err) {
-            console.error('Erro ao salvar retirada:', err);
+        // 1. Registrar como Saída no extrato (operação principal — nunca bloqueia)
+        if (onAdd) {
+            await onAdd({
+                'Tipo': 'Saída',
+                'Categoria': 'Pró-Labore',
+                'Descrição': descricao,
+                'Valor': valorNumerico,
+                'Data': withdrawalData.data,
+                'Status': 'Pago',
+                'Recorrência': 'Única',
+                'Cliente_ID': null
+            });
         }
+
+        // 2. Salvar no histórico de retiradas (secundário)
+        if (workspaceId && workspaceId !== 'default') {
+            try {
+                const novaRetirada = {
+                    workspace_id: workspaceId,
+                    socio: withdrawalData.socio,
+                    valor: valorNumerico,
+                    data: withdrawalData.data,
+                    mes_referencia: withdrawalData.mes_referencia,
+                    observacao: withdrawalData.observacao
+                };
+                const result = await DatabaseService.saveRetiradaSocio(novaRetirada, workspaceId);
+                if (result) setRetiradas(prev => [...prev, result]);
+            } catch (err) {
+                console.error('Histórico de retiradas: erro não crítico', err);
+            }
+        }
+
+        setIsWithdrawalModalOpen(false);
     };
 
     // Quick Actions
@@ -1274,7 +1277,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                                             <button 
                                                                 onClick={async () => {
                                                                     if(confirm('Tem certeza?')) {
-                                                                        await (window as any).DatabaseService.deleteRetiradaSocio(r.id);
+                                                                        await DatabaseService.deleteRetiradaSocio(r.id);
                                                                         setRetiradas(prev => prev.filter(x => x.id !== r.id));
                                                                     }
                                                                 }}
