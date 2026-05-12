@@ -288,7 +288,7 @@ export function CoboView({
 
       {/* CARDS VIEW */}
       {viewMode === 'cards' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 card-grid">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 card-grid stagger">
           {filteredData.map(item => {
             const ch = getChannelStyle(item.Canal);
             const zo = getZonaStyle(item.Zona);
@@ -296,7 +296,7 @@ export function CoboView({
             return (
               <div
                 key={item.id}
-                className={`relative bg-white dark:bg-zinc-900 rounded-2xl border transition-all duration-300 group cursor-pointer lift active:scale-[0.98] ${isSelected ? 'border-blue-500 ring-2 ring-blue-500/20 shadow-lg' : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-md'}`}
+                className={`relative bg-white dark:bg-zinc-900 rounded-2xl border transition-all duration-300 group cursor-pointer active:scale-[0.98] hover:-translate-y-1 ${isSelected ? 'border-blue-500 ring-2 ring-blue-500/20 shadow-xl' : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-xl dark:hover:shadow-black/30'}`}
                 onClick={() => setDrawerItem(item)}
               >
                 {/* Checkbox */}
@@ -310,15 +310,25 @@ export function CoboView({
                 </button>
 
                 {/* Color accent top bar */}
-                <div className={`h-1.5 rounded-t-2xl ${ch.bg.replace('bg-','bg-').replace('/10','').replace('50','200').replace('dark:bg-','')}`}
-                  style={{ background: `linear-gradient(90deg, ${item.Canal?.toLowerCase().includes('instagram') ? '#e1306c' : item.Canal?.toLowerCase().includes('youtube') ? '#ff0000' : item.Canal?.toLowerCase().includes('linkedin') ? '#0a66c2' : item.Canal?.toLowerCase().includes('tiktok') ? '#010101' : item.Canal?.toLowerCase().includes('whatsapp') ? '#25d366' : '#6366f1'}40, transparent)` }}
-                />
+                {(() => {
+                  const canal = (item.Canal || '').toLowerCase();
+                  const color = canal.includes('instagram') ? '#e1306c'
+                    : canal.includes('youtube') ? '#ff0000'
+                    : canal.includes('linkedin') ? '#0a66c2'
+                    : canal.includes('tiktok') ? '#69c9d0'
+                    : canal.includes('whatsapp') ? '#25d366'
+                    : canal.includes('telegram') ? '#229ed9'
+                    : canal.includes('twitter') || canal.includes('x/') ? '#1da1f2'
+                    : canal.includes('facebook') ? '#1877f2'
+                    : '#6366f1';
+                  return <div className="h-1 rounded-t-2xl opacity-80" style={{ background: `linear-gradient(90deg, ${color}60 0%, ${color}20 100%)` }} />;
+                })()}
 
                 <div className="p-5">
                   {/* Header */}
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${ch.bg} ${ch.text} ${ch.border} shrink-0`}>
+                      <div className={`w-11 h-11 rounded-2xl flex items-center justify-center border shadow-sm group-hover:shadow-md transition-shadow ${ch.bg} ${ch.text} ${ch.border} shrink-0 relative`}>
                         {ch.icon}
                         <SavingIndicator status={savingStatus[`COBO:${item.id}:Canal`]} />
                       </div>

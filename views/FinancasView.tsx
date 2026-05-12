@@ -829,7 +829,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                             </div>
                         )}
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 card-grid">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 card-grid stagger">
                             <StatCard label="Receita" value={formatBRL(summary.receita)} icon={TrendingUp} color="emerald" />
                             <StatCard label="Despesas" value={formatBRL(summary.despesas)} icon={TrendingDown} color="rose" />
                             <StatCard label="Lucro Líquido" value={formatBRL(summary.lucro)} icon={Wallet} color={summary.lucro >= 0 ? "emerald" : "rose"} />
@@ -843,8 +843,8 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                 <div className="h-[280px] w-full mt-4">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#71717a', fontWeight: 'bold' }} />
-                                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#71717a', fontWeight: 'bold' }} tickFormatter={(v) => `R$${v/1000}k`} />
+                                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#71717a', fontWeight: 'bold' }} />
+                                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#71717a', fontWeight: 'bold' }} tickFormatter={(v) => `R$${v/1000}k`} />
                                             <Tooltip cursor={{ fill: 'rgba(0,0,0,0.02)' }} contentStyle={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.08)', background: document.documentElement.classList.contains('dark') ? '#18181b' : '#fff', color: document.documentElement.classList.contains('dark') ? '#f4f4f5' : '#111827', fontSize: '11px', fontWeight: 'bold' }} />
                                             <Legend wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }} />
                                             <Bar dataKey="Receita" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={20} />
@@ -883,17 +883,23 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
 
                                 <Card title="Top Clientes Mês" className="shadow-sm border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-3xl">
                                     <div className="p-6 space-y-4">
-                                        {topClientes.map((c, i) => (
-                                            <div key={c.id}>
-                                                <div className="flex justify-between text-[10px] font-black tracking-wide uppercase mb-1">
-                                                    <span className="text-zinc-600 dark:text-zinc-300">{i+1}. {c.nome}</span>
-                                                    <span className="text-emerald-500">{formatBRL(c.valor)}</span>
+                                        {topClientes.map((c, i) => {
+                                            const pct = Math.round((c.valor / topClientes[0].valor) * 100);
+                                            return (
+                                                <div key={c.id} className="space-y-1">
+                                                    <div className="flex justify-between items-center">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[7px] font-black text-white shrink-0 ${i === 0 ? 'bg-emerald-500' : i === 1 ? 'bg-blue-500' : 'bg-zinc-400'}`}>{i+1}</span>
+                                                            <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide truncate max-w-[100px]">{c.nome}</span>
+                                                        </div>
+                                                        <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 tabular-nums shrink-0">{formatBRL(c.valor)}</span>
+                                                    </div>
+                                                    <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                                                        <div className={`h-full rounded-full transition-all duration-700 ${i === 0 ? 'bg-emerald-500' : i === 1 ? 'bg-blue-500' : 'bg-zinc-400'}`} style={{ width: `${pct}%` }} />
+                                                    </div>
                                                 </div>
-                                                <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-1.5 overflow-hidden">
-                                                    <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${(c.valor / topClientes[0].valor) * 100}%` }}></div>
-                                                </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </Card>
                             </div>
@@ -945,15 +951,15 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                         <div className="table-responsive flex-1 overflow-auto custom-scrollbar">
                             <table className="w-full text-left border-collapse table-fixed min-w-[800px]">
                                 <thead>
-                                    <tr className="bg-zinc-50/80 dark:bg-zinc-900/40 text-[9px] font-black text-zinc-400 uppercase tracking-widest sticky top-0 backdrop-blur-sm z-10">
-                                        <th className="px-6 py-4 w-[110px]">Data</th>
-                                        <th className="px-6 py-4 w-[60px]">Dia</th>
-                                        <th className="px-6 py-4">Descrição</th>
-                                        <th className="px-6 py-4 w-[160px]">Cliente</th>
-                                        <th className="px-6 py-4 w-[120px]">Categoria</th>
-                                        <th className="px-6 py-4 w-[110px]">Valor</th>
-                                        <th className="px-6 py-4 w-[110px] text-center">Status</th>
-                                        <th className="px-6 py-4 w-[100px] text-center">Ações</th>
+                                    <tr className="bg-zinc-100/80 dark:bg-zinc-800/50 border-b-2 border-zinc-200 dark:border-zinc-700 sticky top-0 backdrop-blur-sm z-10">
+                                        <th className="px-6 py-3.5 w-[110px] text-left text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.15em]">Data</th>
+                                        <th className="px-6 py-3.5 w-[60px] text-left text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.15em]">Dia</th>
+                                        <th className="px-6 py-3.5 text-left text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.15em]">Descrição</th>
+                                        <th className="px-6 py-3.5 w-[160px] text-left text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.15em]">Cliente</th>
+                                        <th className="px-6 py-3.5 w-[120px] text-left text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.15em]">Categoria</th>
+                                        <th className="px-6 py-3.5 w-[110px] text-left text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.15em]">Valor</th>
+                                        <th className="px-6 py-3.5 w-[110px] text-center text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.15em]">Status</th>
+                                        <th className="px-6 py-3.5 w-[100px] text-center text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.15em]">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
@@ -961,14 +967,21 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                         .sort((a,b) => b.data.localeCompare(a.data))
                                         .map((tx, txIdx) => {
                                             const isAtrasado = tx.status !== 'Pago' && tx.data < new Date().toISOString().split('T')[0];
+                                            const accentColor = tx.status === 'Pago'
+                                                ? 'bg-emerald-500'
+                                                : isAtrasado
+                                                    ? 'bg-rose-500'
+                                                    : tx.tipo === 'entrada'
+                                                        ? 'bg-amber-400'
+                                                        : 'bg-zinc-300 dark:bg-zinc-600';
                                             return (
                                                 <tr key={tx.id}
                                                     className="hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 group transition-all duration-150 relative"
                                                     style={{ animationDelay: `${Math.min(txIdx * 20, 300)}ms`, animation: 'fadeInUp 0.3s cubic-bezier(0.32,0.72,0,1) both' }}
                                                 >
                                                     <td className="pl-0 pr-6 py-4 text-[10px] font-black text-zinc-500 relative">
-                                                        {/* Left color accent bar */}
-                                                        <div className={`absolute left-0 top-2 bottom-2 w-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity ${tx.tipo === 'entrada' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                                                        {/* Left color accent bar — always visible, coded by status */}
+                                                        <div className={`absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full ${accentColor}`} />
                                                         <span className="pl-6">{new Date(tx.data + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
                                                     </td>
                                                     <td className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
