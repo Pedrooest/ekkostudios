@@ -683,7 +683,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                 mes_referencia: withdrawalData.mes_referencia,
                 observacao: withdrawalData.observacao
             };
-            const result = await (window as any).DatabaseService.createRetiradaSocio(novaRetirada);
+            const result = await (window as any).DatabaseService.saveRetiradaSocio(novaRetirada, workspaceId);
             if (result) setRetiradas(prev => [...prev, result]);
 
             // 2. Registrar como Saída no extrato de Finanças
