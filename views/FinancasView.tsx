@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import {
     ArrowUpCircle, ArrowDownCircle, Wallet, CreditCard,
@@ -8,7 +8,10 @@ import {
     PieChart as PieChartIcon, TrendingUp, TrendingDown, Building,
     AlertTriangle, Check, Layers, User, ArrowRight, History,
     Save, PieChart as PieChartLucide, TrendingUp as TrendingUpLucide,
-    Sparkles, Mail, Bell, CalendarDays
+    Sparkles, Mail, Bell, CalendarDays, LayoutDashboard, Receipt,
+    Users2, Repeat2, CircleAlert, SlidersHorizontal, Zap,
+    ChevronRight, BarChart3, Activity, CreditCard as CreditCardIcon,
+    Target, Award, Flame, Star
 } from 'lucide-react';
 import { sendEmail, templates } from '../utils/emailService';
 import { 
@@ -790,67 +793,100 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
     };
 
     return (
-        <div className="view-root flex-1 min-h-0 flex flex-col bg-white dark:bg-zinc-950 overflow-hidden animate-fade-blur">
-            {/* Header */}
-            <div className="shrink-0 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 px-6 py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md sticky top-0 z-10">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
-                        <Wallet size={20} className="shrink-0" />
-                    </div>
-                    <div>
-                        <h1 className="text-lg font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100">Financeiro Corporate</h1>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mt-0.5">Gestão Estratégica de Capital</p>
-                    </div>
+        <div className="view-root flex-1 min-h-0 flex flex-col bg-zinc-50 dark:bg-[#0a0a0b] overflow-hidden animate-fade-blur">
+            {/* ── HEADER PREMIUM ── */}
+            <div className="shrink-0 relative overflow-hidden border-b border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 sticky top-0 z-20">
+                {/* Mesh gradient background */}
+                <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                    <div className="absolute -top-20 -left-20 w-80 h-80 bg-emerald-400/5 dark:bg-emerald-500/5 rounded-full blur-3xl" />
+                    <div className="absolute -top-10 right-0 w-60 h-60 bg-teal-400/5 dark:bg-teal-500/5 rounded-full blur-2xl" />
                 </div>
 
-                <div className="flex items-center gap-3 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
-                    <div className="flex bg-zinc-100 dark:bg-zinc-900 p-1 rounded-xl">
-                        {[
-                            { id: 'VISAO_GERAL', label: 'Dashboard' },
-                            { id: 'LANCAMENTOS', label: 'Lançamentos' },
-                            { id: 'SOCIOS', label: 'Sócios' },
-                            { id: 'MRR', label: 'Gestão MRR' },
-                            { id: 'PENDENCIAS', label: `Pendências (${totalPendencias})` }
-                        ].map(tab => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveInternalTab(tab.id as any)}
-                                className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeInternalTab === tab.id ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
-                            >
-                                {tab.label}
-                            </button>
-                        ))}
+                <div className="relative flex flex-col gap-0">
+                    {/* Top row: logo + action */}
+                    <div className="flex items-center justify-between px-6 py-4">
+                        <div className="flex items-center gap-3.5">
+                            <div className="relative">
+                                <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center text-white shadow-xl shadow-emerald-500/25">
+                                    <Wallet size={20} strokeWidth={2.5} />
+                                </div>
+                                <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-400 border-2 border-white dark:border-zinc-900 rounded-full shadow-sm" />
+                            </div>
+                            <div>
+                                <h1 className="text-base font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100 leading-none">Financeiro</h1>
+                                <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-400 mt-0.5">Gestão Estratégica de Capital</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => handleOpenModal()}
+                            className="flex items-center gap-2 h-9 px-4 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.03] hover:shadow-lg active:scale-[0.97] transition-all shadow-md"
+                        >
+                            <Plus size={14} strokeWidth={3} />
+                            Lançamento
+                        </button>
                     </div>
-                    <Button onClick={() => handleOpenModal()} className="!h-[36px] px-4 shrink-0 !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 shadow-xl border-none">
-                        <Plus size={16} className="mr-2 shrink-0" /> Lancar
-                    </Button>
+
+                    {/* Tab navigation — pill style with indicator */}
+                    <div className="px-6 pb-0">
+                        <div className="flex items-center gap-1 overflow-x-auto hide-scrollbar -mb-px">
+                            {[
+                                { id: 'VISAO_GERAL',  label: 'Dashboard',     icon: LayoutDashboard },
+                                { id: 'LANCAMENTOS',  label: 'Lançamentos',   icon: Receipt },
+                                { id: 'SOCIOS',       label: 'Sócios',        icon: Users2 },
+                                { id: 'MRR',          label: 'MRR',           icon: Activity },
+                                { id: 'PENDENCIAS',   label: `Pendências${totalPendencias > 0 ? ` · ${totalPendencias}` : ''}`, icon: CircleAlert }
+                            ].map(tab => {
+                                const active = activeInternalTab === tab.id;
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveInternalTab(tab.id as any)}
+                                        className={`relative flex items-center gap-1.5 px-4 py-3 text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border-b-2 ${
+                                            active
+                                                ? 'border-zinc-900 dark:border-zinc-100 text-zinc-900 dark:text-zinc-100'
+                                                : 'border-transparent text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'
+                                        }`}
+                                    >
+                                        <tab.icon size={12} strokeWidth={active ? 3 : 2} />
+                                        {tab.label}
+                                        {tab.id === 'PENDENCIAS' && totalPendencias > 0 && (
+                                            <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-zinc-50 dark:bg-[#0a0a0b]">
-                
+
                 {/* ===============================================================
-                    TAB 1: VISÃO GERAL
+                    TAB 1: VISÃO GERAL — REDESIGN PREMIUM
                 =============================================================== */}
                 {activeInternalTab === 'VISAO_GERAL' && (
-                    <div className="space-y-6">
-                        {/* Seletor de Período */}
-                        <div className="flex flex-wrap items-center justify-between gap-4">
-                            <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Visão Financeira</h2>
-                            
-                            <div className="flex items-center gap-1.5 p-1 bg-zinc-200/50 dark:bg-zinc-800/50 rounded-2xl">
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-3 duration-300">
+
+                        {/* ── Period selector bar ── */}
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-6 rounded-full bg-gradient-to-b from-emerald-400 to-teal-500" />
+                                <h2 className="text-sm font-black uppercase tracking-tight text-zinc-900 dark:text-white">Visão Financeira</h2>
+                            </div>
+                            <div className="flex items-center gap-1 p-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm">
                                 {[
                                     { id: 'este_mes', label: 'Este mês' },
-                                    { id: 'mes_passado', label: 'Mês passado' },
+                                    { id: 'mes_passado', label: 'Último mês' },
                                     { id: 'ultimos_3_meses', label: '3 Meses' },
                                     { id: 'este_ano', label: 'Este ano' },
                                     { id: 'tudo', label: 'Tudo' },
-                                    { id: 'personalizado', label: 'Personalizado' }
+                                    { id: 'personalizado', label: '…' }
                                 ].map(p => (
                                     <button
                                         key={p.id}
                                         onClick={() => setFilterPeriod(p.id)}
-                                        className={`px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all ${filterPeriod === p.id ? 'bg-blue-600 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+                                        className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${filterPeriod === p.id ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md' : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'}`}
                                     >
                                         {p.label}
                                     </button>
@@ -859,104 +895,188 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                         </div>
 
                         {filterPeriod === 'personalizado' && (
-                            <div className="flex flex-wrap items-center gap-3 p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl animate-in fade-in slide-in-from-top-2">
+                            <div className="flex flex-wrap items-center gap-3 p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl animate-in fade-in slide-in-from-top-2">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[10px] font-black uppercase text-zinc-400">De</span>
-                                    <DatePickerPortal
-                                        value={customDateRange.start}
-                                        onChange={(val) => setCustomDateRange(prev => ({ ...prev, start: val }))}
-                                        size="sm"
-                                        clearable={false}
-                                        className="w-44"
-                                    />
+                                    <span className="text-[9px] font-black uppercase text-zinc-400 tracking-widest">De</span>
+                                    <DatePickerPortal value={customDateRange.start} onChange={val => setCustomDateRange(p => ({ ...p, start: val }))} size="sm" clearable={false} className="w-40" />
                                 </div>
-                                <ArrowRight size={14} className="text-zinc-400 shrink-0" />
+                                <ChevronRight size={14} className="text-zinc-300" />
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[10px] font-black uppercase text-zinc-400">Até</span>
-                                    <DatePickerPortal
-                                        value={customDateRange.end}
-                                        onChange={(val) => setCustomDateRange(prev => ({ ...prev, end: val }))}
-                                        size="sm"
-                                        clearable={false}
-                                        className="w-44"
-                                    />
+                                    <span className="text-[9px] font-black uppercase text-zinc-400 tracking-widest">Até</span>
+                                    <DatePickerPortal value={customDateRange.end} onChange={val => setCustomDateRange(p => ({ ...p, end: val }))} size="sm" clearable={false} className="w-40" />
                                 </div>
                             </div>
                         )}
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 card-grid stagger">
-                            <StatCard label="Receita" value={formatBRL(summary.receita)} icon={TrendingUp} color="emerald" />
-                            <StatCard label="Despesas" value={formatBRL(summary.despesas)} icon={TrendingDown} color="rose" />
-                            <StatCard label="Lucro Líquido" value={formatBRL(summary.lucro)} icon={Wallet} color={summary.lucro >= 0 ? "emerald" : "rose"} />
-                            <StatCard label="Inadimplência" value={formatBRL(summary.inadimplenciaValue)} icon={AlertTriangle} color="amber" />
-                            <StatCard label="A Receber" value={formatBRL(summary.aReceber)} icon={Clock} color="blue" />
-                            <StatCard label="MRR Atual" value={formatBRL(mrrValue)} icon={Repeat} color="indigo" />
+                        {/* ── Hero metric cards ── */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 stagger">
+                            {/* RECEITA */}
+                            <div className="group relative overflow-hidden bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[28px] p-6 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 shadow-sm">
+                                <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-400/5 rounded-full -mr-10 -mt-10 group-hover:bg-emerald-400/10 transition-all duration-700" />
+                                <div className="relative">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
+                                            <TrendingUp size={18} className="text-emerald-500" />
+                                        </div>
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-200/50 dark:border-emerald-500/20">Receita</span>
+                                    </div>
+                                    <p className="text-2xl font-black text-zinc-900 dark:text-white tabular-nums leading-none mb-1">{formatBRL(summary.receita)}</p>
+                                    <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Total recebido no período</p>
+                                </div>
+                            </div>
+                            {/* DESPESAS */}
+                            <div className="group relative overflow-hidden bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[28px] p-6 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 shadow-sm">
+                                <div className="absolute top-0 right-0 w-40 h-40 bg-rose-400/5 rounded-full -mr-10 -mt-10 group-hover:bg-rose-400/10 transition-all duration-700" />
+                                <div className="relative">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="w-10 h-10 rounded-2xl bg-rose-500/10 flex items-center justify-center">
+                                            <TrendingDown size={18} className="text-rose-500" />
+                                        </div>
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-rose-500 bg-rose-50 dark:bg-rose-500/10 px-2.5 py-1 rounded-full border border-rose-200/50 dark:border-rose-500/20">Despesas</span>
+                                    </div>
+                                    <p className="text-2xl font-black text-zinc-900 dark:text-white tabular-nums leading-none mb-1">{formatBRL(summary.despesas)}</p>
+                                    <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Total de saídas no período</p>
+                                </div>
+                            </div>
+                            {/* LUCRO — destaque */}
+                            <div className={`group relative overflow-hidden rounded-[28px] p-6 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 shadow-lg ${summary.lucro >= 0 ? 'bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600' : 'bg-gradient-to-br from-rose-600 via-pink-600 to-rose-500'}`}>
+                                <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:bg-white/15 transition-all duration-700 blur-xl" />
+                                <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full -ml-10 -mb-10 blur-xl" />
+                                <div className="relative">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="w-10 h-10 rounded-2xl bg-white/15 flex items-center justify-center">
+                                            <Wallet size={18} className="text-white" />
+                                        </div>
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-white/80 bg-white/10 px-2.5 py-1 rounded-full border border-white/20">Lucro Líquido</span>
+                                    </div>
+                                    <p className="text-2xl font-black text-white tabular-nums leading-none mb-1">{formatBRL(summary.lucro)}</p>
+                                    <p className="text-[9px] font-bold text-white/60 uppercase tracking-widest">Resultado do período</p>
+                                </div>
+                            </div>
                         </div>
 
-                        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 stagger">
-                            <Card title="Fluxo Semestral (R$)" className="xl:col-span-2 shadow-sm border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 !p-6 rounded-3xl">
-                                <div className="h-[280px] w-full mt-4">
+                        {/* ── Secondary metrics strip ── */}
+                        <div className="grid grid-cols-3 gap-3 stagger">
+                            {[
+                                { label: 'A Receber', value: summary.aReceber, icon: Clock, color: 'text-blue-500', bg: 'bg-blue-500/8' },
+                                { label: 'Inadimplência', value: summary.inadimplenciaValue, icon: AlertTriangle, color: 'text-amber-500', bg: 'bg-amber-500/8' },
+                                { label: 'MRR Atual', value: mrrValue, icon: Repeat, color: 'text-indigo-500', bg: 'bg-indigo-500/8' },
+                            ].map((m, i) => (
+                                <div key={i} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex items-center gap-3 hover:shadow-md transition-all shadow-sm">
+                                    <div className={`w-9 h-9 rounded-xl ${m.bg} flex items-center justify-center shrink-0`}>
+                                        <m.icon size={16} className={m.color} />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 truncate">{m.label}</p>
+                                        <p className={`text-sm font-black tabular-nums ${m.color}`}>{formatBRL(m.value)}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* ── Charts row ── */}
+                        <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+                            {/* Area chart */}
+                            <div className="xl:col-span-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[28px] p-6 shadow-sm">
+                                <div className="flex items-center justify-between mb-6">
+                                    <div>
+                                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-1">Fluxo Financeiro</p>
+                                        <h3 className="text-sm font-black text-zinc-900 dark:text-white">Receitas vs Despesas</h3>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-[9px] font-black uppercase tracking-widest">
+                                        <span className="flex items-center gap-1.5 text-emerald-500"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />Receita</span>
+                                        <span className="flex items-center gap-1.5 text-rose-500"><span className="w-2 h-2 rounded-full bg-rose-500 inline-block" />Despesa</span>
+                                    </div>
+                                </div>
+                                <div className="h-[240px] w-full">
                                     <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#71717a', fontWeight: 'bold' }} />
-                                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#71717a', fontWeight: 'bold' }} tickFormatter={(v) => `R$${v/1000}k`} />
-                                            <Tooltip cursor={{ fill: 'rgba(0,0,0,0.02)' }} contentStyle={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.08)', background: document.documentElement.classList.contains('dark') ? '#18181b' : '#fff', color: document.documentElement.classList.contains('dark') ? '#f4f4f5' : '#111827', fontSize: '11px', fontWeight: 'bold' }} />
-                                            <Legend wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }} />
-                                            <Bar dataKey="Receita" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={20} />
-                                            <Bar dataKey="Despesa" fill="#f43f5e" radius={[4, 4, 0, 0]} maxBarSize={20} />
-                                        </BarChart>
+                                        <AreaChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                                            <defs>
+                                                <linearGradient id="gradReceita" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
+                                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                                </linearGradient>
+                                                <linearGradient id="gradDespesa" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.15} />
+                                                    <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#3f3f46" opacity={0.07} />
+                                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#71717a', fontWeight: 'bold' }} />
+                                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#71717a', fontWeight: 'bold' }} tickFormatter={v => `${v/1000}k`} />
+                                            <Tooltip contentStyle={{ borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)', background: document.documentElement.classList.contains('dark') ? '#18181b' : '#fff', color: document.documentElement.classList.contains('dark') ? '#f4f4f5' : '#111827', fontSize: '11px', fontWeight: 'bold', padding: '10px 16px' }} />
+                                            <Area type="monotone" dataKey="Receita" stroke="#10b981" strokeWidth={2.5} fill="url(#gradReceita)" dot={false} activeDot={{ r: 4, fill: '#10b981' }} />
+                                            <Area type="monotone" dataKey="Despesa" stroke="#f43f5e" strokeWidth={2.5} fill="url(#gradDespesa)" dot={false} activeDot={{ r: 4, fill: '#f43f5e' }} />
+                                        </AreaChart>
                                     </ResponsiveContainer>
                                 </div>
-                            </Card>
+                            </div>
 
-                            <div className="space-y-6 flex flex-col">
-                                <Card title="Despesas (Centro de Custo)" className="flex-1 shadow-sm border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-3xl">
-                                    <div className="h-[200px] w-full">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <PieChart>
-                                                <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={2} dataKey="value">
-                                                    {pieData.map((entry, index) => (
-                                                        <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                                                    ))}
-                                                </Pie>
-                                                <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.08)', background: document.documentElement.classList.contains('dark') ? '#18181b' : '#fff', color: document.documentElement.classList.contains('dark') ? '#f4f4f5' : '#111827', fontSize: '11px' }} formatter={(v:any) => formatBRL(v)} />
-                                            </PieChart>
-                                        </ResponsiveContainer>
-                                    </div>
-                                    <div className="px-6 pb-6 pt-0 space-y-2 max-h-[140px] overflow-y-auto custom-scrollbar">
-                                        {pieData.map((item, i) => (
-                                            <div key={i} className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-2.5 h-2.5 rounded-full" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }}></div>
-                                                    <span className="text-[10px] font-black tracking-widest text-zinc-500 uppercase">{item.name}</span>
-                                                </div>
-                                                <span className="text-xs font-black text-zinc-900 dark:text-white tabular-nums">{formatBRL(item.value)}</span>
+                            {/* Right column: Pie + Top clients */}
+                            <div className="flex flex-col gap-5">
+                                {/* Donut Chart */}
+                                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[28px] p-5 shadow-sm flex-1">
+                                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-1">Centro de Custo</p>
+                                    <h3 className="text-xs font-black text-zinc-900 dark:text-white mb-3">Despesas por Categoria</h3>
+                                    {pieData.length > 0 ? (
+                                        <>
+                                            <div className="h-[130px] w-full">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <PieChart>
+                                                        <Pie data={pieData} cx="50%" cy="50%" innerRadius={42} outerRadius={58} paddingAngle={3} dataKey="value" strokeWidth={0}>
+                                                            {pieData.map((_, index) => <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />)}
+                                                        </Pie>
+                                                        <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.06)', background: document.documentElement.classList.contains('dark') ? '#18181b' : '#fff', fontSize: '11px' }} formatter={(v: any) => formatBRL(v)} />
+                                                    </PieChart>
+                                                </ResponsiveContainer>
                                             </div>
-                                        ))}
-                                    </div>
-                                </Card>
-
-                                <Card title="Top Clientes Mês" className="shadow-sm border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-3xl">
-                                    <div className="p-6 space-y-4">
-                                        {topClientes.map((c, i) => {
-                                            const pct = Math.round((c.valor / topClientes[0].valor) * 100);
-                                            return (
-                                                <div key={c.id} className="space-y-1">
-                                                    <div className="flex justify-between items-center">
+                                            <div className="space-y-2 mt-2 max-h-[100px] overflow-y-auto custom-scrollbar">
+                                                {pieData.slice(0, 4).map((item, i) => (
+                                                    <div key={i} className="flex items-center justify-between">
                                                         <div className="flex items-center gap-2">
-                                                            <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[7px] font-black text-white shrink-0 ${i === 0 ? 'bg-emerald-500' : i === 1 ? 'bg-blue-500' : 'bg-zinc-400'}`}>{i+1}</span>
-                                                            <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide truncate max-w-[100px]">{c.nome}</span>
+                                                            <div className="w-2 h-2 rounded-full shrink-0" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                                                            <span className="text-[9px] font-black tracking-widest text-zinc-500 uppercase truncate max-w-[90px]">{item.name}</span>
                                                         </div>
-                                                        <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 tabular-nums shrink-0">{formatBRL(c.valor)}</span>
+                                                        <span className="text-[10px] font-black text-zinc-900 dark:text-white tabular-nums">{formatBRL(item.value)}</span>
                                                     </div>
-                                                    <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-1.5 overflow-hidden">
-                                                        <div className={`h-full rounded-full transition-all duration-700 ${i === 0 ? 'bg-emerald-500' : i === 1 ? 'bg-blue-500' : 'bg-zinc-400'}`} style={{ width: `${pct}%` }} />
+                                                ))}
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="flex items-center justify-center h-32 text-zinc-300">
+                                            <p className="text-[9px] font-black uppercase tracking-widest">Sem despesas pagas</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Top Clients */}
+                                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[28px] p-5 shadow-sm">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <Award size={14} className="text-amber-500" />
+                                        <h3 className="text-xs font-black text-zinc-900 dark:text-white uppercase tracking-tight">Top Clientes</h3>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {topClientes.length === 0 && <p className="text-[9px] text-zinc-400 font-black uppercase tracking-widest text-center py-4">Sem receitas registradas</p>}
+                                        {topClientes.map((c, i) => {
+                                            const pct = Math.round((c.valor / (topClientes[0]?.valor || 1)) * 100);
+                                            const colors = ['bg-emerald-500', 'bg-blue-500', 'bg-indigo-500', 'bg-purple-500', 'bg-zinc-400'];
+                                            return (
+                                                <div key={c.id} className="space-y-1.5">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[7px] font-black text-white shrink-0 ${colors[i] || 'bg-zinc-400'}`}>{i + 1}</div>
+                                                            <span className="text-[9px] font-black text-zinc-700 dark:text-zinc-300 uppercase tracking-wide truncate max-w-[85px]">{c.nome}</span>
+                                                        </div>
+                                                        <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 tabular-nums shrink-0">{formatBRL(c.valor)}</span>
+                                                    </div>
+                                                    <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-1 overflow-hidden">
+                                                        <div className={`h-full rounded-full transition-all duration-700 ${colors[i] || 'bg-zinc-400'}`} style={{ width: `${pct}%`, transitionDelay: `${i * 100}ms` }} />
                                                     </div>
                                                 </div>
                                             );
                                         })}
                                     </div>
-                                </Card>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -975,164 +1095,190 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
 
 
                 {/* ===============================================================
-                    TAB 2: LANÇAMENTOS
+                    TAB 2: LANÇAMENTOS — REDESIGN PREMIUM
                 =============================================================== */}
-                {activeInternalTab === 'LANCAMENTOS' && (
-                    <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 !p-0 rounded-3xl overflow-hidden flex flex-col h-[calc(100vh-200px)]">
-                        <div className="p-5 border-b border-zinc-200 dark:border-zinc-800 flex flex-wrap gap-4 items-center bg-zinc-50/50 dark:bg-zinc-900/50">
-                            <div className="flex-1 min-w-[200px] relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 shrink-0" size={14} />
-                                <input 
-                                    type="text" placeholder="Buscar LANÇAMENTO..."
+                {activeInternalTab === 'LANCAMENTOS' && (() => {
+                    const totalEntradas = financasFiltradas.filter(t => t.tipo === 'entrada').reduce((a, t) => a + t.valor, 0);
+                    const totalSaidas = financasFiltradas.filter(t => t.tipo === 'saida' || t.tipo === 'assinatura').reduce((a, t) => a + t.valor, 0);
+                    const saldo = totalEntradas - totalSaidas;
+                    return (
+                    <div className="flex flex-col gap-5 animate-in fade-in slide-in-from-bottom-3 duration-300 h-full">
+                        {/* Filters bar */}
+                        <div className="flex flex-wrap gap-3 items-center">
+                            <div className="flex-1 min-w-[180px] relative group">
+                                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-zinc-700 dark:group-focus-within:text-zinc-300 transition-colors" size={14} />
+                                <input
+                                    type="text" placeholder="Buscar lançamento..."
                                     value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                                    className="w-full h-10 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl pl-9 pr-4 text-[11px] font-black uppercase tracking-widest outline-none focus:border-emerald-500 transition-colors"
+                                    className="w-full h-10 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl pl-9 pr-4 text-[11px] font-black uppercase tracking-widest outline-none focus:border-zinc-400 dark:focus:border-zinc-600 transition-colors shadow-sm"
                                 />
                             </div>
-                            <PSelectPortal
-                                value={filterTipo}
-                                onChange={val => setFilterTipo(val)}
-                                options={[
-                                    { value: 'all', label: 'Tipos' },
-                                    { value: 'entrada', label: 'Receitas' },
-                                    { value: 'saida', label: 'Despesas' },
-                                ]}
-                            />
+                            {/* Type filter chips */}
+                            <div className="flex items-center gap-1 p-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm">
+                                {[
+                                    { id: 'all', label: 'Todos' },
+                                    { id: 'entrada', label: '↑ Receitas' },
+                                    { id: 'saida', label: '↓ Despesas' },
+                                ].map(t => (
+                                    <button key={t.id} onClick={() => setFilterTipo(t.id)}
+                                        className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${filterTipo === t.id ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'}`}>
+                                        {t.label}
+                                    </button>
+                                ))}
+                            </div>
                             <PSelectPortal
                                 value={filterCliente}
                                 onChange={val => setFilterCliente(val)}
-                                options={[{ value: 'all', label: 'Clientes (Todos)' }, ...(clients?.map((cl: any) => ({ value: cl.id, label: cl.Nome })) ?? [])]}
+                                options={[{ value: 'all', label: 'Todos clientes' }, ...(clients?.map((cl: any) => ({ value: cl.id, label: cl.Nome })) ?? [])]}
                             />
+                            <div className="flex items-center gap-1 p-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm">
+                                {[
+                                    { id: 'este_mes', label: 'Mês' },
+                                    { id: 'este_ano', label: 'Ano' },
+                                    { id: 'tudo', label: 'Tudo' },
+                                ].map(p => (
+                                    <button key={p.id} onClick={() => setFilterPeriod(p.id)}
+                                        className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${filterPeriod === p.id ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'}`}>
+                                        {p.label}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                        <div className="table-responsive flex-1 overflow-auto custom-scrollbar">
-                            <table className="w-full text-left border-collapse table-fixed min-w-[800px]">
-                                <thead>
-                                    <tr className="bg-zinc-100/80 dark:bg-zinc-800/50 border-b-2 border-zinc-200 dark:border-zinc-700 sticky top-0 backdrop-blur-sm z-10">
-                                        <th className="px-6 py-3.5 w-[110px] text-left text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.15em]">Data</th>
-                                        <th className="px-6 py-3.5 w-[60px] text-left text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.15em]">Dia</th>
-                                        <th className="px-6 py-3.5 text-left text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.15em]">Descrição</th>
-                                        <th className="px-6 py-3.5 w-[160px] text-left text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.15em]">Cliente</th>
-                                        <th className="px-6 py-3.5 w-[120px] text-left text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.15em]">Categoria</th>
-                                        <th className="px-6 py-3.5 w-[110px] text-left text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.15em]">Valor</th>
-                                        <th className="px-6 py-3.5 w-[110px] text-center text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.15em]">Status</th>
-                                        <th className="px-6 py-3.5 w-[100px] text-center text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.15em]">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
-                                    {financasFiltradas
-                                        .sort((a,b) => b.data.localeCompare(a.data))
-                                        .map((tx, txIdx) => {
+
+                        {/* Table card */}
+                        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[24px] shadow-sm overflow-hidden flex flex-col" style={{ maxHeight: 'calc(100vh - 300px)', minHeight: '400px' }}>
+                            <div className="flex-1 overflow-auto custom-scrollbar">
+                                <table className="w-full text-left border-collapse table-fixed min-w-[780px]">
+                                    <thead>
+                                        <tr className="bg-zinc-50/80 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-700/60 sticky top-0 backdrop-blur-sm z-10">
+                                            <th className="px-5 py-3 w-[120px] text-[8px] font-black text-zinc-400 uppercase tracking-[0.18em]">Data</th>
+                                            <th className="px-5 py-3 text-[8px] font-black text-zinc-400 uppercase tracking-[0.18em]">Descrição</th>
+                                            <th className="px-5 py-3 w-[150px] text-[8px] font-black text-zinc-400 uppercase tracking-[0.18em]">Cliente</th>
+                                            <th className="px-5 py-3 w-[120px] text-[8px] font-black text-zinc-400 uppercase tracking-[0.18em]">Categoria</th>
+                                            <th className="px-5 py-3 w-[120px] text-right text-[8px] font-black text-zinc-400 uppercase tracking-[0.18em]">Valor</th>
+                                            <th className="px-5 py-3 w-[115px] text-center text-[8px] font-black text-zinc-400 uppercase tracking-[0.18em]">Status</th>
+                                            <th className="px-5 py-3 w-[88px] text-center text-[8px] font-black text-zinc-400 uppercase tracking-[0.18em]">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-zinc-100/80 dark:divide-zinc-800/40">
+                                        {financasFiltradas.sort((a, b) => b.data.localeCompare(a.data)).map((tx, txIdx) => {
                                             const isAtrasado = tx.status !== 'Pago' && tx.data < new Date().toISOString().split('T')[0];
-                                            const accentColor = tx.status === 'Pago'
-                                                ? 'bg-emerald-500'
-                                                : isAtrasado
-                                                    ? 'bg-rose-500'
-                                                    : tx.tipo === 'entrada'
-                                                        ? 'bg-amber-400'
-                                                        : 'bg-zinc-300 dark:bg-zinc-600';
+                                            const accentColor = tx.status === 'Pago' ? 'bg-emerald-500' : isAtrasado ? 'bg-rose-500' : tx.tipo === 'entrada' ? 'bg-amber-400' : 'bg-zinc-300 dark:bg-zinc-600';
+                                            const clienteNome = clients?.find((cl: any) => cl.id === tx.clienteId)?.Nome;
                                             return (
                                                 <tr key={tx.id}
-                                                    className="hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 group transition-all duration-150 relative"
-                                                    style={{ animationDelay: `${Math.min(txIdx * 20, 300)}ms`, animation: 'fadeInUp 0.3s cubic-bezier(0.32,0.72,0,1) both' }}
+                                                    className="group hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30 transition-colors"
+                                                    style={{ animation: `fadeInUp 0.25s cubic-bezier(0.32,0.72,0,1) ${Math.min(txIdx * 15, 250)}ms both` }}
                                                 >
-                                                    <td className="pl-0 pr-6 py-4 text-[10px] font-black text-zinc-500 relative">
-                                                        {/* Left color accent bar — always visible, coded by status */}
-                                                        <div className={`absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full ${accentColor}`} />
-                                                        <span className="pl-6">{new Date(tx.data + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-                                                        {new Date(tx.data + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')}
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex items-center gap-2">
-                                                            <p className="text-xs font-black text-zinc-900 dark:text-white uppercase truncate">{tx.descricao}</p>
-                                                            {tx._auto_gerado && <span title="Gerado Automaticamente" className="p-1 rounded-full bg-blue-500/10 text-blue-500"><Sparkles size={10}/></span>}
+                                                    <td className="pl-0 pr-5 py-3.5 text-[10px] font-black text-zinc-500 relative">
+                                                        <div className={`absolute left-0 top-2 bottom-2 w-[3px] rounded-full ${accentColor}`} />
+                                                        <div className="pl-5">
+                                                            <div>{new Date(tx.data + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</div>
+                                                            <div className="text-[8px] text-zinc-400 font-bold uppercase tracking-widest">{new Date(tx.data + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')}</div>
                                                         </div>
-                                                        {tx.frequencia !== 'unica' && <p className="text-[9px] text-indigo-500 font-bold mt-0.5"><Repeat size={10} className="inline mr-1 shrink-0"/>{tx.frequencia.toUpperCase()}</p>}
                                                     </td>
-                                                    <td className="px-6 py-4">
-                                                        <Badge color="slate" className="!text-[9px] px-2 py-0.5 truncate max-w-[130px] block">
-                                                            {clients?.find((cl:any) => cl.id === tx.clienteId)?.Nome || '-'}
-                                                        </Badge>
+                                                    <td className="px-5 py-3.5">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <p className="text-[11px] font-black text-zinc-900 dark:text-white uppercase truncate leading-tight">{tx.descricao}</p>
+                                                            {tx._auto_gerado && <Sparkles size={9} className="text-blue-400 shrink-0" />}
+                                                        </div>
+                                                        {tx.frequencia !== 'unica' && (
+                                                            <p className="text-[8px] text-indigo-500 font-black mt-0.5 flex items-center gap-1">
+                                                                <Repeat size={8} className="shrink-0" />{tx.frequencia.toUpperCase()}
+                                                            </p>
+                                                        )}
                                                     </td>
-                                                    <td className="px-6 py-4 text-[9px] font-black text-zinc-500 uppercase tracking-wider">{tx.categoria}</td>
-                                                    <td className="px-6 py-4">
-                                                        <span className={`text-xs font-black tabular-nums ${tx.tipo === 'entrada' ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                                            {tx.tipo === 'entrada' ? '+' : '-'}{formatBRL(tx.valor)}
+                                                    <td className="px-5 py-3.5">
+                                                        {clienteNome ? (
+                                                            <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-[9px] font-black text-zinc-600 dark:text-zinc-300 uppercase truncate max-w-[130px]">
+                                                                {clienteNome}
+                                                            </span>
+                                                        ) : <span className="text-[9px] text-zinc-300 dark:text-zinc-700 font-bold">—</span>}
+                                                    </td>
+                                                    <td className="px-5 py-3.5 text-[9px] font-black text-zinc-500 uppercase tracking-wide truncate">{tx.categoria}</td>
+                                                    <td className="px-5 py-3.5 text-right">
+                                                        <span className={`text-[11px] font-black tabular-nums ${tx.tipo === 'entrada' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>
+                                                            {tx.tipo === 'entrada' ? '+' : '−'}{formatBRL(tx.valor)}
                                                         </span>
                                                     </td>
-                                                    <td className="px-6 py-4 text-center relative">
-                                                        <button 
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                onUpdate(tx.id, 'FINANCAS', 'Status', tx.status === 'Pago' ? 'Pendente' : 'Pago');
-                                                            }}
-                                                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all border ${
-                                                                tx.status === 'Pago' 
-                                                                    ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' 
-                                                                    : isAtrasado 
-                                                                        ? 'bg-rose-500/10 text-rose-600 border-rose-500/20'
-                                                                        : 'bg-zinc-100 text-zinc-400 border-zinc-200 dark:bg-zinc-800 dark:border-zinc-700'
+                                                    <td className="px-5 py-3.5 text-center relative">
+                                                        <button
+                                                            onClick={e => { e.stopPropagation(); onUpdate(tx.id, 'FINANCAS', 'Status', tx.status === 'Pago' ? 'Pendente' : 'Pago'); }}
+                                                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-wider transition-all border hover:scale-105 active:scale-95 ${
+                                                                tx.status === 'Pago'
+                                                                    ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20'
+                                                                    : isAtrasado
+                                                                        ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-500/20 animate-pulse'
+                                                                        : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700'
                                                             }`}
                                                         >
-                                                            {tx.status === 'Pago' ? <Check size={10}/> : <Clock size={10}/>}
+                                                            {tx.status === 'Pago' ? <Check size={8} strokeWidth={3} /> : <Clock size={8} />}
                                                             {tx.status}
                                                         </button>
                                                         <SavingIndicator status={savingStatus[`FINANCAS:${tx.id}:Status`]} />
                                                     </td>
-                                                    <td className="px-6 py-4 text-center">
-                                                        <div className="flex justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <td className="px-5 py-3.5 text-center">
+                                                        <div className="flex justify-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-150">
                                                             {tx.tipo === 'entrada' && tx.status !== 'Pago' && (
-                                                                <button onClick={() => handleSendReminder(tx)} title="Enviar Lembrete" className="p-1.5 rounded-md hover:bg-blue-100 dark:hover:bg-blue-500/20 text-blue-500 transition-all"><Bell size={14} /></button>
+                                                                <button onClick={() => handleSendReminder(tx)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-blue-50 dark:hover:bg-blue-500/10 text-zinc-400 hover:text-blue-500 transition-colors">
+                                                                    <Bell size={13} />
+                                                                </button>
                                                             )}
-                                                            <button onClick={() => handleOpenModal(tx)} className="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-500"><Edit3 size={14} /></button>
-                                                            <button onClick={() => handleDelete(tx.id)} className="p-1.5 rounded-md hover:bg-rose-100 dark:hover:bg-rose-500/20 text-rose-500"><Trash2 size={14} /></button>
+                                                            <button onClick={() => handleOpenModal(tx)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors">
+                                                                <Edit3 size={13} />
+                                                            </button>
+                                                            <button onClick={() => handleDelete(tx.id)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-rose-50 dark:hover:bg-rose-500/10 text-zinc-400 hover:text-rose-500 transition-colors">
+                                                                <Trash2 size={13} />
+                                                            </button>
                                                         </div>
                                                     </td>
                                                 </tr>
                                             );
-                                        })
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                        {/* Tabela Footer: Totais Rápidos */}
-                        <div className="p-6 bg-zinc-50 dark:bg-zinc-900/50 border-t border-zinc-100 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-6">
-                            <div className="flex items-center gap-8">
-                                <div>
-                                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.15em] mb-1">Total Entradas</p>
-                                    <p className="text-sm font-black text-emerald-500 tabular-nums">
-                                        {formatBRL(financasFiltradas.filter(t => t.tipo === 'entrada').reduce((acc, t) => acc + t.valor, 0))}
-                                    </p>
+                                        })}
+                                        {financasFiltradas.length === 0 && (
+                                            <tr>
+                                                <td colSpan={7} className="py-20 text-center">
+                                                    <div className="flex flex-col items-center gap-3 text-zinc-300 dark:text-zinc-700">
+                                                        <Receipt size={36} strokeWidth={1} />
+                                                        <p className="text-[10px] font-black uppercase tracking-widest">Nenhum lançamento encontrado</p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Footer totals */}
+                            <div className="px-5 py-3.5 bg-zinc-50/80 dark:bg-zinc-800/30 border-t border-zinc-200/80 dark:border-zinc-700/50 flex flex-wrap items-center justify-between gap-4">
+                                <div className="flex items-center gap-6">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Entradas</span>
+                                        <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 tabular-nums">{formatBRL(totalEntradas)}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-rose-500" />
+                                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Saídas</span>
+                                        <span className="text-xs font-black text-rose-500 tabular-nums">{formatBRL(totalSaidas)}</span>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.15em] mb-1">Total Saídas</p>
-                                    <p className="text-sm font-black text-rose-500 tabular-nums">
-                                        {formatBRL(financasFiltradas.filter(t => t.tipo === 'saida' || t.tipo === 'assinatura').reduce((acc, t) => acc + t.valor, 0))}
-                                    </p>
+                                <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                                    <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Saldo líquido</span>
+                                    <span className={`text-sm font-black tabular-nums ${saldo >= 0 ? 'text-zinc-900 dark:text-white' : 'text-rose-500'}`}>{formatBRL(saldo)}</span>
                                 </div>
                             </div>
-                            <div className="bg-white dark:bg-zinc-800 px-6 py-3 rounded-2xl border border-zinc-200 dark:border-zinc-700 shadow-sm">
-                                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.15em] mb-1">Saldo Líquido do Período</p>
-                                <p className={`text-xl font-black tabular-nums ${
-                                    financasFiltradas.filter(t => t.tipo === 'entrada').reduce((acc, t) => acc + t.valor, 0) - 
-                                    financasFiltradas.filter(t => t.tipo === 'saida' || t.tipo === 'assinatura').reduce((acc, t) => acc + t.valor, 0) >= 0 ? 'text-zinc-900 dark:text-white' : 'text-rose-500'
-                                }`}>
-                                    {formatBRL(
-                                        financasFiltradas.filter(t => t.tipo === 'entrada').reduce((acc, t) => acc + t.valor, 0) - 
-                                        financasFiltradas.filter(t => t.tipo === 'saida' || t.tipo === 'assinatura').reduce((acc, t) => acc + t.valor, 0)
-                                    )}
-                                </p>
-                            </div>
                         </div>
-                    </Card>
-                )}
+                    </div>
+                    );
+                })()}
 
 
                 {/* ===============================================================
                     TAB 3: SOCIOS (REDESIGN)
                 =============================================================== */}
                 {activeInternalTab === 'SOCIOS' && (
-                    <div className="animate-fade-up space-y-6">
+                    <div className="animate-in fade-in slide-in-from-bottom-3 duration-300 space-y-6">
 
                         {/* ── CONFIGURAÇÃO DE SHARES ── */}
                         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[24px] p-6 shadow-sm">
@@ -1354,212 +1500,289 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                 )}
 
                 {/* ===============================================================
-                    TAB 4: MRR (REDESIGN)
+                    TAB 4: MRR — REDESIGN
                 =============================================================== */}
                 {activeInternalTab === 'MRR' && (
-                    <div className="animate-in fade-in slide-in-from-bottom-2 space-y-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 stagger">
-                            <Card className="lg:col-span-3 !p-8 shadow-sm border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-[32px]">
-                                <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
+                    <div className="animate-in fade-in slide-in-from-bottom-3 duration-300 space-y-6">
+                        {/* Hero MRR */}
+                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-5 stagger">
+                            <div className="lg:col-span-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[28px] p-7 shadow-sm">
+                                <div className="flex flex-wrap items-end justify-between gap-4 mb-7">
                                     <div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <div className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]"></div>
-                                            <p className="text-[10px] font-black uppercase text-zinc-400 tracking-[0.2em]">Monthly Recurring Revenue</p>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
+                                            <p className="text-[9px] font-black uppercase text-zinc-400 tracking-[0.2em]">Monthly Recurring Revenue</p>
                                         </div>
-                                        <div className="flex items-center gap-4">
-                                            <h2 className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter">{formatBRL(mrrValue)}</h2>
-                                            <div className="px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-black rounded-lg border border-emerald-500/20">
-                                                +12.5% MoM
-                                            </div>
+                                        <div className="flex items-baseline gap-3">
+                                            <h2 className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter tabular-nums">{formatBRL(mrrValue)}</h2>
                                         </div>
-                                    </div>
-                                    <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 p-1.5 rounded-xl">
-                                        <button className="px-4 py-1.5 bg-white dark:bg-zinc-900 shadow-sm rounded-lg text-[10px] font-bold text-zinc-900 dark:text-white">EVOLUÇÃO 12M</button>
-                                        <button className="px-4 py-1.5 text-[10px] font-bold text-zinc-500 hover:text-zinc-700">CHURN RATE</button>
+                                        <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-1">{transactions.filter(t => t.tipo === 'entrada' && t.frequencia === 'mensal').length} contratos ativos</p>
                                     </div>
                                 </div>
-                                <div className="h-[300px] w-full">
+                                <div className="h-[260px] w-full">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <AreaChart data={chartData}>
                                             <defs>
-                                                <linearGradient id="colorMrr" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-                                                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                                                <linearGradient id="colorMrr2" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.25} />
+                                                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                                                 </linearGradient>
                                             </defs>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#3f3f46" opacity={0.1} />
-                                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 'bold'}} />
-                                            <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 'bold'}} hide />
-                                            <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.08)', background: document.documentElement.classList.contains('dark') ? '#18181b' : '#fff', color: document.documentElement.classList.contains('dark') ? '#f4f4f5' : '#111827' }} />
-                                            <Area type="monotone" dataKey="Receita" stroke="#6366f1" strokeWidth={4} fillOpacity={1} fill="url(#colorMrr)" />
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#3f3f46" opacity={0.07} />
+                                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#71717a', fontWeight: 'bold' }} />
+                                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#71717a', fontWeight: 'bold' }} tickFormatter={v => `${v/1000}k`} />
+                                            <Tooltip contentStyle={{ borderRadius: '14px', border: '1px solid rgba(0,0,0,0.06)', background: document.documentElement.classList.contains('dark') ? '#18181b' : '#fff', fontSize: '11px', fontWeight: 'bold', padding: '10px 16px' }} />
+                                            <Area type="monotone" dataKey="Receita" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorMrr2)" dot={false} activeDot={{ r: 5, fill: '#6366f1' }} />
                                         </AreaChart>
                                     </ResponsiveContainer>
                                 </div>
-                            </Card>
-
-                            <div className="space-y-6">
-                                <div className="bg-indigo-600 rounded-[32px] p-8 text-white shadow-2xl shadow-indigo-600/30 relative overflow-hidden group">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl group-hover:bg-white/20 transition-all duration-700"></div>
-                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-4 opacity-80">Quick Actions</p>
-                                    <h3 className="text-lg font-black leading-tight mb-6">Expanda sua recorrência mensal agora.</h3>
-                                    <button 
-                                        onClick={() => {
-                                            setFormData(prev => ({ ...prev, tipo: 'assinatura', frequencia: 'mensal', status: 'pendente' }));
-                                            setIsModalOpen(true);
-                                        }}
-                                        className="w-full py-4 bg-white text-indigo-600 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg"
+                            </div>
+                            <div className="space-y-5">
+                                <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-[28px] p-7 text-white shadow-2xl shadow-indigo-600/25 relative overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+                                    <div className="absolute top-0 right-0 w-36 h-36 bg-white/10 rounded-full -mr-12 -mt-12 blur-2xl group-hover:bg-white/15 transition-all duration-700" />
+                                    <p className="text-[9px] font-black uppercase tracking-[0.2em] mb-4 opacity-70">Ação rápida</p>
+                                    <h3 className="text-base font-black leading-snug mb-6">Adicionar novo contrato recorrente</h3>
+                                    <button
+                                        onClick={() => { setFormData(prev => ({ ...prev, tipo: 'assinatura', frequencia: 'mensal', status: 'pendente' })); setIsModalOpen(true); }}
+                                        className="w-full py-3.5 bg-white text-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg flex items-center justify-center gap-2"
                                     >
-                                        Novo Contrato MRR
+                                        <Plus size={14} strokeWidth={3} /> Novo Contrato MRR
                                     </button>
                                 </div>
-
-                                <Card title="Metas do Q2" className="!bg-zinc-900 border-zinc-800 rounded-[32px]">
-                                    <div className="p-6 space-y-6">
-                                        <div>
-                                            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">
-                                                <span>Atingir R$ 50k MRR</span>
-                                                <span className="text-zinc-300">72%</span>
-                                            </div>
-                                            <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-                                                <div className="h-full bg-indigo-500 rounded-full" style={{ width: '72%' }}></div>
-                                            </div>
+                                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[24px] p-5 shadow-sm">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <Target size={14} className="text-indigo-500" />
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-900 dark:text-white">Meta MRR</p>
+                                    </div>
+                                    <div className="space-y-1 mb-3">
+                                        <div className="flex justify-between text-[9px] font-black uppercase text-zinc-400">
+                                            <span>Atingir R$ 50k</span>
+                                            <span className="text-indigo-500">{Math.min(100, Math.round((mrrValue / 50000) * 100))}%</span>
+                                        </div>
+                                        <div className="w-full h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                                            <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-1000" style={{ width: `${Math.min(100, (mrrValue / 50000) * 100)}%` }} />
                                         </div>
                                     </div>
-                                </Card>
+                                    <p className="text-xs font-black text-zinc-900 dark:text-white tabular-nums">{formatBRL(mrrValue)} <span className="text-[9px] text-zinc-400 font-bold">/ {formatBRL(50000)}</span></p>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {transactions.filter(t => t.tipo === 'entrada' && t.frequencia === 'mensal').map(t => {
-                                const client = clients?.find((c:any)=>c.id===t.clienteId);
+                        {/* Contract cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger">
+                            {transactions.filter(t => t.tipo === 'entrada' && t.frequencia === 'mensal').map((t, i) => {
+                                const client = clients?.find((c: any) => c.id === t.clienteId);
                                 return (
-                                    <div key={t.id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-[28px] shadow-sm hover:border-indigo-400/50 transition-all group relative overflow-hidden">
-                                        <div className="flex items-start justify-between mb-6">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 group-hover:bg-indigo-500/10 group-hover:text-indigo-500 transition-colors">
-                                                    <User size={24} />
+                                    <div key={t.id} className="group bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-5 rounded-[24px] shadow-sm hover:-translate-y-1 hover:shadow-lg hover:border-indigo-300/50 dark:hover:border-indigo-500/30 transition-all duration-300 relative overflow-hidden"
+                                        style={{ animation: `fadeInUp 0.25s ease ${i * 50}ms both` }}>
+                                        <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/3 rounded-full -mr-8 -mt-8 group-hover:bg-indigo-500/8 transition-all duration-500" />
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-2.5">
+                                                <div className="w-10 h-10 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 group-hover:bg-indigo-500/10 group-hover:text-indigo-500 transition-colors">
+                                                    <User size={18} />
                                                 </div>
                                                 <div>
-                                                    <h4 className="text-sm font-black text-zinc-900 dark:text-white uppercase truncate max-w-[120px]">{client?.Nome || t.descricao}</h4>
-                                                    <p className="text-[10px] font-bold text-zinc-500 uppercase">Dia {t.data.split('-')[2]} • {t.status}</p>
+                                                    <h4 className="text-[11px] font-black text-zinc-900 dark:text-white uppercase truncate max-w-[110px]">{client?.Nome || t.descricao}</h4>
+                                                    <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest">Dia {t.data.split('-')[2]}</p>
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-lg font-black text-emerald-500">{formatBRL(t.valor)}</p>
-                                                <Badge color="blue" className="!text-[8px] px-1 py-0 italic mt-1">RECORRENTE</Badge>
+                                                <p className="text-base font-black text-emerald-500 tabular-nums">{formatBRL(t.valor)}</p>
+                                                <span className={`inline-block text-[7px] font-black px-1.5 py-0.5 rounded-md mt-0.5 ${t.status === 'Pago' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600' : 'bg-amber-50 dark:bg-amber-500/10 text-amber-600'}`}>{t.status}</span>
                                             </div>
                                         </div>
-                                        <div className="flex gap-2">
-                                            <button onClick={() => handleOpenModal(t)} className="flex-1 py-2.5 bg-zinc-50 dark:bg-zinc-800 rounded-xl text-[9px] font-black uppercase text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors">Editar</button>
-                                            <button className="flex-1 py-2.5 bg-zinc-50 dark:bg-zinc-800 rounded-xl text-[9px] font-black uppercase text-zinc-500 hover:text-indigo-500 transition-colors">Relatório</button>
-                                        </div>
+                                        <button onClick={() => handleOpenModal(t)} className="w-full py-2.5 bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-xl text-[9px] font-black uppercase text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors">
+                                            Editar Contrato
+                                        </button>
                                     </div>
                                 );
                             })}
+                            {transactions.filter(t => t.tipo === 'entrada' && t.frequencia === 'mensal').length === 0 && (
+                                <div className="col-span-3 flex flex-col items-center gap-3 py-16 text-zinc-300 dark:text-zinc-700">
+                                    <Repeat2 size={40} strokeWidth={1} />
+                                    <p className="text-[10px] font-black uppercase tracking-widest">Nenhum contrato MRR cadastrado</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
 
                 {/* ===============================================================
-                    TAB 5: PENDENCIAS
+                    TAB 5: PENDÊNCIAS — REDESIGN
                 =============================================================== */}
                 {activeInternalTab === 'PENDENCIAS' && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {/* Atrasadas */}
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2 mb-2 p-3 bg-rose-50 dark:bg-rose-500/10 rounded-2xl border border-rose-100 dark:border-rose-500/20">
-                                <AlertTriangle className="text-rose-500" size={16} />
-                                <h3 className="text-xs font-black uppercase tracking-widest text-rose-600 dark:text-rose-400">Atrasadas</h3>
-                            </div>
-                            {pendencias.atrasadas.map(t => (
-                                <div key={t.id} className="bg-white dark:bg-zinc-900 border border-rose-200 dark:border-rose-900 p-5 rounded-2xl shadow-sm hover:border-rose-300 transition-colors relative overflow-hidden group">
-                                    <div className="absolute top-0 left-0 w-1 h-full bg-rose-500"></div>
-                                    <Badge color="rose" className="!bg-rose-100 dark:!bg-rose-900/40 mb-3 block w-max">{new Date(t.data).toLocaleDateString('pt-BR')}</Badge>
-                                    <p className="text-sm font-black text-zinc-900 dark:text-white uppercase mb-1">{t.descricao}</p>
-                                    <p className="text-[10px] text-zinc-500 font-bold uppercase">{clients?.find((c:any)=>c.id===t.clienteId)?.Nome || 'Sem cliente'}</p>
-                                    <p className="text-lg font-black text-emerald-600 mt-3">{formatBRL(t.valor)}</p>
-                                    
-                                    <div className="flex gap-2">
-                                        <button onClick={() => handleQuickStatusUpdate(t.id, 'pago')} className="mt-4 flex-1 py-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 transition-colors">
-                                            <Check size={14} /> Recebido
-                                        </button>
-                                        <button onClick={() => handleSendReminder(t)} className="mt-4 px-3 py-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center transition-colors">
-                                            <Bell size={14} />
-                                        </button>
+                    <div className="animate-in fade-in slide-in-from-bottom-3 duration-300 space-y-5">
+                        {/* Summary strip */}
+                        <div className="grid grid-cols-3 gap-4 stagger">
+                            {[
+                                { label: 'Atrasadas', count: pendencias.atrasadas.length, total: pendencias.atrasadas.reduce((a, t) => a + t.valor, 0), color: 'text-rose-500', bg: 'bg-rose-500/8', icon: AlertTriangle },
+                                { label: 'Vencendo em 7 dias', count: pendencias.vencendo.length, total: pendencias.vencendo.reduce((a, t) => a + t.valor, 0), color: 'text-amber-500', bg: 'bg-amber-500/8', icon: Clock },
+                                { label: 'A Pagar (Futuro)', count: pendencias.aPagar.length, total: pendencias.aPagar.reduce((a, t) => a + t.valor, 0), color: 'text-blue-500', bg: 'bg-blue-500/8', icon: CalendarClock },
+                            ].map((s, i) => (
+                                <div key={i} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+                                    <div className={`w-10 h-10 rounded-xl ${s.bg} flex items-center justify-center shrink-0`}>
+                                        <s.icon size={16} className={s.color} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[8px] font-black uppercase tracking-widest text-zinc-400">{s.label}</p>
+                                        <p className={`text-sm font-black tabular-nums ${s.color}`}>{s.count > 0 ? formatBRL(s.total) : '—'}</p>
+                                        <p className="text-[8px] text-zinc-400 font-bold">{s.count} item{s.count !== 1 ? 's' : ''}</p>
                                     </div>
                                 </div>
                             ))}
-                            {pendencias.atrasadas.length === 0 && <p className="text-[10px] font-black text-zinc-400 text-center uppercase tracking-widest p-8 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl">Nada atrasado</p>}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        {/* Atrasadas */}
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2 px-3 py-2.5 bg-rose-50 dark:bg-rose-500/8 rounded-2xl border border-rose-100 dark:border-rose-500/15">
+                                <AlertTriangle className="text-rose-500 shrink-0" size={14} />
+                                <span className="text-[9px] font-black uppercase tracking-widest text-rose-600 dark:text-rose-400">Atrasadas</span>
+                                {pendencias.atrasadas.length > 0 && <span className="ml-auto text-[8px] font-black bg-rose-500 text-white px-1.5 py-0.5 rounded-full">{pendencias.atrasadas.length}</span>}
+                            </div>
+                            {pendencias.atrasadas.map((t, i) => (
+                                <div key={t.id} className="group bg-white dark:bg-zinc-900 border border-rose-200/70 dark:border-rose-900/60 rounded-[20px] p-4 shadow-sm hover:shadow-md hover:border-rose-300 dark:hover:border-rose-800 transition-all relative overflow-hidden"
+                                    style={{ animation: `fadeInUp 0.2s ease ${i * 40}ms both` }}>
+                                    <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-rose-500 rounded-l-full" />
+                                    <div className="pl-2">
+                                        <div className="flex items-start justify-between gap-2 mb-2">
+                                            <p className="text-[11px] font-black text-zinc-900 dark:text-white uppercase leading-tight flex-1">{t.descricao}</p>
+                                            <span className="text-[8px] font-black text-rose-500 bg-rose-50 dark:bg-rose-500/10 px-1.5 py-0.5 rounded-lg border border-rose-200/50 dark:border-rose-500/15 shrink-0 whitespace-nowrap">
+                                                {new Date(t.data + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                                            </span>
+                                        </div>
+                                        <p className="text-[8px] text-zinc-400 font-bold uppercase truncate mb-2.5">{clients?.find((c: any) => c.id === t.clienteId)?.Nome || 'Sem cliente'}</p>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm font-black text-zinc-900 dark:text-white tabular-nums">{formatBRL(t.valor)}</span>
+                                            <div className="flex gap-1.5">
+                                                <button onClick={() => handleQuickStatusUpdate(t.id, 'pago')} className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-[8px] font-black uppercase rounded-lg transition-all hover:scale-105 active:scale-95">
+                                                    <Check size={10} strokeWidth={3} /> Pago
+                                                </button>
+                                                <button onClick={() => handleSendReminder(t)} className="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-blue-50 dark:hover:bg-blue-500/10 text-zinc-400 hover:text-blue-500 flex items-center justify-center transition-colors">
+                                                    <Bell size={11} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            {pendencias.atrasadas.length === 0 && (
+                                <div className="flex flex-col items-center gap-2 py-10 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl text-zinc-300 dark:text-zinc-700">
+                                    <Check size={24} strokeWidth={1} />
+                                    <p className="text-[9px] font-black uppercase tracking-widest">Nada atrasado</p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Vencendo */}
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2 mb-2 p-3 bg-orange-50 dark:bg-orange-500/10 rounded-2xl border border-orange-100 dark:border-orange-500/20">
-                                <Clock className="text-orange-500" size={16} />
-                                <h3 className="text-xs font-black uppercase tracking-widest text-orange-600 dark:text-orange-400">Vencendo (7 dias)</h3>
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2 px-3 py-2.5 bg-amber-50 dark:bg-amber-500/8 rounded-2xl border border-amber-100 dark:border-amber-500/15">
+                                <Clock className="text-amber-500 shrink-0" size={14} />
+                                <span className="text-[9px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400">Vencendo (7 dias)</span>
+                                {pendencias.vencendo.length > 0 && <span className="ml-auto text-[8px] font-black bg-amber-500 text-white px-1.5 py-0.5 rounded-full">{pendencias.vencendo.length}</span>}
                             </div>
-                            {pendencias.vencendo.map(t => (
-                                <div key={t.id} className="bg-white dark:bg-zinc-900 border border-orange-200 dark:border-orange-900 p-5 rounded-2xl shadow-sm hover:border-orange-300 transition-colors relative overflow-hidden group">
-                                    <div className="absolute top-0 left-0 w-1 h-full bg-orange-500"></div>
-                                    <Badge color="orange" className="!bg-orange-100 dark:!bg-orange-900/40 mb-3 block w-max">{new Date(t.data).toLocaleDateString('pt-BR')}</Badge>
-                                    <p className="text-sm font-black text-zinc-900 dark:text-white uppercase mb-1">{t.descricao}</p>
-                                    <p className="text-[10px] text-zinc-500 font-bold uppercase">{clients?.find((c:any)=>c.id===t.clienteId)?.Nome || 'Sem cliente'}</p>
-                                    <p className={`text-lg font-black mt-3 ${t.tipo === 'entrada' ? 'text-emerald-600':'text-rose-600'}`}>{formatBRL(t.valor)}</p>
-                                    
-                                    <div className="flex gap-2">
-                                        <button onClick={() => handleQuickStatusUpdate(t.id, 'pago')} className="mt-4 flex-1 py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white text-[10px] font-black uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 transition-colors">
-                                            <Check size={14} /> Dar Baixa
-                                        </button>
-                                        {t.tipo === 'entrada' && (
-                                            <button onClick={() => handleSendReminder(t)} className="mt-4 px-3 py-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center transition-colors">
-                                                <Bell size={14} />
-                                            </button>
-                                        )}
+                            {pendencias.vencendo.map((t, i) => (
+                                <div key={t.id} className="group bg-white dark:bg-zinc-900 border border-amber-200/70 dark:border-amber-900/60 rounded-[20px] p-4 shadow-sm hover:shadow-md transition-all relative overflow-hidden"
+                                    style={{ animation: `fadeInUp 0.2s ease ${i * 40}ms both` }}>
+                                    <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-amber-500 rounded-l-full" />
+                                    <div className="pl-2">
+                                        <div className="flex items-start justify-between gap-2 mb-2">
+                                            <p className="text-[11px] font-black text-zinc-900 dark:text-white uppercase leading-tight flex-1">{t.descricao}</p>
+                                            <span className="text-[8px] font-black text-amber-500 bg-amber-50 dark:bg-amber-500/10 px-1.5 py-0.5 rounded-lg border border-amber-200/50 dark:border-amber-500/15 shrink-0 whitespace-nowrap">
+                                                {new Date(t.data + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                                            </span>
+                                        </div>
+                                        <p className="text-[8px] text-zinc-400 font-bold uppercase truncate mb-2.5">{clients?.find((c: any) => c.id === t.clienteId)?.Nome || 'Sem cliente'}</p>
+                                        <div className="flex items-center justify-between">
+                                            <span className={`text-sm font-black tabular-nums ${t.tipo === 'entrada' ? 'text-emerald-600' : 'text-rose-500'}`}>{formatBRL(t.valor)}</span>
+                                            <div className="flex gap-1.5">
+                                                <button onClick={() => handleQuickStatusUpdate(t.id, 'pago')} className="flex items-center gap-1 px-2.5 py-1.5 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-[8px] font-black uppercase rounded-lg transition-all hover:scale-105 active:scale-95">
+                                                    <Check size={10} strokeWidth={3} /> Baixa
+                                                </button>
+                                                {t.tipo === 'entrada' && (
+                                                    <button onClick={() => handleSendReminder(t)} className="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-blue-50 dark:hover:bg-blue-500/10 text-zinc-400 hover:text-blue-500 flex items-center justify-center transition-colors">
+                                                        <Bell size={11} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
-                            {pendencias.vencendo.length === 0 && <p className="text-[10px] font-black text-zinc-400 text-center uppercase tracking-widest p-8 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl">Nada a vencer</p>}
+                            {pendencias.vencendo.length === 0 && (
+                                <div className="flex flex-col items-center gap-2 py-10 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl text-zinc-300 dark:text-zinc-700">
+                                    <Clock size={24} strokeWidth={1} />
+                                    <p className="text-[9px] font-black uppercase tracking-widest">Nada a vencer</p>
+                                </div>
+                            )}
                         </div>
 
-                        {/* A Pagar (Agendado Futuro) */}
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2 mb-2 p-3 bg-blue-50 dark:bg-blue-500/10 rounded-2xl border border-blue-100 dark:border-blue-500/20">
-                                <CalendarClock className="text-blue-500" size={16} />
-                                <h3 className="text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-400">A Pagar (Saídas Futuras)</h3>
+                        {/* A Pagar */}
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2 px-3 py-2.5 bg-blue-50 dark:bg-blue-500/8 rounded-2xl border border-blue-100 dark:border-blue-500/15">
+                                <CalendarClock className="text-blue-500 shrink-0" size={14} />
+                                <span className="text-[9px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400">A Pagar (Futuro)</span>
+                                {pendencias.aPagar.length > 0 && <span className="ml-auto text-[8px] font-black bg-blue-500 text-white px-1.5 py-0.5 rounded-full">{pendencias.aPagar.length}</span>}
                             </div>
-                            {pendencias.aPagar.map(t => (
-                                <div key={t.id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-5 rounded-2xl shadow-sm hover:border-zinc-300 transition-colors relative overflow-hidden group">
-                                    <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
-                                    <Badge color="slate" className="mb-3 block w-max">{new Date(t.data).toLocaleDateString('pt-BR')}</Badge>
-                                    <p className="text-sm font-black text-zinc-900 dark:text-white uppercase mb-1">{t.descricao}</p>
-                                    <p className="text-lg font-black text-rose-600 mt-3">{formatBRL(t.valor)}</p>
-                                    
-                                    <button onClick={() => handleQuickStatusUpdate(t.id, 'pago')} className="mt-4 w-full py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white text-[10px] font-black uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 transition-colors">
-                                        <Check size={14} /> Marcar Pago
-                                    </button>
+                            {pendencias.aPagar.map((t, i) => (
+                                <div key={t.id} className="group bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[20px] p-4 shadow-sm hover:shadow-md transition-all relative overflow-hidden"
+                                    style={{ animation: `fadeInUp 0.2s ease ${i * 40}ms both` }}>
+                                    <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-blue-400 rounded-l-full" />
+                                    <div className="pl-2">
+                                        <div className="flex items-start justify-between gap-2 mb-2">
+                                            <p className="text-[11px] font-black text-zinc-900 dark:text-white uppercase leading-tight flex-1">{t.descricao}</p>
+                                            <span className="text-[8px] font-black text-blue-500 bg-blue-50 dark:bg-blue-500/10 px-1.5 py-0.5 rounded-lg border border-blue-200/50 dark:border-blue-500/15 shrink-0 whitespace-nowrap">
+                                                {new Date(t.data + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                                            </span>
+                                        </div>
+                                        <p className="text-[8px] text-zinc-400 font-bold uppercase truncate mb-2.5">{clients?.find((c: any) => c.id === t.clienteId)?.Nome || 'Sem cliente'}</p>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm font-black text-rose-500 tabular-nums">{formatBRL(t.valor)}</span>
+                                            <button onClick={() => handleQuickStatusUpdate(t.id, 'pago')} className="flex items-center gap-1 px-2.5 py-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-[8px] font-black uppercase rounded-lg transition-colors">
+                                                <Check size={10} strokeWidth={3} /> Pago
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             ))}
-                            {pendencias.aPagar.length === 0 && <p className="text-[10px] font-black text-zinc-400 text-center uppercase tracking-widest p-8 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl">Livre de contas futuras</p>}
+                            {pendencias.aPagar.length === 0 && (
+                                <div className="flex flex-col items-center gap-2 py-10 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl text-zinc-300 dark:text-zinc-700">
+                                    <CalendarClock size={24} strokeWidth={1} />
+                                    <p className="text-[9px] font-black uppercase tracking-widest">Livre de contas futuras</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
             </div>
 
-            {/* MODERN MODAL VIA PORTAL */}
+            {/* ── MODAL PREMIUM ── */}
             {isModalOpen && ReactDOM.createPortal(
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md animate-fade-blur" onClick={() => setIsModalOpen(false)}></div>
-                    <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-zoom-in ring-1 ring-white/10 max-h-[90vh]">
-                        
-                        <div className="px-8 py-6 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center bg-zinc-50/50 dark:bg-zinc-900/50">
-                            <div>
-                                <h3 className="text-sm font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-[0.1em]">
-                                    {editingId ? 'AJUSTAR LANÇAMENTO' : 'NOVA MOVIMENTAÇÃO'}
-                                </h3>
+                    <div className="absolute inset-0 bg-zinc-950/75 backdrop-blur-lg animate-fade-blur" onClick={() => setIsModalOpen(false)} />
+                    <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-[32px] shadow-2xl shadow-zinc-900/20 flex flex-col overflow-hidden animate-zoom-in max-h-[92vh]">
+
+                        {/* Modal header */}
+                        <div className="relative overflow-hidden px-8 py-6 border-b border-zinc-100 dark:border-zinc-800">
+                            <div className="absolute inset-0 bg-gradient-to-r from-zinc-50/80 to-transparent dark:from-zinc-800/30 dark:to-transparent" />
+                            <div className="relative flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-white ${editingId ? 'bg-gradient-to-br from-blue-500 to-indigo-600' : 'bg-gradient-to-br from-zinc-800 to-zinc-900 dark:from-zinc-700 dark:to-zinc-800'}`}>
+                                        {editingId ? <Edit3 size={15} /> : <Plus size={15} strokeWidth={3} />}
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-[0.1em] leading-none">
+                                            {editingId ? 'Editar Lançamento' : 'Nova Movimentação'}
+                                        </h3>
+                                        <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">
+                                            {editingId ? 'Ajuste os dados do lançamento' : 'Registre uma entrada, saída ou recorrente'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <button onClick={() => setIsModalOpen(false)} className="w-9 h-9 flex items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all hover:rotate-90">
+                                    <X size={18} />
+                                </button>
                             </div>
-                            <button onClick={() => setIsModalOpen(false)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all hover:rotate-90 shadow-sm">
-                                <X size={20} />
-                            </button>
                         </div>
 
                         <form onSubmit={handleSaveTransaction} className="p-8 space-y-6 overflow-y-auto custom-scrollbar flex-1">
