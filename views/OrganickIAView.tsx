@@ -210,16 +210,19 @@ export function OrganickIAView({
     const filteredHistory = history.filter((h: any) => showArchived ? true : !h.__archived);
 
     return (
-        <div className="view-root p-4 sm:p-6 space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto pb-20 h-full overflow-y-auto custom-scrollbar">
+        <div className="view-root p-4 sm:p-6 space-y-6 animate-fade-blur max-w-7xl mx-auto pb-20 h-full overflow-y-auto custom-scrollbar">
             {/* CABEÇALHO */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center shadow-lg shadow-zinc-500/10">
-                        <BrainCircuit className="text-white dark:text-zinc-900 shrink-0" size={20} />
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center shadow-xl shadow-violet-500/20 ring-4 ring-violet-500/10">
+                        <BrainCircuit className="text-white shrink-0" size={22} />
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">OrganickIA 2.0</h1>
-                        <p className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest">Inteligência Operacional</p>
+                        <h1 className="text-xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">
+                            Organick<span className="text-violet-600 dark:text-violet-400">IA</span>
+                            <span className="ml-2 text-xs font-black text-violet-500 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 px-2 py-0.5 rounded-full border border-violet-200 dark:border-violet-500/20">2.0</span>
+                        </h1>
+                        <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Inteligência Operacional · Método Organick</p>
                     </div>
                 </div>
             </div>
@@ -258,19 +261,19 @@ export function OrganickIAView({
                                 <div className="group relative">
                                     <input type="file" accept="audio/*" multiple ref={audioInputRef} className="hidden" onChange={(e) => handleFileUpload(e, 'audio')} />
                                     <div
-                                        className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl py-12 px-6 text-center transition-all hover:border-zinc-400 dark:hover:border-zinc-600 cursor-pointer bg-zinc-50/50 dark:bg-zinc-900/30 group"
+                                        className="flex flex-col items-center justify-center border-2 border-dashed border-indigo-200 dark:border-indigo-500/20 rounded-3xl py-12 px-6 text-center transition-all hover:border-indigo-400 dark:hover:border-indigo-500/40 cursor-pointer bg-indigo-50/30 dark:bg-indigo-500/5 hover:bg-indigo-50/60 dark:hover:bg-indigo-500/10"
                                         onClick={() => { playUISound('tap'); audioInputRef.current?.click(); }}
                                     >
-                                        <div className="w-16 h-16 bg-white dark:bg-zinc-900 shadow-sm border border-zinc-200 dark:border-zinc-800 rounded-2xl flex items-center justify-center mb-4 text-zinc-600 dark:text-zinc-400 group-hover:scale-105 transition-transform">
+                                        <div className="w-16 h-16 bg-white dark:bg-zinc-900 shadow-md border border-indigo-200 dark:border-indigo-500/20 rounded-2xl flex items-center justify-center mb-4 text-indigo-500 group-hover:scale-105 group-hover:shadow-xl group-hover:shadow-indigo-500/15 transition-all">
                                             <Mic size={28} className="shrink-0" />
                                         </div>
-                                        <h3 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight mb-1">Pautas / Áudios</h3>
-                                        <p className="text-[10px] text-zinc-500 font-medium uppercase mb-6">Mapeamento por Voz</p>
+                                        <h3 className="text-xs font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight mb-1">Pautas / Áudios</h3>
+                                        <p className="text-[10px] text-indigo-500 dark:text-indigo-400 font-bold uppercase mb-6">Mapeamento por Voz</p>
                                         <Button
                                             onClick={(e) => { e.stopPropagation(); audioInputRef.current?.click(); }}
                                             disabled={loading}
                                             variant="secondary"
-                                            className="!h-9 !px-6 !text-[10px] !font-bold !uppercase"
+                                            className="!h-9 !px-6 !text-[10px] !font-bold !uppercase !bg-indigo-600 !text-white hover:!bg-indigo-700 !border-none !shadow-lg !shadow-indigo-500/20"
                                         >
                                             {loading ? 'Processando...' : 'Carregar Áudio'}
                                         </Button>
@@ -281,19 +284,19 @@ export function OrganickIAView({
                                 <div className="group relative">
                                     <input type="file" accept="application/pdf" multiple ref={pdfInputRef} className="hidden" onChange={(e) => handleFileUpload(e, 'pdf')} />
                                     <div
-                                        className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl py-12 px-6 text-center transition-all hover:border-zinc-400 dark:hover:border-zinc-600 cursor-pointer bg-zinc-50/50 dark:bg-zinc-900/30 group"
+                                        className="flex flex-col items-center justify-center border-2 border-dashed border-violet-200 dark:border-violet-500/20 rounded-3xl py-12 px-6 text-center transition-all hover:border-violet-400 dark:hover:border-violet-500/40 cursor-pointer bg-violet-50/30 dark:bg-violet-500/5 hover:bg-violet-50/60 dark:hover:bg-violet-500/10"
                                         onClick={() => { playUISound('tap'); pdfInputRef.current?.click(); }}
                                     >
-                                        <div className="w-16 h-16 bg-white dark:bg-zinc-900 shadow-sm border border-zinc-200 dark:border-zinc-800 rounded-2xl flex items-center justify-center mb-4 text-zinc-600 dark:text-zinc-400 group-hover:scale-105 transition-transform">
+                                        <div className="w-16 h-16 bg-white dark:bg-zinc-900 shadow-md border border-violet-200 dark:border-violet-500/20 rounded-2xl flex items-center justify-center mb-4 text-violet-500 group-hover:scale-105 group-hover:shadow-xl group-hover:shadow-violet-500/15 transition-all">
                                             <FileText size={28} className="shrink-0" />
                                         </div>
-                                        <h3 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight mb-1">Documentos PDF</h3>
-                                        <p className="text-[10px] text-zinc-500 font-medium uppercase mb-6">Briefings e Relatórios</p>
+                                        <h3 className="text-xs font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight mb-1">Documentos PDF</h3>
+                                        <p className="text-[10px] text-violet-500 dark:text-violet-400 font-bold uppercase mb-6">Briefings e Relatórios</p>
                                         <Button
                                             onClick={(e) => { e.stopPropagation(); pdfInputRef.current?.click(); }}
                                             disabled={loading}
                                             variant="secondary"
-                                            className="!h-9 !px-6 !text-[10px] !font-bold !uppercase"
+                                            className="!h-9 !px-6 !text-[10px] !font-bold !uppercase !bg-violet-600 !text-white hover:!bg-violet-700 !border-none !shadow-lg !shadow-violet-500/20"
                                         >
                                             {loading ? 'Analisando...' : 'Carregar PDF'}
                                         </Button>
