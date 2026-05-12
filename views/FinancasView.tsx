@@ -1050,7 +1050,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                                             {tx.tipo === 'entrada' && tx.status !== 'Pago' && (
                                                                 <button onClick={() => handleSendReminder(tx)} title="Enviar Lembrete" className="p-1.5 rounded-md hover:bg-blue-100 dark:hover:bg-blue-500/20 text-blue-500 transition-all"><Bell size={14} /></button>
                                                             )}
-                                                            <button onClick={() => handleOpenModal(tx.raw)} className="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-500"><Edit3 size={14} /></button>
+                                                            <button onClick={() => handleOpenModal(tx)} className="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-500"><Edit3 size={14} /></button>
                                                             <button onClick={() => handleDelete(tx.id)} className="p-1.5 rounded-md hover:bg-rose-100 dark:hover:bg-rose-500/20 text-rose-500"><Trash2 size={14} /></button>
                                                         </div>
                                                     </td>
