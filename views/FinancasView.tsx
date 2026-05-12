@@ -316,7 +316,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
         loadRetiradas();
     }, [workspaceId]);
 
-    // Estado local para sócios
+    // Estado local para sócios — reinicia quando workspace muda
     const [sociosConfig, setSociosConfig] = useState<SociosConfig>(() => {
         const cached = localStorage.getItem(configKey);
         return cached ? JSON.parse(cached) : {
@@ -324,6 +324,16 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
             socio2: { nome: 'Sócio 2', percentual: 50 }
         };
     });
+
+    // Re-lê a config quando workspaceId muda (workspace pode carregar depois do mount)
+    useEffect(() => {
+        const cached = localStorage.getItem(configKey);
+        if (cached) {
+            setSociosConfig(JSON.parse(cached));
+        } else {
+            setSociosConfig({ socio1: { nome: 'Sócio 1', percentual: 50 }, socio2: { nome: 'Sócio 2', percentual: 50 } });
+        }
+    }, [configKey]);
     
     // ==========================================
     // RECURRENCE ENGINE
@@ -412,6 +422,27 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
             };
         });
     }, [financas]);
+
+    // ── Retiradas derivadas do extrato FINANCAS (fonte única de verdade) ──
+    const retiradasDerived = useMemo(() => {
+        return transactions
+            .filter(t =>
+                t.tipo === 'saida' &&
+                t.categoria?.toLowerCase() === 'pró-labore' &&
+                t.descricao?.toLowerCase().includes('retirada')
+            )
+            .map(t => {
+                const isSocio1 = t.descricao?.includes(sociosConfig.socio1.nome);
+                return {
+                    id: t.id,
+                    socio: (isSocio1 ? 1 : 2) as 1 | 2,
+                    valor: t.valor,
+                    data: t.data || '',
+                    mes_referencia: t.data?.slice(0, 7) || '',
+                    observacao: t.descricao || ''
+                };
+            });
+    }, [transactions, sociosConfig.socio1.nome]);
 
     // Data Helpers
     // Filtro de Período do Usuário
@@ -1166,7 +1197,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                 { id: 2, key: 'socio2' as const, config: sociosConfig.socio2, gradient: 'from-emerald-500 via-teal-500 to-cyan-500', shadow: 'shadow-teal-500/20', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10', border: 'border-emerald-200 dark:border-emerald-500/20' }
                             ].map(s => {
                                 const repasseValue = Math.max(0, summary.lucro) * (s.config.percentual / 100);
-                                const jaRetirado = retiradas
+                                const jaRetirado = retiradasDerived
                                     .filter(r => r.socio === s.id && r.mes_referencia === new Date().toISOString().slice(0, 7))
                                     .reduce((acc, r) => acc + r.valor, 0);
                                 const restante = Math.max(0, repasseValue - jaRetirado);
@@ -1260,9 +1291,9 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-zinc-50 dark:divide-zinc-800/50">
-                                                {retiradas.sort((a,b) => b.data.localeCompare(a.data)).slice(0, 5).map(r => (
+                                                {[...retiradasDerived].sort((a,b) => b.data.localeCompare(a.data)).slice(0, 5).map(r => (
                                                     <tr key={r.id} className="group">
-                                                        <td className="py-4 text-xs font-bold text-zinc-500">{new Date(r.data).toLocaleDateString('pt-BR')}</td>
+                                                        <td className="py-4 text-xs font-bold text-zinc-500">{r.data ? new Date(r.data + 'T12:00:00').toLocaleDateString('pt-BR') : '—'}</td>
                                                         <td className="py-4">
                                                             <div className="flex items-center gap-2">
                                                                 <div className={`w-2 h-2 rounded-full ${r.socio === 1 ? 'bg-blue-500' : 'bg-emerald-500'}`}></div>
@@ -1274,11 +1305,10 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                                         <td className="py-4 text-xs font-bold text-zinc-400">{r.mes_referencia}</td>
                                                         <td className="py-4 text-right text-xs font-black text-zinc-900 dark:text-white">{formatBRL(r.valor)}</td>
                                                         <td className="py-4 text-right">
-                                                            <button 
+                                                            <button
                                                                 onClick={async () => {
-                                                                    if(confirm('Tem certeza?')) {
-                                                                        await DatabaseService.deleteRetiradaSocio(r.id);
-                                                                        setRetiradas(prev => prev.filter(x => x.id !== r.id));
+                                                                    if(confirm('Tem certeza? O lançamento será removido do extrato financeiro.')) {
+                                                                        if (onDelete) await onDelete([r.id]);
                                                                     }
                                                                 }}
                                                                 className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 text-zinc-400 hover:text-rose-500 transition-all opacity-0 group-hover:opacity-100"
@@ -1288,7 +1318,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                                         </td>
                                                     </tr>
                                                 ))}
-                                                {retiradas.length === 0 && (
+                                                {retiradasDerived.length === 0 && (
                                                     <tr>
                                                         <td colSpan={5} className="py-10 text-[10px] font-bold text-zinc-400 text-center uppercase tracking-widest">Nenhuma retirada registrada.</td>
                                                     </tr>
@@ -1314,7 +1344,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                                 <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500"><ArrowDownCircle size={20}/></div>
                                                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Retiradas Totais</span>
                                             </div>
-                                            <span className="text-sm font-black text-rose-600">{formatBRL(retiradas.reduce((a,b)=>a+b.valor, 0))}</span>
+                                            <span className="text-sm font-black text-rose-600">{formatBRL(retiradasDerived.reduce((a,b)=>a+b.valor, 0))}</span>
                                         </div>
                                     </div>
                                 </Card>
