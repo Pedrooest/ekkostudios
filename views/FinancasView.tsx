@@ -374,15 +374,10 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
 
     const handleSocioChange = (socio: 'socio1' | 'socio2', field: 'nome' | 'percentual', value: any) => {
         setSociosConfig(prev => {
-            const next = { ...prev };
-            
+            const next = { ...prev, [socio]: { ...prev[socio] } };
             if (field === 'percentual') {
-                const val = Math.min(100, Math.max(0, Number(value) || 0));
-                next[socio].percentual = val;
-                
-                // Balancear o outro socio para somar 100%
-                const otherSocio = socio === 'socio1' ? 'socio2' : 'socio1';
-                next[otherSocio].percentual = 100 - val;
+                // Valor livre — sem auto-balancear o outro sócio
+                next[socio].percentual = Math.min(100, Math.max(0, Number(value) || 0));
             } else {
                 next[socio].nome = value;
             }
@@ -1103,80 +1098,129 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                     TAB 3: SOCIOS (REDESIGN)
                 =============================================================== */}
                 {activeInternalTab === 'SOCIOS' && (
-                    <div className="animate-in fade-in slide-in-from-bottom-2 space-y-6">
+                    <div className="animate-fade-up space-y-6">
+
+                        {/* ── CONFIGURAÇÃO DE SHARES ── */}
+                        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[24px] p-6 shadow-sm">
+                            <div className="flex items-center justify-between mb-5">
+                                <div>
+                                    <h3 className="text-sm font-black uppercase text-zinc-900 dark:text-white tracking-tight">Participação dos Sócios</h3>
+                                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">Configure livremente o percentual de cada sócio</p>
+                                </div>
+                                {(() => {
+                                    const total = sociosConfig.socio1.percentual + sociosConfig.socio2.percentual;
+                                    const ok = Math.abs(total - 100) < 0.01;
+                                    return (
+                                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase border ${ok ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20' : 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-500/20'}`}>
+                                            {ok ? <CheckCircle2 size={12} className="shrink-0" /> : <AlertTriangle size={12} className="shrink-0" />}
+                                            Total: {total.toFixed(1)}%
+                                        </div>
+                                    );
+                                })()}
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {[
+                                    { key: 'socio1' as const, config: sociosConfig.socio1, gradient: 'from-blue-600 to-indigo-600', color: 'text-blue-600 dark:text-blue-400', border: 'border-blue-500', ring: 'focus:ring-blue-500/20 focus:border-blue-500' },
+                                    { key: 'socio2' as const, config: sociosConfig.socio2, gradient: 'from-emerald-500 to-teal-500', color: 'text-emerald-600 dark:text-emerald-400', border: 'border-emerald-500', ring: 'focus:ring-emerald-500/20 focus:border-emerald-500' }
+                                ].map(s => (
+                                    <div key={s.key} className="flex items-center gap-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-4">
+                                        <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${s.gradient} flex items-center justify-center text-white text-lg font-black shadow-sm shrink-0`}>
+                                            {s.config.nome.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <input
+                                                type="text"
+                                                value={s.config.nome}
+                                                onChange={e => handleSocioChange(s.key, 'nome', e.target.value)}
+                                                className="bg-transparent border-none outline-none text-sm font-black text-zinc-900 dark:text-white uppercase w-full truncate"
+                                                placeholder="Nome do sócio"
+                                            />
+                                            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Clique para editar o nome</p>
+                                        </div>
+                                        {/* Percentual livre */}
+                                        <div className="flex items-center gap-1.5 shrink-0">
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                step="0.5"
+                                                value={s.config.percentual}
+                                                onChange={e => handleSocioChange(s.key, 'percentual', e.target.value)}
+                                                className={`w-16 text-center bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl px-2 py-2 text-lg font-black ${s.color} focus:outline-none focus:ring-2 ${s.ring} transition-all tabular-nums`}
+                                            />
+                                            <span className={`text-lg font-black ${s.color}`}>%</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* ── CARDS DE RETIRADA ── */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 stagger">
                             {[
-                                { id: 1, config: sociosConfig.socio1, gradient: 'from-blue-600 via-indigo-600 to-purple-600', shadow: 'shadow-indigo-500/20', iconColor: 'text-indigo-500' },
-                                { id: 2, config: sociosConfig.socio2, gradient: 'from-emerald-500 via-teal-500 to-cyan-500', shadow: 'shadow-teal-500/20', iconColor: 'text-teal-500' }
-                            ].map((s) => {
+                                { id: 1, key: 'socio1' as const, config: sociosConfig.socio1, gradient: 'from-blue-600 via-indigo-600 to-purple-600', shadow: 'shadow-indigo-500/20', color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-500/10', border: 'border-blue-200 dark:border-blue-500/20' },
+                                { id: 2, key: 'socio2' as const, config: sociosConfig.socio2, gradient: 'from-emerald-500 via-teal-500 to-cyan-500', shadow: 'shadow-teal-500/20', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10', border: 'border-emerald-200 dark:border-emerald-500/20' }
+                            ].map(s => {
                                 const repasseValue = Math.max(0, summary.lucro) * (s.config.percentual / 100);
                                 const jaRetirado = retiradas
                                     .filter(r => r.socio === s.id && r.mes_referencia === new Date().toISOString().slice(0, 7))
                                     .reduce((acc, r) => acc + r.valor, 0);
+                                const restante = Math.max(0, repasseValue - jaRetirado);
 
                                 return (
                                     <div key={s.id} className="relative group">
-                                        <div className={`absolute -inset-0.5 bg-gradient-to-r ${s.gradient} rounded-[32px] opacity-20 blur group-hover:opacity-40 transition duration-1000 group-hover:duration-200 animate-tilt`}></div>
-                                        <div className="relative bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-8 rounded-[28px] shadow-sm flex flex-col h-full overflow-hidden">
-                                            <div className="flex items-start justify-between mb-8">
-                                                <div className="flex items-center gap-4">
-                                                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${s.gradient} flex items-center justify-center text-white text-2xl font-black shadow-lg ${s.shadow}`}>
-                                                        {s.config.nome.charAt(0).toUpperCase()}
-                                                    </div>
-                                                    <div>
-                                                        <input 
-                                                            type="text" 
-                                                            value={s.config.nome}
-                                                            onChange={e => handleSocioChange(s.id === 1 ? 'socio1' : 'socio2', 'nome', e.target.value)}
-                                                            className="bg-transparent border-none outline-none text-lg font-black text-zinc-900 dark:text-white uppercase w-full"
-                                                        />
-                                                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Sócio Quote-Share</p>
-                                                    </div>
+                                        <div className={`absolute -inset-0.5 bg-gradient-to-r ${s.gradient} rounded-[32px] opacity-15 blur group-hover:opacity-35 transition duration-700`} />
+                                        <div className="relative bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-7 rounded-[28px] shadow-sm flex flex-col gap-5 overflow-hidden">
+
+                                            {/* Header */}
+                                            <div className="flex items-center gap-4">
+                                                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${s.gradient} flex items-center justify-center text-white text-2xl font-black shadow-lg ${s.shadow} shrink-0`}>
+                                                    {s.config.nome.charAt(0).toUpperCase()}
                                                 </div>
-                                                <div className="text-right">
-                                                    <div className="text-[10px] font-black text-zinc-400 uppercase tracking-tighter mb-1">Share atual</div>
-                                                    <div className={`text-2xl font-black ${s.iconColor}`}>{s.config.percentual}%</div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="text-base font-black text-zinc-900 dark:text-white uppercase truncate">{s.config.nome}</h3>
+                                                    <p className={`text-[10px] font-black uppercase tracking-widest ${s.color}`}>{s.config.percentual}% do lucro</p>
+                                                </div>
+                                                {jaRetirado > 0 && (
+                                                    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[9px] font-black uppercase border ${restante > 0.01 ? s.bg + ' ' + s.border + ' ' + s.color : 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400'}`}>
+                                                        <CheckCircle2 size={10} className="shrink-0" />
+                                                        {restante > 0.01 ? 'Parcial' : 'Retirado'}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Valores */}
+                                            <div className="grid grid-cols-3 gap-3">
+                                                <div className={`p-3.5 rounded-2xl border ${s.bg} ${s.border}`}>
+                                                    <p className={`text-[8px] font-black uppercase tracking-widest ${s.color} mb-1`}>Calculado</p>
+                                                    <p className={`text-sm font-black ${s.color} tabular-nums leading-none`}>{formatBRL(repasseValue)}</p>
+                                                    <p className="text-[8px] text-zinc-400 mt-0.5">{s.config.percentual}% do lucro</p>
+                                                </div>
+                                                <div className="p-3.5 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950">
+                                                    <p className="text-[8px] font-black uppercase tracking-widest text-zinc-400 mb-1">Retirado</p>
+                                                    <p className="text-sm font-black text-zinc-700 dark:text-zinc-300 tabular-nums leading-none">{formatBRL(jaRetirado)}</p>
+                                                    <p className="text-[8px] text-zinc-400 mt-0.5">este mês</p>
+                                                </div>
+                                                <div className={`p-3.5 rounded-2xl border ${restante > 0.01 ? 'bg-amber-50 dark:bg-amber-500/5 border-amber-200 dark:border-amber-500/20' : 'bg-zinc-50 dark:bg-zinc-950 border-zinc-100 dark:border-zinc-800'}`}>
+                                                    <p className={`text-[8px] font-black uppercase tracking-widest mb-1 ${restante > 0.01 ? 'text-amber-600 dark:text-amber-400' : 'text-zinc-400'}`}>Restante</p>
+                                                    <p className={`text-sm font-black tabular-nums leading-none ${restante > 0.01 ? 'text-amber-600 dark:text-amber-400' : 'text-zinc-400'}`}>{formatBRL(restante)}</p>
+                                                    <p className="text-[8px] text-zinc-400 mt-0.5">a retirar</p>
                                                 </div>
                                             </div>
 
-                                            <div className="space-y-6 flex-1">
-                                                <div className="bg-zinc-50 dark:bg-zinc-950 p-5 rounded-2xl border border-zinc-100 dark:border-zinc-800">
-                                                    <div className="flex justify-between items-end mb-4">
-                                                        <div>
-                                                            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Disponível este mês</p>
-                                                            <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{formatBRL(repasseValue)}</h3>
-                                                        </div>
-                                                        {jaRetirado >= repasseValue && repasseValue > 0 && (
-                                                            <Badge color="emerald" className="animate-bounce">RETIRADO ✓</Badge>
-                                                        )}
-                                                    </div>
-                                                    <input 
-                                                        type="range" 
-                                                        min="0" max="100" 
-                                                        value={s.config.percentual}
-                                                        onChange={e => handleSocioChange(s.id === 1 ? 'socio1' : 'socio2', 'percentual', e.target.value)}
-                                                        className="w-full h-2 bg-zinc-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                                                    />
-                                                </div>
-
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="p-4 bg-zinc-50 dark:bg-zinc-950 rounded-2xl border border-zinc-100 dark:border-zinc-800">
-                                                        <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Status</p>
-                                                        <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300">Aguardando Fechamento</p>
-                                                    </div>
-                                                    <button 
-                                                        onClick={() => {
-                                                            setWithdrawalData(prev => ({ ...prev, socio: s.id as 1|2, valor: '', observacao: '' }));
-                                                            setWithdrawalSuggestion(repasseValue);
-                                                            setIsWithdrawalModalOpen(true);
-                                                        }}
-                                                        className={`p-4 rounded-2xl border flex flex-col items-center justify-center gap-1 transition-all ${jaRetirado > 0 ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-600' : 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20 text-blue-600 hover:scale-[1.02] shadow-sm hover:shadow-blue-500/10'}`}
-                                                    >
-                                                        <DollarSign size={16} />
-                                                        <span className="text-[10px] font-black uppercase tracking-tighter">Registrar Retirada</span>
-                                                    </button>
-                                                </div>
-                                            </div>
+                                            {/* Botão registrar retirada */}
+                                            <button
+                                                onClick={() => {
+                                                    setWithdrawalData(prev => ({ ...prev, socio: s.id as 1|2, valor: '', observacao: '' }));
+                                                    setWithdrawalSuggestion(repasseValue);
+                                                    setIsWithdrawalModalOpen(true);
+                                                }}
+                                                className="w-full py-3.5 rounded-2xl border flex items-center justify-center gap-2.5 transition-all font-black text-[11px] uppercase tracking-widest hover:scale-[1.01] hover:shadow-lg active:scale-[0.98] bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 border-transparent shadow-sm"
+                                            >
+                                                <DollarSign size={15} className="shrink-0" />
+                                                Registrar Retirada
+                                            </button>
                                         </div>
                                     </div>
                                 );
