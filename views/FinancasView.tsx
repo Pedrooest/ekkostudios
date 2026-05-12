@@ -1628,42 +1628,43 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
             {/* MODAL DE RETIRADA */}
             {isWithdrawalModalOpen && ReactDOM.createPortal(
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-sm animate-fade-blur" onClick={() => setIsWithdrawalModalOpen(false)} />
-                    <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[28px] shadow-2xl overflow-hidden animate-fade-up">
+                    <div className="absolute inset-0 bg-zinc-950/70 backdrop-blur-sm animate-fade-blur" onClick={() => setIsWithdrawalModalOpen(false)} />
+                    <div className="relative w-full max-w-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[24px] shadow-2xl overflow-hidden animate-fade-up">
 
-                        {/* Header */}
-                        <div className={`px-7 pt-7 pb-5 border-b border-zinc-100 dark:border-zinc-800 flex items-center gap-4`}>
-                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl font-black text-white bg-gradient-to-br shadow-lg shrink-0 ${withdrawalData.socio === 1 ? 'from-blue-600 to-indigo-600 shadow-indigo-500/20' : 'from-emerald-500 to-teal-500 shadow-teal-500/20'}`}>
+                        {/* Header compacto */}
+                        <div className={`px-6 py-5 flex items-center gap-3 border-b border-zinc-100 dark:border-zinc-800`}>
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg font-black text-white bg-gradient-to-br shrink-0 ${withdrawalData.socio === 1 ? 'from-blue-600 to-indigo-600' : 'from-emerald-500 to-teal-500'}`}>
                                 {(withdrawalData.socio === 1 ? sociosConfig.socio1.nome : sociosConfig.socio2.nome).charAt(0).toUpperCase()}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500">Retirada de Sócio</p>
-                                <h3 className="text-base font-black text-zinc-900 dark:text-white uppercase truncate">
+                                <p className="text-[8px] font-black uppercase tracking-widest text-zinc-400">Retirada de Sócio</p>
+                                <p className="text-sm font-black text-zinc-900 dark:text-white uppercase truncate leading-tight">
                                     {withdrawalData.socio === 1 ? sociosConfig.socio1.nome : sociosConfig.socio2.nome}
-                                </h3>
+                                </p>
                             </div>
-                            <button onClick={() => setIsWithdrawalModalOpen(false)} className="p-2 rounded-xl text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all shrink-0">
-                                <X size={18} />
+                            <button onClick={() => setIsWithdrawalModalOpen(false)} className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all shrink-0">
+                                <X size={16} />
                             </button>
                         </div>
 
-                        <div className="p-7 space-y-4">
-                            {/* Valor — livre, com sugestão */}
-                            <div className="space-y-2">
-                                <label className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.15em] ml-1 flex items-center justify-between">
-                                    <span>Valor da Retirada</span>
+                        <div className="px-6 pt-5 pb-6 space-y-4">
+
+                            {/* Valor — grande, destaque central */}
+                            <div className="bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 focus-within:border-blue-500 dark:focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-500/10 rounded-2xl px-5 py-4 transition-all">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-[8px] font-black text-zinc-400 uppercase tracking-[0.15em]">Valor</span>
                                     {withdrawalSuggestion > 0 && (
                                         <button
                                             type="button"
                                             onClick={() => setWithdrawalData(prev => ({ ...prev, valor: withdrawalSuggestion.toFixed(2) }))}
-                                            className="text-[9px] font-black text-blue-500 hover:text-blue-700 bg-blue-50 dark:bg-blue-500/10 px-2 py-0.5 rounded-lg border border-blue-200 dark:border-blue-500/20 transition-all hover:scale-105"
+                                            className="text-[8px] font-black text-blue-500 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 px-2 py-0.5 rounded-lg border border-blue-200 dark:border-blue-500/20 transition-all"
                                         >
-                                            Usar calculado: {formatBRL(withdrawalSuggestion)}
+                                            ↑ {formatBRL(withdrawalSuggestion)}
                                         </button>
                                     )}
-                                </label>
-                                <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-950 border-2 border-zinc-200 dark:border-zinc-800 focus-within:border-blue-500 dark:focus-within:border-blue-500 rounded-2xl px-5 py-4 transition-all">
-                                    <span className="text-zinc-400 font-black text-sm shrink-0">R$</span>
+                                </div>
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-base font-black text-zinc-400">R$</span>
                                     <input
                                         type="number"
                                         step="0.01"
@@ -1672,69 +1673,69 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                         placeholder="0,00"
                                         value={withdrawalData.valor}
                                         onChange={e => setWithdrawalData(prev => ({ ...prev, valor: e.target.value }))}
-                                        className="flex-1 bg-transparent border-none outline-none text-2xl font-black text-zinc-900 dark:text-white tabular-nums placeholder:text-zinc-300 dark:placeholder:text-zinc-700"
+                                        className="flex-1 bg-transparent border-none outline-none text-3xl font-black text-zinc-900 dark:text-white tabular-nums placeholder:text-zinc-200 dark:placeholder:text-zinc-700 [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
                                     />
                                 </div>
                             </div>
 
-                            {/* Data */}
+                            {/* Data + Referência */}
                             <div className="grid grid-cols-2 gap-3">
-                                <div className="space-y-1.5">
-                                    <label className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.15em] ml-1">Data da Saída</label>
-                                    <input
-                                        type="date"
+                                <div>
+                                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-[0.15em] ml-0.5 block mb-1.5">Data</label>
+                                    <DatePickerPortal
                                         value={withdrawalData.data}
-                                        onChange={e => setWithdrawalData(prev => ({ ...prev, data: e.target.value }))}
-                                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all"
+                                        onChange={v => setWithdrawalData(prev => ({ ...prev, data: v }))}
+                                        clearable={false}
+                                        size="sm"
                                     />
                                 </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.15em] ml-1">Referência</label>
+                                <div>
+                                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-[0.15em] ml-0.5 block mb-1.5">Referência</label>
                                     <input
                                         type="month"
                                         value={withdrawalData.mes_referencia}
                                         onChange={e => setWithdrawalData(prev => ({ ...prev, mes_referencia: e.target.value }))}
-                                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all"
+                                        className="w-full h-9 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 text-[11px] font-bold text-zinc-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-blue-500/50 transition-all [&::-webkit-calendar-picker-indicator]:opacity-50 [&::-webkit-calendar-picker-indicator]:w-3"
                                     />
                                 </div>
                             </div>
 
                             {/* Observação */}
-                            <div className="space-y-1.5">
-                                <label className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.15em] ml-1">Observação (opcional)</label>
+                            <div>
+                                <label className="text-[8px] font-black text-zinc-400 uppercase tracking-[0.15em] ml-0.5 block mb-1.5">Observação</label>
                                 <input
                                     type="text"
-                                    placeholder="Ex: Pró-labore março, comissão, adiantamento..."
+                                    placeholder="Pró-labore, comissão, adiantamento..."
                                     value={withdrawalData.observacao}
                                     onChange={e => setWithdrawalData(prev => ({ ...prev, observacao: e.target.value }))}
-                                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2.5 text-xs font-medium text-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all placeholder:text-zinc-300 dark:placeholder:text-zinc-700"
+                                    className="w-full h-9 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 text-[11px] font-medium text-zinc-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-blue-500/50 transition-all placeholder:text-zinc-300 dark:placeholder:text-zinc-700"
                                 />
                             </div>
 
-                            {/* Info: vai registrar como saída */}
-                            <div className="flex items-start gap-2.5 bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-200 dark:border-emerald-500/20 rounded-xl px-4 py-3">
-                                <CheckCircle2 size={14} className="text-emerald-500 shrink-0 mt-0.5" />
-                                <p className="text-[9px] font-bold text-emerald-700 dark:text-emerald-400 leading-relaxed">
-                                    Será registrado como <strong>Saída (Pró-Labore)</strong> no extrato financeiro e no histórico de retiradas.
+                            {/* Aviso */}
+                            <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-200 dark:border-emerald-500/20 rounded-xl px-3.5 py-2.5">
+                                <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
+                                <p className="text-[9px] font-bold text-emerald-700 dark:text-emerald-400">
+                                    Gera lançamento <strong>Saída · Pró-Labore</strong> no extrato
                                 </p>
                             </div>
-                        </div>
 
-                        {/* Footer */}
-                        <div className="px-7 pb-7 flex gap-3">
-                            <button
-                                onClick={() => setIsWithdrawalModalOpen(false)}
-                                className="flex-1 py-3.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-900 dark:hover:text-white border border-zinc-200 dark:border-zinc-800 rounded-2xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleSaveWithdrawal}
-                                disabled={!withdrawalData.valor || parseNumericValue(withdrawalData.valor) <= 0}
-                                className="flex-1 py-3.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
-                            >
-                                <Check size={14} className="shrink-0" /> Registrar Saída
-                            </button>
+                            {/* Botões */}
+                            <div className="flex gap-2 pt-1">
+                                <button
+                                    onClick={() => setIsWithdrawalModalOpen(false)}
+                                    className="flex-1 h-11 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-900 dark:hover:text-white border border-zinc-200 dark:border-zinc-800 rounded-2xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleSaveWithdrawal}
+                                    disabled={!withdrawalData.valor || parseNumericValue(withdrawalData.valor) <= 0}
+                                    className="flex-1 h-11 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-1.5"
+                                >
+                                    <Check size={13} className="shrink-0" /> Registrar Saída
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>,
