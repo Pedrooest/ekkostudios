@@ -30,6 +30,7 @@ interface TaskFlowViewProps {
     tasks: Tarefa[];
     clients: Cliente[];
     collaborators: Colaborador[];
+    workspaceMembers?: any[];
     activeViewId: string;
     setActiveViewId: (id: string) => void;
     onUpdate: (id: string, table: string, field: string, value: any, silent?: boolean) => void;
@@ -267,7 +268,7 @@ function TaskCardOverlay({ Tarefa, clients, getPriorityInfo, statusCor }: any) {
 }
 
 export function TaskFlowView({
-    tasks, clients, collaborators, activeViewId, setActiveViewId,
+    tasks, clients, collaborators, workspaceMembers = [], activeViewId, setActiveViewId,
     onUpdate, onDelete, onArchive, onAdd, onSelectTask,
     selection, onSelect, onClearSelection, savingStatus = {},
     planejamento = [],
@@ -787,6 +788,7 @@ interface TaskDetailPanelProps {
     tasks: Tarefa[];
     clients: Cliente[];
     collaborators: Colaborador[];
+    workspaceMembers?: any[];
     onClose: () => void;
     onUpdate: (id: string, table: string, field: string, value: any, silent?: boolean) => void;
     onArchive: (ids: string[], table: string, archive: boolean) => void;
@@ -800,7 +802,7 @@ interface TaskDetailPanelProps {
 }
 
 export function TaskDetailPanel({
-    taskId, tasks, clients, collaborators, onClose,
+    taskId, tasks, clients, collaborators, workspaceMembers = [], onClose,
     onUpdate, onArchive, onDelete, onAdd,
     viewMode, setViewMode, savingStatus = {},
     setActiveTab, planejamento = []
@@ -1004,12 +1006,85 @@ export function TaskDetailPanel({
                         <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                             <User size={12} className="text-zinc-400" /> Responsável
                         </label>
-                        <PSelectPortal
-                            value={t.Responsável || ''}
-                            onChange={val => onUpdate(t.id, 'TAREFAS', 'Responsável', val)}
-                            options={[{ value: '', label: 'Sem Resp.' }, ...collaborators.map((c: any) => ({ value: c.Nome, label: c.Nome }))]}
-                            size="sm"
-                        />
+                        {(() => {
+                            // Merge workspace members + VH collaborators (dedup by name)
+                            const wmOptions = workspaceMembers.map((m: any) => ({
+                                value: m.profiles?.full_name || m.profiles?.email || m.email || '',
+                                label: m.profiles?.full_name || m.profiles?.email || m.email || 'Membro',
+                                avatar: m.profiles?.avatar_url || null,
+                                role: m.role || m.profiles?.role || 'membro',
+                                email: m.profiles?.email || m.email || ''
+                            })).filter(o => o.value);
+
+                            const collabOptions = collaborators
+                                .filter((c: any) => !wmOptions.find(w => w.value === c.Nome))
+                                .map((c: any) => ({
+                                    value: c.Nome,
+                                    label: c.Nome,
+                                    avatar: null,
+                                    role: c.Função || 'colaborador',
+                                    email: ''
+                                }));
+
+                            const allOptions = [...wmOptions, ...collabOptions];
+                            const current = allOptions.find(o => o.value === t.Responsável);
+
+                            return (
+                                <div>
+                                    {/* Current selection display */}
+                                    <div className="flex items-center gap-2 mb-2">
+                                        {current ? (
+                                            <div className="flex items-center gap-2 px-2.5 py-1.5 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-xl w-full">
+                                                {current.avatar ? (
+                                                    <img src={current.avatar} alt={current.label} className="w-5 h-5 rounded-full object-cover shrink-0" />
+                                                ) : (
+                                                    <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-[8px] font-black text-white shrink-0">
+                                                        {current.label.charAt(0).toUpperCase()}
+                                                    </div>
+                                                )}
+                                                <span className="text-[10px] font-black text-blue-700 dark:text-blue-300 uppercase tracking-widest truncate flex-1">{current.label}</span>
+                                                <button onClick={() => onUpdate(t.id, 'TAREFAS', 'Responsável', '')} className="text-blue-400 hover:text-blue-700 dark:hover:text-blue-200 transition-colors">
+                                                    <X size={12} />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <span className="text-[10px] text-zinc-400 font-bold italic">Nenhum responsável</span>
+                                        )}
+                                    </div>
+                                    {/* People list */}
+                                    <div className="space-y-1 max-h-[140px] overflow-y-auto custom-scrollbar">
+                                        {allOptions.length === 0 ? (
+                                            <p className="text-[9px] text-zinc-400 font-bold italic px-1">Nenhum membro no workspace.</p>
+                                        ) : allOptions.map(opt => (
+                                            <button
+                                                key={opt.value}
+                                                onClick={() => onUpdate(t.id, 'TAREFAS', 'Responsável', opt.value === t.Responsável ? '' : opt.value)}
+                                                className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-left transition-all ${
+                                                    opt.value === t.Responsável
+                                                        ? 'bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20'
+                                                        : 'hover:bg-zinc-50 dark:hover:bg-zinc-800 border border-transparent'
+                                                }`}
+                                            >
+                                                {opt.avatar ? (
+                                                    <img src={opt.avatar} alt={opt.label} className="w-6 h-6 rounded-full object-cover shrink-0 ring-1 ring-zinc-200 dark:ring-zinc-700" />
+                                                ) : (
+                                                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-[9px] font-black text-white shrink-0">
+                                                        {opt.label.charAt(0).toUpperCase()}
+                                                    </div>
+                                                )}
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-[10px] font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight truncate">{opt.label}</p>
+                                                    {opt.email && <p className="text-[8px] text-zinc-400 font-bold truncate">{opt.email}</p>}
+                                                </div>
+                                                {opt.value === t.Responsável && (
+                                                    <Check size={12} className="text-blue-500 shrink-0" strokeWidth={3} />
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })()}
                         <div className="absolute top-2 right-2">
                             <SavingIndicator status={savingStatus[`TAREFAS:${t.id}:Responsável`]} />
                         </div>

@@ -251,6 +251,7 @@ export default function App() {
   const [isLibraryEditorOpen, setIsLibraryEditorOpen] = useState(false);
   const [vhConfig, setVhConfig] = useState<VhConfig>(DEFAULT_VH_CONFIG);
   const [collaborators, setCollaborators] = useState<Colaborador[]>([]);
+  const [workspaceMembers, setWorkspaceMembers] = useState<any[]>([]);
   const [activeTaskViewId, setActiveTaskViewId] = useState<string>(DEFAULT_TASK_VIEWS[0].id);
   const notificationButtonRef = useRef<HTMLButtonElement>(null);
   const clientFilterButtonRef = useRef<HTMLButtonElement>(null);
@@ -745,6 +746,10 @@ export default function App() {
       if (loadedWorkspaceRef.current === currentWorkspace.id) return;
       loadedWorkspaceRef.current = currentWorkspace.id;
       loadWorkspaceData(currentWorkspace.id);
+      // Load workspace members (authorized people) for Responsável dropdown
+      DatabaseService.getWorkspaceMembers(currentWorkspace.id)
+        .then(members => setWorkspaceMembers(members || []))
+        .catch(() => {/* non-critical */});
     }
   }, [currentWorkspace?.id, loadWorkspaceData]);
 
@@ -2015,6 +2020,7 @@ export default function App() {
             tasks={filterArchived(tasks)}
             clients={clients}
             collaborators={collaborators}
+            workspaceMembers={workspaceMembers}
             activeViewId={activeTaskViewId}
             setActiveViewId={setActiveTaskViewId}
             onUpdate={handleUpdate}
@@ -2076,6 +2082,7 @@ export default function App() {
                     tasks={tasks}
                     clients={clients}
                     collaborators={collaborators}
+                    workspaceMembers={workspaceMembers}
                     onClose={() => setSelectedTaskId(null)}
                     onUpdate={handleUpdate}
                     onArchive={performArchive}
