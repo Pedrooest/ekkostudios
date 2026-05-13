@@ -14,12 +14,12 @@ import {
     Target, Award, Flame, Star
 } from 'lucide-react';
 import { sendEmail, templates } from '../utils/emailService';
-import { 
-    BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
-    PieChart, Pie, Cell, Legend, AreaChart, Area, 
-    LineChart, Line, CartesianGrid 
+import {
+    BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+    PieChart, Pie, Cell, Legend, AreaChart, Area,
+    LineChart, Line, CartesianGrid, ComposedChart, ReferenceLine
 } from 'recharts';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { StatCard, Badge, Button, InputSelect, Card, PSelectPortal, DatePickerPortal } from '../Components';
 import { generateId } from '../utils/id';
 import { DatabaseService } from '../DatabaseService';
@@ -597,11 +597,138 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
            }
         });
         return Object.keys(dict).map(id => ({
-            id, 
+            id,
             nome: clients?.find((c:any) => c.id === id)?.Nome || 'AVULSO',
             valor: dict[id]
         })).sort((a,b) => b.valor - a.valor).slice(0, 5);
     }, [financasFiltradas, clients]);
+
+    // ── ENTERPRISE METRICS ──────────────────────────────────────
+
+    // Posição de caixa líquida (all-time net cash received vs spent)
+    const cashPosition = React.useMemo(() => {
+        const recebido = transactions.filter(t => t.tipo === 'entrada' && t.status === 'Pago' && !t.__archived).reduce((a, t) => a + t.valor, 0);
+        const pago     = transactions.filter(t => (t.tipo === 'saida' || t.tipo === 'assinatura') && t.status === 'Pago' && !t.__archived).reduce((a, t) => a + t.valor, 0);
+        return recebido - pago;
+    }, [transactions]);
+
+    // Burn rate = média das despesas dos últimos 3 meses completos
+    const burnRate = React.useMemo(() => {
+        const now = new Date();
+        const meses = Array.from({ length: 3 }, (_, i) => {
+            const d = new Date(now.getFullYear(), now.getMonth() - (i + 1), 1);
+            return d.toISOString().slice(0, 7);
+        });
+        const total = transactions
+            .filter(t => (t.tipo === 'saida' || t.tipo === 'assinatura') && t.status === 'Pago' && !t.__archived && meses.some(m => t.data?.startsWith(m)))
+            .reduce((a, t) => a + t.valor, 0);
+        return total / 3;
+    }, [transactions]);
+
+    // Runway = meses que o caixa aguenta no burn rate atual
+    const runway = React.useMemo(() => {
+        if (burnRate <= 0 || cashPosition <= 0) return null;
+        return cashPosition / burnRate;
+    }, [cashPosition, burnRate]);
+
+    // Margem líquida do período
+    const margemLiquida = React.useMemo(() => {
+        if (summary.receita <= 0) return 0;
+        return (summary.lucro / summary.receita) * 100;
+    }, [summary]);
+
+    // Comparativo com período anterior
+    const previousSummary = React.useMemo(() => {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = now.getMonth();
+        let inicioAnt = '', fimAnt = '';
+        if (filterPeriod === 'este_mes') {
+            inicioAnt = new Date(y, m - 1, 1).toISOString().slice(0, 10);
+            fimAnt    = new Date(y, m, 0).toISOString().slice(0, 10);
+        } else if (filterPeriod === 'mes_passado') {
+            inicioAnt = new Date(y, m - 2, 1).toISOString().slice(0, 10);
+            fimAnt    = new Date(y, m - 1, 0).toISOString().slice(0, 10);
+        } else if (filterPeriod === 'este_ano') {
+            inicioAnt = `${y - 1}-01-01`;
+            fimAnt    = `${y - 1}-12-31`;
+        } else {
+            return null; // Sem comparativo para outros períodos
+        }
+        const base = transactions.filter(t => !t.__archived && t.data >= inicioAnt && t.data <= fimAnt);
+        const rec  = base.filter(t => t.tipo === 'entrada' && t.status === 'Pago').reduce((a, t) => a + t.valor, 0);
+        const desp = base.filter(t => t.tipo === 'saida' && t.status === 'Pago').reduce((a, t) => a + t.valor, 0);
+        return { receita: rec, despesas: desp, lucro: rec - desp };
+    }, [transactions, filterPeriod]);
+
+    // Cash Flow chart — 12 meses com saldo acumulado corrente
+    const cashFlowMonthly = React.useMemo(() => {
+        const now = new Date();
+        const months = Array.from({ length: 12 }, (_, i) => {
+            const d = new Date(now.getFullYear(), now.getMonth() - (11 - i), 1);
+            return d.toISOString().slice(0, 7);
+        });
+        let saldoCorrente = 0;
+        return months.map(mes => {
+            const base = transactions.filter(t => !t.__archived && t.data?.startsWith(mes) && t.status === 'Pago');
+            const entrada = base.filter(t => t.tipo === 'entrada').reduce((a, t) => a + t.valor, 0);
+            const saida   = base.filter(t => t.tipo === 'saida' || t.tipo === 'assinatura').reduce((a, t) => a + t.valor, 0);
+            saldoCorrente += entrada - saida;
+            return {
+                name: new Date(mes + '-01T12:00:00').toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase(),
+                mes,
+                Entradas: entrada,
+                Saídas: saida,
+                Saldo: saldoCorrente,
+                Resultado: entrada - saida
+            };
+        });
+    }, [transactions]);
+
+    // Projeções próximos 3 meses (baseado no MRR + recorrentes de saída)
+    const projecoes = React.useMemo(() => {
+        const now = new Date();
+        const recorrentes = transactions.filter(t => t.frequencia === 'mensal' && !t.__archived);
+        return Array.from({ length: 3 }, (_, i) => {
+            const d = new Date(now.getFullYear(), now.getMonth() + i + 1, 1);
+            const label = d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+            const proj_entrada = recorrentes.filter(t => t.tipo === 'entrada').reduce((a, t) => a + t.valor, 0);
+            const proj_saida   = recorrentes.filter(t => t.tipo === 'saida' || t.tipo === 'assinatura').reduce((a, t) => a + t.valor, 0);
+            return { mes: label, entrada: proj_entrada, saida: proj_saida, resultado: proj_entrada - proj_saida };
+        });
+    }, [transactions]);
+
+    // Health score 0-100
+    const healthScore = React.useMemo(() => {
+        let score = 50;
+        // Margem
+        if (margemLiquida >= 30) score += 20;
+        else if (margemLiquida >= 15) score += 10;
+        else if (margemLiquida < 0) score -= 20;
+        // Runway
+        if (runway !== null) {
+            if (runway >= 6) score += 20;
+            else if (runway >= 3) score += 10;
+            else if (runway < 1) score -= 20;
+        }
+        // Inadimplência
+        const taxaInad = summary.receita > 0 ? (summary.inadimplenciaValue / (summary.receita + summary.inadimplenciaValue)) * 100 : 0;
+        if (taxaInad < 5) score += 10;
+        else if (taxaInad > 20) score -= 10;
+        return Math.max(0, Math.min(100, score));
+    }, [margemLiquida, runway, summary]);
+
+    // Helpers de crescimento
+    const deltaReceita = previousSummary && previousSummary.receita > 0
+        ? ((summary.receita - previousSummary.receita) / previousSummary.receita) * 100
+        : null;
+    const deltaDespesas = previousSummary && previousSummary.despesas > 0
+        ? ((summary.despesas - previousSummary.despesas) / previousSummary.despesas) * 100
+        : null;
+    const deltaLucro = previousSummary && previousSummary.lucro !== 0
+        ? ((summary.lucro - previousSummary.lucro) / Math.abs(previousSummary.lucro)) * 100
+        : null;
+    // ────────────────────────────────────────────────────────────
 
 
     // Handlers Modal
@@ -863,16 +990,16 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
             <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-zinc-50 dark:bg-[#0a0a0b]">
 
                 {/* ===============================================================
-                    TAB 1: VISÃO GERAL — REDESIGN PREMIUM
+                    TAB 1: VISÃO GERAL — ENTERPRISE LEVEL
                 =============================================================== */}
                 {activeInternalTab === 'VISAO_GERAL' && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-3 duration-300">
+                    <div className="space-y-5 animate-in fade-in slide-in-from-bottom-3 duration-300">
 
                         {/* ── Period selector bar ── */}
                         <div className="flex flex-wrap items-center justify-between gap-3">
                             <div className="flex items-center gap-2">
                                 <div className="w-1.5 h-6 rounded-full bg-gradient-to-b from-emerald-400 to-teal-500" />
-                                <h2 className="text-sm font-black uppercase tracking-tight text-zinc-900 dark:text-white">Visão Financeira</h2>
+                                <h2 className="text-sm font-black uppercase tracking-tight text-zinc-900 dark:text-white">Painel Financeiro</h2>
                             </div>
                             <div className="flex items-center gap-1 p-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm">
                                 {[
@@ -908,169 +1035,286 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                             </div>
                         )}
 
-                        {/* ── Hero metric cards ── */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 stagger">
-                            {/* RECEITA */}
-                            <div className="group relative overflow-hidden bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[28px] p-6 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 shadow-sm">
-                                <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-400/5 rounded-full -mr-10 -mt-10 group-hover:bg-emerald-400/10 transition-all duration-700" />
+                        {/* ══ ROW 1: Posição de Caixa + Saúde Financeira ══ */}
+                        <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+                            {/* Posição de Caixa — hero card */}
+                            <div className="lg:col-span-3 relative overflow-hidden rounded-[28px] bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 p-7 shadow-2xl shadow-zinc-900/30 group">
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/8 rounded-full -mr-20 -mt-20 blur-3xl group-hover:bg-emerald-500/12 transition-all duration-1000" />
+                                <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/8 rounded-full -ml-16 -mb-16 blur-3xl" />
                                 <div className="relative">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
-                                            <TrendingUp size={18} className="text-emerald-500" />
+                                    <div className="flex items-center justify-between mb-5">
+                                        <div>
+                                            <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.25em] mb-1">Posição de Caixa Líquida</p>
+                                            <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">Saldo acumulado de todas as movimentações</p>
                                         </div>
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-200/50 dark:border-emerald-500/20">Receita</span>
+                                        <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 flex items-center justify-center border border-emerald-500/20">
+                                            <Wallet size={18} className="text-emerald-400" />
+                                        </div>
                                     </div>
-                                    <p className="text-2xl font-black text-zinc-900 dark:text-white tabular-nums leading-none mb-1">{formatBRL(summary.receita)}</p>
-                                    <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Total recebido no período</p>
+                                    <p className={`text-5xl font-black tabular-nums tracking-tight mb-2 ${cashPosition >= 0 ? 'text-white' : 'text-rose-400'}`}>
+                                        {formatBRL(cashPosition)}
+                                    </p>
+                                    <div className="flex flex-wrap items-center gap-4 mt-4 pt-4 border-t border-white/8">
+                                        <div>
+                                            <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">Burn Rate / mês</p>
+                                            <p className="text-sm font-black text-zinc-300 tabular-nums">{formatBRL(burnRate)}</p>
+                                        </div>
+                                        {runway !== null && (
+                                            <div>
+                                                <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">Runway</p>
+                                                <p className={`text-sm font-black tabular-nums ${runway >= 6 ? 'text-emerald-400' : runway >= 3 ? 'text-amber-400' : 'text-rose-400'}`}>
+                                                    {runway.toFixed(1)} meses
+                                                </p>
+                                            </div>
+                                        )}
+                                        <div>
+                                            <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">Margem Líquida</p>
+                                            <p className={`text-sm font-black tabular-nums ${margemLiquida >= 20 ? 'text-emerald-400' : margemLiquida >= 0 ? 'text-amber-400' : 'text-rose-400'}`}>
+                                                {margemLiquida.toFixed(1)}%
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">MRR</p>
+                                            <p className="text-sm font-black text-indigo-400 tabular-nums">{formatBRL(mrrValue)}</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            {/* DESPESAS */}
-                            <div className="group relative overflow-hidden bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[28px] p-6 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 shadow-sm">
-                                <div className="absolute top-0 right-0 w-40 h-40 bg-rose-400/5 rounded-full -mr-10 -mt-10 group-hover:bg-rose-400/10 transition-all duration-700" />
-                                <div className="relative">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="w-10 h-10 rounded-2xl bg-rose-500/10 flex items-center justify-center">
-                                            <TrendingDown size={18} className="text-rose-500" />
-                                        </div>
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-rose-500 bg-rose-50 dark:bg-rose-500/10 px-2.5 py-1 rounded-full border border-rose-200/50 dark:border-rose-500/20">Despesas</span>
+
+                            {/* Saúde Financeira */}
+                            <div className="lg:col-span-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[28px] p-6 shadow-sm flex flex-col gap-5">
+                                <div>
+                                    <p className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-1">Saúde Financeira</p>
+                                    <div className="flex items-end justify-between">
+                                        <p className={`text-4xl font-black tabular-nums ${healthScore >= 70 ? 'text-emerald-500' : healthScore >= 45 ? 'text-amber-500' : 'text-rose-500'}`}>{healthScore}</p>
+                                        <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-xl border ${healthScore >= 70 ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20' : healthScore >= 45 ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-500/20' : 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-500/20'}`}>
+                                            {healthScore >= 70 ? '● Saudável' : healthScore >= 45 ? '● Atenção' : '● Crítico'}
+                                        </span>
                                     </div>
-                                    <p className="text-2xl font-black text-zinc-900 dark:text-white tabular-nums leading-none mb-1">{formatBRL(summary.despesas)}</p>
-                                    <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Total de saídas no período</p>
+                                    <div className="w-full h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden mt-3">
+                                        <div className={`h-full rounded-full transition-all duration-1000 ${healthScore >= 70 ? 'bg-gradient-to-r from-emerald-400 to-teal-500' : healthScore >= 45 ? 'bg-gradient-to-r from-amber-400 to-orange-500' : 'bg-gradient-to-r from-rose-500 to-pink-500'}`} style={{ width: `${healthScore}%` }} />
+                                    </div>
                                 </div>
-                            </div>
-                            {/* LUCRO — destaque */}
-                            <div className={`group relative overflow-hidden rounded-[28px] p-6 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 shadow-lg ${summary.lucro >= 0 ? 'bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600' : 'bg-gradient-to-br from-rose-600 via-pink-600 to-rose-500'}`}>
-                                <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:bg-white/15 transition-all duration-700 blur-xl" />
-                                <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full -ml-10 -mb-10 blur-xl" />
-                                <div className="relative">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="w-10 h-10 rounded-2xl bg-white/15 flex items-center justify-center">
-                                            <Wallet size={18} className="text-white" />
+                                {/* Indicadores */}
+                                <div className="space-y-2.5">
+                                    {[
+                                        { label: 'Margem líquida', value: `${margemLiquida.toFixed(1)}%`, ok: margemLiquida >= 15 },
+                                        { label: 'Runway', value: runway !== null ? `${runway.toFixed(1)} meses` : '—', ok: runway === null || runway >= 3 },
+                                        { label: 'Inadimplência', value: formatBRL(summary.inadimplenciaValue), ok: summary.inadimplenciaValue < summary.receita * 0.1 },
+                                        { label: 'A Receber', value: formatBRL(summary.aReceber), ok: true },
+                                    ].map((ind, i) => (
+                                        <div key={i} className="flex items-center justify-between py-2 border-b border-zinc-100 dark:border-zinc-800 last:border-0">
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-1.5 h-1.5 rounded-full ${ind.ok ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">{ind.label}</span>
+                                            </div>
+                                            <span className={`text-[10px] font-black tabular-nums ${ind.ok ? 'text-zinc-900 dark:text-white' : 'text-rose-500'}`}>{ind.value}</span>
                                         </div>
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-white/80 bg-white/10 px-2.5 py-1 rounded-full border border-white/20">Lucro Líquido</span>
-                                    </div>
-                                    <p className="text-2xl font-black text-white tabular-nums leading-none mb-1">{formatBRL(summary.lucro)}</p>
-                                    <p className="text-[9px] font-bold text-white/60 uppercase tracking-widest">Resultado do período</p>
+                                    ))}
                                 </div>
                             </div>
                         </div>
 
-                        {/* ── Secondary metrics strip ── */}
-                        <div className="grid grid-cols-3 gap-3 stagger">
+                        {/* ══ ROW 2: KPI Strip com comparativo ══ */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 stagger">
                             {[
-                                { label: 'A Receber', value: summary.aReceber, icon: Clock, color: 'text-blue-500', bg: 'bg-blue-500/8' },
-                                { label: 'Inadimplência', value: summary.inadimplenciaValue, icon: AlertTriangle, color: 'text-amber-500', bg: 'bg-amber-500/8' },
-                                { label: 'MRR Atual', value: mrrValue, icon: Repeat, color: 'text-indigo-500', bg: 'bg-indigo-500/8' },
-                            ].map((m, i) => (
-                                <div key={i} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex items-center gap-3 hover:shadow-md transition-all shadow-sm">
-                                    <div className={`w-9 h-9 rounded-xl ${m.bg} flex items-center justify-center shrink-0`}>
-                                        <m.icon size={16} className={m.color} />
+                                { label: 'Receita', value: summary.receita, delta: deltaReceita, icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-500/8' },
+                                { label: 'Despesas', value: summary.despesas, delta: deltaDespesas ? -deltaDespesas : null, icon: TrendingDown, color: 'text-rose-500', bg: 'bg-rose-500/8' },
+                                { label: 'Resultado', value: summary.lucro, delta: deltaLucro, icon: BarChart3, color: summary.lucro >= 0 ? 'text-emerald-500' : 'text-rose-500', bg: summary.lucro >= 0 ? 'bg-emerald-500/8' : 'bg-rose-500/8' },
+                                { label: 'A Receber', value: summary.aReceber, delta: null, icon: Clock, color: 'text-blue-500', bg: 'bg-blue-500/8' },
+                                { label: 'Inadimplente', value: summary.inadimplenciaValue, delta: null, icon: AlertTriangle, color: 'text-amber-500', bg: 'bg-amber-500/8' },
+                            ].map((kpi, i) => (
+                                <div key={i} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 shadow-sm">
+                                    <div className="flex items-center justify-between mb-2.5">
+                                        <div className={`w-7 h-7 rounded-lg ${kpi.bg} flex items-center justify-center`}>
+                                            <kpi.icon size={13} className={kpi.color} />
+                                        </div>
+                                        {kpi.delta !== null && (
+                                            <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-lg ${kpi.delta >= 0 ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600' : 'bg-rose-50 dark:bg-rose-500/10 text-rose-500'}`}>
+                                                {kpi.delta >= 0 ? '▲' : '▼'} {Math.abs(kpi.delta).toFixed(1)}%
+                                            </span>
+                                        )}
                                     </div>
-                                    <div className="min-w-0">
-                                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 truncate">{m.label}</p>
-                                        <p className={`text-sm font-black tabular-nums ${m.color}`}>{formatBRL(m.value)}</p>
-                                    </div>
+                                    <p className={`text-base font-black tabular-nums leading-none ${kpi.color}`}>{formatBRL(kpi.value)}</p>
+                                    <p className="text-[8px] font-black uppercase tracking-widest text-zinc-400 mt-1">{kpi.label}</p>
                                 </div>
                             ))}
                         </div>
 
-                        {/* ── Charts row ── */}
-                        <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-                            {/* Area chart */}
-                            <div className="xl:col-span-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[28px] p-6 shadow-sm">
-                                <div className="flex items-center justify-between mb-6">
-                                    <div>
-                                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-1">Fluxo Financeiro</p>
-                                        <h3 className="text-sm font-black text-zinc-900 dark:text-white">Receitas vs Despesas</h3>
+                        {/* ══ ROW 3: Fluxo de Caixa 12 meses (Saldo Corrente) ══ */}
+                        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[28px] p-6 shadow-sm">
+                            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                                <div>
+                                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-1">Demonstrativo de Fluxo de Caixa</p>
+                                    <h3 className="text-sm font-black text-zinc-900 dark:text-white">Evolução 12 meses — Entradas, Saídas e Saldo Corrente</h3>
+                                </div>
+                                <div className="flex items-center gap-4 text-[9px] font-black uppercase tracking-widest">
+                                    <span className="flex items-center gap-1.5 text-emerald-500"><span className="inline-block w-3 h-3 rounded-sm bg-emerald-500/70" />Entradas</span>
+                                    <span className="flex items-center gap-1.5 text-rose-500"><span className="inline-block w-3 h-3 rounded-sm bg-rose-500/70" />Saídas</span>
+                                    <span className="flex items-center gap-1.5 text-indigo-500"><span className="inline-block w-8 h-0.5 bg-indigo-500 rounded" />Saldo</span>
+                                </div>
+                            </div>
+                            <div className="h-[260px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <ComposedChart data={cashFlowMonthly} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
+                                        <defs>
+                                            <linearGradient id="gradSaldo" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2} />
+                                                <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#3f3f46" opacity={0.06} />
+                                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#71717a', fontWeight: 'bold' }} />
+                                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#71717a', fontWeight: 'bold' }} tickFormatter={(v: any) => `${Math.abs(v / 1000).toFixed(0)}k`} />
+                                        <Tooltip
+                                            contentStyle={{ borderRadius: '14px', border: '1px solid rgba(0,0,0,0.06)', background: document.documentElement.classList.contains('dark') ? '#18181b' : '#fff', fontSize: '11px', fontWeight: 'bold', padding: '10px 16px' }}
+                                            formatter={(v: any, name: string) => [formatBRL(v as number), name]}
+                                        />
+                                        <ReferenceLine y={0} stroke="#3f3f46" strokeDasharray="4 4" opacity={0.3} />
+                                        <Bar dataKey="Entradas" fill="#10b981" opacity={0.75} radius={[3, 3, 0, 0]} maxBarSize={16} />
+                                        <Bar dataKey="Saídas" fill="#f43f5e" opacity={0.75} radius={[3, 3, 0, 0]} maxBarSize={16} />
+                                        <Line type="monotone" dataKey="Saldo" stroke="#6366f1" strokeWidth={2.5} dot={false} activeDot={{ r: 5, fill: '#6366f1' }} />
+                                    </ComposedChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                        {/* ══ ROW 4: DFC Formal + Projeções + Custos ══ */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 stagger">
+
+                            {/* DFC — Demonstrativo Formal */}
+                            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[28px] p-6 shadow-sm">
+                                <div className="flex items-center gap-2 mb-5">
+                                    <div className="w-8 h-8 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+                                        <Receipt size={14} className="text-zinc-500" />
                                     </div>
-                                    <div className="flex items-center gap-3 text-[9px] font-black uppercase tracking-widest">
-                                        <span className="flex items-center gap-1.5 text-emerald-500"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />Receita</span>
-                                        <span className="flex items-center gap-1.5 text-rose-500"><span className="w-2 h-2 rounded-full bg-rose-500 inline-block" />Despesa</span>
+                                    <div>
+                                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">DFC</p>
+                                        <p className="text-xs font-black text-zinc-900 dark:text-white">Demonstrativo do Período</p>
                                     </div>
                                 </div>
-                                <div className="h-[240px] w-full">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <AreaChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                                            <defs>
-                                                <linearGradient id="gradReceita" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
-                                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                                                </linearGradient>
-                                                <linearGradient id="gradDespesa" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.15} />
-                                                    <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
-                                                </linearGradient>
-                                            </defs>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#3f3f46" opacity={0.07} />
-                                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#71717a', fontWeight: 'bold' }} />
-                                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#71717a', fontWeight: 'bold' }} tickFormatter={v => `${v/1000}k`} />
-                                            <Tooltip contentStyle={{ borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)', background: document.documentElement.classList.contains('dark') ? '#18181b' : '#fff', color: document.documentElement.classList.contains('dark') ? '#f4f4f5' : '#111827', fontSize: '11px', fontWeight: 'bold', padding: '10px 16px' }} />
-                                            <Area type="monotone" dataKey="Receita" stroke="#10b981" strokeWidth={2.5} fill="url(#gradReceita)" dot={false} activeDot={{ r: 4, fill: '#10b981' }} />
-                                            <Area type="monotone" dataKey="Despesa" stroke="#f43f5e" strokeWidth={2.5} fill="url(#gradDespesa)" dot={false} activeDot={{ r: 4, fill: '#f43f5e' }} />
-                                        </AreaChart>
-                                    </ResponsiveContainer>
+                                <div className="space-y-0">
+                                    {[
+                                        { label: '(+) Receitas Recebidas', value: summary.receita, color: 'text-emerald-600 dark:text-emerald-400', indent: false, bold: false },
+                                        { label: '(−) Despesas Pagas', value: -summary.despesas, color: 'text-rose-500', indent: false, bold: false },
+                                        { label: '(=) Resultado Operacional', value: summary.lucro, color: summary.lucro >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-600', indent: false, bold: true },
+                                        null,
+                                        { label: 'A Receber (Pendente)', value: summary.aReceber, color: 'text-blue-500', indent: true, bold: false },
+                                        { label: 'Inadimplente (Atrasado)', value: -summary.inadimplenciaValue, color: 'text-amber-500', indent: true, bold: false },
+                                        null,
+                                        { label: 'Caixa Acumulado Total', value: cashPosition, color: cashPosition >= 0 ? 'text-zinc-900 dark:text-white' : 'text-rose-500', indent: false, bold: true },
+                                    ].map((row, i) => row === null ? (
+                                        <div key={i} className="h-px bg-zinc-100 dark:bg-zinc-800 my-3" />
+                                    ) : (
+                                        <div key={i} className={`flex items-center justify-between py-2.5 ${row.bold ? 'border-t border-zinc-200 dark:border-zinc-700 mt-1 pt-3' : ''}`}>
+                                            <span className={`text-[9px] font-${row.bold ? 'black' : 'bold'} uppercase tracking-widest text-zinc-${row.indent ? '400' : '600'} dark:text-zinc-${row.indent ? '500' : '400'} ${row.indent ? 'pl-3' : ''}`}>{row.label}</span>
+                                            <span className={`text-[10px] font-black tabular-nums ${row.color}`}>{row.value >= 0 ? '+' : ''}{formatBRL(row.value)}</span>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
 
-                            {/* Right column: Pie + Top clients */}
-                            <div className="flex flex-col gap-5">
-                                {/* Donut Chart */}
+                            {/* Projeção de caixa — 3 meses */}
+                            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[28px] p-6 shadow-sm">
+                                <div className="flex items-center gap-2 mb-5">
+                                    <div className="w-8 h-8 rounded-xl bg-indigo-500/10 flex items-center justify-center">
+                                        <TrendingUp size={14} className="text-indigo-500" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">Projeção</p>
+                                        <p className="text-xs font-black text-zinc-900 dark:text-white">Próximos 3 meses (MRR)</p>
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    {projecoes.map((p, i) => (
+                                        <div key={i} className="space-y-1.5">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500 truncate max-w-[130px]">{p.mes}</span>
+                                                <span className={`text-[10px] font-black tabular-nums ${p.resultado >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>{p.resultado >= 0 ? '+' : ''}{formatBRL(p.resultado)}</span>
+                                            </div>
+                                            <div className="w-full h-5 bg-zinc-100 dark:bg-zinc-800 rounded-xl overflow-hidden flex">
+                                                {p.entrada > 0 && <div className="h-full bg-emerald-500/60 transition-all duration-700 rounded-l-xl" style={{ width: `${(p.entrada / (p.entrada + p.saida)) * 100}%`, transitionDelay: `${i * 150}ms` }} title={`Entrada: ${formatBRL(p.entrada)}`} />}
+                                                {p.saida > 0 && <div className="h-full bg-rose-500/60 flex-1 transition-all duration-700" style={{ transitionDelay: `${i * 150}ms` }} title={`Saída: ${formatBRL(p.saida)}`} />}
+                                            </div>
+                                            <div className="flex justify-between text-[8px] font-bold text-zinc-400">
+                                                <span>Entrada {formatBRL(p.entrada)}</span>
+                                                <span>Saída {formatBRL(p.saida)}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {projecoes.every(p => p.entrada === 0 && p.saida === 0) && (
+                                        <div className="flex flex-col items-center gap-2 py-8 text-zinc-300 dark:text-zinc-700">
+                                            <Repeat size={28} strokeWidth={1} />
+                                            <p className="text-[9px] font-black uppercase tracking-widest text-center">Cadastre contratos MRR para ver a projeção</p>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">Total projetado</span>
+                                    <span className={`text-sm font-black tabular-nums ${projecoes.reduce((a, p) => a + p.resultado, 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>
+                                        {formatBRL(projecoes.reduce((a, p) => a + p.resultado, 0))}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Centro de Custo + Top Clientes */}
+                            <div className="flex flex-col gap-4">
+                                {/* Donut */}
                                 <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[28px] p-5 shadow-sm flex-1">
                                     <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-1">Centro de Custo</p>
-                                    <h3 className="text-xs font-black text-zinc-900 dark:text-white mb-3">Despesas por Categoria</h3>
+                                    <p className="text-xs font-black text-zinc-900 dark:text-white mb-3">Despesas por Categoria</p>
                                     {pieData.length > 0 ? (
                                         <>
-                                            <div className="h-[130px] w-full">
+                                            <div className="h-[110px]">
                                                 <ResponsiveContainer width="100%" height="100%">
                                                     <PieChart>
-                                                        <Pie data={pieData} cx="50%" cy="50%" innerRadius={42} outerRadius={58} paddingAngle={3} dataKey="value" strokeWidth={0}>
-                                                            {pieData.map((_, index) => <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />)}
+                                                        <Pie data={pieData} cx="50%" cy="50%" innerRadius={35} outerRadius={50} paddingAngle={3} dataKey="value" strokeWidth={0}>
+                                                            {pieData.map((_, idx) => <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />)}
                                                         </Pie>
-                                                        <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.06)', background: document.documentElement.classList.contains('dark') ? '#18181b' : '#fff', fontSize: '11px' }} formatter={(v: any) => formatBRL(v)} />
+                                                        <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.06)', background: document.documentElement.classList.contains('dark') ? '#18181b' : '#fff', fontSize: '10px' }} formatter={(v: any) => formatBRL(v)} />
                                                     </PieChart>
                                                 </ResponsiveContainer>
                                             </div>
-                                            <div className="space-y-2 mt-2 max-h-[100px] overflow-y-auto custom-scrollbar">
-                                                {pieData.slice(0, 4).map((item, i) => (
+                                            <div className="space-y-1.5 max-h-[90px] overflow-y-auto custom-scrollbar">
+                                                {pieData.slice(0, 5).map((item, i) => (
                                                     <div key={i} className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="w-2 h-2 rounded-full shrink-0" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
-                                                            <span className="text-[9px] font-black tracking-widest text-zinc-500 uppercase truncate max-w-[90px]">{item.name}</span>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                                                            <span className="text-[8px] font-black tracking-widest text-zinc-500 uppercase truncate max-w-[80px]">{item.name}</span>
                                                         </div>
-                                                        <span className="text-[10px] font-black text-zinc-900 dark:text-white tabular-nums">{formatBRL(item.value)}</span>
+                                                        <span className="text-[9px] font-black text-zinc-900 dark:text-white tabular-nums">{formatBRL(item.value)}</span>
                                                     </div>
                                                 ))}
                                             </div>
                                         </>
                                     ) : (
-                                        <div className="flex items-center justify-center h-32 text-zinc-300">
-                                            <p className="text-[9px] font-black uppercase tracking-widest">Sem despesas pagas</p>
+                                        <div className="flex items-center justify-center h-28 text-zinc-300 dark:text-zinc-700">
+                                            <p className="text-[9px] font-black uppercase tracking-widest">Sem despesas</p>
                                         </div>
                                     )}
                                 </div>
-
-                                {/* Top Clients */}
+                                {/* Top Clientes */}
                                 <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[28px] p-5 shadow-sm">
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <Award size={14} className="text-amber-500" />
-                                        <h3 className="text-xs font-black text-zinc-900 dark:text-white uppercase tracking-tight">Top Clientes</h3>
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Award size={12} className="text-amber-500" />
+                                        <p className="text-xs font-black text-zinc-900 dark:text-white uppercase tracking-tight">Top Clientes</p>
                                     </div>
-                                    <div className="space-y-3">
-                                        {topClientes.length === 0 && <p className="text-[9px] text-zinc-400 font-black uppercase tracking-widest text-center py-4">Sem receitas registradas</p>}
+                                    <div className="space-y-2.5">
+                                        {topClientes.length === 0 && <p className="text-[9px] text-zinc-400 font-black uppercase tracking-widest py-3 text-center">Nenhuma receita</p>}
                                         {topClientes.map((c, i) => {
                                             const pct = Math.round((c.valor / (topClientes[0]?.valor || 1)) * 100);
-                                            const colors = ['bg-emerald-500', 'bg-blue-500', 'bg-indigo-500', 'bg-purple-500', 'bg-zinc-400'];
+                                            const cols = ['bg-emerald-500', 'bg-blue-500', 'bg-indigo-500', 'bg-purple-500', 'bg-zinc-400'];
                                             return (
-                                                <div key={c.id} className="space-y-1.5">
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-2">
-                                                            <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[7px] font-black text-white shrink-0 ${colors[i] || 'bg-zinc-400'}`}>{i + 1}</div>
-                                                            <span className="text-[9px] font-black text-zinc-700 dark:text-zinc-300 uppercase tracking-wide truncate max-w-[85px]">{c.nome}</span>
+                                                <div key={c.id}>
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[6px] font-black text-white shrink-0 ${cols[i] || 'bg-zinc-400'}`}>{i + 1}</div>
+                                                            <span className="text-[9px] font-black text-zinc-700 dark:text-zinc-300 uppercase tracking-wide truncate max-w-[80px]">{c.nome}</span>
                                                         </div>
                                                         <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 tabular-nums shrink-0">{formatBRL(c.valor)}</span>
                                                     </div>
                                                     <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-1 overflow-hidden">
-                                                        <div className={`h-full rounded-full transition-all duration-700 ${colors[i] || 'bg-zinc-400'}`} style={{ width: `${pct}%`, transitionDelay: `${i * 100}ms` }} />
+                                                        <div className={`h-full rounded-full ${cols[i] || 'bg-zinc-400'}`} style={{ width: `${pct}%`, transition: 'width 0.8s ease', transitionDelay: `${i * 100}ms` }} />
                                                     </div>
                                                 </div>
                                             );
@@ -1751,6 +1995,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                     <p className="text-[9px] font-black uppercase tracking-widest">Livre de contas futuras</p>
                                 </div>
                             )}
+                        </div>
                         </div>
                     </div>
                 )}
