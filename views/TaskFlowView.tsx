@@ -975,8 +975,8 @@ export function TaskDetailPanel({
                 {/* METRICS GRID */}
                 <div className="grid grid-cols-2 gap-4">
                     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col gap-2 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors shadow-sm group relative">
-                        <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                            <HistoryIcon size={12} className="text-zinc-400" /> Status
+                        <label className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.18em] flex items-center gap-1.5">
+                            <HistoryIcon size={11} className="text-zinc-400 shrink-0" /> Status
                         </label>
                         <PSelectPortal
                             value={t.Status}
@@ -989,8 +989,8 @@ export function TaskDetailPanel({
                         </div>
                     </div>
                     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col gap-2 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors shadow-sm group relative">
-                        <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                            <ShieldAlert size={12} className="text-zinc-400" /> Prioridade
+                        <label className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.18em] flex items-center gap-1.5">
+                            <ShieldAlert size={11} className="text-zinc-400 shrink-0" /> Prioridade
                         </label>
                         <PSelectPortal
                             value={t.Prioridade}
@@ -1003,8 +1003,8 @@ export function TaskDetailPanel({
                         </div>
                     </div>
                     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col gap-2 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors shadow-sm group relative">
-                        <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                            <User size={12} className="text-zinc-400" /> Responsável
+                        <label className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.18em] flex items-center gap-1.5">
+                            <User size={11} className="text-zinc-400 shrink-0" /> Responsável
                         </label>
                         {(() => {
                             // Merge workspace members + VH collaborators (dedup by name)
@@ -1090,8 +1090,8 @@ export function TaskDetailPanel({
                         </div>
                     </div>
                     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col gap-2 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors shadow-sm group relative">
-                        <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                            <Clock size={12} className="text-zinc-400" /> Entrega
+                        <label className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.18em] flex items-center gap-1.5">
+                            <Clock size={11} className="text-zinc-400 shrink-0" /> Entrega
                         </label>
                         <DatePickerPortal
                             value={t.Data_Entrega || ''}
@@ -1211,10 +1211,12 @@ export function TaskDetailPanel({
 
                 {/* DESCRIPTION */}
                 <section className="relative">
-                    <div className="flex items-center mb-4 border-b border-zinc-200 dark:border-zinc-800 pb-2">
-                        <h4 className="text-[10px] font-black uppercase text-zinc-900 dark:text-zinc-100 tracking-[0.2em] flex items-center gap-2">
-                            <FileText size={14} className="text-zinc-400" /> Descrição Estratégica
-                        </h4>
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-zinc-600 to-zinc-800 dark:from-zinc-700 dark:to-zinc-900 flex items-center justify-center text-white shadow-md shrink-0">
+                            <FileText size={13} className="shrink-0" />
+                        </div>
+                        <h4 className="text-[10px] font-black uppercase text-zinc-900 dark:text-zinc-100 tracking-[0.18em]">Descrição Estratégica</h4>
+                        <div className="flex-1 h-px bg-zinc-100 dark:bg-zinc-800" />
                     </div>
                     <textarea
                         className="w-full h-32 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 text-[10px] font-black text-zinc-900 dark:text-zinc-100 uppercase leading-relaxed outline-none focus:ring-4 focus:ring-zinc-500/5 transition-all custom-scrollbar placeholder-zinc-200 dark:placeholder-zinc-800 shadow-sm"
@@ -1230,13 +1232,21 @@ export function TaskDetailPanel({
 
                 {/* CHECKLIST */}
                 <section>
-                    <div className="flex items-center justify-between mb-4 border-b border-zinc-200 dark:border-zinc-800 pb-2">
-                        <h4 className="text-[10px] font-black uppercase text-zinc-900 dark:text-zinc-100 tracking-[0.2em] flex items-center gap-2">
-                            <CheckCircle2 size={14} className="text-zinc-400" /> Etapas de Execução
-                        </h4>
-                        <Badge color="slate" className="text-[8px] font-black px-2 py-0.5 opacity-60">
-                            {t.Checklist?.filter(i => i.concluido).length || 0} / {t.Checklist?.length || 0}
-                        </Badge>
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-md shrink-0">
+                            <CheckCircle2 size={13} className="shrink-0" />
+                        </div>
+                        <h4 className="text-[10px] font-black uppercase text-zinc-900 dark:text-zinc-100 tracking-[0.18em]">Etapas de Execução</h4>
+                        <div className="flex-1 h-px bg-zinc-100 dark:bg-zinc-800" />
+                        {(t.Checklist?.length || 0) > 0 && (
+                            <span className={`text-[9px] font-black px-2.5 py-1 rounded-full border ${
+                                (t.Checklist?.filter(i => i.concluido).length || 0) === (t.Checklist?.length || 0)
+                                    ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20'
+                                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 border-zinc-200 dark:border-zinc-700'
+                            }`}>
+                                {t.Checklist?.filter(i => i.concluido).length || 0}/{t.Checklist?.length || 0}
+                            </span>
+                        )}
                     </div>
                     <div className="space-y-3 px-1">
                         {t.Checklist?.map(item => (
@@ -1275,15 +1285,17 @@ export function TaskDetailPanel({
 
                 {/* ATTACHMENTS */}
                 <section>
-                    <div className="flex items-center justify-between mb-4 border-b border-zinc-200 dark:border-zinc-800 pb-2">
-                        <h4 className="text-[10px] font-black uppercase text-zinc-900 dark:text-zinc-100 tracking-[0.2em] flex items-center gap-2">
-                            <Paperclip size={14} className="text-zinc-400" /> Arquivos e Mídia
-                            {(t.Anexos || []).length > 0 && (
-                                <span className="text-[9px] bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 px-2 py-0.5 rounded-full font-bold">
-                                    {(t.Anexos || []).length}
-                                </span>
-                            )}
-                        </h4>
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-md shrink-0">
+                            <Paperclip size={13} className="shrink-0" />
+                        </div>
+                        <h4 className="text-[10px] font-black uppercase text-zinc-900 dark:text-zinc-100 tracking-[0.18em]">Arquivos e Mídia</h4>
+                        {(t.Anexos || []).length > 0 && (
+                            <span className="text-[9px] font-black px-2 py-0.5 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20 rounded-full">
+                                {(t.Anexos || []).length}
+                            </span>
+                        )}
+                        <div className="flex-1 h-px bg-zinc-100 dark:bg-zinc-800" />
                         <button
                             onClick={() => fileInputRef.current?.click()}
                             className="text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700"
@@ -1429,42 +1441,48 @@ export function TaskDetailPanel({
                 </section>
 
                 {/* ACTIVITY & COMMENTS */}
-                <section className="space-y-6 pt-4 border-t border-zinc-200 dark:border-zinc-800">
-                    <div className="flex items-center justify-between">
-                        <h4 className="text-[10px] font-bold uppercase text-zinc-900 dark:text-zinc-100 tracking-widest flex items-center gap-2">
-                            <MessageSquare size={14} className="text-zinc-400" /> Atividade e Timeline
-                        </h4>
+                <section className="space-y-5 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+                    <div className="flex items-center gap-3">
+                        <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white shadow-md shrink-0">
+                            <MessageSquare size={13} className="shrink-0" />
+                        </div>
+                        <h4 className="text-[10px] font-black uppercase text-zinc-900 dark:text-zinc-100 tracking-[0.18em]">Atividade e Timeline</h4>
+                        <div className="flex-1 h-px bg-zinc-100 dark:bg-zinc-800" />
                     </div>
 
-                    <div className="space-y-5">
+                    <div className="space-y-3">
                         {(t.Atividades || []).map(act => (
                             <div key={act.id} className="flex gap-3 group">
-                                <div className="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center shrink-0 shadow-sm">
-                                    {act.tipo === 'comment' ? <MessageSquare size={12} className="text-zinc-400" /> : <Zap size={12} className="text-zinc-400" />}
+                                <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
+                                    act.tipo === 'comment'
+                                        ? 'bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/20 text-violet-500'
+                                        : 'bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-500'
+                                }`}>
+                                    {act.tipo === 'comment' ? <MessageSquare size={12} className="shrink-0" /> : <Zap size={12} className="shrink-0" />}
                                 </div>
-                                <div className="flex-1 min-w-0">
+                                <div className="flex-1 min-w-0 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-100 dark:border-zinc-800 px-3 py-2 shadow-sm">
                                     <div className="flex justify-between items-baseline mb-0.5">
-                                        <span className="text-[11px] font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">{act.usuario}</span>
+                                        <span className="text-[10px] font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">{act.usuario}</span>
                                         <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest">{new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                     </div>
-                                    <p className="text-[11px] font-bold text-zinc-500 leading-relaxed uppercase tracking-tight">{act.mensagem}</p>
+                                    <p className="text-[10px] font-bold text-zinc-500 leading-relaxed">{act.mensagem}</p>
                                 </div>
                             </div>
                         ))}
                     </div>
 
-                    <div className="flex flex-col gap-3 mt-4">
+                    <div className="flex flex-col gap-2.5 mt-2">
                         <textarea
                             value={comment}
                             onChange={e => setComment(e.target.value)}
                             placeholder="ESCREVA UM COMENTÁRIO..."
-                            className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 text-[11px] font-bold uppercase tracking-widest placeholder-zinc-300 dark:placeholder-zinc-700 outline-none focus:border-zinc-400 dark:focus:border-zinc-600 transition-all min-h-[80px] shadow-sm"
+                            className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 text-[10px] font-black uppercase tracking-widest placeholder-zinc-300 dark:placeholder-zinc-700 outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 transition-all min-h-[72px] shadow-sm resize-none"
                         />
-                        <div className="flex justify-end pt-1">
+                        <div className="flex justify-end">
                             <button
                                 onClick={handleAddComment}
                                 disabled={!comment.trim()}
-                                className="px-5 py-2.5 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-800 dark:hover:bg-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-md"
+                                className="px-5 py-2.5 bg-gradient-to-br from-violet-500 to-purple-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:from-violet-600 hover:to-purple-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-lg shadow-violet-500/20 hover:scale-105"
                             >
                                 Comentar
                             </button>

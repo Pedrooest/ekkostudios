@@ -489,12 +489,19 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                                     </div>
                                     <div className="px-5 pt-6 pb-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-900/50">
                                         <div className="flex items-center gap-3">
-                                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${allDone ? 'bg-emerald-50 dark:bg-emerald-500/10' : 'bg-zinc-100 dark:bg-zinc-800'}`}>
-                                                {allDone
-                                                    ? <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
-                                                    : <CatIcon size={16} className={`${cc.title} shrink-0`} />
-                                                }
-                                            </div>
+                                            {allDone ? (
+                                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/25 shrink-0">
+                                                    <CheckCircle2 size={17} className="shrink-0" />
+                                                </div>
+                                            ) : (
+                                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-lg shrink-0 ${
+                                                    category.id === 'levar'   ? 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/25'
+                                                    : category.id === 'trazer' ? 'bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-500/25'
+                                                    : 'bg-gradient-to-br from-purple-500 to-violet-600 shadow-purple-500/25'
+                                                }`}>
+                                                    <CatIcon size={17} className="shrink-0" />
+                                                </div>
+                                            )}
                                             <h3 className={`text-[11px] font-black uppercase tracking-widest ${allDone ? 'text-emerald-600 dark:text-emerald-400' : cc.title}`}>
                                                 {category.category}
                                             </h3>
