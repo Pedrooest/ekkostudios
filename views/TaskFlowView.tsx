@@ -809,21 +809,55 @@ export function TaskDetailPanel({
     const [newCheckItem, setNewCheckItem] = useState('');
     const [uploading, setUploading] = useState(false);
     const [comment, setComment] = useState('');
-    const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+    const [lightboxFile, setLightboxFile] = useState<AnexoTarefa | null>(null);
+    const [lightboxIndex, setLightboxIndex] = useState<number>(0);
     const [notifyResponsible, setNotifyResponsible] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // ── Download helper: base64 → Blob → sem compressão ──────────
+    const downloadFile = (file: AnexoTarefa) => {
+        try {
+            const base64 = file.dados;
+            // base64 data URL: "data:<mime>;base64,<data>"
+            const parts = base64.split(',');
+            const byteStr = atob(parts[1]);
+            const mime = file.tipoMime || 'application/octet-stream';
+            const ab = new ArrayBuffer(byteStr.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteStr.length; i++) ia[i] = byteStr.charCodeAt(i);
+            const blob = new Blob([ab], { type: mime });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = file.nomeArquivo || 'arquivo';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        } catch (err) {
+            console.error('Erro ao baixar arquivo:', err);
+        }
+    };
 
     useEffect(() => {
         if (viewMode !== 'sidebar') {
             setViewMode('sidebar');
         }
-        
-        const handleEsc = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onClose();
+
+        const handleKey = (e: KeyboardEvent) => {
+            if (lightboxFile) {
+                const imageFiles = (t?.Anexos || []).filter((f: AnexoTarefa) => f.tipoMime?.startsWith('image/'));
+                const idx = imageFiles.findIndex((f: AnexoTarefa) => f.id === lightboxFile.id);
+                if (e.key === 'Escape')      { setLightboxFile(null); return; }
+                if (e.key === 'ArrowRight' && idx < imageFiles.length - 1) { setLightboxFile(imageFiles[idx + 1]); return; }
+                if (e.key === 'ArrowLeft'  && idx > 0)                    { setLightboxFile(imageFiles[idx - 1]); return; }
+            } else {
+                if (e.key === 'Escape') onClose();
+            }
         };
-        window.addEventListener('keydown', handleEsc);
-        return () => window.removeEventListener('keydown', handleEsc);
-    }, [viewMode, setViewMode, onClose]);
+        window.addEventListener('keydown', handleKey);
+        return () => window.removeEventListener('keydown', handleKey);
+    }, [viewMode, setViewMode, onClose, lightboxFile, t]);
 
     if (!t) return null;
 
@@ -1204,34 +1238,73 @@ export function TaskDetailPanel({
                     >
                         {(t.Anexos || []).length > 0 ? (
                             <>
-                                {/* Image grid */}
-                                {(t.Anexos || []).some(f => f.tipoMime?.startsWith('image/')) && (
-                                    <div className="grid grid-cols-2 gap-2 mb-2">
-                                        {(t.Anexos || []).filter(f => f.tipoMime?.startsWith('image/')).map(file => (
-                                            <div key={file.id} className="group relative aspect-video rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 transition-all shadow-sm">
-                                                <img src={file.dados} alt={file.nomeArquivo} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[1px]">
-                                                    <button onClick={() => setLightboxImage(file.dados)} className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/40 text-white flex items-center justify-center backdrop-blur-md transition-all shadow-lg" title="Visualizar"><Eye size={14} /></button>
-                                                    <a href={file.dados} download={file.nomeArquivo} className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/40 text-white flex items-center justify-center backdrop-blur-md transition-all shadow-lg" title="Baixar"><Download size={14} /></a>
-                                                    <button onClick={() => updateAttachments((t.Anexos || []).filter(a => a.id !== file.id))} className="w-8 h-8 rounded-lg bg-rose-500/60 hover:bg-rose-500 text-white flex items-center justify-center backdrop-blur-md transition-all shadow-lg" title="Remover"><Trash2 size={14} /></button>
-                                                </div>
-                                                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <p className="text-[9px] text-white font-bold truncate">{file.nomeArquivo}</p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                                {/* Non-image files list */}
+                                {/* ── Image grid ── */}
+                                {(() => {
+                                    const imageFiles = (t.Anexos || []).filter(f => f.tipoMime?.startsWith('image/'));
+                                    if (imageFiles.length === 0) return null;
+                                    return (
+                                        <div className={`grid gap-2 mb-3 ${imageFiles.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                                            {imageFiles.map((file, imgIdx) => {
+                                                const sizeStr = file.tamanho
+                                                    ? file.tamanho > 1024 * 1024
+                                                        ? `${(file.tamanho / 1024 / 1024).toFixed(1)} MB`
+                                                        : `${Math.round(file.tamanho / 1024)} KB`
+                                                    : '';
+                                                return (
+                                                    <div key={file.id}
+                                                        className="group relative rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 transition-all shadow-sm cursor-pointer"
+                                                        style={{ aspectRatio: imageFiles.length === 1 ? 'auto' : '16/10', maxHeight: imageFiles.length === 1 ? '280px' : undefined }}
+                                                        onClick={() => { setLightboxFile(file); setLightboxIndex(imgIdx); }}
+                                                    >
+                                                        <img
+                                                            src={file.dados}
+                                                            alt={file.nomeArquivo}
+                                                            className={`w-full transition-transform duration-500 group-hover:scale-105 ${imageFiles.length === 1 ? 'h-auto max-h-[280px] object-contain' : 'h-full object-cover'}`}
+                                                        />
+                                                        {/* Hover overlay */}
+                                                        <div className="absolute inset-0 bg-black/55 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2.5 backdrop-blur-[2px]">
+                                                            <button
+                                                                onClick={e => { e.stopPropagation(); setLightboxFile(file); setLightboxIndex(imgIdx); }}
+                                                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/15 hover:bg-white/30 text-white text-[10px] font-black uppercase tracking-widest backdrop-blur-md transition-all shadow-lg border border-white/20"
+                                                            >
+                                                                <Eye size={13} /> Ver
+                                                            </button>
+                                                            <button
+                                                                onClick={e => { e.stopPropagation(); downloadFile(file); }}
+                                                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-500/80 hover:bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest backdrop-blur-md transition-all shadow-lg border border-blue-400/30"
+                                                            >
+                                                                <Download size={13} /> Baixar
+                                                            </button>
+                                                            <button
+                                                                onClick={e => { e.stopPropagation(); updateAttachments((t.Anexos || []).filter(a => a.id !== file.id)); }}
+                                                                className="w-9 h-9 rounded-xl bg-rose-500/70 hover:bg-rose-500 text-white flex items-center justify-center backdrop-blur-md transition-all shadow-lg border border-rose-400/30"
+                                                                title="Remover"
+                                                            >
+                                                                <Trash2 size={13} />
+                                                            </button>
+                                                        </div>
+                                                        {/* Bottom info bar */}
+                                                        <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent px-2.5 py-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                                            <p className="text-[9px] text-white font-black truncate">{file.nomeArquivo}</p>
+                                                            {sizeStr && <p className="text-[8px] text-white/60 font-bold">{sizeStr} · qualidade original</p>}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    );
+                                })()}
+
+                                {/* ── Non-image files list ── */}
                                 {(t.Anexos || []).filter(f => !f.tipoMime?.startsWith('image/')).map(file => {
-                                    const isVideo = file.tipoMime?.startsWith('video/');
-                                    const isAudio = file.tipoMime?.startsWith('audio/');
-                                    const isPdf = file.tipoMime === 'application/pdf';
+                                    const isVideo   = file.tipoMime?.startsWith('video/');
+                                    const isAudio   = file.tipoMime?.startsWith('audio/');
+                                    const isPdf     = file.tipoMime === 'application/pdf';
                                     const isArchive = file.tipoMime?.includes('zip') || file.tipoMime?.includes('rar');
-                                    const isCode = file.tipoMime?.includes('javascript') || file.tipoMime?.includes('json') || file.tipoMime?.includes('xml') || file.nomeArquivo?.match(/\.(js|ts|json|xml|html|css)$/i);
-                                    const FileIcon = isVideo ? Film : isAudio ? Music : isPdf ? FileText : isArchive ? Archive : isCode ? Code2 : FileText;
+                                    const isCode    = file.tipoMime?.includes('javascript') || file.tipoMime?.includes('json') || file.tipoMime?.includes('xml') || !!file.nomeArquivo?.match(/\.(js|ts|json|xml|html|css)$/i);
+                                    const FileIcon  = isVideo ? Film : isAudio ? Music : isPdf ? FileText : isArchive ? Archive : isCode ? Code2 : FileText;
                                     const iconColor = isVideo ? 'text-purple-500' : isAudio ? 'text-pink-500' : isPdf ? 'text-red-500' : isArchive ? 'text-amber-500' : 'text-blue-500';
-                                    const sizeStr = file.tamanho ? (file.tamanho > 1024 * 1024 ? `${(file.tamanho / 1024 / 1024).toFixed(1)}MB` : `${Math.round(file.tamanho / 1024)}KB`) : '';
+                                    const sizeStr   = file.tamanho ? (file.tamanho > 1024 * 1024 ? `${(file.tamanho / 1024 / 1024).toFixed(1)}MB` : `${Math.round(file.tamanho / 1024)}KB`) : '';
                                     return (
                                         <div key={file.id} className="group flex items-center gap-3 p-3 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 transition-all">
                                             <div className={`w-9 h-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 ${iconColor}`}>
@@ -1239,13 +1312,23 @@ export function TaskDetailPanel({
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">{file.nomeArquivo}</p>
-                                                <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wide">{file.tipoMime?.split('/')[1]?.toUpperCase() || 'FILE'}{sizeStr ? ` · ${sizeStr}` : ''}</p>
+                                                <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wide">
+                                                    {file.tipoMime?.split('/')[1]?.toUpperCase() || 'FILE'}{sizeStr ? ` · ${sizeStr}` : ''}
+                                                </p>
                                             </div>
                                             <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <a href={file.dados} download={file.nomeArquivo} className="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-blue-500 hover:text-white text-zinc-400 flex items-center justify-center transition-all" title="Baixar">
-                                                    <Download size={12} />
-                                                </a>
-                                                <button onClick={() => updateAttachments((t.Anexos || []).filter(a => a.id !== file.id))} className="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-rose-500 hover:text-white text-zinc-400 flex items-center justify-center transition-all" title="Remover">
+                                                <button
+                                                    onClick={() => downloadFile(file)}
+                                                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-500 text-blue-600 hover:text-white text-[9px] font-black uppercase transition-all"
+                                                    title="Baixar arquivo original"
+                                                >
+                                                    <Download size={11} /> Baixar
+                                                </button>
+                                                <button
+                                                    onClick={() => updateAttachments((t.Anexos || []).filter(a => a.id !== file.id))}
+                                                    className="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-rose-500 hover:text-white text-zinc-400 flex items-center justify-center transition-all"
+                                                    title="Remover"
+                                                >
                                                     <Trash2 size={12} />
                                                 </button>
                                             </div>
@@ -1370,12 +1453,109 @@ export function TaskDetailPanel({
             </div>
 
             {/* LIGHTBOX */}
-            {lightboxImage && (
-                <div className="fixed inset-0 z-[3000] bg-zinc-950/90 backdrop-blur-md flex items-center justify-center p-10" onClick={() => setLightboxImage(null)}>
-                    <button className="absolute top-10 right-10 text-white opacity-50 hover:opacity-100 transition-opacity p-2 hover:bg-white/10 rounded-full"><X size={32} /></button>
-                    <img src={lightboxImage} className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl border border-white/10" onClick={e => e.stopPropagation()} />
-                </div>
-            )}
+            {/* ── LIGHTBOX PREMIUM ── */}
+            {lightboxFile && (() => {
+                const imageFiles = (t.Anexos || []).filter(f => f.tipoMime?.startsWith('image/'));
+                const currentIdx = imageFiles.findIndex(f => f.id === lightboxFile.id);
+                const hasPrev = currentIdx > 0;
+                const hasNext = currentIdx < imageFiles.length - 1;
+                const sizeStr = lightboxFile.tamanho
+                    ? lightboxFile.tamanho > 1024 * 1024
+                        ? `${(lightboxFile.tamanho / 1024 / 1024).toFixed(2)} MB`
+                        : `${Math.round(lightboxFile.tamanho / 1024)} KB`
+                    : '';
+
+                const goTo = (idx: number) => {
+                    if (idx >= 0 && idx < imageFiles.length) {
+                        setLightboxFile(imageFiles[idx]);
+                        setLightboxIndex(idx);
+                    }
+                };
+
+                return (
+                    <div
+                        className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-xl flex flex-col animate-fade-blur"
+                        onClick={() => setLightboxFile(null)}
+                    >
+                        {/* Top bar */}
+                        <div className="flex items-center justify-between px-6 py-4 shrink-0" onClick={e => e.stopPropagation()}>
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
+                                    <ImageIcon size={16} className="text-white" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-black text-white truncate max-w-[300px]">{lightboxFile.nomeArquivo}</p>
+                                    <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">
+                                        {sizeStr && `${sizeStr} · `}qualidade original preservada
+                                        {imageFiles.length > 1 && ` · ${currentIdx + 1} de ${imageFiles.length}`}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => downloadFile(lightboxFile)}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-500/30 hover:scale-105 active:scale-95"
+                                >
+                                    <Download size={14} /> Baixar Original
+                                </button>
+                                <button
+                                    onClick={() => setLightboxFile(null)}
+                                    className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all hover:rotate-90"
+                                >
+                                    <X size={18} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Image container */}
+                        <div className="flex-1 flex items-center justify-center px-16 pb-6 min-h-0 relative" onClick={e => e.stopPropagation()}>
+                            {/* Prev */}
+                            {hasPrev && (
+                                <button
+                                    onClick={() => goTo(currentIdx - 1)}
+                                    className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-2xl bg-white/10 hover:bg-white/25 text-white flex items-center justify-center transition-all hover:scale-110 z-10"
+                                >
+                                    <ChevronLeft size={22} />
+                                </button>
+                            )}
+
+                            <img
+                                key={lightboxFile.id}
+                                src={lightboxFile.dados}
+                                alt={lightboxFile.nomeArquivo}
+                                className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl select-none animate-in fade-in zoom-in-95 duration-200"
+                                draggable={false}
+                                style={{ maxHeight: 'calc(100vh - 180px)' }}
+                            />
+
+                            {/* Next */}
+                            {hasNext && (
+                                <button
+                                    onClick={() => goTo(currentIdx + 1)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-2xl bg-white/10 hover:bg-white/25 text-white flex items-center justify-center transition-all hover:scale-110 z-10"
+                                >
+                                    <ChevronRight size={22} />
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Thumbnail strip (when multiple images) */}
+                        {imageFiles.length > 1 && (
+                            <div className="flex items-center justify-center gap-2 px-6 pb-5 shrink-0" onClick={e => e.stopPropagation()}>
+                                {imageFiles.map((f, i) => (
+                                    <button
+                                        key={f.id}
+                                        onClick={() => goTo(i)}
+                                        className={`w-12 h-12 rounded-xl overflow-hidden border-2 transition-all ${f.id === lightboxFile.id ? 'border-white scale-110 shadow-lg' : 'border-white/20 hover:border-white/50 opacity-60 hover:opacity-100'}`}
+                                    >
+                                        <img src={f.dados} alt={f.nomeArquivo} className="w-full h-full object-cover" />
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                );
+            })()}
         </div>
     );
 }
