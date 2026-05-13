@@ -1572,17 +1572,21 @@ export default function App() {
                       key={`nav-tab-${tab}`}
                       onClick={() => { playUISound('tap'); setActiveTab(tab as TipoTabela); if (window.innerWidth < 1024) setSidebarCollapsed(true); }}
                       title={sidebarCollapsed ? TABLE_LABELS[tab as TipoTabela] : undefined}
-                      className={`w-full flex items-center transition-all duration-200 group rounded-xl h-9 relative
+                      className={`w-full flex items-center transition-all duration-200 group rounded-xl h-9 relative overflow-hidden
                         ${isActive
-                          ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm'
+                          ? 'bg-zinc-900 dark:bg-white/[0.08] text-white dark:text-white shadow-md shadow-black/10 dark:shadow-black/30'
                           : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/70'}
                         ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-2.5'}`}
                     >
+                      {/* Active left accent bar */}
+                      {isActive && !sidebarCollapsed && (
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-white/50 dark:bg-white/40" />
+                      )}
                       <div className="relative shrink-0">
                         <TabIcon size={16} className={`transition-all ${isActive ? '' : 'group-hover:scale-110'}`} strokeWidth={isActive ? 2.5 : 2} />
                         {badge > 0 && (
                           <span className={`absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 rounded-full flex items-center justify-center text-[7px] font-black leading-none px-0.5 ${
-                            isActive ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white' : 'bg-rose-500 text-white'
+                            isActive ? 'bg-white dark:bg-white text-zinc-900 shadow-sm' : 'bg-rose-500 text-white'
                           }`}>
                             {badge > 99 ? '99+' : badge}
                           </span>
@@ -1968,21 +1972,21 @@ export default function App() {
 
         {/* --- GLOBAL SAVE INDICATOR --- */}
         {Object.keys(savingStatus).length > 0 && (
-          <div className="fixed bottom-4 right-4 z-[9999]">
+          <div className="fixed bottom-5 right-5 z-[9999] animate-in fade-in slide-in-from-bottom-2 duration-300">
             {Object.values(savingStatus).includes('saving') ? (
-              <div className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg text-sm font-medium animate-pulse">
-                <Loader2 className="w-4 h-4 animate-spin" />
+              <div className="flex items-center gap-2.5 bg-zinc-900 dark:bg-zinc-800 text-white px-4 py-2.5 rounded-2xl shadow-2xl shadow-black/30 text-[10px] font-black uppercase tracking-widest border border-white/10">
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-400 shrink-0" />
                 <span>Salvando...</span>
               </div>
             ) : Object.values(savingStatus).includes('error') ? (
-              <div className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-full shadow-lg text-sm font-medium">
-                <X className="w-4 h-4" />
+              <div className="flex items-center gap-2.5 bg-rose-600 text-white px-4 py-2.5 rounded-2xl shadow-2xl shadow-rose-500/30 text-[10px] font-black uppercase tracking-widest">
+                <X className="w-3.5 h-3.5 shrink-0" />
                 <span>Erro ao salvar</span>
               </div>
             ) : (
-              <div className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-full shadow-lg text-sm font-medium">
-                <CheckIcon className="w-4 h-4" />
-                <span>Salvo ✓</span>
+              <div className="flex items-center gap-2.5 bg-emerald-600 text-white px-4 py-2.5 rounded-2xl shadow-2xl shadow-emerald-500/30 text-[10px] font-black uppercase tracking-widest">
+                <CheckIcon className="w-3.5 h-3.5 shrink-0" />
+                <span>Salvo com sucesso</span>
               </div>
             )}
           </div>
