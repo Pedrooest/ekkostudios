@@ -396,12 +396,12 @@ export function TaskFlowView({
             <div className="shrink-0 flex items-center justify-between flex-wrap gap-3 px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md sticky top-0 z-10">
                 {/* Left: title + client filter (unified) */}
                 <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900 shadow-lg shrink-0">
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-xl shadow-blue-500/25 shrink-0">
                         <CheckSquare size={17} className="shrink-0" />
                     </div>
                     <div className="hidden sm:block shrink-0">
-                        <h1 className="text-sm font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100 leading-none">Tarefas</h1>
-                        <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 mt-0.5">Operação e Entrega</p>
+                        <h1 className="text-base font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100 leading-none">Tarefas</h1>
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 mt-0.5 opacity-70">Operação e Entrega</p>
                     </div>
 
                     {/* CLIENT FILTER — local only, does NOT affect other tabs */}
