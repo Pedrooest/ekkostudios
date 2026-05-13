@@ -240,10 +240,13 @@ export function PlanningView({
             <div className="flex-1 flex flex-col w-full h-full bg-white dark:bg-zinc-900 transition-colors overflow-y-auto custom-scrollbar">
 
                 {/* HEADER SECTION */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 shrink-0">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-6 py-5 border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shrink-0">
                     <div>
                         <div className="flex items-center gap-3">
-                            <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 truncate">Planejamento Estratégico</h1>
+                            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white shadow-xl shadow-blue-500/25 shrink-0">
+                                <CalendarIcon size={20} className="shrink-0" />
+                            </div>
+                            <h1 className="text-xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight uppercase">Planejamento Estratégico</h1>
                             <div className="relative">
                                 <button
                                     onClick={() => setIsClientDropdownOpen(!isClientDropdownOpen)}
@@ -272,7 +275,7 @@ export function PlanningView({
                                 )}
                             </div>
                         </div>
-                        <p className="text-zinc-500 dark:text-zinc-400 text-xs mt-0.5">Calendário tático e cronograma de posts.</p>
+                        <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mt-0.5 uppercase tracking-widest opacity-70">Calendário tático e cronograma de posts.</p>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -289,8 +292,8 @@ export function PlanningView({
                             <Download size={14} className="shrink-0" /> Exportar
                         </button>
                         <div className="w-px h-6 bg-zinc-200 dark:bg-zinc-700 mx-1"></div>
-                        <button onClick={handleAddContent} className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5">
-                            <Plus size={14} strokeWidth={2.5} className="shrink-0" /> Novo Post
+                        <button onClick={handleAddContent} className="px-5 py-2 bg-gradient-to-br from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 transition-all hover:scale-105 flex items-center gap-1.5">
+                            <Plus size={14} strokeWidth={3} className="shrink-0" /> Novo Post
                         </button>
                     </div>
                 </div>
@@ -301,7 +304,7 @@ export function PlanningView({
                             <button
                                 key={tab}
                                 onClick={() => { playUISound('tap'); setActiveStatus(tab); }}
-                                className={`px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all whitespace-nowrap ${activeStatus === tab
+                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeStatus === tab
                                     ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-zinc-600'
                                     : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
                                     }`}

@@ -191,12 +191,12 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-6 py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 backdrop-blur-md sticky top-0 z-10">
         <div>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900 shadow-lg shadow-zinc-500/10">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-xl shadow-blue-500/25 shrink-0">
               <Users size={20} />
             </div>
             <div>
-              <h1 className="text-lg font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100">Clientes</h1>
-              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mt-0.5">Gestão estratégica de contas e branding.</p>
+              <h1 className="text-xl font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100">Clientes</h1>
+              <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mt-0.5 uppercase tracking-widest opacity-70">Gestão estratégica de contas e branding.</p>
             </div>
           </div>
         </div>

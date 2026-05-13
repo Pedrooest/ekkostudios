@@ -134,22 +134,56 @@ export function CoboView({
 
   if (!activeClient) {
     return (
-      <div className="p-8 md:p-12 flex flex-col items-center justify-center text-center space-y-6 animate-fade">
-        <div className="w-20 h-20 bg-zinc-100 dark:bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-900 dark:text-zinc-100 shadow-xl border border-zinc-200 dark:border-zinc-700">
-          <Target size={32} />
+      <div className="flex-1 h-full flex flex-col items-center justify-center text-center p-8 gap-8 animate-fade-blur">
+        {/* Decorative background orbs */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-gradient-to-br from-orange-500/5 via-amber-500/5 to-transparent rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 left-1/3 w-[300px] h-[200px] bg-gradient-to-br from-blue-500/5 to-transparent rounded-full blur-3xl" />
         </div>
-        <div className="space-y-2">
-          <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">Estratégia COBO</h3>
-          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest max-w-[280px]">Selecione um cliente para visualizar sua distribuição de canais.</p>
+
+        {/* Icon */}
+        <div className="relative">
+          <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white shadow-2xl shadow-orange-500/25 animate-float">
+            <Target size={40} strokeWidth={1.5} />
+          </div>
+          <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg">
+            <Zap size={14} />
+          </div>
         </div>
-        <div className="w-full max-w-sm">
-          <InputSelect
-            value=""
-            onChange={(val) => onSelectClient(val)}
-            options={[{ value: '', label: '-- SELECIONAR CLIENTE --' }, ...clients.map(c => ({ value: c.id, label: c.Nome.toUpperCase() }))]}
-            className="!h-10 !text-[11px] !font-bold !rounded-xl"
-            icon={Users}
-          />
+
+        {/* Text */}
+        <div className="space-y-3 max-w-sm">
+          <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">Estratégia COBO</h3>
+          <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest leading-relaxed">
+            Selecione um cliente para visualizar e gerenciar sua distribuição estratégica de canais.
+          </p>
+        </div>
+
+        {/* Client selector */}
+        <div className="w-full max-w-xs space-y-3">
+          <div className="relative">
+            <InputSelect
+              value=""
+              onChange={(val) => onSelectClient(val)}
+              options={[{ value: '', label: '— SELECIONAR CLIENTE —' }, ...clients.map(c => ({ value: c.id, label: c.Nome.toUpperCase() }))]}
+              className="!h-12 !text-[11px] !font-bold !rounded-xl shadow-lg"
+              icon={Users}
+            />
+          </div>
+          {clients.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-2">
+              {clients.slice(0, 4).map(c => (
+                <button
+                  key={c.id}
+                  onClick={() => onSelectClient(c.id)}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-[10px] font-black uppercase tracking-wider text-zinc-600 dark:text-zinc-400 hover:border-orange-300 dark:hover:border-orange-700 hover:text-orange-600 dark:hover:text-orange-400 transition-all hover:shadow-md hover:-translate-y-0.5"
+                >
+                  <div className="w-4 h-4 rounded-md shrink-0" style={{ backgroundColor: c['Cor (HEX)'] || '#f97316' }} />
+                  {c.Nome}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );

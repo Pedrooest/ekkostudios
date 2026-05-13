@@ -186,7 +186,7 @@ export function MatrizEstrategicaView({
   };
 
   return (
-    <div className="view-root p-4 sm:p-6 space-y-6 animate-fade pb-20 h-full overflow-y-auto custom-scrollbar">
+    <div className="view-root p-4 sm:p-6 space-y-5 animate-fade-blur pb-20 h-full overflow-y-auto custom-scrollbar">
       <datalist id="dl-papel-estrategico">
         {OPCOES_PAPEL_ESTRATEGICO_MATRIZ.map(opt => <option key={opt} value={opt} />)}
       </datalist>
@@ -194,42 +194,35 @@ export function MatrizEstrategicaView({
         {OPCOES_TIPO_CONTEUDO_MATRIZ.map(opt => <option key={opt} value={opt} />)}
       </datalist>
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm">
-        <div className="flex items-center gap-4 flex-1">
-          <div className="w-12 h-12 bg-zinc-900 dark:bg-zinc-100 rounded-xl flex items-center justify-center text-white dark:text-zinc-900 shadow-lg shadow-zinc-500/10 shrink-0">
-            <Database size={24} />
+      {/* ── Header premium ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[24px] shadow-sm">
+        <div className="flex items-center gap-4 flex-1 min-w-0">
+          <div className="w-12 h-12 bg-gradient-to-br from-violet-600 to-purple-700 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-violet-500/20 shrink-0">
+            <Database size={22} />
           </div>
           <div className="min-w-0">
-            <div className="flex items-center gap-3">
-              <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight truncate">Matriz Estratégica</h2>
-              <Badge color="slate">{filteredData.length} Registros</Badge>
-            </div>
-            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate">
-              Gerenciamento Unificado de Estrutura
+            <h2 className="text-base font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight truncate">Matriz Estratégica</h2>
+            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">
+              Estrutura de conteúdo por canal · {filteredData.length} registros
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg border border-zinc-200 dark:border-zinc-700">
-            <button
-              onClick={() => { playUISound('tap'); setViewMode('table'); }}
-              className={`p-1.5 rounded transition-all ${viewMode === 'table' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
-            >
-              <List size={16} />
+        <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex items-center gap-0.5 p-0.5 bg-zinc-100 dark:bg-zinc-800 rounded-xl">
+            <button onClick={() => { playUISound('tap'); setViewMode('table'); }}
+              className={`p-2 rounded-lg transition-all ${viewMode === 'table' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}>
+              <List size={14} />
             </button>
-            <button
-              onClick={() => { playUISound('tap'); setViewMode('cards'); }}
-              className={`p-1.5 rounded transition-all ${viewMode === 'cards' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
-            >
-              <LayoutGrid size={16} />
+            <button onClick={() => { playUISound('tap'); setViewMode('cards'); }}
+              className={`p-2 rounded-lg transition-all ${viewMode === 'cards' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}>
+              <LayoutGrid size={14} />
             </button>
           </div>
-
-          <Button onClick={() => { playUISound('tap'); onAdd(); }} className="!h-10 !px-5 !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 !rounded-lg !text-[11px] !font-bold !uppercase shadow-lg shadow-zinc-500/10 transition-transform hover:scale-[1.02]">
-            <Plus size={16} className="mr-2 shrink-0" /> Nova Entrada
-          </Button>
+          <button onClick={() => { playUISound('tap'); onAdd(); }}
+            className="flex items-center gap-2 h-9 px-4 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.03] hover:shadow-lg active:scale-[0.97] transition-all shadow-md">
+            <Plus size={13} strokeWidth={3} /> Nova Entrada
+          </button>
         </div>
       </div>
 

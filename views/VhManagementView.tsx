@@ -115,21 +115,21 @@ export function VhManagementView({
     }, [simulator, collaborators]);
 
     return (
-        <div className="view-root flex flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors animate-fade">
+        <div className="view-root flex flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors animate-fade-blur">
             
             {/* SUB-NAVIGATION HEADER */}
-            <div className="flex items-center justify-between flex-wrap gap-3 px-6 py-4 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900 shadow-sm">
-                        <TrendingUp size={16} className="shrink-0" />
+            <div className="flex items-center justify-between flex-wrap gap-4 px-6 py-5 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+                <div className="flex items-center gap-4">
+                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-xl shadow-emerald-500/25 shrink-0">
+                        <TrendingUp size={20} className="shrink-0" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-semibold text-zinc-900 dark:text-white truncate">Gestão VH</h2>
-                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none">Análise de Rentabilidade</p>
+                        <h2 className="text-xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">Gestão VH</h2>
+                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none opacity-70">Análise de Rentabilidade · Valor Hora</p>
                     </div>
                 </div>
 
-                <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg shrink-0">
+                <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800/80 p-1 rounded-xl border border-zinc-200 dark:border-zinc-700 shrink-0">
                     {[
                         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
                         { id: 'clients', label: 'Rentabilidade', icon: TrendingUp },
@@ -138,8 +138,10 @@ export function VhManagementView({
                         <button
                             key={t.id}
                             onClick={() => setSubTab(t.id as any)}
-                            className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all
-                                ${subTab === t.id ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all duration-200
+                                ${subTab === t.id
+                                    ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-md ring-1 ring-black/5 dark:ring-white/5'
+                                    : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-white/50 dark:hover:bg-zinc-700/50'}`}
                         >
                             <t.icon size={12} className="shrink-0" /> {t.label}
                         </button>
@@ -155,10 +157,22 @@ export function VhManagementView({
                         <>
                             {/* KPI row */}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 stagger">
-                                <StatCard label="Faturamento" value={formatBRL(dashboardData.totalFees)} icon={Banknote} color="emerald" />
-                                <StatCard label="Custo Op." value={formatBRL(dashboardData.totalCosts)} icon={Calculator} color="rose" />
-                                <StatCard label="Lucro Bruto" value={formatBRL(dashboardData.profit)} icon={TrendingUp} color="blue" />
-                                <StatCard label="Margem" value={`${dashboardData.margin.toFixed(1)}%`} icon={Percent} color="orange" />
+                                {[
+                                    { label: 'Faturamento', value: formatBRL(dashboardData.totalFees), icon: Banknote, from: 'from-emerald-500', to: 'to-teal-600', shadow: 'shadow-emerald-500/20', text: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/5' },
+                                    { label: 'Custo Op.', value: formatBRL(dashboardData.totalCosts), icon: Calculator, from: 'from-rose-500', to: 'to-pink-600', shadow: 'shadow-rose-500/20', text: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-rose-500/5' },
+                                    { label: 'Lucro Bruto', value: formatBRL(dashboardData.profit), icon: TrendingUp, from: 'from-blue-500', to: 'to-indigo-600', shadow: 'shadow-blue-500/20', text: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-500/5' },
+                                    { label: 'Margem', value: `${dashboardData.margin.toFixed(1)}%`, icon: Percent, from: 'from-amber-500', to: 'to-orange-600', shadow: 'shadow-amber-500/20', text: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-500/5' },
+                                ].map((kpi) => (
+                                    <div key={kpi.label} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 flex items-center gap-4 card-hover group">
+                                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${kpi.from} ${kpi.to} flex items-center justify-center text-white shadow-lg ${kpi.shadow} shrink-0 group-hover:scale-105 transition-transform`}>
+                                            <kpi.icon size={20} className="shrink-0" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">{kpi.label}</p>
+                                            <p className={`text-xl font-black ${kpi.text} truncate`}>{kpi.value}</p>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
 
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 stagger">

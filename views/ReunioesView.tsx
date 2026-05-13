@@ -87,12 +87,12 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-8 py-6 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky top-0 z-20">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900 shadow-xl shadow-zinc-500/10 ring-4 ring-zinc-500/5">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white shadow-xl shadow-indigo-500/25 shrink-0">
             <Handshake size={24} />
           </div>
           <div>
             <h1 className="text-xl font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100">Reuniões</h1>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-0.5 opacity-60">Gestão de alinhamentos e decisões estratégicas.</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-0.5 opacity-70">Gestão de alinhamentos e decisões estratégicas.</p>
           </div>
         </div>
 
