@@ -134,7 +134,7 @@ export function CoboView({
 
   if (!activeClient) {
     return (
-      <div className="flex-1 h-full flex flex-col items-center justify-center text-center p-8 gap-8 animate-fade-blur">
+      <div className="flex-1 h-full flex flex-col items-center justify-center text-center p-8 gap-8 animate-fade-blur relative overflow-hidden">
         {/* Decorative background orbs */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-gradient-to-br from-orange-500/5 via-amber-500/5 to-transparent rounded-full blur-3xl" />
