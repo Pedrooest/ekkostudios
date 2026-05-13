@@ -289,6 +289,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
     });
 
     const [filterPeriod, setFilterPeriod] = useState(() => localStorage.getItem(`ekko_fin_period_${workspaceId}`) || 'este_mes');
+    const [selectedMonth, setSelectedMonth] = useState<string>(() => new Date().toISOString().slice(0, 7));
     const [customDateRange, setCustomDateRange] = useState({
         start: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
         end: new Date().toISOString().split('T')[0]
@@ -484,6 +485,16 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                 if (!dataInicio || !dataFim) return validos;
                 return validos.filter(f => f.data >= dataInicio && f.data <= dataFim);
             }
+            case 'mes_especifico': {
+                if (!selectedMonth) return validos;
+                const inicio = `${selectedMonth}-01`;
+                const fim = new Date(
+                    parseInt(selectedMonth.split('-')[0]),
+                    parseInt(selectedMonth.split('-')[1]),
+                    0
+                ).toISOString().slice(0, 10);
+                return validos.filter(f => f.data >= inicio && f.data <= fim);
+            }
             default:
                 return validos;
         }
@@ -496,7 +507,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
             const matchesCliente = filterCliente === 'all' || t.clienteId === filterCliente;
             return matchesTipo && matchesCliente && !t.__archived;
         });
-    }, [transactions, filterPeriod, dataInicio, dataFim, filterTipo, filterCliente]);
+    }, [transactions, filterPeriod, selectedMonth, dataInicio, dataFim, filterTipo, filterCliente]);
 
     // Relatórios (Tab 1)
     const summary = React.useMemo(() => {
@@ -603,6 +614,28 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
         })).sort((a,b) => b.valor - a.valor).slice(0, 5);
     }, [financasFiltradas, clients]);
 
+    // ── Resumo por mês (últimos 24 meses) para o month-picker ──
+    const monthlyResults = useMemo(() => {
+        const now = new Date();
+        return Array.from({ length: 24 }, (_, i) => {
+            const d = new Date(now.getFullYear(), now.getMonth() - (23 - i), 1);
+            const mes = d.toISOString().slice(0, 7);
+            const base = transactions.filter(t => !t.__archived && t.data?.startsWith(mes) && t.status === 'Pago');
+            const entrada = base.filter(t => t.tipo === 'entrada').reduce((a, t) => a + t.valor, 0);
+            const saida   = base.filter(t => t.tipo === 'saida' || t.tipo === 'assinatura').reduce((a, t) => a + t.valor, 0);
+            const resultado = entrada - saida;
+            return {
+                mes,
+                label: d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase(),
+                ano: d.getFullYear().toString().slice(2),
+                resultado,
+                entrada,
+                saida,
+                hasData: entrada > 0 || saida > 0
+            };
+        });
+    }, [transactions]);
+
     // ── ENTERPRISE METRICS ──────────────────────────────────────
 
     // Posição de caixa líquida (all-time net cash received vs spent)
@@ -652,14 +685,19 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
         } else if (filterPeriod === 'este_ano') {
             inicioAnt = `${y - 1}-01-01`;
             fimAnt    = `${y - 1}-12-31`;
+        } else if (filterPeriod === 'mes_especifico' && selectedMonth) {
+            // Comparar com mês anterior ao selecionado
+            const [sy, sm] = selectedMonth.split('-').map(Number);
+            inicioAnt = new Date(sy, sm - 2, 1).toISOString().slice(0, 10);
+            fimAnt    = new Date(sy, sm - 1, 0).toISOString().slice(0, 10);
         } else {
-            return null; // Sem comparativo para outros períodos
+            return null;
         }
         const base = transactions.filter(t => !t.__archived && t.data >= inicioAnt && t.data <= fimAnt);
         const rec  = base.filter(t => t.tipo === 'entrada' && t.status === 'Pago').reduce((a, t) => a + t.valor, 0);
         const desp = base.filter(t => t.tipo === 'saida' && t.status === 'Pago').reduce((a, t) => a + t.valor, 0);
         return { receita: rec, despesas: desp, lucro: rec - desp };
-    }, [transactions, filterPeriod]);
+    }, [transactions, filterPeriod, selectedMonth]);
 
     // Cash Flow chart — 12 meses com saldo acumulado corrente
     const cashFlowMonthly = React.useMemo(() => {
@@ -995,30 +1033,111 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                 {activeInternalTab === 'VISAO_GERAL' && (
                     <div className="space-y-5 animate-in fade-in slide-in-from-bottom-3 duration-300">
 
-                        {/* ── Period selector bar ── */}
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div className="flex items-center gap-2">
-                                <div className="w-1.5 h-6 rounded-full bg-gradient-to-b from-emerald-400 to-teal-500" />
-                                <h2 className="text-sm font-black uppercase tracking-tight text-zinc-900 dark:text-white">Painel Financeiro</h2>
+                        {/* ── Period selector + Month strip ── */}
+                        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm p-3 space-y-3">
+                            {/* Top row: title + quick filters */}
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-1.5 h-5 rounded-full bg-gradient-to-b from-emerald-400 to-teal-500" />
+                                    <h2 className="text-xs font-black uppercase tracking-tight text-zinc-900 dark:text-white">Painel Financeiro</h2>
+                                </div>
+                                <div className="flex items-center gap-1 p-0.5 bg-zinc-100 dark:bg-zinc-800 rounded-xl">
+                                    {[
+                                        { id: 'este_mes',        label: 'Este mês'  },
+                                        { id: 'ultimos_3_meses', label: '3 Meses'   },
+                                        { id: 'este_ano',        label: 'Este ano'  },
+                                        { id: 'tudo',            label: 'Tudo'      },
+                                        { id: 'personalizado',   label: '…'         },
+                                    ].map(p => (
+                                        <button
+                                            key={p.id}
+                                            onClick={() => setFilterPeriod(p.id)}
+                                            className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${filterPeriod === p.id && filterPeriod !== 'mes_especifico' ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+                                        >
+                                            {p.label}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                            <div className="flex items-center gap-1 p-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm">
-                                {[
-                                    { id: 'este_mes', label: 'Este mês' },
-                                    { id: 'mes_passado', label: 'Último mês' },
-                                    { id: 'ultimos_3_meses', label: '3 Meses' },
-                                    { id: 'este_ano', label: 'Este ano' },
-                                    { id: 'tudo', label: 'Tudo' },
-                                    { id: 'personalizado', label: '…' }
-                                ].map(p => (
-                                    <button
-                                        key={p.id}
-                                        onClick={() => setFilterPeriod(p.id)}
-                                        className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${filterPeriod === p.id ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md' : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'}`}
-                                    >
-                                        {p.label}
-                                    </button>
-                                ))}
+
+                            {/* Month strip — sempre visível, scrollable */}
+                            <div className="relative">
+                                <div className="flex items-end gap-1.5 overflow-x-auto hide-scrollbar pb-0.5">
+                                    {monthlyResults.map((m, i) => {
+                                        const isSelected = filterPeriod === 'mes_especifico' && selectedMonth === m.mes;
+                                        const maxAbs = Math.max(...monthlyResults.map(x => Math.abs(x.resultado)), 1);
+                                        const barH = m.hasData ? Math.max(4, Math.round((Math.abs(m.resultado) / maxAbs) * 36)) : 4;
+                                        return (
+                                            <button
+                                                key={m.mes}
+                                                onClick={() => {
+                                                    setSelectedMonth(m.mes);
+                                                    setFilterPeriod('mes_especifico');
+                                                }}
+                                                title={`${m.label} ${m.ano} — ${m.hasData ? (m.resultado >= 0 ? '+' : '') + formatBRL(m.resultado) : 'Sem dados'}`}
+                                                className={`group flex flex-col items-center gap-1 px-1.5 py-1 rounded-xl transition-all duration-150 shrink-0 ${isSelected ? 'bg-zinc-900 dark:bg-zinc-100' : 'hover:bg-zinc-50 dark:hover:bg-zinc-800'}`}
+                                            >
+                                                {/* Bar */}
+                                                <div className="flex flex-col justify-end" style={{ height: 40 }}>
+                                                    <div
+                                                        className={`w-5 rounded-sm transition-all duration-300 ${
+                                                            !m.hasData
+                                                                ? 'bg-zinc-200 dark:bg-zinc-700 opacity-40'
+                                                                : m.resultado >= 0
+                                                                    ? isSelected ? 'bg-emerald-400' : 'bg-emerald-500/70 group-hover:bg-emerald-500'
+                                                                    : isSelected ? 'bg-rose-400' : 'bg-rose-500/70 group-hover:bg-rose-500'
+                                                        }`}
+                                                        style={{ height: barH }}
+                                                    />
+                                                </div>
+                                                {/* Label */}
+                                                <span className={`text-[7px] font-black uppercase leading-none ${isSelected ? 'text-white dark:text-zinc-900' : 'text-zinc-500 dark:text-zinc-400'}`}>
+                                                    {m.label}
+                                                </span>
+                                                <span className={`text-[6px] font-bold leading-none ${isSelected ? 'text-zinc-300 dark:text-zinc-600' : 'text-zinc-400 dark:text-zinc-600'}`}>
+                                                    {m.ano}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                {/* Fade edges */}
+                                <div className="absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-white dark:from-zinc-900 to-transparent pointer-events-none" />
+                                <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-zinc-900 to-transparent pointer-events-none" />
                             </div>
+
+                            {/* Selected month info pill */}
+                            {filterPeriod === 'mes_especifico' && (() => {
+                                const m = monthlyResults.find(x => x.mes === selectedMonth);
+                                if (!m) return null;
+                                return (
+                                    <div className="flex items-center justify-between px-3 py-2 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-200/60 dark:border-zinc-700/60 animate-in fade-in slide-in-from-top-1 duration-150">
+                                        <div className="flex items-center gap-2">
+                                            <Calendar size={11} className="text-zinc-400" />
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-400">
+                                                {m.label} {20}{m.ano} — {m.hasData ? 'dados disponíveis' : 'sem movimentações'}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            {m.hasData && (
+                                                <>
+                                                    <span className="text-[9px] font-black text-emerald-500">+{formatBRL(m.entrada)}</span>
+                                                    <span className="text-[9px] font-black text-rose-500">−{formatBRL(m.saida)}</span>
+                                                    <span className={`text-[9px] font-black tabular-nums ${m.resultado >= 0 ? 'text-zinc-900 dark:text-white' : 'text-rose-500'}`}>
+                                                        = {m.resultado >= 0 ? '+' : ''}{formatBRL(m.resultado)}
+                                                    </span>
+                                                </>
+                                            )}
+                                            <button
+                                                onClick={() => setFilterPeriod('este_mes')}
+                                                className="text-[8px] font-black text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors"
+                                            >
+                                                ✕ limpar
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
                         </div>
 
                         {filterPeriod === 'personalizado' && (
