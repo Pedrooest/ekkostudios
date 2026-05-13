@@ -79,98 +79,130 @@ const SortableTaskCard = React.memo(function SortableTaskCard({ Tarefa, clients,
         data: { type: 'Task', task: Tarefa }
     });
 
-    const style = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.4 : 1,
+    const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.35 : 1 };
+
+    const Cliente  = clients.find((c: any) => c.id === Tarefa.Cliente_ID);
+    const prio     = getPriorityInfo(Tarefa.Prioridade);
+    const PrioIcon = prio.icon;
+    const today    = new Date(); today.setHours(0, 0, 0, 0);
+    const dueDate  = Tarefa.Data_Entrega ? new Date(Tarefa.Data_Entrega + 'T12:00:00') : null;
+    const daysLeft = dueDate ? Math.ceil((dueDate.getTime() - today.getTime()) / 86400000) : null;
+    const isOverdue   = daysLeft !== null && daysLeft < 0;
+    const isDueToday  = daysLeft === 0;
+    const isDueSoon   = daysLeft !== null && daysLeft > 0 && daysLeft <= 3;
+
+    const checklist       = Array.isArray(Tarefa.Checklist)  ? Tarefa.Checklist  : [];
+    const checklistDone   = checklist.filter((i: any) => i.concluido).length;
+    const checklistTotal  = checklist.length;
+    const commentsCount   = Array.isArray(Tarefa.Comentarios) ? Tarefa.Comentarios.length : 0;
+    const attachmentsCount= Array.isArray(Tarefa.Anexos)      ? Tarefa.Anexos.length      : 0;
+
+    const clientColor = Cliente?.['Cor (HEX)'] || '#94a3b8';
+    const checkPct    = checklistTotal > 0 ? Math.round((checklistDone / checklistTotal) * 100) : 0;
+
+    const dateLabel = () => {
+        if (!dueDate) return null;
+        if (isOverdue)  return `${Math.abs(daysLeft!)}d atrasado`;
+        if (isDueToday) return 'Hoje';
+        if (daysLeft === 1) return 'Amanhã';
+        return dueDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
     };
 
-    const Cliente = clients.find((c: any) => c.id === Tarefa.Cliente_ID);
-    const prio = getPriorityInfo(Tarefa.Prioridade);
-    const PriorityIcon = prio.icon;
-    const isOverdue = Tarefa.Data_Entrega && new Date(Tarefa.Data_Entrega) < new Date(new Date().setHours(0,0,0,0));
-
-    // Card density stats — show only when present (>0)
-    const checklist = Array.isArray(Tarefa.Checklist) ? Tarefa.Checklist : [];
-    const checklistDone = checklist.filter((i: any) => i.concluido).length;
-    const checklistTotal = checklist.length;
-    const commentsCount = Array.isArray(Tarefa.Comentarios) ? Tarefa.Comentarios.length : 0;
-    const attachmentsCount = Array.isArray(Tarefa.Anexos) ? Tarefa.Anexos.length : 0;
-    const hasStats = checklistTotal > 0 || commentsCount > 0 || attachmentsCount > 0;
-
-    // Format date nicely
-    const formatDate = (d: string) => {
-        if (!d) return null;
-        return new Date(d + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
-    };
+    const isSelected = selection.includes(Tarefa.id);
 
     return (
         <div
             ref={setNodeRef} style={style} {...attributes} {...listeners}
             onClick={() => onSelectTask(Tarefa.id)}
-            className={`bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-md dark:shadow-black/25 hover:shadow-xl dark:hover:shadow-black/50 hover:-translate-y-0.5 group flex flex-col gap-3 relative overflow-hidden cursor-grab active:cursor-grabbing transition-all duration-200 ${selection.includes(Tarefa.id) ? 'ring-2 ring-zinc-900 dark:ring-white bg-zinc-50 dark:bg-zinc-800' : ''} ${isDragging ? 'ring-2 ring-zinc-900 z-50 shadow-2xl scale-[1.02]' : ''}`}
+            className={`group relative bg-white dark:bg-zinc-900 border rounded-[18px] flex flex-col overflow-hidden cursor-grab active:cursor-grabbing transition-all duration-200
+                ${isSelected
+                    ? 'border-zinc-900 dark:border-zinc-100 ring-2 ring-zinc-900/20 dark:ring-white/20 shadow-lg'
+                    : 'border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-xl dark:hover:shadow-black/40 hover:-translate-y-0.5 hover:border-zinc-300 dark:hover:border-zinc-700'}
+                ${isDragging ? 'ring-2 ring-blue-500 shadow-2xl scale-[1.03] z-50' : ''}`}
         >
-            {/* Top accent bar — status color */}
-            <div className="h-0.5 w-full absolute top-0 left-0 right-0 opacity-70 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: statusCor }} />
+            {/* Left accent bar — full height, status color */}
+            <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-[18px] transition-opacity"
+                 style={{ backgroundColor: statusCor, opacity: isSelected || isDragging ? 1 : 0.6 }} />
 
-            <div className="p-4 pt-5 flex flex-col gap-3">
-                {/* Row 1: client + priority */}
-                <div className="flex justify-between items-start gap-2 pointer-events-none">
-                    <span className="text-[8px] font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 px-2 py-0.5 rounded-md truncate max-w-[130px]">
-                        {Cliente?.Nome || 'AGÊNCIA'}
-                    </span>
+            {/* Hover glow behind card */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-[18px]"
+                 style={{ background: `radial-gradient(ellipse at top left, ${statusCor}08 0%, transparent 60%)` }} />
+
+            <div className="pl-5 pr-4 pt-4 pb-3 flex flex-col gap-2.5 relative">
+
+                {/* Row 1: client avatar + name + priority */}
+                <div className="flex items-center justify-between gap-2 pointer-events-none">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                        <div className="w-5 h-5 rounded-md flex items-center justify-center text-[8px] font-black text-white shrink-0 shadow-sm"
+                             style={{ backgroundColor: clientColor }}>
+                            {(Cliente?.Nome || 'A').charAt(0).toUpperCase()}
+                        </div>
+                        <span className="text-[8px] font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500 truncate max-w-[100px]">
+                            {Cliente?.Nome || 'Agência'}
+                        </span>
+                    </div>
                     {Tarefa.Prioridade && (
-                        <span className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest shrink-0 border ${prio.color}`} title={`Prioridade: ${Tarefa.Prioridade}`}>
-                            <PriorityIcon size={8} className="shrink-0" />
-                            <span>{Tarefa.Prioridade}</span>
+                        <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[7px] font-black uppercase tracking-widest shrink-0 border ${prio.color}`}>
+                            <PrioIcon size={8} className="shrink-0" />
                         </span>
                     )}
                 </div>
 
                 {/* Row 2: title */}
-                <h4 className="text-[13px] font-black text-zinc-900 dark:text-zinc-100 tracking-tight leading-snug group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors pointer-events-none line-clamp-2" title={Tarefa.Título}>
+                <h4 className="text-[12px] font-black text-zinc-900 dark:text-zinc-100 tracking-tight leading-snug group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors pointer-events-none line-clamp-2 min-h-[32px]">
                     {Tarefa.Título}
                 </h4>
 
-                {/* Planning badge */}
+                {/* Checklist progress bar */}
+                {checklistTotal > 0 && (
+                    <div className="pointer-events-none space-y-1">
+                        <div className="flex items-center justify-between">
+                            <span className={`text-[8px] font-black uppercase tracking-widest ${checkPct === 100 ? 'text-emerald-500' : 'text-zinc-400'}`}>
+                                <CheckSquare size={8} className="inline mr-1" />{checklistDone}/{checklistTotal}
+                            </span>
+                            <span className={`text-[8px] font-black ${checkPct === 100 ? 'text-emerald-500' : 'text-zinc-400'}`}>{checkPct}%</span>
+                        </div>
+                        <div className="w-full h-1 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                            <div className={`h-full rounded-full transition-all duration-500 ${checkPct === 100 ? 'bg-emerald-500' : 'bg-blue-500'}`}
+                                 style={{ width: `${checkPct}%` }} />
+                        </div>
+                    </div>
+                )}
+
+                {/* Planning / tags badges */}
                 {Tarefa.Relacionado_A === 'Planejamento' && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-black uppercase tracking-wider border border-blue-200/50 dark:border-blue-500/20 w-fit">
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[7px] font-black uppercase tracking-wider border border-blue-200/50 dark:border-blue-500/20 w-fit pointer-events-none">
                         📅 Planejamento
                     </span>
                 )}
 
-                {/* Stats row */}
-                {hasStats && (
-                    <div className="flex items-center gap-3 text-[9px] font-bold text-zinc-400 dark:text-zinc-500 pointer-events-none">
-                        {checklistTotal > 0 && (
-                            <span className={`flex items-center gap-1 ${checklistDone === checklistTotal ? 'text-emerald-500' : ''}`}>
-                                <CheckSquare size={10} className="shrink-0" />
-                                {checklistDone}/{checklistTotal}
-                            </span>
-                        )}
+                {/* Footer */}
+                <div className="flex items-center justify-between pt-2 border-t border-zinc-100 dark:border-zinc-800/60 pointer-events-none gap-2">
+                    {/* Date chip */}
+                    <div className={`flex items-center gap-1 text-[8px] font-black uppercase tracking-wide rounded-lg px-1.5 py-0.5 ${
+                        isOverdue   ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-500 border border-rose-200/50 dark:border-rose-500/20'
+                        : isDueToday ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200/50 dark:border-amber-500/20'
+                        : isDueSoon  ? 'bg-orange-50 dark:bg-orange-500/8 text-orange-500 border border-orange-200/50 dark:border-orange-500/15'
+                        : 'text-zinc-400'
+                    }`}>
+                        <Clock size={8} className="shrink-0" />
+                        {dueDate ? dateLabel() : <span className="opacity-30">Sem data</span>}
+                    </div>
+
+                    {/* Right: comment/attach + avatar */}
+                    <div className="flex items-center gap-1.5">
                         {commentsCount > 0 && (
-                            <span className="flex items-center gap-1">
-                                <MessageSquare size={10} className="shrink-0" />
-                                {commentsCount}
+                            <span className="flex items-center gap-0.5 text-[8px] font-bold text-zinc-400">
+                                <MessageSquare size={8} />{commentsCount}
                             </span>
                         )}
                         {attachmentsCount > 0 && (
-                            <span className="flex items-center gap-1">
-                                <Paperclip size={10} className="shrink-0" />
-                                {attachmentsCount}
+                            <span className="flex items-center gap-0.5 text-[8px] font-bold text-zinc-400">
+                                <Paperclip size={8} />{attachmentsCount}
                             </span>
                         )}
-                    </div>
-                )}
-
-                {/* Footer: date + responsavel */}
-                <div className="flex items-center justify-between pt-2.5 border-t border-zinc-100 dark:border-zinc-800/80 pointer-events-none">
-                    <div className={`flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wide ${isOverdue ? 'text-rose-500 bg-rose-50 dark:bg-rose-500/10 px-1.5 py-0.5 rounded-md' : 'text-zinc-400'}`}>
-                        <Clock size={9} className="shrink-0" />
-                        {Tarefa.Data_Entrega ? formatDate(Tarefa.Data_Entrega) : <span className="opacity-30">Sem data</span>}
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <div className="w-6 h-6 rounded-lg text-zinc-900 dark:text-zinc-100 flex items-center justify-center text-[9px] font-black border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 shrink-0" title={Tarefa.Responsável || 'Sem responsável'}>
+                        <div className="w-5 h-5 rounded-md bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-[7px] font-black text-zinc-600 dark:text-zinc-300 shrink-0"
+                             title={Tarefa.Responsável || 'Sem responsável'}>
                             {Tarefa.Responsável?.[0]?.toUpperCase() || '?'}
                         </div>
                         {Object.keys(savingStatus || {}).some(k => k.startsWith(`TAREFAS:${Tarefa.id}:`)) && (
@@ -438,43 +470,66 @@ export function TaskFlowView({
 
                 {viewType === 'Board' && (
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-                        <div className="flex gap-6 h-full overflow-x-auto pb-4 custom-scrollbar-horizontal">
+                        <div className="flex gap-4 h-full overflow-x-auto pb-4 custom-scrollbar-horizontal">
                             {DEFAULT_TASK_STATUSES.map(status => {
                                 const columnTasks = filteredTasks.filter(t => t.Status === status.id);
+                                const overdueCount = columnTasks.filter(t => t.Data_Entrega && new Date(t.Data_Entrega) < new Date(new Date().setHours(0,0,0,0))).length;
                                 return (
-                                <div key={status.id} className="w-[300px] flex flex-col max-h-full shrink-0 relative">
-                                    <div className="flex items-center justify-between mb-3 px-1">
-                                        <div className="flex items-center gap-2">
-                                            {/* Color pill header */}
-                                            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl" style={{ backgroundColor: `${status.cor}15` }}>
-                                                <div className="w-2 h-2 rounded-full shadow-sm" style={{ backgroundColor: status.cor }} />
-                                                <h3 className="text-[10px] font-black uppercase tracking-wider" style={{ color: status.cor }}>{status.rotulo}</h3>
+                                <div key={status.id} className="w-[290px] flex flex-col max-h-full shrink-0 relative">
+                                    {/* Column header */}
+                                    <div className="flex items-center justify-between mb-3 px-0.5">
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                                                <div className="w-2 h-2 rounded-full shadow-sm shrink-0" style={{ backgroundColor: status.cor }} />
+                                                <h3 className="text-[9px] font-black uppercase tracking-[0.15em]" style={{ color: status.cor }}>{status.rotulo}</h3>
+                                                <span className="text-[8px] font-black text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded-full ml-0.5">{columnTasks.length}</span>
                                             </div>
-                                            <span className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded-full">{columnTasks.length}</span>
+                                            {overdueCount > 0 && (
+                                                <span className="text-[8px] font-black text-rose-500 bg-rose-50 dark:bg-rose-500/10 border border-rose-200/50 dark:border-rose-500/20 px-1.5 py-0.5 rounded-full">
+                                                    {overdueCount} atras.
+                                                </span>
+                                            )}
                                         </div>
-                                        <button onClick={() => onAdd('TAREFAS', { Status: status.id })} className="p-1.5 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all"><Plus size={14} /></button>
+                                        <button
+                                            onClick={() => onAdd('TAREFAS', { Status: status.id })}
+                                            className="w-7 h-7 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white transition-all hover:scale-110 active:scale-95 shrink-0"
+                                            style={{ backgroundColor: `${status.cor}20` }}
+                                            title={`Adicionar em ${status.rotulo}`}
+                                        >
+                                            <Plus size={13} style={{ color: status.cor }} />
+                                        </button>
                                     </div>
 
+                                    {/* Column body */}
                                     <DroppableColumn id={status.id}>
                                         <SortableContext items={columnTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
                                             {columnTasks.map(Tarefa => (
-                                                <SortableTaskCard 
-                                                    key={Tarefa.id} 
-                                                    Tarefa={Tarefa} 
-                                                    clients={clients} 
-                                                    getPriorityInfo={getPriorityInfo} 
-                                                    onSelectTask={onSelectTask} 
-                                                    selection={selection} 
-                                                    statusCor={status.cor} 
+                                                <SortableTaskCard
+                                                    key={Tarefa.id}
+                                                    Tarefa={Tarefa}
+                                                    clients={clients}
+                                                    getPriorityInfo={getPriorityInfo}
+                                                    onSelectTask={onSelectTask}
+                                                    selection={selection}
+                                                    statusCor={status.cor}
                                                     savingStatus={savingStatus}
                                                 />
                                             ))}
                                         </SortableContext>
+                                        {columnTasks.length === 0 && (
+                                            <div className="flex flex-col items-center justify-center py-10 rounded-2xl border-2 border-dashed transition-colors"
+                                                 style={{ borderColor: `${status.cor}30` }}>
+                                                <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2" style={{ backgroundColor: `${status.cor}15` }}>
+                                                    <Plus size={14} style={{ color: status.cor }} />
+                                                </div>
+                                                <p className="text-[8px] font-black uppercase tracking-widest" style={{ color: `${status.cor}80` }}>Vazio</p>
+                                            </div>
+                                        )}
                                         <button
                                             onClick={() => onAdd('TAREFAS', { Status: status.id })}
-                                            className="w-full mt-2 py-3 flex items-center justify-center gap-2 text-xs font-bold text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:hover:bg-zinc-900 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all uppercase tracking-widest shadow-sm hover:shadow-md"
+                                            className="w-full mt-2 py-2.5 flex items-center justify-center gap-1.5 text-[9px] font-black text-zinc-400 hover:bg-white dark:hover:bg-zinc-900 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all uppercase tracking-widest hover:shadow-sm"
                                         >
-                                            <Plus size={14} /> Adicionar
+                                            <Plus size={12} /> Nova tarefa
                                         </button>
                                     </DroppableColumn>
                                 </div>

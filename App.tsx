@@ -1530,48 +1530,77 @@ export default function App() {
           <Logo collapsed={sidebarCollapsed} theme={theme} />
         </div>
         
-        <nav className="flex-1 py-3 px-2 space-y-5 overflow-y-auto custom-scrollbar flex flex-col">
-          {/* GRUPOS DE ABAS */}
-          {[
-            { label: 'Visão Geral', tabs: ['DASHBOARD', 'CLIENTES', 'REUNIOES', 'ORGANICKIA'] },
-            { label: 'Estratégia', tabs: ['RDC', 'MATRIZ', 'COBO'] },
-            { label: 'Execução', tabs: ['PLANEJAMENTO', 'TAREFAS', 'CHECKLISTS'] },
-            { label: 'Gestão', tabs: ['FINANCAS', 'VH', 'RELATORIOS', 'WHITEBOARD'] }
-          ].map((group, gIdx) => (
-            <div key={group.label} className="space-y-0.5">
-              {!sidebarCollapsed && (
-                <p className="px-3 text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-600 mb-1.5 mt-1">
-                  {group.label}
-                </p>
-              )}
-              {sidebarCollapsed && gIdx > 0 && (
-                <div className="h-px bg-zinc-100 dark:bg-zinc-800 mx-auto w-8 mb-2" />
-              )}
-              {group.tabs.filter(t => tabOrder.includes(t as TipoTabela)).map(tab => {
-                const TabIcon = getIcon(tab as TipoTabela);
-                const isActive = activeTab === tab;
-                return (
-                  <button
-                    key={`nav-tab-${tab}`}
-                    onClick={() => { playUISound('tap'); setActiveTab(tab as TipoTabela); if (window.innerWidth < 1024) setSidebarCollapsed(true); }}
-                    title={sidebarCollapsed ? TABLE_LABELS[tab as TipoTabela] : undefined}
-                    className={`w-full flex items-center transition-all duration-200 group rounded-xl h-9 relative
-                      ${isActive
-                        ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm'
-                        : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/70'}
-                      ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-2.5'}`}
-                  >
-                    <TabIcon size={16} className={`shrink-0 transition-all ${isActive ? '' : 'group-hover:scale-110'}`} strokeWidth={isActive ? 2.5 : 2} />
-                    {!sidebarCollapsed && (
-                      <span className={`text-[10px] font-black uppercase tracking-widest truncate min-w-0 flex-1 text-left ${isActive ? '' : 'font-bold'}`}>
-                        {TABLE_LABELS[tab as TipoTabela]}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          ))}
+        <nav className="flex-1 py-3 px-2 space-y-4 overflow-y-auto custom-scrollbar flex flex-col">
+          {/* ── Sidebar badges: compute counts ── */}
+          {(() => {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const overdueTasks    = tasks.filter(t => t.Status !== 'done' && t.Status !== 'arquivado' && t.Data_Entrega && t.Data_Entrega < todayStr).length;
+            const pendingFinancas = financas.filter((f: any) => (f.Status === 'Pendente' || f.Status === 'Atrasado') && !f.__archived).length;
+            const todayMeetings   = reunioes.filter((r: any) => r.data === todayStr && r.status === 'Agendada').length;
+
+            const badges: Record<string, number> = {};
+            if (overdueTasks    > 0) badges['TAREFAS']  = overdueTasks;
+            if (pendingFinancas > 0) badges['FINANCAS']  = pendingFinancas;
+            if (todayMeetings   > 0) badges['REUNIOES']  = todayMeetings;
+
+            return [
+              { label: 'Visão Geral', tabs: ['DASHBOARD', 'CLIENTES', 'REUNIOES', 'ORGANICKIA'] },
+              { label: 'Estratégia',  tabs: ['RDC', 'MATRIZ', 'COBO'] },
+              { label: 'Execução',    tabs: ['PLANEJAMENTO', 'TAREFAS', 'CHECKLISTS'] },
+              { label: 'Gestão',      tabs: ['FINANCAS', 'VH', 'RELATORIOS', 'WHITEBOARD'] }
+            ].map((group, gIdx) => (
+              <div key={group.label} className="space-y-0.5">
+                {!sidebarCollapsed && (
+                  <p className="px-3 text-[8px] font-black uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-600 mb-1.5 mt-0.5 flex items-center gap-2">
+                    {group.label}
+                  </p>
+                )}
+                {sidebarCollapsed && gIdx > 0 && (
+                  <div className="h-px bg-zinc-100 dark:bg-zinc-800 mx-auto w-6 mb-2" />
+                )}
+                {group.tabs.filter(t => tabOrder.includes(t as TipoTabela)).map(tab => {
+                  const TabIcon  = getIcon(tab as TipoTabela);
+                  const isActive = activeTab === tab;
+                  const badge    = badges[tab] || 0;
+                  return (
+                    <button
+                      key={`nav-tab-${tab}`}
+                      onClick={() => { playUISound('tap'); setActiveTab(tab as TipoTabela); if (window.innerWidth < 1024) setSidebarCollapsed(true); }}
+                      title={sidebarCollapsed ? TABLE_LABELS[tab as TipoTabela] : undefined}
+                      className={`w-full flex items-center transition-all duration-200 group rounded-xl h-9 relative
+                        ${isActive
+                          ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm'
+                          : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/70'}
+                        ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-2.5'}`}
+                    >
+                      <div className="relative shrink-0">
+                        <TabIcon size={16} className={`transition-all ${isActive ? '' : 'group-hover:scale-110'}`} strokeWidth={isActive ? 2.5 : 2} />
+                        {badge > 0 && (
+                          <span className={`absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 rounded-full flex items-center justify-center text-[7px] font-black leading-none px-0.5 ${
+                            isActive ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white' : 'bg-rose-500 text-white'
+                          }`}>
+                            {badge > 99 ? '99+' : badge}
+                          </span>
+                        )}
+                      </div>
+                      {!sidebarCollapsed && (
+                        <>
+                          <span className={`text-[10px] font-black uppercase tracking-widest truncate min-w-0 flex-1 text-left`}>
+                            {TABLE_LABELS[tab as TipoTabela]}
+                          </span>
+                          {badge > 0 && !isActive && (
+                            <span className="ml-auto shrink-0 min-w-[18px] h-4 bg-rose-500 text-white rounded-full flex items-center justify-center text-[7px] font-black px-1">
+                              {badge > 99 ? '99+' : badge}
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            ));
+          })()}
         </nav>
 
         <div className="p-2 border-t border-zinc-100 dark:border-zinc-800 space-y-0.5 bg-white dark:bg-zinc-900 flex flex-col">
