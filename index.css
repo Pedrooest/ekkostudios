@@ -148,7 +148,7 @@ video {
 }
 
 .toast-progress-bar {
-  animation: toast-progress 3.5s linear forwards;
+  animation: toast-progress 4s linear forwards;
 }
 
 .toast-progress-bar-paused {
