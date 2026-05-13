@@ -70,62 +70,64 @@ const RelatoriosView: React.FC<RelatoriosViewProps> = ({ clients, planejamento, 
   };
 
   return (
-    <div className="space-y-6 animate-fade">
-      {/* Header & Controls - Hidden in Print */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-app-surface p-6 rounded-[24px] border border-app-border print:hidden">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500">
-            <FileText size={24} />
+    <div className="space-y-6 animate-fade-blur p-6">
+      {/* ── Header & Controls ── */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-zinc-900 p-5 rounded-[24px] border border-zinc-200 dark:border-zinc-800 shadow-sm print:hidden">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+            <FileText size={20} />
           </div>
           <div>
-            <h1 className="text-xl font-black uppercase tracking-tight text-app-text-strong">Relatórios de Performance</h1>
-            <p className="text-[10px] font-bold text-app-text-muted uppercase tracking-widest">Gere e exporte relatórios estratégicos por cliente</p>
+            <h1 className="text-sm font-black uppercase tracking-tight text-zinc-900 dark:text-white">Relatórios de Performance</h1>
+            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">Análise estratégica por cliente · exportável em PDF</p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           <PSelectPortal
             value={selectedClientId}
             onChange={setSelectedClientId}
             placeholder="Selecionar Cliente"
-            className="min-w-[200px]"
+            className="min-w-[180px]"
             options={clients.map(c => ({ value: c.id, label: c.Nome }))}
           />
-
-          <div className="flex bg-app-bg p-1 rounded-xl border border-app-border">
+          <div className="flex items-center gap-0.5 p-0.5 bg-zinc-100 dark:bg-zinc-800 rounded-xl">
             {(['mes', 'trimestre', 'ano'] as const).map(p => (
-              <button
-                key={p}
-                onClick={() => setPeriodo(p)}
-                className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${periodo === p ? 'bg-blue-600 text-white shadow-lg' : 'text-app-text-muted hover:text-app-text-strong'}`}
-              >
+              <button key={p} onClick={() => setPeriodo(p)}
+                className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${periodo === p ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'}`}>
                 {p === 'mes' ? 'Mês' : p === 'trimestre' ? 'Trimestre' : 'Ano'}
               </button>
             ))}
           </div>
-
-          <Button 
-            onClick={handlePrint} 
-            disabled={!selectedClientId}
-            className="!h-11 !rounded-xl !bg-app-text-strong !text-app-bg hover:scale-105 active:scale-95 transition-all"
-          >
-            <Download size={16} className="mr-2" /> Exportar PDF
-          </Button>
+          <button onClick={handlePrint} disabled={!selectedClientId}
+            className="flex items-center gap-2 h-9 px-4 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-[9px] font-black uppercase tracking-widest disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.03] active:scale-[0.97] transition-all shadow-md">
+            <Download size={13} /> Exportar PDF
+          </button>
         </div>
       </div>
 
       {!selectedClientId ? (
-        <div className="py-28 text-center flex flex-col items-center justify-center border border-app-border rounded-[32px] bg-app-surface/30 gap-5">
-          <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-xl shadow-blue-500/20">
-            <BarChart3 size={32} className="text-white" />
+        <div className="py-24 text-center flex flex-col items-center justify-center border border-zinc-200 dark:border-zinc-800 rounded-[28px] bg-white dark:bg-zinc-900 gap-5 shadow-sm animate-in fade-in duration-300">
+          <div className="w-16 h-16 rounded-[22px] bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-xl shadow-blue-500/20 animate-float">
+            <BarChart3 size={28} className="text-white" />
           </div>
           <div className="space-y-1.5">
-            <h3 className="text-sm font-black uppercase tracking-tight text-app-text-strong">Selecione um cliente</h3>
-            <p className="text-[11px] font-bold text-app-text-muted uppercase tracking-widest max-w-xs">Escolha um cliente no seletor acima para visualizar o relatório completo de performance.</p>
+            <h3 className="text-sm font-black uppercase tracking-tight text-zinc-900 dark:text-white">Selecione um cliente</h3>
+            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest max-w-xs">Escolha um cliente para visualizar o relatório completo de performance.</p>
+          </div>
+          <div className="flex items-center gap-4 mt-2">
+            {clients.slice(0, 3).map((c, i) => (
+              <button key={c.id} onClick={() => setSelectedClientId(c.id)}
+                className="flex items-center gap-2 px-3 py-1.5 bg-zinc-50 dark:bg-zinc-800 hover:bg-blue-50 dark:hover:bg-blue-500/10 border border-zinc-200 dark:border-zinc-700 rounded-xl text-[9px] font-black uppercase transition-all hover:border-blue-300 dark:hover:border-blue-500/30 hover:text-blue-600 dark:hover:text-blue-400"
+                style={{ animationDelay: `${i * 80}ms` }}>
+                <div className="w-4 h-4 rounded-md flex items-center justify-center text-white text-[7px] font-black" style={{ backgroundColor: c['Cor (HEX)'] || '#3b82f6' }}>{(c.Nome || '?').charAt(0)}</div>
+                {c.Nome}
+              </button>
+            ))}
           </div>
         </div>
       ) : (
-        <div className="report-content space-y-8 animate-fade-up">
+        <div className="report-content space-y-6 animate-in fade-in slide-in-from-bottom-3 duration-300">
           {/* Print Only Header */}
           <div className="hidden print:flex items-center justify-between border-b-2 border-app-border pb-6 mb-10">
              <div className="flex items-center gap-6">

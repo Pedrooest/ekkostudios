@@ -676,4 +676,155 @@ video {
 @keyframes pulseDot {
   0%, 100% { opacity: 1; transform: scale(1); }
   50%       { opacity: 0.6; transform: scale(0.85); }
+}
+
+/* ════════════════════════════════════════════════════════════
+ * EXTENDED PREMIUM MOTION SYSTEM — v2
+ * All curves follow Apple/Linear design language
+ * ════════════════════════════════════════════════════════════ */
+
+/* fadeInUp — used in task list rows, dashboard activity, etc. */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* zoom-in — modal entrances */
+@keyframes zoom-in {
+  from { opacity: 0; transform: scale(0.93) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-zoom-in {
+  animation: zoom-in 0.32s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+/* fade-down — dropdowns, tooltips appearing downward */
+@keyframes fade-down {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-fade-down {
+  animation: fade-down 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* slide-left — panels sliding in from right */
+@keyframes slide-left {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-left {
+  animation: slide-left 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* counter-up — number/value changes */
+@keyframes counter-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-counter {
+  animation: counter-up 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* rotate-in — icon transitions */
+@keyframes rotate-in {
+  from { opacity: 0; transform: rotate(-90deg) scale(0.6); }
+  to   { opacity: 1; transform: rotate(0deg) scale(1); }
+}
+.animate-rotate-in {
+  animation: rotate-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Premium card hover — enhanced lift with glow */
+.card-hover {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.2s ease;
+  will-change: transform;
+}
+.card-hover:hover {
+  transform: translateY(-4px) scale(1.005);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1), 0 6px 12px rgba(0,0,0,0.05);
+}
+.dark .card-hover:hover {
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 6px 12px rgba(0,0,0,0.3);
+}
+
+/* Stagger slow — for larger grid items */
+.stagger-slow > * {
+  animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.stagger-slow > *:nth-child(1) { animation-delay: 0ms;   }
+.stagger-slow > *:nth-child(2) { animation-delay: 60ms;  }
+.stagger-slow > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-slow > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-slow > *:nth-child(5) { animation-delay: 240ms; }
+.stagger-slow > *:nth-child(6) { animation-delay: 300ms; }
+.stagger-slow > *:nth-child(7) { animation-delay: 360ms; }
+.stagger-slow > *:nth-child(8) { animation-delay: 420ms; }
+
+/* Gradient text animation */
+@keyframes gradient-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animate-gradient-text {
+  background-size: 200% auto;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* Progress bar fill animation */
+@keyframes bar-fill {
+  from { width: 0%; }
+}
+.animate-bar-fill {
+  animation: bar-fill 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Glow ring — for active/focused premium elements */
+@keyframes glow-ring {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.4); }
+  50%       { box-shadow: 0 0 0 8px rgba(99,102,241,0); }
+}
+.glow-ring {
+  animation: glow-ring 2s ease infinite;
+}
+
+/* Sidebar item entrance — stagger on mount */
+.nav-item-enter {
+  animation: slideNavIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes slideNavIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Hide scrollbar utility */
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* custom-scrollbar-horizontal */
+.custom-scrollbar-horizontal::-webkit-scrollbar { height: 4px; }
+.custom-scrollbar-horizontal::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar-horizontal::-webkit-scrollbar-thumb {
+  background-color: rgba(148,163,184,0.3);
+  border-radius: 10px;
+}
+.dark .custom-scrollbar-horizontal::-webkit-scrollbar-thumb {
+  background-color: rgba(255,255,255,0.08);
+}
+
+/* Reduced motion overrides for new animations */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up, .animate-zoom-in, .animate-fade-down,
+  .animate-slide-left, .animate-counter, .animate-rotate-in,
+  .animate-gradient-text, .animate-bar-fill, .glow-ring,
+  .stagger-slow > *, .nav-item-enter {
+    animation: none !important;
+    transition: none !important;
+  }
+  .card-hover:hover { transform: none !important; box-shadow: none !important; }
 }

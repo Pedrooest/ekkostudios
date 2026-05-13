@@ -201,42 +201,39 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Badge color="blue" className="text-[10px] font-black uppercase tracking-widest px-3 py-1">
-            {activeCount} Ativos
-          </Badge>
-          <Button onClick={onAdd} className="!h-10 px-4 !bg-blue-600 !text-white hover:!bg-blue-700 shadow-lg shadow-blue-500/20">
-            <Plus size={16} className="mr-2 shrink-0" /> Novo Cliente
-          </Button>
+        <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl border border-emerald-200/50 dark:border-emerald-500/20">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 glow-pulse" />
+                <span className="text-[9px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400">{activeCount} Ativos</span>
+            </div>
+            <button
+                onClick={onAdd}
+                className="flex items-center gap-2 h-9 px-4 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.03] hover:shadow-lg active:scale-[0.97] transition-all shadow-md"
+            >
+                <Plus size={14} strokeWidth={3} /> Novo Cliente
+            </button>
         </div>
       </div>
 
       {/* FILTERS BAR */}
-      <div className="px-6 py-4 flex flex-col sm:flex-row gap-4 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30">
-        <div className="relative flex-1 max-w-md group">
-          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-zinc-400 group-focus-within:text-blue-500 transition-colors">
-            <Search size={14} />
-          </div>
+      <div className="px-6 py-3.5 flex flex-col sm:flex-row gap-3 border-b border-zinc-100 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/40 backdrop-blur-sm">
+        <div className="relative flex-1 max-w-sm group">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-zinc-700 dark:group-focus-within:text-zinc-200 transition-colors" size={13} />
           <input
             type="text"
-            className="block w-full pl-9 pr-3 h-10 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm font-medium text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm"
+            className="w-full pl-9 pr-3 h-9 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-[11px] font-black uppercase tracking-widest placeholder-zinc-400 focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-500 transition-all shadow-sm"
             placeholder="Buscar cliente..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        
-        <div className="flex bg-white dark:bg-zinc-800 p-1 rounded-lg border border-zinc-200 dark:border-zinc-700 shadow-sm">
+        <div className="flex items-center gap-1 p-0.5 bg-zinc-100 dark:bg-zinc-800 rounded-xl">
           {(['Todos', 'Ativo', 'Inativo'] as const).map(status => (
-            <button
-              key={status}
-              onClick={() => setStatusFilter(status)}
-              className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${
-                statusFilter === status 
-                  ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md' 
-                  : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200'
-              }`}
-            >
+            <button key={status} onClick={() => setStatusFilter(status)}
+              className={`px-3.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${
+                statusFilter === status
+                  ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-sm'
+                  : 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'}`}>
               {status}
             </button>
           ))}
@@ -279,107 +276,113 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                 <div
                   key={client.id}
                   onClick={() => setSelectedClient(client)}
-                  className={`group relative bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 lift hover:-translate-y-1 hover:shadow-2xl dark:hover:shadow-black/40 ${!isAtivo ? 'opacity-60 saturate-50' : 'hover:border-zinc-300 dark:hover:border-zinc-600'}`}
+                  className={`group relative bg-white dark:bg-zinc-900 border rounded-[24px] overflow-hidden cursor-pointer transition-all duration-300 card-hover ${
+                    !isAtivo
+                      ? 'border-zinc-200 dark:border-zinc-800 opacity-55 saturate-0'
+                      : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-sm'
+                  }`}
                 >
-                  {/* Cover / banner strip */}
-                  <div
-                    className="h-16 relative overflow-hidden shrink-0"
-                    style={{
-                      background: client.cover_url
-                        ? undefined
-                        : `linear-gradient(135deg, ${bgHex}40 0%, ${bgHex}15 60%, transparent 100%)`,
-                    }}
-                  >
-                    {client.cover_url && (
-                      <img src={client.cover_url} alt="" className="w-full h-full object-cover" />
-                    )}
-                    {/* Palette dots */}
+                  {/* ── Cover strip ── */}
+                  <div className="h-[72px] relative overflow-hidden shrink-0"
+                       style={{ background: client.cover_url ? undefined : `linear-gradient(135deg, ${bgHex}55 0%, ${bgHex}20 50%, transparent 100%)` }}>
+                    {client.cover_url && <img src={client.cover_url} alt="" className="w-full h-full object-cover" />}
+                    {/* Mesh noise overlay for texture */}
+                    <div className="absolute inset-0 opacity-30" style={{ background: `radial-gradient(ellipse at 80% 20%, ${bgHex}40, transparent 70%)` }} />
+                    {/* Color swatch btn */}
+                    <button onClick={e => { e.stopPropagation(); onOpenColorPicker?.(client.id, bgHex); }}
+                      className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/25 backdrop-blur-md text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-black/45 hover:scale-105 active:scale-95"
+                      title="Alterar cor">
+                      <Palette size={10} />
+                    </button>
+                    {/* Palette dots in cover */}
                     {(client.paleta_cores || []).length > 0 && (
-                      <div className="absolute bottom-2 right-3 flex gap-1">
-                        {(client.paleta_cores || []).slice(0, 4).map((cor: string, i: number) => (
-                          <div key={i} className="w-3 h-3 rounded-full border border-white/50 shadow-sm" style={{ backgroundColor: cor }} />
+                      <div className="absolute bottom-2 left-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {(client.paleta_cores || []).slice(0, 5).map((cor: string, i: number) => (
+                          <div key={i} className="w-2.5 h-2.5 rounded-full border border-white/60 shadow-sm" style={{ backgroundColor: cor }} />
                         ))}
                       </div>
                     )}
-                    {/* Color swatch button */}
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onOpenColorPicker?.(client.id, bgHex); }}
-                      className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/20 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-black/40"
-                      title="Alterar cor"
-                    >
-                      <Palette size={11} />
-                    </button>
                   </div>
 
-                  {/* Avatar overlapping cover */}
                   <div className="px-4 pb-4">
-                    <div className="flex items-end justify-between -mt-6 mb-3">
-                      {/* Logo/avatar */}
-                      <div
-                        className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white text-lg shrink-0 shadow-lg ring-2 ring-white dark:ring-zinc-900 overflow-hidden group-hover:scale-105 transition-transform"
-                        style={{ backgroundColor: bgHex }}
-                      >
-                        {client.logo_url ? (
-                          <img src={client.logo_url} alt={client.Nome} className="w-full h-full object-cover" />
-                        ) : initial}
+                    {/* ── Avatar + status ── */}
+                    <div className="flex items-end justify-between -mt-7 mb-3">
+                      <div className="w-[52px] h-[52px] rounded-[14px] flex items-center justify-center font-black text-white text-xl shrink-0 shadow-xl ring-[3px] ring-white dark:ring-zinc-900 overflow-hidden group-hover:scale-[1.06] transition-transform duration-300"
+                           style={{ backgroundColor: bgHex }}>
+                        {client.logo_url
+                          ? <img src={client.logo_url} alt={client.Nome} className="w-full h-full object-cover" />
+                          : initial}
                       </div>
-                      {/* Status badge */}
-                      <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${isAtivo ? 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400'}`}>
+                      <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-wider border ${
+                        client.Status === 'Ativo'    ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200/50 dark:border-emerald-500/20'
+                        : client.Status === 'Prospect' ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200/50 dark:border-blue-500/20'
+                        : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 border-zinc-200/50 dark:border-zinc-700/50'
+                      }`}>
                         <div className={`w-1.5 h-1.5 rounded-full ${isAtivo ? 'bg-emerald-500 glow-pulse' : 'bg-zinc-300 dark:bg-zinc-600'}`} />
                         {client.Status || 'Ativo'}
                       </div>
                     </div>
 
-                    {/* Name + nicho */}
-                    <div className="mb-3">
-                      <h3 className="font-black text-[15px] text-zinc-900 dark:text-zinc-100 tracking-tight leading-tight truncate">
+                    {/* ── Name + nicho ── */}
+                    <div className="mb-3.5">
+                      <h3 className="font-black text-[14px] text-zinc-900 dark:text-zinc-100 tracking-tight leading-tight truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                         {client.Nome || 'Sem nome'}
                       </h3>
-                      <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest truncate mt-0.5">
-                        {client.Nicho || 'Sem nicho'}
+                      <p className="text-[9px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.15em] truncate mt-0.5">
+                        {client.Nicho || 'Sem nicho definido'}
                       </p>
                     </div>
 
-                    {/* Mini stats */}
-                    <div className="grid grid-cols-3 gap-2 mb-3">
+                    {/* ── Stats strip ── */}
+                    <div className="flex items-center justify-between gap-1.5 mb-3.5 p-2.5 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-800/60">
                       {[
-                        { label: 'Posts', value: clientPostsThisMonth.length, icon: <LayoutTemplate size={9} />, color: 'text-indigo-500' },
-                        { label: 'Concluídos', value: clientPostsDone, icon: <CheckSquare size={9} />, color: 'text-emerald-500' },
-                        { label: 'Tarefas', value: clientTasks.length, icon: <TrendingUp size={9} />, color: 'text-amber-500' },
-                      ].map(s => (
-                        <div key={s.label} className="flex flex-col items-center py-1.5 bg-zinc-50 dark:bg-zinc-800/60 rounded-xl border border-zinc-100 dark:border-zinc-800">
-                          <span className={`${s.color} mb-0.5`}>{s.icon}</span>
-                          <span className="text-[11px] font-black text-zinc-900 dark:text-zinc-100">{s.value}</span>
-                          <span className="text-[7px] font-bold text-zinc-400 uppercase tracking-wide">{s.label}</span>
-                        </div>
+                        { label: 'Posts', value: clientPostsThisMonth.length,  col: 'text-indigo-500',  icon: LayoutTemplate },
+                        { label: 'Prontos', value: clientPostsDone,             col: 'text-emerald-500', icon: CheckSquare },
+                        { label: 'Tarefas', value: clientTasks.length,         col: 'text-amber-500',   icon: TrendingUp },
+                      ].map((s, i) => (
+                        <React.Fragment key={s.label}>
+                          {i > 0 && <div className="w-px h-6 bg-zinc-200 dark:bg-zinc-700 shrink-0" />}
+                          <div className="flex-1 flex flex-col items-center gap-0.5">
+                            <s.icon size={10} className={s.col} />
+                            <span className="text-[12px] font-black text-zinc-900 dark:text-zinc-100 tabular-nums leading-none">{s.value}</span>
+                            <span className="text-[7px] font-bold text-zinc-400 uppercase tracking-wide">{s.label}</span>
+                          </div>
+                        </React.Fragment>
                       ))}
                     </div>
 
-                    {/* Footer: social links + palette */}
-                    <div className="flex items-center justify-between pt-1 border-t border-zinc-50 dark:border-zinc-800/60">
-                      <div className="flex items-center gap-2.5 text-zinc-300 dark:text-zinc-600">
+                    {/* ── Footer: socials + palette ── */}
+                    <div className="flex items-center justify-between border-t border-zinc-100 dark:border-zinc-800/60 pt-2.5">
+                      <div className="flex items-center gap-2 text-zinc-300 dark:text-zinc-600">
                         {client.WhatsApp && (
-                          <button onClick={(e) => { e.stopPropagation(); window.open(`https://wa.me/${client.WhatsApp.replace(/\D/g,'')}`, '_blank'); }}
-                            className="hover:text-emerald-500 transition-colors" title="WhatsApp">
-                            <Phone size={13} />
+                          <button onClick={e => { e.stopPropagation(); window.open(`https://wa.me/${client.WhatsApp.replace(/\D/g,'')}`, '_blank'); }}
+                            className="w-7 h-7 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:text-emerald-500 flex items-center justify-center transition-all" title="WhatsApp">
+                            <Phone size={12} />
                           </button>
                         )}
                         {client.Instagram && (
-                          <button onClick={(e) => { e.stopPropagation(); window.open(`https://instagram.com/${client.Instagram.replace('@','')}`, '_blank'); }}
-                            className="hover:text-rose-500 transition-colors" title="Instagram">
-                            <Instagram size={13} />
+                          <button onClick={e => { e.stopPropagation(); window.open(`https://instagram.com/${client.Instagram.replace('@','')}`, '_blank'); }}
+                            className="w-7 h-7 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-500 flex items-center justify-center transition-all" title="Instagram">
+                            <Instagram size={12} />
                           </button>
                         )}
                         {(client.links || []).some((l: any) => l.categoria === 'Site') && (
-                          <Globe size={13} className="hover:text-blue-500 transition-colors" />
+                          <button className="w-7 h-7 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:text-blue-500 flex items-center justify-center transition-all" title="Site">
+                            <Globe size={12} />
+                          </button>
                         )}
                       </div>
-                      {/* Palette dots */}
-                      {(client.paleta_cores || []).length > 0 && (
+                      {/* Color palette dots */}
+                      {(client.paleta_cores || []).length > 0 ? (
                         <div className="flex items-center gap-1">
-                          {[bgHex, ...(client.paleta_cores || []).slice(0, 2)].slice(0, 3).map((c: string, i: number) => (
-                            <div key={i} className="w-2.5 h-2.5 rounded-full shadow-sm ring-1 ring-white/50 dark:ring-zinc-900/50" style={{ backgroundColor: c }} />
+                          {[bgHex, ...(client.paleta_cores || [])].slice(0, 4).map((c: string, i: number) => (
+                            <div key={i} className="w-3 h-3 rounded-full shadow-sm ring-1 ring-white/50 dark:ring-zinc-900/50 transition-transform hover:scale-125" style={{ backgroundColor: c }} />
                           ))}
+                        </div>
+                      ) : (
+                        <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+                             onClick={e => { e.stopPropagation(); onOpenColorPicker?.(client.id, bgHex); }}>
+                          <Palette size={10} className="text-zinc-400" />
                         </div>
                       )}
                     </div>

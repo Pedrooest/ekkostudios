@@ -1632,11 +1632,11 @@ export default function App() {
 
 
       <main className="flex-1 flex flex-col min-w-0 relative overflow-hidden bg-app-bg transition-colors duration-300">
-        <header className={`sticky top-0 z-[50] px-4 sm:px-8 py-3 lg:h-[72px] border-b transition-colors flex justify-between items-center w-full backdrop-blur-md ${theme === 'dark' ? 'dark bg-[#0a0a0c]/80 border-zinc-800/80 text-zinc-300' : 'bg-white/80 border-gray-200 text-gray-800'}`}>
+        <header className={`sticky top-0 z-[50] px-4 sm:px-6 border-b transition-all flex justify-between items-center w-full backdrop-blur-xl h-[60px] ${theme === 'dark' ? 'bg-zinc-950/85 border-zinc-800/70 text-zinc-300' : 'bg-white/90 border-zinc-200/80 text-gray-800'} shadow-sm`}>
           {/* LEFT: Menu | Workspace */}
-          <div className="flex items-center gap-4">
-            <button className="ios-btn lg:hidden text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all p-2.5 -ml-2 relative z-[2200] bg-zinc-100 dark:bg-white/5 rounded-xl active:scale-90" onClick={() => { playUISound('tap'); setSidebarCollapsed(!sidebarCollapsed); }}>
-              <Menu size={22} />
+          <div className="flex items-center gap-3">
+            <button className="ios-btn lg:hidden text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all p-2 -ml-1 relative z-[2200] bg-zinc-100 dark:bg-white/5 rounded-xl active:scale-90" onClick={() => { playUISound('tap'); setSidebarCollapsed(!sidebarCollapsed); }}>
+              <Menu size={20} />
             </button>
             <WorkspaceSelector
               workspaces={workspaces}
