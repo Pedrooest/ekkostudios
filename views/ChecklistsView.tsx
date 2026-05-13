@@ -648,12 +648,12 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                             className="flex-1 bg-transparent border-none outline-none text-xs font-bold text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 min-w-0"
                         />
                     </div>
-                    <Button
+                    <button
                         onClick={() => { tryPlaySound('open'); setIsNewShootModalOpen(true); }}
-                        className="h-10 px-5 text-[11px] font-bold uppercase tracking-widest bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-lg hover:scale-105 transition-transform !border-none"
+                        className="h-10 px-5 text-[10px] font-black uppercase tracking-widest bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl shadow-lg shadow-indigo-500/20 hover:scale-[1.03] active:scale-[0.97] transition-all flex items-center gap-1.5"
                     >
-                        <Plus size={16} className="mr-1.5 shrink-0" /> Nova Gravação
-                    </Button>
+                        <Plus size={15} strokeWidth={3} className="shrink-0" /> Nova Gravação
+                    </button>
                 </div>
             </div>
 

@@ -28,3 +28,6 @@ dist-ssr
 # Debug and Test Output files
 *_errors.txt
 .vite/
+.cache/
+.vite-cache/
+.claude/

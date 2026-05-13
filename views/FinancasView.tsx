@@ -984,7 +984,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                         </div>
                         <button
                             onClick={() => handleOpenModal()}
-                            className="flex items-center gap-2 h-9 px-4 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.03] hover:shadow-lg active:scale-[0.97] transition-all shadow-md"
+                            className="flex items-center gap-2 h-9 px-4 bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.03] active:scale-[0.97] transition-all shadow-lg shadow-emerald-500/20"
                         >
                             <Plus size={14} strokeWidth={3} />
                             Lançamento

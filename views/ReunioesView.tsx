@@ -97,12 +97,12 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
         </div>
 
         <div className="flex items-center gap-3">
-          <Button 
-            onClick={() => onAdd()} 
-            className="!h-11 px-6 !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 hover:scale-105 transition-all shadow-xl shadow-zinc-500/20 border-none font-black text-xs uppercase tracking-widest"
+          <button
+            onClick={() => onAdd()}
+            className="h-11 px-6 bg-gradient-to-br from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.03] active:scale-[0.97] transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2"
           >
-            <Plus size={16} className="mr-2 stroke-[3]" /> Nova Reunião
-          </Button>
+            <Plus size={16} strokeWidth={3} className="shrink-0" /> Nova Reunião
+          </button>
         </div>
       </div>
 

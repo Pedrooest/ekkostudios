@@ -457,12 +457,12 @@ export function TaskFlowView({
 
                     <DeletionBar count={selection.length} onDelete={() => onDelete(selection, 'TAREFAS')} onArchive={() => onArchive(selection, 'TAREFAS', true)} onClear={onClearSelection} />
 
-                    <Button
+                    <button
                         onClick={() => onAdd('TAREFAS', localClientFilter ? { Cliente_ID: localClientFilter } : undefined)}
-                        className="!h-9 px-4 !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 !rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-zinc-500/10 active:scale-95 transition-all whitespace-nowrap"
+                        className="h-9 px-4 bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 active:scale-95 hover:scale-[1.02] transition-all whitespace-nowrap flex items-center"
                     >
-                        <Plus size={15} className="mr-1.5" /> Nova Tarefa
-                    </Button>
+                        <Plus size={15} strokeWidth={3} className="mr-1.5 shrink-0" /> Nova Tarefa
+                    </button>
                 </div>
             </div>
 
