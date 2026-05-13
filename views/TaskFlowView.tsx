@@ -549,28 +549,31 @@ export function TaskFlowView({
                 )}
 
                 {viewType === 'List' && (
-                    <div className="h-full overflow-hidden flex flex-col bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm relative">
-                        {/* Table Header Wrapper to keep it fixed */}
-                        <div className="table-responsive overflow-hidden border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/50 backdrop-blur shrink-0 pr-[8px]">
-                            <table className="w-full text-left border-collapse table-fixed">
+                    <div className="h-full overflow-hidden flex flex-col bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[20px] shadow-sm relative">
+                        {/* Header */}
+                        <div className="table-responsive overflow-hidden shrink-0 pr-[8px]">
+                            <table className="w-full text-left border-collapse table-fixed min-w-[700px]">
                                 <thead>
-                                    <tr>
-                                        <th className="w-12 p-3 text-center">
-                                            <input type="checkbox" className="w-3 h-3 text-blue-600 rounded border-zinc-300 dark:border-zinc-700 bg-transparent focus:ring-0" checked={selection.length === filteredTasks.length && filteredTasks.length > 0} onChange={() => selection.length === filteredTasks.length ? onClearSelection() : filteredTasks.forEach(t => !selection.includes(t.id) && onSelect(t.id))} />
+                                    <tr className="bg-zinc-50/80 dark:bg-zinc-800/40 border-b border-zinc-200 dark:border-zinc-700/60">
+                                        <th className="w-10 px-3 py-3 text-center">
+                                            <input type="checkbox" className="w-3 h-3 rounded border-zinc-300 dark:border-zinc-700 bg-transparent focus:ring-0 cursor-pointer"
+                                                checked={selection.length === filteredTasks.length && filteredTasks.length > 0}
+                                                onChange={() => selection.length === filteredTasks.length ? onClearSelection() : filteredTasks.forEach(t => !selection.includes(t.id) && onSelect(t.id))} />
                                         </th>
                                         {[
-                                            { id: 'Título', label: 'Nome da Tarefa', width: 'flex-1 min-w-[200px]' },
-                                            { id: 'Cliente', label: 'Cliente', width: 'w-[150px]' },
-                                            { id: 'Status', label: 'Status', width: 'w-[120px]' },
-                                            { id: 'Prioridade', label: 'Prioridade', width: 'w-[120px]' },
-                                            { id: 'Data_Entrega', label: 'Entrega', width: 'w-[100px]' },
-                                            { id: 'Responsável', label: 'Resp.', width: 'w-[80px]' }
+                                            { id: 'Título',       label: 'Tarefa',       w: 'flex-1 min-w-[180px]' },
+                                            { id: 'Cliente',      label: 'Cliente',      w: 'w-[140px]' },
+                                            { id: 'Status',       label: 'Status',       w: 'w-[130px]' },
+                                            { id: 'Prioridade',   label: 'Prioridade',   w: 'w-[110px]' },
+                                            { id: 'Data_Entrega', label: 'Entrega',      w: 'w-[100px]' },
+                                            { id: 'Responsável',  label: 'Resp.',        w: 'w-[70px]' }
                                         ].map(col => (
-                                            <th key={col.id} className={`p-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest cursor-pointer select-none transition-colors hover:text-zinc-900 dark:hover:text-white ${col.width}`} 
+                                            <th key={col.id}
+                                                className={`px-3 py-3 text-[8px] font-black text-zinc-400 uppercase tracking-[0.18em] cursor-pointer select-none transition-colors hover:text-zinc-700 dark:hover:text-zinc-200 ${col.w}`}
                                                 onClick={() => { if(sortField===col.id) setSortDesc(!sortDesc); else { setSortField(col.id); setSortDesc(false); } }}>
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-1.5">
                                                     {col.label}
-                                                    {sortField === col.id && (sortDesc ? <ArrowDown size={12} className="text-blue-600 shrink-0" /> : <ArrowUp size={12} className="text-blue-600 shrink-0" />)}
+                                                    {sortField === col.id && (sortDesc ? <ArrowDown size={10} className="text-blue-500 shrink-0" /> : <ArrowUp size={10} className="text-blue-500 shrink-0" />)}
                                                 </div>
                                             </th>
                                         ))}
@@ -578,58 +581,78 @@ export function TaskFlowView({
                                 </thead>
                             </table>
                         </div>
-                        
-                        {/* Table Body Scrollable */}
-                        <div className="table-responsive flex-1 overflow-y-auto custom-scrollbar bg-white dark:bg-zinc-900">
-                            <table className="w-full text-left border-collapse table-fixed">
-                                <tbody>
-                                    {filteredTasks.map(Tarefa => {
-                                        const Cliente = clients.find((c: any) => c.id === Tarefa.Cliente_ID);
-                                        const prio = getPriorityInfo(Tarefa.Prioridade);
-                                        const isOverdue = Tarefa.Data_Entrega && new Date(Tarefa.Data_Entrega) < new Date(new Date().setHours(0,0,0,0));
-                                        const statusObj = DEFAULT_TASK_STATUSES.find(s=>s.id === Tarefa.Status);
-                                        
+                        {/* Body */}
+                        <div className="table-responsive flex-1 overflow-y-auto custom-scrollbar">
+                            <table className="w-full text-left border-collapse table-fixed min-w-[700px]">
+                                <tbody className="divide-y divide-zinc-100/80 dark:divide-zinc-800/40">
+                                    {filteredTasks.map((Tarefa, idx) => {
+                                        const Cliente   = clients.find((c: any) => c.id === Tarefa.Cliente_ID);
+                                        const prio      = getPriorityInfo(Tarefa.Prioridade);
+                                        const PrioIcon  = prio.icon;
+                                        const statusObj = DEFAULT_TASK_STATUSES.find(s => s.id === Tarefa.Status);
+                                        const clientColor = Cliente?.['Cor (HEX)'] || '#94a3b8';
+                                        const today = new Date(); today.setHours(0,0,0,0);
+                                        const due   = Tarefa.Data_Entrega ? new Date(Tarefa.Data_Entrega + 'T12:00:00') : null;
+                                        const days  = due ? Math.ceil((due.getTime() - today.getTime()) / 86400000) : null;
+                                        const overdue = days !== null && days < 0;
+                                        const dueToday = days === 0;
+
                                         return (
-                                            <tr
-                                                key={Tarefa.id}
-                                                onClick={() => onSelectTask(Tarefa.id)}
-                                                className={`group border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer ${selection.includes(Tarefa.id) ? 'bg-zinc-50 dark:bg-zinc-800' : ''}`}
-                                            >
-                                                <td className="w-12 p-3 text-center" onClick={e => { e.stopPropagation(); onSelect(Tarefa.id); }}>
-                                                    <input type="checkbox" checked={selection.includes(Tarefa.id)} readOnly className="w-3 h-3 text-zinc-900 dark:text-zinc-100 rounded border-zinc-200 dark:border-zinc-700 bg-transparent focus:ring-0 group-hover:border-zinc-400 transition-colors" />
+                                            <tr key={Tarefa.id} onClick={() => onSelectTask(Tarefa.id)}
+                                                className={`group hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30 transition-colors cursor-pointer relative ${selection.includes(Tarefa.id) ? 'bg-zinc-50 dark:bg-zinc-800/50' : ''}`}
+                                                style={{ animation: `fadeInUp 0.2s ease ${Math.min(idx * 15, 200)}ms both` }}>
+                                                {/* Left status color bar */}
+                                                <td className="w-10 px-3 py-3 text-center relative" onClick={e => { e.stopPropagation(); onSelect(Tarefa.id); }}>
+                                                    <div className="absolute left-0 top-2 bottom-2 w-[2px] rounded-full opacity-60" style={{ backgroundColor: statusObj?.cor || '#666' }} />
+                                                    <input type="checkbox" checked={selection.includes(Tarefa.id)} readOnly
+                                                        className="w-3 h-3 rounded border-zinc-200 dark:border-zinc-700 bg-transparent focus:ring-0 cursor-pointer" />
                                                 </td>
-                                                <td className="flex-1 min-w-0 p-3">
-                                                    <span className="text-[11px] font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight group-hover:text-blue-500 transition-colors block truncate" title={Tarefa.Título}>{Tarefa.Título}</span>
-                                                </td>
-                                                <td className="w-[150px] p-3">
-                                                    <Badge color="slate" className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 opacity-60">
-                                                        {Cliente?.Nome || 'AGÊNCIA'}
-                                                    </Badge>
-                                                </td>
-                                                <td className="w-[120px] p-3">
-                                                    <div className="flex items-center gap-2 text-[9px] font-black text-zinc-600 dark:text-zinc-400 uppercase tracking-widest">
-                                                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusObj?.cor || '#666' }} />
-                                                        {statusObj?.rotulo || Tarefa.Status}
-                                                    </div>
-                                                </td>
-                                                <td className="w-[120px] p-3">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className={`w-1.5 h-1.5 rounded-full ${prio.color.split(' ')[0].replace('text-', 'bg-')}`} />
-                                                        <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">{Tarefa.Prioridade}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="w-[100px] p-3">
-                                                    {Tarefa.Data_Entrega ? (
-                                                        <span className={`inline-flex items-center gap-1 text-[9px] font-black rounded-md px-1.5 py-0.5 ${isOverdue ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400' : 'text-zinc-400'}`}>
-                                                            {isOverdue && <span>⚠</span>}
-                                                            {new Date(Tarefa.Data_Entrega + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-[9px] text-zinc-300 dark:text-zinc-600">—</span>
+                                                <td className="flex-1 min-w-0 px-3 py-3">
+                                                    <p className="text-[11px] font-black text-zinc-900 dark:text-zinc-100 tracking-tight group-hover:text-blue-500 transition-colors truncate" title={Tarefa.Título}>
+                                                        {Tarefa.Título}
+                                                    </p>
+                                                    {Tarefa.Relacionado_A === 'Planejamento' && (
+                                                        <span className="text-[7px] font-black text-blue-500 uppercase tracking-widest">📅 Planejamento</span>
                                                     )}
                                                 </td>
-                                                <td className="w-[80px] p-3">
-                                                    <div className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center text-[9px] font-black border border-zinc-200 dark:border-zinc-700 shrink-0" title={Tarefa.Responsável || 'Sem responsável'}>
+                                                <td className="w-[140px] px-3 py-3">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <div className="w-4 h-4 rounded-md flex items-center justify-center text-[7px] font-black text-white shrink-0"
+                                                             style={{ backgroundColor: clientColor }}>
+                                                            {(Cliente?.Nome || 'A').charAt(0).toUpperCase()}
+                                                        </div>
+                                                        <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wide truncate">{Cliente?.Nome || 'Agência'}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="w-[130px] px-3 py-3">
+                                                    <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg w-fit" style={{ backgroundColor: `${statusObj?.cor || '#666'}15` }}>
+                                                        <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: statusObj?.cor || '#666' }} />
+                                                        <span className="text-[8px] font-black uppercase tracking-widest" style={{ color: statusObj?.cor || '#666' }}>
+                                                            {statusObj?.rotulo || Tarefa.Status}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="w-[110px] px-3 py-3">
+                                                    {Tarefa.Prioridade ? (
+                                                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase border ${prio.color}`}>
+                                                            <PrioIcon size={8} />{Tarefa.Prioridade}
+                                                        </span>
+                                                    ) : <span className="text-zinc-300 dark:text-zinc-700 text-[9px]">—</span>}
+                                                </td>
+                                                <td className="w-[100px] px-3 py-3">
+                                                    {due ? (
+                                                        <span className={`inline-flex items-center gap-1 text-[8px] font-black px-1.5 py-0.5 rounded-lg ${
+                                                            overdue  ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-500 border border-rose-200/50 dark:border-rose-500/20'
+                                                            : dueToday ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 border border-amber-200/50 dark:border-amber-500/20'
+                                                            : 'text-zinc-400'}`}>
+                                                            <Clock size={8} />
+                                                            {overdue ? `${Math.abs(days!)}d atr.` : dueToday ? 'Hoje' : due.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                                                        </span>
+                                                    ) : <span className="text-zinc-300 dark:text-zinc-700 text-[9px]">—</span>}
+                                                </td>
+                                                <td className="w-[70px] px-3 py-3">
+                                                    <div className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center justify-center text-[8px] font-black border border-zinc-200 dark:border-zinc-700"
+                                                         title={Tarefa.Responsável || 'Sem responsável'}>
                                                         {Tarefa.Responsável?.[0]?.toUpperCase() || '?'}
                                                     </div>
                                                 </td>
@@ -638,8 +661,11 @@ export function TaskFlowView({
                                     })}
                                     {filteredTasks.length === 0 && (
                                         <tr>
-                                            <td colSpan={7} className="p-12 text-center text-xs font-bold uppercase tracking-widest text-zinc-400 border-none">
-                                                Nenhuma tarefa encontrada
+                                            <td colSpan={7} className="py-20 text-center">
+                                                <div className="flex flex-col items-center gap-3 text-zinc-300 dark:text-zinc-700">
+                                                    <List size={36} strokeWidth={1} />
+                                                    <p className="text-[9px] font-black uppercase tracking-widest">Nenhuma tarefa encontrada</p>
+                                                </div>
                                             </td>
                                         </tr>
                                     )}
