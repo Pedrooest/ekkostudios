@@ -1508,8 +1508,18 @@ export default function App() {
 
 
   if (authLoading) return (
-    <div className="fixed inset-0 bg-app-bg flex items-center justify-center">
-      <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+    <div className="fixed inset-0 bg-[#0B0F19] flex flex-col items-center justify-center gap-6">
+      {/* Glow orbs */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-64 h-64 bg-blue-600/15 blur-[80px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-1/3 left-1/2 -translate-x-1/2 w-48 h-48 bg-indigo-600/10 blur-[80px] rounded-full pointer-events-none" />
+      {/* Logo */}
+      <img src="/site-logo.png" alt="EKKO" className="h-16 object-contain relative z-10 animate-pulse" />
+      {/* Spinner */}
+      <div className="relative z-10 w-8 h-8">
+        <div className="absolute inset-0 rounded-full border-2 border-white/5" />
+        <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-blue-500 animate-spin" />
+      </div>
+      <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] relative z-10">Carregando...</p>
     </div>
   );
 

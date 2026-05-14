@@ -2,7 +2,7 @@
 import React from 'react';
 import { BottomSheet } from './components/BottomSheet';
 import { playUISound } from './utils/uiSounds';
-import { X as XIcon, Minus, Plus, Check, ChevronDown, Calendar, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X as XIcon, Minus, Plus, Check, ChevronDown, Calendar, Clock, ChevronLeft, ChevronRight, Trash2, Archive } from 'lucide-react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'success';
@@ -32,7 +32,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({ onClic
         playUISound('tap');
         onClick?.(e);
       }}
-      className={`ios-btn min-h-[44px] px-6 py-2.5 rounded-lg font-bold tracking-tight transition-all flex items-center justify-center gap-2 text-xs uppercase letter-spacing-widest active:scale-[0.98] ${variants[variant]} ${disabled ? 'opacity-30 cursor-not-allowed' : ''} ${className} min-w-0`}
+      className={`ios-btn min-h-[44px] px-6 py-2.5 rounded-xl font-black tracking-widest transition-all flex items-center justify-center gap-2 text-xs uppercase active:scale-[0.97] ${variants[variant]} ${disabled ? 'opacity-30 cursor-not-allowed' : ''} ${className} min-w-0`}
       {...props}
     >
       {children}
@@ -50,7 +50,7 @@ export const Card: React.FC<{ children: React.ReactNode; title?: string; extra?:
   >
     {(title || extra) && (
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold truncate min-w-0 flex-1">{title}</h3>
+        <h3 className="text-sm font-black uppercase tracking-tight truncate min-w-0 flex-1">{title}</h3>
         {extra && <div className="flex items-center gap-2 shrink-0">{extra}</div>}
       </div>
     )}
@@ -877,12 +877,34 @@ export const SimpleMarkdown = ({ content }: { content: string }) => {
 export const DeletionBar: React.FC<{ count: number; onDelete: () => void; onArchive: () => void; onClear: () => void }> = ({ count, onDelete, onArchive, onClear }) => {
   if (count === 0) return null;
   return (
-    <div className="flex items-center gap-2 px-3 py-1.5 bg-rose-500/10 border border-rose-500/20 rounded-lg animate-fade pointer-events-auto">
-      <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest">{count} Selecionados</span>
-      <div className="w-px h-4 bg-rose-500/20 mx-1"></div>
-      <button onClick={onArchive} className="text-app-text-muted hover:text-app-text-strong text-[10px] font-black uppercase tracking-widest transition-all">Arquivar</button>
-      <button onClick={onDelete} className="text-rose-500 hover:text-rose-400 text-[10px] font-black uppercase tracking-widest transition-all ml-2">Excluir Permanente</button>
-      <button onClick={onClear} className="text-app-text-muted hover:text-app-text-strong text-[10px] font-black uppercase tracking-widest transition-all ml-1 underline">Limpar</button>
+    <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-zinc-900 dark:bg-zinc-800 border border-zinc-700 dark:border-zinc-700 rounded-xl shadow-xl shadow-black/20 animate-pop pointer-events-auto">
+      {/* Count badge */}
+      <div className="flex items-center gap-1.5 pr-2.5 border-r border-zinc-700">
+        <div className="w-5 h-5 rounded-lg bg-rose-500/20 flex items-center justify-center shrink-0">
+          <Check size={10} className="text-rose-400" strokeWidth={3} />
+        </div>
+        <span className="text-[10px] font-black text-white uppercase tracking-widest whitespace-nowrap">{count} sel.</span>
+      </div>
+      {/* Actions */}
+      <button
+        onClick={onArchive}
+        className="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-black text-zinc-400 uppercase tracking-widest hover:text-white hover:bg-zinc-700 transition-all whitespace-nowrap"
+      >
+        <Archive size={11} className="shrink-0" /> Arquivar
+      </button>
+      <button
+        onClick={onDelete}
+        className="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-black text-rose-400 uppercase tracking-widest hover:text-white hover:bg-rose-500 transition-all whitespace-nowrap"
+      >
+        <Trash2 size={11} className="shrink-0" /> Excluir
+      </button>
+      <button
+        onClick={onClear}
+        className="w-6 h-6 rounded-lg flex items-center justify-center text-zinc-500 hover:text-white hover:bg-zinc-700 transition-all shrink-0"
+        title="Limpar seleção"
+      >
+        <XIcon size={12} />
+      </button>
     </div>
   );
 };

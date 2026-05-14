@@ -2236,9 +2236,17 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
 
                         <div className="px-8 py-6 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 flex flex-col md:flex-row items-center gap-4">
                             <button onClick={() => setIsModalOpen(false)} className="w-full md:w-auto px-6 py-4 md:py-3 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-rose-500 transition-colors">Cancelar</button>
-                            <Button onClick={() => handleSaveTransaction()} className="w-full md:flex-1 !h-14 !rounded-2xl !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 text-xs font-black uppercase tracking-[0.1em] shadow-xl hover:scale-[1.01] transition-all">
-                                <CheckCircle2 size={18} className="mr-2" /> {editingId ? 'Salvar Edição' : 'Confirmar Lançamento'}
-                            </Button>
+                            <button
+                                type="button"
+                                onClick={() => handleSaveTransaction()}
+                                className={`w-full md:flex-1 h-14 rounded-2xl text-white text-xs font-black uppercase tracking-widest shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 ${
+                                    formData.tipo === 'entrada'    ? 'bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-500/25'
+                                    : formData.tipo === 'assinatura' ? 'bg-gradient-to-br from-indigo-500 to-violet-600 shadow-indigo-500/25'
+                                    : 'bg-gradient-to-br from-rose-500 to-pink-600 shadow-rose-500/25'
+                                }`}
+                            >
+                                <CheckCircle2 size={18} className="shrink-0" /> {editingId ? 'Salvar Edição' : 'Confirmar Lançamento'}
+                            </button>
                         </div>
                     </div>
                 </div>,

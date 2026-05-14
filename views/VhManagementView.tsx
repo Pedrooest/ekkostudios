@@ -283,46 +283,48 @@ export function VhManagementView({
 
                             {/* SIMULATOR PANEL */}
                             <Card title="Simulador de Lucratividade">
-                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 py-2">
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 py-2">
+                                    {/* Inputs */}
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Fee Desejado</label>
-                                            <div className="flex items-center gap-1.5 w-full h-10 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 focus-within:border-zinc-500 transition-all shadow-inner">
-                                                <span className="text-[10px] font-bold text-zinc-400 shrink-0">R$</span>
+                                            <label className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.18em] mb-2 block">Fee Desejado</label>
+                                            <div className="flex items-center gap-2 w-full h-12 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 focus-within:border-emerald-500/50 focus-within:ring-2 focus-within:ring-emerald-500/10 transition-all shadow-sm">
+                                                <span className="text-[10px] font-black text-zinc-400 shrink-0">R$</span>
                                                 <input
                                                     type="number" value={simulator.fee}
                                                     onChange={e => setSimulator(prev => ({ ...prev, fee: Number(e.target.value) }))}
-                                                    className="flex-1 bg-transparent border-none outline-none text-sm font-bold text-zinc-900 dark:text-white min-w-0"
+                                                    className="flex-1 bg-transparent border-none outline-none text-base font-black text-zinc-900 dark:text-white min-w-0"
                                                 />
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Horas Estimadas</label>
+                                            <label className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.18em] mb-2 block">Horas Estimadas</label>
                                             <div className="relative">
-                                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-zinc-400 uppercase">H</span>
+                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-zinc-400 uppercase">h</span>
                                                 <input
                                                     type="number" value={simulator.hours}
                                                     onChange={e => setSimulator(prev => ({ ...prev, hours: Number(e.target.value) }))}
-                                                    className="w-full h-10 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 text-sm font-bold text-zinc-900 dark:text-white focus:border-zinc-500 outline-none transition-all shadow-inner"
+                                                    className="w-full h-12 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 text-base font-black text-zinc-900 dark:text-white focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 outline-none transition-all shadow-sm"
                                                 />
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div className="bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 flex flex-col justify-center gap-1.5">
-                                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest opacity-70">Custo Op.</span>
-                                            <span className="text-lg font-bold text-rose-500">{formatBRL(simResult.cost)}</span>
-                                        </div>
-                                        <div className="bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-200/50 dark:border-emerald-500/20 rounded-xl p-5 flex flex-col justify-center gap-1.5 relative overflow-hidden group">
-                                            <Zap size={32} className="absolute -right-2 -bottom-2 text-emerald-500/10 group-hover:scale-110 transition-transform shrink-0" />
-                                            <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Lucro Est.</span>
-                                            <span className="text-xl font-bold text-emerald-600">{formatBRL(simResult.profit)}</span>
-                                        </div>
-                                        <div className="bg-blue-50 dark:bg-blue-500/5 border border-blue-200/50 dark:border-blue-500/20 rounded-xl p-5 flex flex-col justify-center gap-1.5">
-                                            <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Margem Final</span>
-                                            <span className="text-xl font-bold text-blue-600">{simResult.margin.toFixed(1)}%</span>
-                                        </div>
+                                    {/* Result cards */}
+                                    <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-3">
+                                        {[
+                                            { label: 'Custo Op.', value: formatBRL(simResult.cost), from: 'from-rose-500', to: 'to-pink-600', shadow: 'shadow-rose-500/20', text: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-rose-500/5 border-rose-200/50 dark:border-rose-500/20', icon: Calculator },
+                                            { label: 'Lucro Est.', value: formatBRL(simResult.profit), from: 'from-emerald-500', to: 'to-teal-600', shadow: 'shadow-emerald-500/20', text: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/5 border-emerald-200/50 dark:border-emerald-500/20', icon: Zap },
+                                            { label: 'Margem', value: `${simResult.margin.toFixed(1)}%`, from: 'from-blue-500', to: 'to-indigo-600', shadow: 'shadow-blue-500/20', text: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-500/5 border-blue-200/50 dark:border-blue-500/20', icon: Percent },
+                                        ].map((r) => (
+                                            <div key={r.label} className={`border rounded-2xl p-5 flex flex-col justify-center gap-2 ${r.bg} relative overflow-hidden group`}>
+                                                <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${r.from} ${r.to} flex items-center justify-center text-white shadow-lg ${r.shadow} shrink-0 group-hover:scale-110 transition-transform`}>
+                                                    <r.icon size={15} className="shrink-0" />
+                                                </div>
+                                                <span className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.15em]">{r.label}</span>
+                                                <span className={`text-xl font-black ${r.text} tabular-nums`}>{r.value}</span>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             </Card>
