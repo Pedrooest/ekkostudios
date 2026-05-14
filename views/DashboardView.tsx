@@ -216,37 +216,37 @@ export const DashboardView = React.memo(({ clients = [], tasks = [], financas = 
         <div className="view-root p-5 sm:p-6 space-y-6 animate-fade-blur h-full overflow-y-auto custom-scrollbar bg-zinc-50 dark:bg-zinc-950">
 
             {/* ══ HEADER ═══════════════════════════════════════════ */}
-            <header className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 p-7 shadow-2xl">
+            <header className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 p-5 sm:p-7 shadow-2xl">
                 {/* Glow blobs */}
                 <div className="absolute top-0 right-0 w-72 h-72 bg-blue-500/10 rounded-full -mr-24 -mt-24 blur-3xl pointer-events-none" />
                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-500/8 rounded-full -ml-16 -mb-16 blur-3xl pointer-events-none" />
 
-                <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-5">
-                    <div>
-                        <div className="flex items-center gap-2 mb-2">
+                <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-2 mb-1.5">
                             <LiveClock />
                             <span className="text-zinc-600 dark:text-zinc-600 text-xs">·</span>
-                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">{headerInfo.dateFormatted}</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500 hidden sm:inline">{headerInfo.dateFormatted}</span>
                         </div>
-                        <h1 className="text-3xl font-black text-white tracking-tight leading-tight">
+                        <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight leading-tight">
                             {headerInfo.greetingIcon} {headerInfo.greeting},{' '}
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">{headerInfo.userName}!</span>
                         </h1>
-                        <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1.5">Aqui está o resumo do seu negócio hoje</p>
+                        <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1 hidden sm:block">Aqui está o resumo do seu negócio hoje</p>
                     </div>
 
-                    {/* Quick stats */}
-                    <div className="flex flex-wrap gap-2 shrink-0">
+                    {/* Quick stats — horizontal compact row on mobile */}
+                    <div className="flex flex-row gap-2 shrink-0 overflow-x-auto hide-scrollbar">
                         {[
-                            { label: 'Tarefas pendentes', value: headerInfo.pendingTasks,  color: 'bg-amber-500/15 text-amber-400 border-amber-500/20', icon: ListChecks },
-                            { label: 'Posts hoje',        value: headerInfo.contentsToday, color: 'bg-blue-500/15 text-blue-400 border-blue-500/20',     icon: Layers },
-                            { label: 'Clientes ativos',   value: operationalStats.activeClients, color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20', icon: Users },
+                            { label: 'Tarefas', value: headerInfo.pendingTasks,  color: 'bg-amber-500/15 text-amber-400 border-amber-500/20', icon: ListChecks },
+                            { label: 'Posts',   value: headerInfo.contentsToday, color: 'bg-blue-500/15 text-blue-400 border-blue-500/20',     icon: Layers },
+                            { label: 'Clientes',value: operationalStats.activeClients, color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20', icon: Users },
                         ].map((s, i) => (
-                            <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${s.color}`}>
+                            <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-xl border shrink-0 ${s.color}`}>
                                 <s.icon size={13} className="shrink-0" />
                                 <div>
                                     <p className="text-[9px] font-black uppercase tracking-widest opacity-70 leading-none">{s.label}</p>
-                                    <p className="text-base font-black leading-none mt-0.5">{s.value}</p>
+                                    <p className="text-sm sm:text-base font-black leading-none mt-0.5">{s.value}</p>
                                 </div>
                             </div>
                         ))}
@@ -254,15 +254,14 @@ export const DashboardView = React.memo(({ clients = [], tasks = [], financas = 
                 </div>
 
                 {/* Quick actions */}
-                <div className="relative flex flex-wrap gap-2 mt-5 pt-5 border-t border-white/8">
-                    <p className="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-600 w-full mb-0.5">Ações rápidas</p>
+                <div className="relative flex gap-2 mt-4 pt-4 border-t border-white/8 overflow-x-auto hide-scrollbar">
                     {[
-                        { label: '+ Nova Tarefa',    tab: 'TAREFAS',       color: 'hover:bg-orange-500/20 hover:text-orange-300 hover:border-orange-500/30' },
-                        { label: '+ Lançamento',     tab: 'FINANCAS',      color: 'hover:bg-emerald-500/20 hover:text-emerald-300 hover:border-emerald-500/30' },
-                        { label: '+ Conteúdo',       tab: 'PLANEJAMENTO',  color: 'hover:bg-blue-500/20 hover:text-blue-300 hover:border-blue-500/30' },
-                        { label: '+ Reunião',        tab: 'REUNIOES',      color: 'hover:bg-indigo-500/20 hover:text-indigo-300 hover:border-indigo-500/30' },
+                        { label: '+ Tarefa',      tab: 'TAREFAS',       color: 'hover:bg-orange-500/20 hover:text-orange-300 hover:border-orange-500/30' },
+                        { label: '+ Lançamento',  tab: 'FINANCAS',      color: 'hover:bg-emerald-500/20 hover:text-emerald-300 hover:border-emerald-500/30' },
+                        { label: '+ Conteúdo',    tab: 'PLANEJAMENTO',  color: 'hover:bg-blue-500/20 hover:text-blue-300 hover:border-blue-500/30' },
+                        { label: '+ Reunião',     tab: 'REUNIOES',      color: 'hover:bg-indigo-500/20 hover:text-indigo-300 hover:border-indigo-500/30' },
                     ].map((a, i) => (
-                        <button key={i} onClick={() => setActiveTab(a.tab)} className={`px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-zinc-400 text-[9px] font-black uppercase tracking-widest transition-all ${a.color}`}>
+                        <button key={i} onClick={() => setActiveTab(a.tab)} className={`shrink-0 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-zinc-400 text-[9px] font-black uppercase tracking-widest transition-all ${a.color}`}>
                             {a.label}
                         </button>
                     ))}

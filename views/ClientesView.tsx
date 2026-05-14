@@ -188,29 +188,28 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
     <div className="view-root flex flex-col h-full w-full animate-fade-blur">
       
       {/* MODERN HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-6 py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 backdrop-blur-md sticky top-0 z-10">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-xl shadow-blue-500/25 shrink-0">
-              <Users size={20} />
-            </div>
-            <div>
-              <h1 className="text-xl font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100">Clientes</h1>
-              <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mt-0.5 uppercase tracking-widest opacity-70">Gestão estratégica de contas e branding.</p>
-            </div>
+      <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 sm:py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 backdrop-blur-md sticky top-0 z-10">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-xl shadow-blue-500/25 shrink-0">
+            <Users size={18} />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100 truncate">Clientes</h1>
+            <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mt-0.5 uppercase tracking-widest opacity-70 hidden sm:block">Gestão estratégica de contas e branding.</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl border border-emerald-200/50 dark:border-emerald-500/20">
+        <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl border border-emerald-200/50 dark:border-emerald-500/20">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 glow-pulse" />
                 <span className="text-[9px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400">{activeCount} Ativos</span>
             </div>
             <button
                 onClick={onAdd}
-                className="flex items-center gap-2 h-9 px-4 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.03] hover:shadow-lg active:scale-[0.97] transition-all shadow-md"
+                className="flex items-center gap-1.5 h-9 px-3 sm:px-4 bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.03] active:scale-[0.97] transition-all shadow-lg shadow-blue-500/20"
             >
-                <Plus size={14} strokeWidth={3} /> Novo Cliente
+                <Plus size={14} strokeWidth={3} />
+                <span className="hidden sm:inline">Novo Cliente</span>
             </button>
         </div>
       </div>

@@ -118,14 +118,14 @@ export function VhManagementView({
         <div className="view-root flex flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors animate-fade-blur">
             
             {/* SUB-NAVIGATION HEADER */}
-            <div className="flex items-center justify-between flex-wrap gap-4 px-6 py-5 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+            <div className="flex items-center justify-between flex-wrap gap-3 px-4 sm:px-6 py-4 sm:py-5 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
                 <div className="flex items-center gap-4">
                     <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-xl shadow-emerald-500/25 shrink-0">
                         <TrendingUp size={20} className="shrink-0" />
                     </div>
                     <div>
-                        <h2 className="text-xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">Gestão VH</h2>
-                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none opacity-70">Análise de Rentabilidade · Valor Hora</p>
+                        <h2 className="text-lg sm:text-xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">Gestão VH</h2>
+                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none opacity-70 hidden sm:block">Análise de Rentabilidade · Valor Hora</p>
                     </div>
                 </div>
 

@@ -61,7 +61,7 @@ export function SystematicModelingView({
     return (
         <div className="view-root flex flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors animate-fade-blur">
             {/* HEADER */}
-            <div className="flex items-center justify-between flex-wrap gap-4 px-6 py-5 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+            <div className="flex items-center justify-between flex-wrap gap-3 px-4 sm:px-6 py-4 sm:py-5 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
                 <div className="flex items-center gap-4">
                     <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-xl shadow-cyan-500/25 shrink-0">
                         <LayoutGrid size={20} className="shrink-0" />

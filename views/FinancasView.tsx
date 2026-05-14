@@ -979,15 +979,16 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                             </div>
                             <div>
                                 <h1 className="text-base font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100 leading-none">Financeiro</h1>
-                                <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-400 mt-0.5">Gestão Estratégica de Capital</p>
+                                <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-zinc-400 mt-0.5 hidden sm:block">Gestão Estratégica de Capital</p>
                             </div>
                         </div>
                         <button
                             onClick={() => handleOpenModal()}
-                            className="flex items-center gap-2 h-9 px-4 bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.03] active:scale-[0.97] transition-all shadow-lg shadow-emerald-500/20"
+                            className="flex items-center gap-2 h-9 px-3 sm:px-4 bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.03] active:scale-[0.97] transition-all shadow-lg shadow-emerald-500/20 shrink-0"
                         >
                             <Plus size={14} strokeWidth={3} />
-                            Lançamento
+                            <span className="hidden sm:inline">Lançamento</span>
+                            <span className="sm:hidden">Novo</span>
                         </button>
                     </div>
 

@@ -393,11 +393,11 @@ export function TaskFlowView({
     return (
         <div className="view-root flex flex-col h-full bg-white dark:bg-zinc-950 overflow-hidden animate-fade-blur">
             {/* HEADER */}
-            <div className="shrink-0 flex items-center justify-between flex-wrap gap-3 px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md sticky top-0 z-10">
+            <div className="shrink-0 flex items-center justify-between flex-wrap gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md sticky top-0 z-10">
                 {/* Left: title + client filter (unified) */}
-                <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-xl shadow-blue-500/25 shrink-0">
-                        <CheckSquare size={17} className="shrink-0" />
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-xl shadow-blue-500/25 shrink-0">
+                        <CheckSquare size={16} className="shrink-0" />
                     </div>
                     <div className="hidden sm:block shrink-0">
                         <h1 className="text-base font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100 leading-none">Tarefas</h1>
@@ -405,7 +405,7 @@ export function TaskFlowView({
                     </div>
 
                     {/* CLIENT FILTER — local only, does NOT affect other tabs */}
-                    <div className="ml-2 w-44 shrink-0">
+                    <div className="ml-1 sm:ml-2 w-36 sm:w-44 shrink-0">
                         <PSelectPortal
                             value={localClientFilter}
                             onChange={handleClientChange}
@@ -444,7 +444,7 @@ export function TaskFlowView({
                         ))}
                     </div>
 
-                    <div className="flex items-center gap-2 h-9 min-w-0 w-40 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+                    <div className="hidden sm:flex items-center gap-2 h-9 min-w-0 w-40 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
                         <Search className="text-zinc-400 shrink-0" size={13} />
                         <input
                             type="text"
@@ -459,9 +459,10 @@ export function TaskFlowView({
 
                     <button
                         onClick={() => onAdd('TAREFAS', localClientFilter ? { Cliente_ID: localClientFilter } : undefined)}
-                        className="h-9 px-4 bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 active:scale-95 hover:scale-[1.02] transition-all whitespace-nowrap flex items-center"
+                        className="h-9 px-3 sm:px-4 bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 active:scale-95 hover:scale-[1.02] transition-all whitespace-nowrap flex items-center gap-1.5 shrink-0"
                     >
-                        <Plus size={15} strokeWidth={3} className="mr-1.5 shrink-0" /> Nova Tarefa
+                        <Plus size={15} strokeWidth={3} className="shrink-0" />
+                        <span className="hidden sm:inline">Nova Tarefa</span>
                     </button>
                 </div>
             </div>

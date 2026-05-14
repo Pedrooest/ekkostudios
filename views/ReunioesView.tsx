@@ -85,48 +85,48 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
     <div className="view-root flex flex-col h-full w-full animate-fade-blur bg-zinc-50/10 dark:bg-zinc-950/20">
       
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-8 py-6 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky top-0 z-20">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white shadow-xl shadow-indigo-500/25 shrink-0">
-            <Handshake size={24} />
+      <div className="flex items-center justify-between gap-3 px-4 sm:px-8 py-4 sm:py-6 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky top-0 z-20">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white shadow-xl shadow-indigo-500/25 shrink-0">
+            <Handshake size={20} />
           </div>
-          <div>
-            <h1 className="text-xl font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100">Reuniões</h1>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-0.5 opacity-70">Gestão de alinhamentos e decisões estratégicas.</p>
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100 truncate">Reuniões</h1>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-0.5 opacity-70 hidden sm:block">Gestão de alinhamentos e decisões estratégicas.</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => onAdd()}
-            className="h-11 px-6 bg-gradient-to-br from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.03] active:scale-[0.97] transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2"
-          >
-            <Plus size={16} strokeWidth={3} className="shrink-0" /> Nova Reunião
-          </button>
-        </div>
+        <button
+          onClick={() => onAdd()}
+          className="h-9 sm:h-11 px-3 sm:px-6 bg-gradient-to-br from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.03] active:scale-[0.97] transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-1.5 shrink-0"
+        >
+          <Plus size={15} strokeWidth={3} className="shrink-0" />
+          <span className="hidden sm:inline">Nova Reunião</span>
+          <span className="sm:hidden">Nova</span>
+        </button>
       </div>
 
       {/* FILTERS */}
-      <div className="px-8 py-5 flex flex-col sm:flex-row gap-4 border-b border-zinc-100 dark:border-zinc-800/50 bg-white/40 dark:bg-zinc-900/20 backdrop-blur-sm">
-        <div className="relative flex-1 group max-w-md">
+      <div className="px-4 sm:px-8 py-3 sm:py-5 flex flex-col sm:flex-row gap-3 border-b border-zinc-100 dark:border-zinc-800/50 bg-white/40 dark:bg-zinc-900/20 backdrop-blur-sm">
+        <div className="relative flex-1 group">
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-zinc-400 group-focus-within:text-zinc-900 dark:group-focus-within:text-zinc-100 transition-colors">
             <Search size={14} />
           </div>
           <input
             type="text"
-            className="block w-full pl-10 pr-4 h-11 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-4 focus:ring-zinc-500/10 focus:border-zinc-400 transition-all shadow-sm"
+            className="block w-full pl-10 pr-4 h-10 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs font-bold uppercase tracking-widest text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-4 focus:ring-zinc-500/10 focus:border-zinc-400 transition-all shadow-sm"
             placeholder="BUSCAR REUNIÃO..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        <div className="flex gap-3 overflow-x-auto pb-2 sm:pb-0 custom-scrollbar">
+        <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-0 hide-scrollbar">
           <PSelectPortal
             value={clientFilter}
             onChange={(val) => setClientFilter(val)}
-            options={[{ value: 'Todos', label: 'TODOS OS CLIENTES' }, ...clients.map(c => ({ value: c.id, label: (c.Nome || '').toUpperCase() }))]}
-            className="min-w-[140px]"
+            options={[{ value: 'Todos', label: 'CLIENTES' }, ...clients.map(c => ({ value: c.id, label: (c.Nome || '').toUpperCase() }))]}
+            className="min-w-[120px] shrink-0"
           />
 
           <PSelectPortal
@@ -139,7 +139,7 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
       </div>
 
       {/* MEETINGS LIST */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-8">
         {filteredReunioes.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-32 border border-zinc-200 dark:border-zinc-800 rounded-[32px] bg-zinc-50/50 dark:bg-zinc-900/20 gap-5">
             <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-zinc-700 to-zinc-900 dark:from-zinc-800 dark:to-zinc-950 flex items-center justify-center shadow-xl shadow-zinc-500/10">
