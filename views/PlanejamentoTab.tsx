@@ -838,7 +838,7 @@ export default function PlanejamentoTab({
                                                             <Icon size={8} strokeWidth={3} className="shrink-0" />
                                                             <span className="text-[7px] font-black uppercase opacity-80 hidden sm:inline">{evento.Hora || '09:00'}</span>
                                                         </div>
-                                                        <span className="text-[9px] font-semibold leading-none text-zinc-800 dark:text-zinc-200 truncate flex-1 min-w-0">
+                                                        <span className="text-[9px] font-black leading-none text-zinc-800 dark:text-zinc-200 truncate flex-1 min-w-0">
                                                             {evento.Conteúdo}
                                                         </span>
                                                         {evento.google_event_id && (

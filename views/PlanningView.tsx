@@ -250,7 +250,7 @@ export function PlanningView({
                             <div className="relative">
                                 <button
                                     onClick={() => setIsClientDropdownOpen(!isClientDropdownOpen)}
-                                    className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-700 text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
+                                    className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-700 text-[10px] font-black text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
                                 >
                                     <Filter size={10} className="shrink-0" /> {activeClientId ? (clients.find(c => c.id === activeClientId)?.Nome || 'Cliente') : 'Todos Clientes'} <ChevronDown size={10} className="shrink-0" />
                                 </button>
@@ -287,7 +287,7 @@ export function PlanningView({
                         </button>
                         <button
                             onClick={() => { playUISound('open'); setIsExportModalOpen(true); }}
-                            className="px-3 py-1.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 rounded-lg text-xs font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all shadow-sm flex items-center gap-1.5"
+                            className="px-3 py-1.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all shadow-sm flex items-center gap-1.5"
                         >
                             <Download size={14} className="shrink-0" /> Exportar
                         </button>
@@ -315,7 +315,7 @@ export function PlanningView({
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
-                        <button onClick={() => { playUISound('open'); setSidebarView('banco'); }} className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all active:scale-95">
+                        <button onClick={() => { playUISound('open'); setSidebarView('banco'); }} className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all active:scale-95">
                             <Database size={14} className="shrink-0" /> Banco de Itens
                         </button>
                     </div>
@@ -366,7 +366,7 @@ export function PlanningView({
                         <div className="min-w-[800px]">
                         <div className="grid grid-cols-7 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50">
                             {WEEKDAYS_BR_SHORT.map(dia => (
-                                <div key={dia} className="py-3 text-center text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider border-r border-zinc-200 dark:border-zinc-700 last:border-0">
+                                <div key={dia} className="py-3 text-center text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.15em] border-r border-zinc-200 dark:border-zinc-700 last:border-0">
                                     {dia}
                                 </div>
                             ))}
@@ -404,10 +404,10 @@ export function PlanningView({
                                                         }}
                                                     >
                                                         <div className="space-y-1 min-w-0">
-                                                            <div className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-wider" style={{ color: styles.text }}>
+                                                            <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest" style={{ color: styles.text }}>
                                                                 <Clock size={8} className="shrink-0" /> {evt.Hora || '09:00'}
                                                             </div>
-                                                            <div className="text-[10px] font-bold leading-tight text-zinc-900 dark:text-white truncate">
+                                                            <div className="text-[10px] font-black leading-tight text-zinc-900 dark:text-white truncate">
                                                                 {evt.Conteúdo}
                                                             </div>
                                                             {(() => {
@@ -685,7 +685,7 @@ export function PlanningView({
                                                                 <div className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-white dark:ring-zinc-900"
                                                                     style={{ backgroundColor: statusColor[t.Status] || '#94a3b8' }}
                                                                 />
-                                                                <span className="flex-1 text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 truncate leading-tight">
+                                                                <span className="flex-1 text-[11px] font-black text-zinc-700 dark:text-zinc-300 truncate leading-tight">
                                                                     {t.Título}
                                                                 </span>
                                                                 <span className="shrink-0 text-[9px] font-black uppercase tracking-wider text-zinc-400 dark:text-zinc-500">

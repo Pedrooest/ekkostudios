@@ -387,7 +387,7 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
                         onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'pauta', e.target.value)}
                         rows={5}
                         placeholder="O que será discutido nesta reunião?"
-                        className="w-full p-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 resize-none placeholder:text-zinc-300 dark:placeholder:text-zinc-600"
+                        className="w-full p-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 resize-none placeholder:text-zinc-300 dark:placeholder:text-zinc-600 leading-relaxed"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -397,7 +397,7 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
                         onChange={(e) => onUpdate(selectedMeeting.id, 'REUNIOES', 'decisoes', e.target.value)}
                         rows={5}
                         placeholder="O que foi decidido nesta reunião?"
-                        className="w-full p-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs font-medium text-zinc-800 dark:text-zinc-200 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 resize-none placeholder:text-zinc-300 dark:placeholder:text-zinc-600"
+                        className="w-full p-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 resize-none placeholder:text-zinc-300 dark:placeholder:text-zinc-600 leading-relaxed"
                       />
                     </div>
                   </div>
@@ -419,12 +419,14 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
                   </div>
 
                   {(selectedMeeting.proximos_passos || []).length === 0 && (
-                    <div className="flex-1 flex flex-col items-center justify-center gap-3 py-10 text-center">
-                      <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-                        <CheckCircle2 size={22} className="text-zinc-300 dark:text-zinc-600" />
+                    <div className="flex-1 flex flex-col items-center justify-center gap-4 py-10 text-center">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-blue-600/10 border border-indigo-200/30 dark:border-indigo-500/20 flex items-center justify-center">
+                        <ChevronRight size={24} className="text-indigo-400 dark:text-indigo-500" />
                       </div>
-                      <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Nenhuma ação definida</p>
-                      <p className="text-[9px] text-zinc-300 dark:text-zinc-600">Clique em + para adicionar</p>
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Nenhuma ação definida</p>
+                        <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider opacity-70">Clique em + para adicionar próximos passos</p>
+                      </div>
                     </div>
                   )}
 
