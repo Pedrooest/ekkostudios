@@ -235,18 +235,18 @@ export const DashboardView = React.memo(({ clients = [], tasks = [], financas = 
                         <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1 hidden sm:block">Aqui está o resumo do seu negócio hoje</p>
                     </div>
 
-                    {/* Quick stats — horizontal compact row on mobile */}
-                    <div className="flex flex-row gap-2 shrink-0 overflow-x-auto hide-scrollbar">
+                    {/* Quick stats — horizontal compact row */}
+                    <div className="flex flex-row gap-2 shrink-0">
                         {[
                             { label: 'Tarefas', value: headerInfo.pendingTasks,  color: 'bg-amber-500/15 text-amber-400 border-amber-500/20', icon: ListChecks },
                             { label: 'Posts',   value: headerInfo.contentsToday, color: 'bg-blue-500/15 text-blue-400 border-blue-500/20',     icon: Layers },
                             { label: 'Clientes',value: operationalStats.activeClients, color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20', icon: Users },
                         ].map((s, i) => (
-                            <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-xl border shrink-0 ${s.color}`}>
-                                <s.icon size={13} className="shrink-0" />
+                            <div key={i} className={`flex items-center gap-1.5 px-2.5 py-2 rounded-xl border ${s.color}`}>
+                                <s.icon size={12} className="shrink-0" />
                                 <div>
-                                    <p className="text-[9px] font-black uppercase tracking-widest opacity-70 leading-none">{s.label}</p>
-                                    <p className="text-sm sm:text-base font-black leading-none mt-0.5">{s.value}</p>
+                                    <p className="text-[8px] font-black uppercase tracking-widest opacity-70 leading-none hidden sm:block">{s.label}</p>
+                                    <p className="text-sm font-black leading-none">{s.value}</p>
                                 </div>
                             </div>
                         ))}
@@ -254,15 +254,15 @@ export const DashboardView = React.memo(({ clients = [], tasks = [], financas = 
                 </div>
 
                 {/* Quick actions */}
-                <div className="relative flex gap-2 mt-4 pt-4 border-t border-white/8 overflow-x-auto hide-scrollbar">
+                <div className="relative grid grid-cols-4 gap-1.5 mt-4 pt-4 border-t border-white/8">
                     {[
-                        { label: '+ Tarefa',      tab: 'TAREFAS',       color: 'hover:bg-orange-500/20 hover:text-orange-300 hover:border-orange-500/30' },
-                        { label: '+ Lançamento',  tab: 'FINANCAS',      color: 'hover:bg-emerald-500/20 hover:text-emerald-300 hover:border-emerald-500/30' },
-                        { label: '+ Conteúdo',    tab: 'PLANEJAMENTO',  color: 'hover:bg-blue-500/20 hover:text-blue-300 hover:border-blue-500/30' },
-                        { label: '+ Reunião',     tab: 'REUNIOES',      color: 'hover:bg-indigo-500/20 hover:text-indigo-300 hover:border-indigo-500/30' },
+                        { label: 'Tarefa',      tab: 'TAREFAS',       color: 'hover:bg-orange-500/20 hover:text-orange-300 hover:border-orange-500/30' },
+                        { label: 'Lançamento',  tab: 'FINANCAS',      color: 'hover:bg-emerald-500/20 hover:text-emerald-300 hover:border-emerald-500/30' },
+                        { label: 'Conteúdo',    tab: 'PLANEJAMENTO',  color: 'hover:bg-blue-500/20 hover:text-blue-300 hover:border-blue-500/30' },
+                        { label: 'Reunião',     tab: 'REUNIOES',      color: 'hover:bg-indigo-500/20 hover:text-indigo-300 hover:border-indigo-500/30' },
                     ].map((a, i) => (
-                        <button key={i} onClick={() => setActiveTab(a.tab)} className={`shrink-0 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-zinc-400 text-[9px] font-black uppercase tracking-widest transition-all ${a.color}`}>
-                            {a.label}
+                        <button key={i} onClick={() => setActiveTab(a.tab)} className={`px-2 py-1.5 rounded-xl bg-white/5 border border-white/10 text-zinc-400 text-[8px] sm:text-[9px] font-black uppercase tracking-wide sm:tracking-widest transition-all text-center ${a.color}`}>
+                            + {a.label}
                         </button>
                     ))}
                 </div>

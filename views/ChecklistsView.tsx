@@ -626,19 +626,19 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
             {renderActiveShootView()}
 
             {/* HEADER LIST VIEW */}
-            <div className={`flex items-center justify-between flex-wrap gap-3 px-6 py-4 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 transition-opacity duration-300 ${activeShootId ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
-                        <Video size={20} className="shrink-0" />
+            <div className={`flex items-center justify-between gap-2 px-4 sm:px-6 py-3 sm:py-4 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 transition-opacity duration-300 ${activeShootId ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 shrink-0">
+                        <Video size={18} className="shrink-0" />
                     </div>
-                    <div>
-                        <h2 className="text-xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">Gravações</h2>
-                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">Organize seus Dias de Gravação e Logística</p>
+                    <div className="min-w-0">
+                        <h2 className="text-base sm:text-xl font-black text-zinc-900 dark:text-white tracking-tight uppercase truncate">Gravações</h2>
+                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5 hidden sm:block">Organize seus Dias de Gravação e Logística</p>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 group hidden sm:flex h-10 w-64 bg-zinc-100/50 dark:bg-zinc-800/50 rounded-xl px-3 focus-within:ring-2 focus-within:ring-indigo-500/20 border border-transparent focus-within:border-indigo-500/30 transition-all shadow-inner">
+                <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-2 group hidden sm:flex h-10 w-56 bg-zinc-100/50 dark:bg-zinc-800/50 rounded-xl px-3 focus-within:ring-2 focus-within:ring-indigo-500/20 border border-transparent focus-within:border-indigo-500/30 transition-all shadow-inner">
                         <Search className="text-zinc-400 w-4 h-4 shrink-0 transition-colors group-focus-within:text-indigo-500" />
                         <input
                             type="text"
@@ -650,15 +650,16 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                     </div>
                     <button
                         onClick={() => { tryPlaySound('open'); setIsNewShootModalOpen(true); }}
-                        className="h-10 px-5 text-[10px] font-black uppercase tracking-widest bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl shadow-lg shadow-indigo-500/20 hover:scale-[1.03] active:scale-[0.97] transition-all flex items-center gap-1.5"
+                        className="h-9 sm:h-10 px-3 sm:px-5 text-[10px] font-black uppercase tracking-widest bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl shadow-lg shadow-indigo-500/20 hover:scale-[1.03] active:scale-[0.97] transition-all flex items-center gap-1.5"
                     >
-                        <Plus size={15} strokeWidth={3} className="shrink-0" /> Nova Gravação
+                        <Plus size={14} strokeWidth={3} className="shrink-0" />
+                        <span className="hidden sm:inline">Nova Gravação</span>
                     </button>
                 </div>
             </div>
 
             {/* LIST AREA (GRID 2 COLS) */}
-            <div className={`flex-1 overflow-y-auto px-6 py-8 transition-opacity duration-300 custom-scrollbar ${activeShootId ? 'opacity-0 pointer-events-none absolute inset-0' : 'opacity-100'}`}>
+            <div className={`flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-8 transition-opacity duration-300 custom-scrollbar ${activeShootId ? 'opacity-0 pointer-events-none absolute inset-0' : 'opacity-100'}`}>
                 <div className="max-w-7xl mx-auto">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 card-grid stagger">
                         {filteredShoots.map((shoot, idx) => {

@@ -132,8 +132,8 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
           <PSelectPortal
             value={monthFilter}
             onChange={(val) => setMonthFilter(val)}
-            options={[{ value: 'Todos', label: 'TODOS OS MESES' }, ...months.map(m => ({ value: m, label: m.toUpperCase() }))]}
-            className="min-w-[140px]"
+            options={[{ value: 'Todos', label: 'MÊS' }, ...months.map(m => ({ value: m, label: m.toUpperCase() }))]}
+            className="min-w-[100px] shrink-0"
           />
         </div>
       </div>
