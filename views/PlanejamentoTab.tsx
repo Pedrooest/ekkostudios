@@ -724,19 +724,19 @@ export default function PlanejamentoTab({
                     <div className="flex bg-zinc-100 dark:bg-zinc-800/50 p-1 rounded-2xl items-center relative shadow-inner border border-zinc-200/50 dark:border-zinc-700/30">
                         <button
                             onClick={() => { tryPlaySound('tap'); setViewMode('calendar'); }}
-                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 ${viewMode === 'calendar' ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-sm scale-[1.02]' : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'}`}
+                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-200 ${viewMode === 'calendar' ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-sm scale-[1.02]' : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'}`}
                         >
                             <CalendarIcon size={14} strokeWidth={2.5} /> Calendário
                         </button>
                         <button
                             onClick={() => { tryPlaySound('tap'); setViewMode('list'); }}
-                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 ${viewMode === 'list' ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-sm scale-[1.02]' : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'}`}
+                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-200 ${viewMode === 'list' ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-sm scale-[1.02]' : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'}`}
                         >
                             <List size={14} strokeWidth={2.5} /> Lista
                         </button>
                         <button
                             onClick={() => { tryPlaySound('tap'); setViewMode('kanban'); }}
-                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 ${viewMode === 'kanban' ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-sm scale-[1.02]' : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'}`}
+                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-200 ${viewMode === 'kanban' ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-sm scale-[1.02]' : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'}`}
                         >
                             <LayoutGrid size={14} strokeWidth={2.5} /> Kanban
                         </button>

@@ -190,7 +190,7 @@ export function SystematicModelingView({
                                                     }
                                                     return row.options?.map((opt: any) => ({ value: opt, label: opt })) || [];
                                                 })()}
-                                                className="!h-9 !text-[11px] font-semibold uppercase"
+                                                className="!h-9 !text-[11px] !font-bold uppercase"
                                                 placeholder={row.id === 'conteudo' ? "Selecione..." : "-"}
                                             />
                                         </div>

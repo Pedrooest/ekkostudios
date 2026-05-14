@@ -243,17 +243,18 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
       {/* CLIENTS GRID */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
         {filteredClients.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 px-8 border border-zinc-100 dark:border-zinc-800/50 rounded-3xl bg-zinc-50/50 dark:bg-zinc-900/20 text-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center">
-              <Users size={28} className="text-blue-500" />
+          <div className="flex flex-col items-center justify-center py-28 px-8 border border-zinc-200 dark:border-zinc-800 rounded-3xl bg-zinc-50/50 dark:bg-zinc-900/20 text-center gap-5 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/3 to-indigo-500/3 pointer-events-none" />
+            <div className="w-20 h-20 rounded-[28px] bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-2xl shadow-blue-500/20 relative z-10 animate-float">
+              <Users size={34} strokeWidth={1.5} className="text-white" />
             </div>
-            <div className="space-y-1">
-              <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Nenhum cliente ainda</p>
-              <p className="text-xs text-zinc-400 dark:text-zinc-500">Adicione seu primeiro cliente pra começar.</p>
+            <div className="space-y-2 relative z-10">
+              <p className="text-lg font-black text-zinc-800 dark:text-zinc-200 uppercase tracking-tight">Nenhum cliente ainda</p>
+              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest max-w-xs">Adicione seu primeiro cliente para começar a gerenciar sua carteira.</p>
             </div>
             {onAdd && (
-              <button onClick={onAdd} className="mt-2 text-[11px] font-bold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1">
-                + Adicionar cliente
+              <button onClick={onAdd} className="relative z-10 mt-1 flex items-center gap-2 px-5 py-2.5 bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-blue-500/20 hover:scale-[1.03] transition-all">
+                <Plus size={14} strokeWidth={3} /> Adicionar Primeiro Cliente
               </button>
             )}
           </div>

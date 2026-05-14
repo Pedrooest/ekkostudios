@@ -236,7 +236,7 @@ export function OrganickIAView({
                         </div>
                         <div>
                             <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Contexto do Cliente</p>
-                            <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase">Selecione para processar</p>
+                            <p className="text-xs font-black text-zinc-900 dark:text-zinc-100 uppercase">Selecione para processar</p>
                         </div>
                     </div>
                     <div className="w-full sm:w-72">

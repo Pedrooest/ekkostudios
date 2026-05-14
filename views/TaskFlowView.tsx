@@ -240,7 +240,7 @@ function TaskCardOverlay({ Tarefa, clients, getPriorityInfo, statusCor }: any) {
                     </span>
                 )}
             </div>
-            <h4 className="text-[13px] font-semibold text-zinc-900 dark:text-zinc-100 leading-snug truncate mt-1">{Tarefa.Título}</h4>
+            <h4 className="text-[13px] font-black text-zinc-900 dark:text-zinc-100 leading-snug truncate mt-1">{Tarefa.Título}</h4>
             {hasStats && (
                 <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
                     {checklistTotal > 0 && (

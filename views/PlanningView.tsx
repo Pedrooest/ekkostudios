@@ -281,7 +281,7 @@ export function PlanningView({
                     <div className="flex items-center gap-2">
                         <button 
                             onClick={() => { playUISound('tap'); setShowArchived?.(!showArchived); }}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all border ${showArchived ? 'bg-zinc-100 dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100' : 'bg-transparent border-zinc-200 dark:border-zinc-700 text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800'}`}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-widest whitespace-nowrap transition-all border ${showArchived ? 'bg-zinc-100 dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100' : 'bg-transparent border-zinc-200 dark:border-zinc-700 text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800'}`}
                         >
                             <Archive size={14} className="shrink-0" /> {showArchived ? 'Ocultar Arquivados' : 'Arquivados'}
                         </button>
@@ -622,7 +622,7 @@ export function PlanningView({
                                             <input
                                                 value={selectedEvent?.Gancho || ''}
                                                 onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'Gancho', e.target.value)}
-                                                className="w-full h-10 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/60 rounded-2xl px-4 text-xs font-semibold text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all"
+                                                className="w-full h-10 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/60 rounded-2xl px-4 text-xs font-bold text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all"
                                                 placeholder="Primeira frase que prende a atenção..."
                                             />
                                         </div>
@@ -631,7 +631,7 @@ export function PlanningView({
                                             <input
                                                 value={selectedEvent?.CTA || ''}
                                                 onChange={e => selectedEvent && onUpdate(selectedEvent.id, 'PLANEJAMENTO', 'CTA', e.target.value)}
-                                                className="w-full h-10 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/60 rounded-2xl px-4 text-xs font-semibold text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all"
+                                                className="w-full h-10 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/60 rounded-2xl px-4 text-xs font-bold text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all"
                                                 placeholder="Chamada para ação..."
                                             />
                                         </div>
@@ -810,7 +810,7 @@ export function PlanningView({
                                 {rdcLibrary.length === 0 ? (
                                     <div className="h-full flex flex-col items-center justify-center opacity-40 text-center">
                                         <FolderOpen size={32} className="mb-2 text-zinc-300 shrink-0" />
-                                        <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Nenhuma ideia encontrada</p>
+                                        <p className="text-xs font-black text-zinc-500 uppercase tracking-widest">Nenhuma ideia encontrada</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-3">
