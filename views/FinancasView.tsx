@@ -768,6 +768,39 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
         : null;
     // ────────────────────────────────────────────────────────────
 
+    // AI Insights narrative text (pierre.finance-inspired)
+    const insightText = useMemo(() => {
+        const nomeMes = new Date().toLocaleDateString('pt-BR', { month: 'long' });
+        const parts: string[] = [];
+
+        if (summary.receita > 0) {
+            parts.push(`Em ${nomeMes}, sua receita foi de ${formatBRL(summary.receita)}`);
+            if (deltaReceita !== null) {
+                parts.push(` — ${deltaReceita >= 0 ? `crescimento de ${deltaReceita.toFixed(1)}%` : `queda de ${Math.abs(deltaReceita).toFixed(1)}%`} em relação ao mês anterior.`);
+            } else {
+                parts.push(` no período selecionado.`);
+            }
+        } else {
+            parts.push(`Nenhuma receita registrada no período selecionado.`);
+        }
+
+        if (summary.despesas > 0 && pieData.length > 0) {
+            parts.push(` Sua principal categoria de despesa foi ${pieData[0].name} com ${formatBRL(pieData[0].value)}.`);
+        }
+
+        if (summary.lucro > 0) {
+            parts.push(` O resultado líquido foi positivo em ${formatBRL(summary.lucro)}, com margem de ${margemLiquida.toFixed(1)}%.`);
+        } else if (summary.lucro < 0) {
+            parts.push(` Resultado negativo de ${formatBRL(Math.abs(summary.lucro))} — revise as despesas do período.`);
+        }
+
+        if (summary.inadimplenciaValue > 0) {
+            parts.push(` Há ${formatBRL(summary.inadimplenciaValue)} em inadimplência a cobrar.`);
+        }
+
+        return parts.length > 0 ? parts.join('') : 'Adicione lançamentos para visualizar a análise financeira do período.';
+    }, [summary, deltaReceita, margemLiquida, pieData]);
+
 
     // Handlers Modal
     const handleOpenModal = (tx?: any) => {
@@ -1033,6 +1066,89 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                 =============================================================== */}
                 {activeInternalTab === 'VISAO_GERAL' && (
                     <div className="space-y-5 animate-in fade-in slide-in-from-bottom-3 duration-300">
+
+                        {/* ── AI INSIGHTS PANEL (pierre.finance-inspired) ── */}
+                        <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-zinc-900 via-zinc-800/90 to-zinc-900 dark:from-[#0d1117] dark:via-zinc-900/95 dark:to-[#0d1117] border border-zinc-700/40 shadow-2xl shadow-zinc-900/40 p-6">
+                            {/* Ambient glow orbs */}
+                            <div className="absolute -top-16 -right-16 w-56 h-56 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+                            <div className="absolute -bottom-10 -left-10 w-44 h-44 bg-teal-500/8 rounded-full blur-2xl pointer-events-none" />
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-32 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
+
+                            <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                {/* Left col: narrative */}
+                                <div className="lg:col-span-2 flex flex-col justify-between gap-5">
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <div className="w-7 h-7 rounded-xl bg-emerald-500/20 border border-emerald-500/25 flex items-center justify-center">
+                                                <Sparkles size={13} className="text-emerald-400" />
+                                            </div>
+                                            <span className="text-[9px] font-black text-emerald-400 uppercase tracking-[0.3em]">Análise Inteligente · Ekko</span>
+                                        </div>
+                                        <p className="text-sm font-semibold text-zinc-200 leading-relaxed max-w-lg">
+                                            {insightText}
+                                        </p>
+                                    </div>
+
+                                    {/* Bottom row: health + date */}
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[9px] font-black uppercase tracking-widest ${
+                                            healthScore >= 70
+                                                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                                                : healthScore >= 45
+                                                    ? 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+                                                    : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                                        }`}>
+                                            <span className="animate-pulse">●</span>
+                                            Score {healthScore} — {healthScore >= 70 ? 'Saudável' : healthScore >= 45 ? 'Atenção' : 'Crítico'}
+                                        </div>
+                                        <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">
+                                            {new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Right col: 3 KPI chips (pierre-style) */}
+                                <div className="flex flex-col gap-2.5">
+                                    {[
+                                        {
+                                            label: 'Gasto no mês',
+                                            value: formatBRL(summary.despesas),
+                                            sub: 'despesas pagas',
+                                            color: 'text-rose-400',
+                                            icon: TrendingDown,
+                                            bg: 'bg-rose-500/10 border-rose-500/15'
+                                        },
+                                        {
+                                            label: 'vs. mês anterior',
+                                            value: deltaDespesas !== null ? `${deltaDespesas >= 0 ? '+' : ''}${deltaDespesas.toFixed(1)}%` : '—',
+                                            sub: deltaDespesas !== null ? (deltaDespesas <= 0 ? 'despesas reduziram ✓' : 'despesas aumentaram') : 'sem comparativo',
+                                            color: deltaDespesas === null ? 'text-zinc-400' : deltaDespesas <= 0 ? 'text-emerald-400' : 'text-rose-400',
+                                            icon: deltaDespesas !== null && deltaDespesas <= 0 ? TrendingDown : TrendingUp,
+                                            bg: deltaDespesas !== null && deltaDespesas <= 0 ? 'bg-emerald-500/10 border-emerald-500/15' : 'bg-rose-500/10 border-rose-500/15'
+                                        },
+                                        {
+                                            label: 'Maior despesa',
+                                            value: pieData[0]?.name || '—',
+                                            sub: pieData[0] ? formatBRL(pieData[0].value) : 'sem dados',
+                                            color: 'text-amber-400',
+                                            icon: Flame,
+                                            bg: 'bg-amber-500/10 border-amber-500/15'
+                                        },
+                                    ].map((chip, i) => (
+                                        <div key={i} className={`flex items-center gap-3 px-4 py-3 border rounded-2xl hover:bg-white/[0.05] transition-all cursor-default ${chip.bg}`}>
+                                            <div className="w-8 h-8 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center shrink-0">
+                                                <chip.icon size={13} className={chip.color} />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-[8px] font-black text-zinc-500 uppercase tracking-[0.2em] leading-none mb-1">{chip.label}</p>
+                                                <p className={`text-sm font-black leading-none tabular-nums truncate ${chip.color}`}>{chip.value}</p>
+                                                <p className="text-[8px] font-bold text-zinc-600 mt-0.5 truncate">{chip.sub}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
 
                         {/* ── Period selector + Month strip ── */}
                         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm p-3 space-y-3">
