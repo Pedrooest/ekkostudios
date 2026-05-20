@@ -1591,7 +1591,16 @@ export function TaskDetailPanel({
                                     onClick={() => downloadFile(lightboxFile)}
                                     className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-500/30 hover:scale-105 active:scale-95"
                                 >
-                                    <Download size={14} /> Baixar Original
+                                    <Download size={14} /> Baixar
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        updateAttachments((t.Anexos || []).filter(a => a.id !== lightboxFile.id));
+                                        setLightboxFile(null);
+                                    }}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-500/80 hover:bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-rose-500/20 hover:scale-105 active:scale-95"
+                                >
+                                    <Trash2 size={14} /> Excluir
                                 </button>
                                 <button
                                     onClick={() => setLightboxFile(null)}
