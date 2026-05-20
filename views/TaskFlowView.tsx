@@ -1349,8 +1349,8 @@ export function TaskDetailPanel({
                                                             alt={file.nomeArquivo}
                                                             className={`w-full transition-transform duration-500 group-hover:scale-105 ${imageFiles.length === 1 ? 'h-auto max-h-[280px] object-contain' : 'h-full object-cover'}`}
                                                         />
-                                                        {/* Hover overlay */}
-                                                        <div className="absolute inset-0 bg-black/55 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2.5 backdrop-blur-[2px]">
+                                                        {/* Hover overlay — Ver + Baixar only (fits any card width) */}
+                                                        <div className="absolute inset-0 bg-black/55 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[2px]">
                                                             <button
                                                                 onClick={e => { e.stopPropagation(); setLightboxFile(file); setLightboxIndex(imgIdx); }}
                                                                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/15 hover:bg-white/30 text-white text-[10px] font-black uppercase tracking-widest backdrop-blur-md transition-all shadow-lg border border-white/20"
@@ -1363,14 +1363,15 @@ export function TaskDetailPanel({
                                                             >
                                                                 <Download size={13} /> Baixar
                                                             </button>
-                                                            <button
-                                                                onClick={e => { e.stopPropagation(); updateAttachments((t.Anexos || []).filter(a => a.id !== file.id)); }}
-                                                                className="w-9 h-9 rounded-xl bg-rose-500/70 hover:bg-rose-500 text-white flex items-center justify-center backdrop-blur-md transition-all shadow-lg border border-rose-400/30"
-                                                                title="Remover"
-                                                            >
-                                                                <Trash2 size={13} />
-                                                            </button>
                                                         </div>
+                                                        {/* Delete button — fixed top-right corner, always accessible */}
+                                                        <button
+                                                            onClick={e => { e.stopPropagation(); updateAttachments((t.Anexos || []).filter(a => a.id !== file.id)); }}
+                                                            className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-rose-500/80 hover:bg-rose-500 active:scale-90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg border border-rose-400/30 backdrop-blur-md z-10"
+                                                            title="Remover imagem"
+                                                        >
+                                                            <Trash2 size={12} />
+                                                        </button>
                                                         {/* Bottom info bar */}
                                                         <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent px-2.5 py-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                                                             <p className="text-[9px] text-white font-black truncate">{file.nomeArquivo}</p>
