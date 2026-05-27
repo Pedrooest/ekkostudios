@@ -1605,7 +1605,9 @@ export default function App() {
                       {!sidebarCollapsed && (
                         <>
                           <span className={`text-[10px] font-black uppercase tracking-widest truncate min-w-0 flex-1 text-left`}>
-                            {TABLE_LABELS[tab as TipoTabela]}
+                            {tab === 'ORGANICKIA' ? (
+                              <>EK<span style={{ display: 'inline-block', transform: 'scaleX(-1)' }}>K</span>O IA</>
+                            ) : TABLE_LABELS[tab as TipoTabela]}
                           </span>
                           {badge > 0 && !isActive && (
                             <span className="ml-auto shrink-0 min-w-[18px] h-4 bg-rose-500 text-white rounded-full flex items-center justify-center text-[7px] font-black px-1">

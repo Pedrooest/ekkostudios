@@ -219,10 +219,11 @@ export function OrganickIAView({
                     </div>
                     <div>
                         <h1 className="text-xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">
-                            Organick<span className="text-violet-600 dark:text-violet-400">IA</span>
+                            EK<span style={{ display: 'inline-block', transform: 'scaleX(-1)' }}>K</span>O{' '}
+                            <span className="text-violet-600 dark:text-violet-400">IA</span>
                             <span className="ml-2 text-xs font-black text-violet-500 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 px-2 py-0.5 rounded-full border border-violet-200 dark:border-violet-500/20">2.0</span>
                         </h1>
-                        <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Inteligência Operacional · Método Organick</p>
+                        <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Inteligência Operacional · EKKO Studios</p>
                     </div>
                 </div>
             </div>

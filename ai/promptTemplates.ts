@@ -1,7 +1,7 @@
 import { TipoTabela } from '../types';
 
 export function renderPrompt(tab: TipoTabela, objective: string, mode: 'chat' | 'action', context: any, userNotes: string = ''): string {
-  const basePrompt = `Você é o Assistente Inteligente Organick.
+  const basePrompt = `Você é o Assistente Inteligente EKKO IA.
   Atue como um estrategista sênior de agência de marketing.
   
   CONTEXTO ATUAL (${tab}):

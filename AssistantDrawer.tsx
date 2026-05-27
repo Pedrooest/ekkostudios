@@ -64,7 +64,9 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
             {/* Header */}
             <div className="p-4 border-b border-app-border flex justify-between items-center bg-app-surface-2">
                 <div>
-                    <h2 className="text-app-text-strong font-bold text-sm tracking-widest uppercase">Assistente Organick</h2>
+                    <h2 className="text-app-text-strong font-bold text-sm tracking-widest uppercase">
+                        Assistente EK<span style={{ display: 'inline-block', transform: 'scaleX(-1)' }}>K</span>O
+                    </h2>
                     <span className="text-[10px] text-app-text-muted">Contexto: {activeTab}</span>
                 </div>
                 <button onClick={onClose} className="text-app-text-muted hover:text-app-text-strong transition-colors">

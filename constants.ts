@@ -125,7 +125,7 @@ export const ROTULOS_TABELAS: Record<TipoTabela, string> = {
   FINANCAS: 'Finanças',
   TAREFAS: 'Fluxo de Tarefas',
   VH: 'Gestão de VH',
-  ORGANICKIA: 'ORGANICKIA',
+  ORGANICKIA: 'EKKO IA',
   WHITEBOARD: 'Quadro Branco',
   IA_HISTORY: 'Histórico IA',
   WORKSPACE: 'Workspace',
