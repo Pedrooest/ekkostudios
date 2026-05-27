@@ -221,7 +221,7 @@ export function CoboView({
   };
 
   return (
-    <div className="view-root p-4 sm:p-6 space-y-5 animate-fade-blur pb-20 h-full overflow-y-auto custom-scrollbar">
+    <div className="view-root p-4 sm:p-6 space-y-5 animate-fade-blur pb-20 sm:pb-6 h-full overflow-y-auto custom-scrollbar">
 
       {/* datalists */}
       <datalist id="dl-frequencia-cobo">{OPCOES_FREQUENCIA_COBO.map(o => <option key={o} value={o} />)}</datalist>

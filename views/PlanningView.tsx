@@ -343,7 +343,7 @@ export function PlanningView({
                     </div>
                 </div>
 
-                <div className="p-6 space-y-4">
+                <div className="p-6 space-y-4 min-h-full">
 
                     {/* ── MONTH STATS STRIP ── */}
                     {viewMode === 'month' && (

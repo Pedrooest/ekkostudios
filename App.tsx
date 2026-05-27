@@ -2004,7 +2004,7 @@ export default function App() {
           </div>
         )}
 
-        <div className={`flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar bg-app-bg ${(activeTab === 'WHITEBOARD' || activeTab === 'CLIENTES' || activeTab === 'PLANEJAMENTO' || activeTab === 'CHECKLISTS') ? 'p-0 overflow-hidden' : 'p-4 sm:p-6 pb-[calc(100px+env(safe-area-inset-bottom))] sm:pb-6'}`}>
+        <div className={`flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar bg-app-bg ${(activeTab === 'WHITEBOARD' || activeTab === 'CLIENTES' || activeTab === 'PLANEJAMENTO' || activeTab === 'CHECKLISTS' || activeTab === 'DASHBOARD' || activeTab === 'REUNIOES' || activeTab === 'FINANCAS' || activeTab === 'TAREFAS' || activeTab === 'COBO' || activeTab === 'VH' || activeTab === 'ORGANICKIA' || activeTab === 'RELATORIOS' || activeTab === 'REUNIOES') ? 'p-0 overflow-hidden' : 'pb-[calc(72px+env(safe-area-inset-bottom))] sm:pb-0'}`}>
           <Suspense fallback={<RouteFallback />}>
           {activeTab === 'DASHBOARD' && <DashboardView clients={clients} tasks={currentTasks} financas={currentFinancas} planejamento={currentPlanejamento} rdc={currentRdc} setActiveTab={setActiveTab} perfilUsuario={perfilUsuario} />}
           {activeTab === 'CLIENTES' && <ClientesView clients={filterArchived(clients)} tasks={tasks} planejamento={planejamento} onUpdate={handleUpdate} onDelete={performDelete} onAdd={() => handleAddRow('CLIENTES')} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} savingStatus={savingStatus} />}
