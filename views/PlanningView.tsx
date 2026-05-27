@@ -452,6 +452,14 @@ export function PlanningView({
                                                     <p className="text-[8px] font-black text-zinc-300 dark:text-zinc-700 uppercase tracking-widest">sem posts</p>
                                                 </div>
                                             )}
+                                            {evts.length === 0 && !diaObj.isNextMonth && !diaObj.isPrevMonth && viewMode === 'week' && (
+                                                <div className="flex flex-col items-center justify-center gap-3 py-10 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                                    <div className="w-10 h-10 rounded-2xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center">
+                                                        <Plus size={16} className="text-zinc-300 dark:text-zinc-600" strokeWidth={2.5} />
+                                                    </div>
+                                                    <p className="text-[8px] font-black text-zinc-300 dark:text-zinc-700 uppercase tracking-widest text-center">Nenhum post</p>
+                                                </div>
+                                            )}
                                             {evts.map(evt => {
                                                 const styles = getCardStyles(evt.Cliente_ID);
                                                 return (

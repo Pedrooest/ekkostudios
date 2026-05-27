@@ -331,6 +331,15 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                       <p className="text-[9px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.15em] truncate mt-0.5">
                         {client.Nicho || 'Sem nicho definido'}
                       </p>
+                      {client.Fee ? (
+                        <div className="flex items-center gap-1 mt-1.5">
+                          <DollarSign size={9} className="text-emerald-500 shrink-0" />
+                          <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(Number(client.Fee) || 0)}
+                          </span>
+                          <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-wide">/ mês</span>
+                        </div>
+                      ) : null}
                     </div>
 
                     {/* ── Stats strip ── */}

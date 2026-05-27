@@ -238,9 +238,10 @@ export const DashboardView = React.memo(({ clients = [], tasks = [], financas = 
                     {/* Quick stats — horizontal compact row */}
                     <div className="flex flex-row gap-2 shrink-0">
                         {[
-                            { label: 'Tarefas', value: headerInfo.pendingTasks,  color: 'bg-amber-500/15 text-amber-400 border-amber-500/20', icon: ListChecks },
-                            { label: 'Posts',   value: headerInfo.contentsToday, color: 'bg-blue-500/15 text-blue-400 border-blue-500/20',     icon: Layers },
-                            { label: 'Clientes',value: operationalStats.activeClients, color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20', icon: Users },
+                            { label: 'Pendentes', value: headerInfo.pendingTasks,  color: 'bg-amber-500/15 text-amber-400 border-amber-500/20', icon: ListChecks },
+                            { label: 'Posts hoje', value: headerInfo.contentsToday, color: 'bg-blue-500/15 text-blue-400 border-blue-500/20',     icon: Layers },
+                            { label: 'Ativos',value: operationalStats.activeClients, color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20', icon: Users },
+                            ...(headerInfo.meetingsToday > 0 ? [{ label: 'Reuniões', value: headerInfo.meetingsToday, color: 'bg-violet-500/15 text-violet-400 border-violet-500/20', icon: Bell }] : []),
                         ].map((s, i) => (
                             <div key={i} className={`flex items-center gap-1.5 px-2.5 py-2 rounded-xl border ${s.color}`}>
                                 <s.icon size={12} className="shrink-0" />

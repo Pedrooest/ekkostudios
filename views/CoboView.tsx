@@ -232,18 +232,21 @@ export function CoboView({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm">
         <div className="flex items-center gap-4">
           <div
-            className="w-11 h-11 rounded-xl flex items-center justify-center text-white shadow-lg shrink-0"
-            style={{ backgroundColor: activeClient['Cor (HEX)'] || '#18181b' }}
+            className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shrink-0"
+            style={{
+              background: `linear-gradient(135deg, ${activeClient['Cor (HEX)'] || '#f97316'}, ${activeClient['Cor (HEX)'] || '#f97316'}bb)`,
+              boxShadow: `0 8px 24px ${activeClient['Cor (HEX)'] || '#f97316'}40`
+            }}
           >
-            <Zap size={20} />
+            <Zap size={20} strokeWidth={2.5} />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-lg font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">COBO</h2>
-              <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">·</span>
-              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate max-w-[160px]">{activeClient.Nome}</span>
+              <span className="text-[9px] font-black text-zinc-300 dark:text-zinc-600 uppercase">·</span>
+              <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest truncate max-w-[160px]">{activeClient.Nome}</span>
             </div>
-            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-[0.15em]">Distribuição Estratégica de Canais</p>
+            <p className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.18em] opacity-70">Distribuição Estratégica de Canais</p>
           </div>
         </div>
 
