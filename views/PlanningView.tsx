@@ -62,6 +62,28 @@ export function PlanningView({
 
     const selectedEvent = useMemo(() => data.find((e: any) => e.id === selectedEventId), [data, selectedEventId]);
 
+    // Stats do mês atual para a strip de resumo
+    const monthStats = useMemo(() => {
+        const monthStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+        const base = data.filter((e: any) => {
+            const matchClient = !activeClientId || e.Cliente_ID === activeClientId;
+            return e.Data?.startsWith(monthStr) && matchClient && !e.__archived;
+        });
+        const networks: Record<string, number> = {};
+        base.forEach((e: any) => {
+            if (e.Rede_Social) networks[e.Rede_Social] = (networks[e.Rede_Social] || 0) + 1;
+        });
+        const topNetwork = Object.entries(networks).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+        return {
+            total: base.length,
+            publicados: base.filter((e: any) => e['Status do conteúdo'] === 'PUBLICADO').length,
+            producao: base.filter((e: any) => e['Status do conteúdo'] === 'PRODUÇÃO').length,
+            espera: base.filter((e: any) => e['Status do conteúdo'] === 'EM ESPERA').length,
+            aprovacao: base.filter((e: any) => e['Status do conteúdo'] === 'AGUARDANDO APROVAÇÃO').length,
+            topNetwork,
+        };
+    }, [data, currentDate, activeClientId]);
+
     // Lógica de Calendário
     const calendarDays = useMemo(() => {
         const days = [];
@@ -321,7 +343,32 @@ export function PlanningView({
                     </div>
                 </div>
 
-                <div className="p-6 space-y-6">
+                <div className="p-6 space-y-4">
+
+                    {/* ── MONTH STATS STRIP ── */}
+                    {viewMode === 'month' && (
+                        <div className="flex flex-wrap items-center gap-2 animate-fade-blur">
+                            {[
+                                { label: 'Posts no mês', value: monthStats.total, colorText: 'text-zinc-700 dark:text-zinc-200', bg: 'bg-white dark:bg-zinc-800', border: 'border-zinc-200 dark:border-zinc-700', dot: 'bg-zinc-400' },
+                                { label: 'Publicados', value: monthStats.publicados, colorText: 'text-emerald-700 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10', border: 'border-emerald-200 dark:border-emerald-500/20', dot: 'bg-emerald-500' },
+                                { label: 'Produção', value: monthStats.producao, colorText: 'text-amber-700 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-500/10', border: 'border-amber-200 dark:border-amber-500/20', dot: 'bg-amber-500' },
+                                { label: 'Em espera', value: monthStats.espera, colorText: 'text-slate-600 dark:text-slate-400', bg: 'bg-slate-50 dark:bg-slate-800', border: 'border-slate-200 dark:border-slate-700', dot: 'bg-slate-400' },
+                                { label: 'Aprovação', value: monthStats.aprovacao, colorText: 'text-blue-700 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-500/10', border: 'border-blue-200 dark:border-blue-500/20', dot: 'bg-blue-500' },
+                            ].map((stat, i) => (
+                                <div key={i} className={`flex items-center gap-2 h-8 px-3 rounded-xl border text-[10px] font-black uppercase tracking-widest shadow-sm ${stat.bg} ${stat.border} ${stat.colorText}`}>
+                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${stat.dot}`} />
+                                    <span className="opacity-50">{stat.label}:</span>
+                                    <span>{stat.value}</span>
+                                </div>
+                            ))}
+                            {monthStats.topNetwork && (
+                                <div className="flex items-center gap-2 h-8 px-3 rounded-xl border border-indigo-200 dark:border-indigo-500/20 bg-indigo-50 dark:bg-indigo-500/10 text-[10px] font-black uppercase tracking-widest text-indigo-700 dark:text-indigo-400">
+                                    <span className="opacity-50">Principal rede:</span>
+                                    <span>{monthStats.topNetwork}</span>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     <div className="flex items-center justify-between mb-4 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-2 px-4 rounded-xl shadow-sm">
                         <div className="flex items-center gap-4">
@@ -380,17 +427,31 @@ export function PlanningView({
                                 return (
                                     <div
                                         key={idx}
-                                        className={`p-2 border-r border-b border-zinc-100 dark:border-zinc-700 transition-all relative flex flex-col min-h-0 ${diaObj.isNextMonth || diaObj.isPrevMonth ? 'bg-zinc-50/50 dark:bg-zinc-900/30 opacity-40' :
+                                        className={`group p-2 border-r border-b border-zinc-100 dark:border-zinc-700 transition-all relative flex flex-col min-h-0 ${diaObj.isNextMonth || diaObj.isPrevMonth ? 'bg-zinc-50/50 dark:bg-zinc-900/30 opacity-40' :
                                             isToday ? 'bg-blue-50/50 dark:bg-blue-500/5' : 'bg-white dark:bg-zinc-800'
                                             } hover:bg-zinc-50/80 dark:hover:bg-zinc-700/50`}
                                     >
                                         <div className="flex justify-between items-center mb-2">
-                                            <span className={`text-[11px] font-bold w-6 h-6 flex items-center justify-center rounded-md ${isToday ? 'bg-blue-600 text-white' : 'text-zinc-500 dark:text-zinc-400'}`}>
+                                            <span className={`text-[11px] font-black w-6 h-6 flex items-center justify-center rounded-md ${isToday ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30' : 'text-zinc-500 dark:text-zinc-400'}`}>
                                                 {diaObj.day}
                                             </span>
+                                            {!diaObj.isNextMonth && !diaObj.isPrevMonth && (
+                                                <button
+                                                    onClick={async e => { e.stopPropagation(); await onAdd('PLANEJAMENTO', { Data: diaObj.dateStr }); }}
+                                                    className="w-5 h-5 rounded-md bg-zinc-100 dark:bg-zinc-700 hover:bg-blue-500 dark:hover:bg-blue-500 text-zinc-400 hover:text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all active:scale-90 shrink-0"
+                                                    title="Adicionar post neste dia"
+                                                >
+                                                    <Plus size={10} strokeWidth={3} />
+                                                </button>
+                                            )}
                                         </div>
 
                                         <div className="flex-1 space-y-1.5 overflow-hidden">
+                                            {evts.length === 0 && !diaObj.isNextMonth && !diaObj.isPrevMonth && viewMode === 'month' && (
+                                                <div className="flex items-center justify-center h-full min-h-[60px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                                    <p className="text-[8px] font-black text-zinc-300 dark:text-zinc-700 uppercase tracking-widest">sem posts</p>
+                                                </div>
+                                            )}
                                             {evts.map(evt => {
                                                 const styles = getCardStyles(evt.Cliente_ID);
                                                 return (
