@@ -468,7 +468,7 @@ export function TaskFlowView({
             </div>
 
             {/* MAIN CONTENT AREA */}
-            <div className="flex-1 overflow-hidden p-4 sm:p-6 bg-zinc-50 dark:bg-zinc-950">
+            <div className="flex-1 overflow-hidden p-4 sm:p-6 bg-zinc-50 dark:bg-zinc-950 flex flex-col min-h-0">
 
                 {viewType === 'Board' && (
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
@@ -551,7 +551,7 @@ export function TaskFlowView({
                 )}
 
                 {viewType === 'List' && (
-                    <div className="h-full overflow-hidden flex flex-col bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[20px] shadow-sm relative">
+                    <div className="flex-1 min-h-0 overflow-hidden flex flex-col bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[20px] shadow-sm relative">
                         {/* Header */}
                         <div className="table-responsive overflow-hidden shrink-0 pr-[8px]">
                             <table className="w-full text-left border-collapse table-fixed min-w-[700px]">
@@ -678,7 +678,7 @@ export function TaskFlowView({
                 )}
 
                 {viewType === 'Calendar' && (
-                    <div className="h-full flex flex-col overflow-hidden relative">
+                    <div className="flex-1 min-h-0 flex flex-col overflow-hidden relative">
                         {/* CALENDAR HEADER */}
                         <div className="flex items-center justify-between mb-4 shrink-0">
                             <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-2 rounded-xl shadow-sm">
