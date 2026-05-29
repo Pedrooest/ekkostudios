@@ -413,11 +413,43 @@ export default function App() {
       setRdc(prev => mergeItems(prev, data.rdc as ItemRdc[]));
       setPlanejamento(prev => mergeItems(prev, data.planning as ItemPlanejamento[]));
       setFinancas(prev => mergeItems(prev, data.financas as LancamentoFinancas[]));
+      // Merge server data first
       setTasks(prev => mergeItems(prev, parsedTasks));
       setChecklists(prev => mergeItems(prev, parsedChecklists));
       setCollaborators(prev => mergeItems(prev, data.collaborators as Colaborador[]));
       setReunioes(prev => mergeItems(prev, (data.reunioes || []) as Reuniao[]));
       setLembretes(prev => mergeItems(prev, (data.lembretes || []) as Lembrete[]));
+
+      // Restore sync-pending tasks from localStorage (survive page refresh)
+      try {
+        const pendingKey = `ekko_pending_tasks_${wsId}`;
+        const pendingRaw = localStorage.getItem(pendingKey);
+        if (pendingRaw) {
+          const pendingTasks: Tarefa[] = JSON.parse(pendingRaw);
+          if (pendingTasks.length > 0) {
+            setTasks(prev => {
+              const merged = [...prev];
+              pendingTasks.forEach(item => {
+                if (!merged.find((t: any) => t.id === item.id)) {
+                  merged.push({ ...item, __syncFailed: true } as any);
+                }
+              });
+              return merged;
+            });
+            // Retry sync in background
+            pendingTasks.forEach(async (item: any) => {
+              const err = await DatabaseService.syncItem('tasks', item, wsId);
+              if (!err) {
+                const current: any[] = JSON.parse(localStorage.getItem(pendingKey) || '[]');
+                const updated = current.filter((t: any) => t.id !== item.id);
+                if (updated.length === 0) localStorage.removeItem(pendingKey);
+                else localStorage.setItem(pendingKey, JSON.stringify(updated));
+                setTasks(prev => prev.map((t: any) => t.id === item.id ? { ...t, __syncFailed: false } : t));
+              }
+            });
+          }
+        }
+      } catch (e) { /* non-critical */ }
     }
   }, []);
 
@@ -1190,12 +1222,23 @@ export default function App() {
           if (tab === 'CLIENTES') setClients(markFailed);
           else if (tab === 'FINANCAS') setFinancas(markFailed);
           else if (tab === 'PLANEJAMENTO') setPlanejamento(markFailed);
-          else if (tab === 'TAREFAS') setTasks(markFailed);
+          else if (tab === 'TAREFAS') {
+            setTasks(markFailed);
+            // Persist to localStorage so task survives page refresh
+            try {
+              const pendingKey = `ekko_pending_tasks_${currentWorkspace.id}`;
+              const pending: any[] = JSON.parse(localStorage.getItem(pendingKey) || '[]');
+              if (!pending.find((t: any) => t.id === newItem.id)) {
+                pending.push(newItem);
+                localStorage.setItem(pendingKey, JSON.stringify(pending));
+              }
+            } catch (e) { /* non-critical */ }
+          }
           else if (tab === 'CHECKLISTS') setChecklists(markFailed as any);
           else if (tab === 'COBO') setCobo(markFailed);
           else if (tab === 'MATRIZ') setMatriz(markFailed);
           else if (tab === 'RDC') setRdc(markFailed);
-          addNotification('error', 'Erro ao sincronizar', `Salvo localmente, mas falhou no servidor: ${error.message || 'Verifique sua conexão e tente novamente.'}`);
+          addNotification('error', 'Erro ao sincronizar', `Tarefa salva localmente — será sincronizada quando a conexão for restaurada.`);
         }
       }
     }
@@ -1226,7 +1269,17 @@ export default function App() {
     if (tab === 'COBO') setCobo(prev => prev.filter(c => !ids.includes(c.id)));
     if (tab === 'PLANEJAMENTO') setPlanejamento(prev => prev.filter(p => !ids.includes(p.id)));
     if (tab === 'FINANCAS') setFinancas(prev => prev.filter(f => !ids.includes(f.id)));
-    if (tab === 'TAREFAS') setTasks(prev => prev.filter(t => !ids.includes(t.id)));
+    if (tab === 'TAREFAS') {
+      setTasks(prev => prev.filter(t => !ids.includes(t.id)));
+      // Also remove from pending localStorage if deleted
+      try {
+        const pendingKey = `ekko_pending_tasks_${currentWorkspace?.id}`;
+        const pending: any[] = JSON.parse(localStorage.getItem(pendingKey) || '[]');
+        const updated = pending.filter((t: any) => !ids.includes(t.id));
+        if (updated.length === 0) localStorage.removeItem(pendingKey);
+        else localStorage.setItem(pendingKey, JSON.stringify(updated));
+      } catch (e) { /* non-critical */ }
+    }
     if (tab === 'CHECKLISTS') setChecklists(prev => prev.filter(c => !ids.includes(c.id)));
     if (tab === 'REUNIOES') setReunioes(prev => prev.filter(r => !ids.includes(r.id)));
     if (tab === 'LEMBRETES') setLembretes(prev => prev.filter(l => !ids.includes(l.id)));

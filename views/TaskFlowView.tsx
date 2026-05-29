@@ -610,9 +610,16 @@ export function TaskFlowView({
                                                         className="w-3 h-3 rounded border-zinc-200 dark:border-zinc-700 bg-transparent focus:ring-0 cursor-pointer" />
                                                 </td>
                                                 <td className="flex-1 min-w-0 px-3 py-3">
-                                                    <p className="text-[11px] font-black text-zinc-900 dark:text-zinc-100 tracking-tight group-hover:text-blue-500 transition-colors truncate" title={Tarefa.Título}>
-                                                        {Tarefa.Título}
-                                                    </p>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <p className="text-[11px] font-black text-zinc-900 dark:text-zinc-100 tracking-tight group-hover:text-blue-500 transition-colors truncate" title={Tarefa.Título}>
+                                                            {Tarefa.Título}
+                                                        </p>
+                                                        {(Tarefa as any).__syncFailed && (
+                                                            <span title="Não sincronizado — será re-tentado automaticamente" className="shrink-0 text-[8px] px-1.5 py-0.5 rounded-md bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20 font-black uppercase tracking-wide">
+                                                                ⚠ local
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                     {Tarefa.Relacionado_A === 'Planejamento' && (
                                                         <span className="text-[7px] font-black text-blue-500 uppercase tracking-widest">📅 Planejamento</span>
                                                     )}
