@@ -493,7 +493,7 @@ export function TaskFlowView({
                                             )}
                                         </div>
                                         <button
-                                            onClick={() => onAdd('TAREFAS', { Status: status.id })}
+                                            onClick={() => onAdd('TAREFAS', { Status: status.id, ...(localClientFilter ? { Cliente_ID: localClientFilter } : {}) })}
                                             className="w-7 h-7 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white transition-all hover:scale-110 active:scale-95 shrink-0"
                                             style={{ backgroundColor: `${status.cor}20` }}
                                             title={`Adicionar em ${status.rotulo}`}
@@ -528,7 +528,7 @@ export function TaskFlowView({
                                             </div>
                                         )}
                                         <button
-                                            onClick={() => onAdd('TAREFAS', { Status: status.id })}
+                                            onClick={() => onAdd('TAREFAS', { Status: status.id, ...(localClientFilter ? { Cliente_ID: localClientFilter } : {}) })}
                                             className="w-full mt-2 py-2.5 flex items-center justify-center gap-1.5 text-[9px] font-black text-zinc-400 hover:bg-white dark:hover:bg-zinc-900 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all uppercase tracking-widest hover:shadow-sm"
                                         >
                                             <Plus size={12} /> Nova tarefa

@@ -1185,19 +1185,17 @@ export default function App() {
           else addNotification('success', 'Item Criado', `Novo item adicionado em ${TABLE_LABELS[tab]}.`);
         } catch (error: any) {
           console.error(`[EKKO-SYNC] CREATE_FAILURE | Table: ${tableName} | ID: ${id} | Error:`, error);
-          addNotification('error', 'Erro ao sincronizar', `O item foi criado localmente mas não pôde ser salvo no servidor: ${error.message || 'Erro de constraint ou permissão'}`);
-          // Rollback local state
-          const filterFn = (prev: any[]) => prev.filter((i: any) => i.id !== id);
-          if (tab === 'CLIENTES') setClients(filterFn);
-          else if (tab === 'FINANCAS') setFinancas(filterFn);
-          else if (tab === 'PLANEJAMENTO') setPlanejamento(filterFn);
-          else if (tab === 'TAREFAS') setTasks(filterFn);
-          else if (tab === 'CHECKLISTS') setChecklists(filterFn as any);
-          else if (tab === 'COBO') setCobo(filterFn);
-          else if (tab === 'MATRIZ') setMatriz(filterFn);
-          else if (tab === 'RDC') setRdc(filterFn);
-
-          addNotification('error', 'Erro ao salvar', `Erro: ${error.message || JSON.stringify(error) || 'O registro não pôde ser criado no servidor.'}`);
+          // Mark as sync-failed but KEEP in local state so user doesn't lose work
+          const markFailed = (prev: any[]) => prev.map((i: any) => i.id === id ? { ...i, __syncFailed: true } : i);
+          if (tab === 'CLIENTES') setClients(markFailed);
+          else if (tab === 'FINANCAS') setFinancas(markFailed);
+          else if (tab === 'PLANEJAMENTO') setPlanejamento(markFailed);
+          else if (tab === 'TAREFAS') setTasks(markFailed);
+          else if (tab === 'CHECKLISTS') setChecklists(markFailed as any);
+          else if (tab === 'COBO') setCobo(markFailed);
+          else if (tab === 'MATRIZ') setMatriz(markFailed);
+          else if (tab === 'RDC') setRdc(markFailed);
+          addNotification('error', 'Erro ao sincronizar', `Salvo localmente, mas falhou no servidor: ${error.message || 'Verifique sua conexão e tente novamente.'}`);
         }
       }
     }
@@ -2042,7 +2040,7 @@ export default function App() {
             onUpdate={handleUpdate}
             onDelete={performDelete}
             onArchive={performArchive}
-            onAdd={(initialData?: any) => handleAddRow('TAREFAS', initialData)}
+            onAdd={(_table: string, initialData?: any) => handleAddRow('TAREFAS', initialData)}
             onSelectTask={setSelectedTaskId}
             selection={selection}
             onSelect={toggleSelection}
