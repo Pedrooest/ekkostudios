@@ -210,7 +210,7 @@ export function OrganickIAView({
     const filteredHistory = history.filter((h: any) => showArchived ? true : !h.__archived);
 
     return (
-        <div className="view-root p-4 sm:p-6 space-y-6 animate-fade-blur max-w-7xl mx-auto pb-4 h-full overflow-y-auto custom-scrollbar">
+        <div className="view-root flex-1 min-h-0 p-4 sm:p-6 space-y-6 animate-fade-blur max-w-7xl mx-auto pb-4 overflow-y-auto custom-scrollbar">
             {/* CABEÇALHO */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
                 <div className="flex items-center gap-4">

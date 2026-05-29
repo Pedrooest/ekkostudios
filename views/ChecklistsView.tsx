@@ -620,7 +620,7 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
     };
 
     return (
-        <div className="view-root flex flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors relative animate-fade">
+        <div className="view-root flex-1 min-h-0 flex flex-col w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors relative animate-fade">
             
             {/* RENDER ACTIVE DIARY (If Open) */}
             {renderActiveShootView()}

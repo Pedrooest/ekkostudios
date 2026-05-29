@@ -258,8 +258,8 @@ export function PlanningView({
     };
 
     return (
-        <div className={`view-root ${isDarkMode ? 'dark' : ''} flex-1 flex flex-col font-sans w-full h-full transition-colors overflow-hidden`}>
-            <div className="flex-1 flex flex-col w-full h-full bg-white dark:bg-zinc-900 transition-colors overflow-y-auto custom-scrollbar">
+        <div className={`view-root ${isDarkMode ? 'dark' : ''} flex-1 min-h-0 flex flex-col font-sans w-full transition-colors overflow-hidden`}>
+            <div className="flex-1 min-h-0 flex flex-col w-full bg-white dark:bg-zinc-900 transition-colors overflow-y-auto custom-scrollbar">
 
                 {/* HEADER SECTION */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-6 py-5 border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shrink-0">

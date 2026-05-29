@@ -185,7 +185,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
   }, [selectedClient, closeDrawer]);
 
   return (
-    <div className="view-root flex flex-col h-full w-full animate-fade-blur">
+    <div className="view-root flex-1 min-h-0 flex flex-col w-full animate-fade-blur">
       
       {/* MODERN HEADER */}
       <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 sm:py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 backdrop-blur-md sticky top-0 z-10">

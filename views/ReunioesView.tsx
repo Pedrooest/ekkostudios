@@ -82,7 +82,7 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
   };
 
   return (
-    <div className="view-root flex flex-col h-full w-full animate-fade-blur bg-zinc-50/10 dark:bg-zinc-950/20">
+    <div className="view-root flex-1 min-h-0 flex flex-col w-full animate-fade-blur bg-zinc-50/10 dark:bg-zinc-950/20">
       
       {/* HEADER */}
       <div className="flex items-center justify-between gap-3 px-4 sm:px-8 py-4 sm:py-6 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky top-0 z-20">

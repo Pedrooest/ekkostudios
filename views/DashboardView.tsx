@@ -213,7 +213,7 @@ export const DashboardView = React.memo(({ clients = [], tasks = [], financas = 
     const tooltipStyle = { borderRadius: '14px', border: 'none', boxShadow: '0 20px 40px -8px rgba(0,0,0,0.25)', background: isDark ? '#18181b' : '#fff', color: isDark ? '#f4f4f5' : '#111827', fontSize: '11px', fontWeight: 700, padding: '10px 16px' };
 
     return (
-        <div className="view-root p-5 sm:p-6 space-y-6 animate-fade-blur h-full overflow-y-auto custom-scrollbar bg-zinc-50 dark:bg-zinc-950">
+        <div className="view-root flex-1 min-h-0 p-5 sm:p-6 space-y-6 animate-fade-blur overflow-y-auto custom-scrollbar bg-zinc-50 dark:bg-zinc-950">
 
             {/* ══ HEADER ═══════════════════════════════════════════ */}
             <header className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 p-5 sm:p-7 shadow-2xl">

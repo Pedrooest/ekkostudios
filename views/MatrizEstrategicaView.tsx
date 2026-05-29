@@ -186,7 +186,7 @@ export function MatrizEstrategicaView({
   };
 
   return (
-    <div className="view-root p-4 sm:p-6 space-y-5 animate-fade-blur pb-20 sm:pb-6 h-full overflow-y-auto custom-scrollbar">
+    <div className="view-root flex-1 min-h-0 p-4 sm:p-6 space-y-5 animate-fade-blur pb-20 sm:pb-6 overflow-y-auto custom-scrollbar">
       <datalist id="dl-papel-estrategico">
         {OPCOES_PAPEL_ESTRATEGICO_MATRIZ.map(opt => <option key={opt} value={opt} />)}
       </datalist>
