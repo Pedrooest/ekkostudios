@@ -413,50 +413,45 @@ export default function App() {
       setRdc(prev => mergeItems(prev, data.rdc as ItemRdc[]));
       setPlanejamento(prev => mergeItems(prev, data.planning as ItemPlanejamento[]));
       setFinancas(prev => mergeItems(prev, data.financas as LancamentoFinancas[]));
-      // Merge server data first
+      // Merge server data
       setTasks(prev => mergeItems(prev, parsedTasks));
       setChecklists(prev => mergeItems(prev, parsedChecklists));
       setCollaborators(prev => mergeItems(prev, data.collaborators as Colaborador[]));
       setReunioes(prev => mergeItems(prev, (data.reunioes || []) as Reuniao[]));
       setLembretes(prev => mergeItems(prev, (data.lembretes || []) as Lembrete[]));
 
-      // localStorage task persistence — survives broken SELECT and page refresh
-      // Only remove a task from localStorage when we CONFIRM it appeared in parsedTasks
-      try {
-        const pendingKey = `ekko_pending_tasks_${wsId}`;
-        const pendingRaw = localStorage.getItem(pendingKey);
-        if (pendingRaw) {
-          const pendingTasks: any[] = JSON.parse(pendingRaw);
-          if (pendingTasks.length > 0) {
-            // Tasks confirmed in Supabase (appeared in parsedTasks) can be cleaned up
-            const confirmedIds = new Set(parsedTasks.map((t: any) => t.id));
-            const stillPending = pendingTasks.filter((t: any) => !confirmedIds.has(t.id));
-
-            if (stillPending.length === 0) {
-              localStorage.removeItem(pendingKey);
-            } else {
-              localStorage.setItem(pendingKey, JSON.stringify(stillPending));
-              // Add still-unconfirmed tasks to state (not yet in Supabase SELECT)
-              setTasks(prev => {
-                const merged = [...prev];
-                stillPending.forEach(item => {
-                  if (!merged.find((t: any) => t.id === item.id)) {
-                    merged.push({ ...item, __syncFailed: true } as any);
-                  }
-                });
-                return merged;
-              });
-              // Retry sync in background (don't clean localStorage here —
-              // only clean when SELECT confirms task next time)
-              stillPending.forEach(async (item: any) => {
+      // If server returned no tasks (SELECT broken/500), restore from localStorage snapshot
+      if (parsedTasks.length === 0) {
+        try {
+          const snap = localStorage.getItem(`ekko_tasks_snap_${wsId}`);
+          if (snap) {
+            const snapTasks = JSON.parse(snap);
+            if (snapTasks.length > 0) {
+              setTasks(snapTasks);
+              // Retry sync for each task in background
+              snapTasks.forEach(async (item: any) => {
                 await DatabaseService.syncItem('tasks', item, wsId);
               });
             }
           }
-        }
-      } catch (e) { /* non-critical */ }
+        } catch (e) { /* non-critical */ }
+      }
     }
   }, []);
+
+  // Auto-save tasks snapshot to localStorage on every change
+  // This is the safety net: if Supabase SELECT fails, tasks are restored from here
+  useEffect(() => {
+    if (!currentWorkspace?.id) return;
+    try {
+      const key = `ekko_tasks_snap_${currentWorkspace.id}`;
+      if (tasks.length > 0) {
+        localStorage.setItem(key, JSON.stringify(tasks));
+      } else {
+        // Don't overwrite snapshot with empty — only overwrite with real data
+      }
+    } catch (e) { /* storage full or private browsing */ }
+  }, [tasks, currentWorkspace?.id]);
 
   const generateAutoReminders = useCallback(async () => {
     if (!currentWorkspace || tasks.length === 0) return;
@@ -1202,18 +1197,6 @@ export default function App() {
 
       const tableName = getTableName(tab);
       if (tableName && currentWorkspace) {
-        // Write-ahead: save to localStorage BEFORE sync so task survives any failure or page close
-        const pendingKey = `ekko_pending_tasks_${currentWorkspace.id}`;
-        if (tab === 'TAREFAS') {
-          try {
-            const pending: any[] = JSON.parse(localStorage.getItem(pendingKey) || '[]');
-            if (!pending.find((t: any) => t.id === newItem.id)) {
-              pending.push(newItem);
-              localStorage.setItem(pendingKey, JSON.stringify(pending));
-            }
-          } catch (e) { /* non-critical */ }
-        }
-
         if (!navigator.onLine) {
            const queue = JSON.parse(localStorage.getItem('ekko_offline_queue') || '[]');
            queue.push({ action: 'CREATE', tableName, data: newItem, workspaceId: currentWorkspace.id });
@@ -1229,8 +1212,7 @@ export default function App() {
           const error = await DatabaseService.syncItem(tableName, newItem, currentWorkspace.id);
           if (error) throw error;
 
-          // INSERT succeeded but we keep localStorage until SELECT confirms (loadWorkspaceData cleanup)
-          // This protects against INSERT ok but SELECT broken (RLS issue)
+          
 
           if (tab === 'CLIENTES') addNotification('success', 'Cliente criado com sucesso', 'Um novo perfil de cliente foi adicionado.');
           else if (tab === 'TAREFAS') addNotification('success', 'Nova tarefa adicionada', 'A tarefa foi criada no fluxo de trabalho.');
@@ -1281,15 +1263,7 @@ export default function App() {
     if (tab === 'FINANCAS') setFinancas(prev => prev.filter(f => !ids.includes(f.id)));
     if (tab === 'TAREFAS') {
       setTasks(prev => prev.filter(t => !ids.includes(t.id)));
-      // Also remove from pending localStorage if deleted
-      try {
-        const pendingKey = `ekko_pending_tasks_${currentWorkspace?.id}`;
-        const pending: any[] = JSON.parse(localStorage.getItem(pendingKey) || '[]');
-        const updated = pending.filter((t: any) => !ids.includes(t.id));
-        if (updated.length === 0) localStorage.removeItem(pendingKey);
-        else localStorage.setItem(pendingKey, JSON.stringify(updated));
-      } catch (e) { /* non-critical */ }
-    }
+      
     if (tab === 'CHECKLISTS') setChecklists(prev => prev.filter(c => !ids.includes(c.id)));
     if (tab === 'REUNIOES') setReunioes(prev => prev.filter(r => !ids.includes(r.id)));
     if (tab === 'LEMBRETES') setLembretes(prev => prev.filter(l => !ids.includes(l.id)));
