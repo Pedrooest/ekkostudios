@@ -420,33 +420,38 @@ export default function App() {
       setReunioes(prev => mergeItems(prev, (data.reunioes || []) as Reuniao[]));
       setLembretes(prev => mergeItems(prev, (data.lembretes || []) as Lembrete[]));
 
-      // Restore sync-pending tasks from localStorage (survive page refresh)
+      // localStorage task persistence — survives broken SELECT and page refresh
+      // Only remove a task from localStorage when we CONFIRM it appeared in parsedTasks
       try {
         const pendingKey = `ekko_pending_tasks_${wsId}`;
         const pendingRaw = localStorage.getItem(pendingKey);
         if (pendingRaw) {
-          const pendingTasks: Tarefa[] = JSON.parse(pendingRaw);
+          const pendingTasks: any[] = JSON.parse(pendingRaw);
           if (pendingTasks.length > 0) {
-            setTasks(prev => {
-              const merged = [...prev];
-              pendingTasks.forEach(item => {
-                if (!merged.find((t: any) => t.id === item.id)) {
-                  merged.push({ ...item, __syncFailed: true } as any);
-                }
+            // Tasks confirmed in Supabase (appeared in parsedTasks) can be cleaned up
+            const confirmedIds = new Set(parsedTasks.map((t: any) => t.id));
+            const stillPending = pendingTasks.filter((t: any) => !confirmedIds.has(t.id));
+
+            if (stillPending.length === 0) {
+              localStorage.removeItem(pendingKey);
+            } else {
+              localStorage.setItem(pendingKey, JSON.stringify(stillPending));
+              // Add still-unconfirmed tasks to state (not yet in Supabase SELECT)
+              setTasks(prev => {
+                const merged = [...prev];
+                stillPending.forEach(item => {
+                  if (!merged.find((t: any) => t.id === item.id)) {
+                    merged.push({ ...item, __syncFailed: true } as any);
+                  }
+                });
+                return merged;
               });
-              return merged;
-            });
-            // Retry sync in background
-            pendingTasks.forEach(async (item: any) => {
-              const err = await DatabaseService.syncItem('tasks', item, wsId);
-              if (!err) {
-                const current: any[] = JSON.parse(localStorage.getItem(pendingKey) || '[]');
-                const updated = current.filter((t: any) => t.id !== item.id);
-                if (updated.length === 0) localStorage.removeItem(pendingKey);
-                else localStorage.setItem(pendingKey, JSON.stringify(updated));
-                setTasks(prev => prev.map((t: any) => t.id === item.id ? { ...t, __syncFailed: false } : t));
-              }
-            });
+              // Retry sync in background (don't clean localStorage here —
+              // only clean when SELECT confirms task next time)
+              stillPending.forEach(async (item: any) => {
+                await DatabaseService.syncItem('tasks', item, wsId);
+              });
+            }
           }
         }
       } catch (e) { /* non-critical */ }
@@ -1224,15 +1229,8 @@ export default function App() {
           const error = await DatabaseService.syncItem(tableName, newItem, currentWorkspace.id);
           if (error) throw error;
 
-          // Sync succeeded → remove from pending localStorage
-          if (tab === 'TAREFAS') {
-            try {
-              const pending: any[] = JSON.parse(localStorage.getItem(pendingKey) || '[]');
-              const updated = pending.filter((t: any) => t.id !== newItem.id);
-              if (updated.length === 0) localStorage.removeItem(pendingKey);
-              else localStorage.setItem(pendingKey, JSON.stringify(updated));
-            } catch (e) { /* non-critical */ }
-          }
+          // INSERT succeeded but we keep localStorage until SELECT confirms (loadWorkspaceData cleanup)
+          // This protects against INSERT ok but SELECT broken (RLS issue)
 
           if (tab === 'CLIENTES') addNotification('success', 'Cliente criado com sucesso', 'Um novo perfil de cliente foi adicionado.');
           else if (tab === 'TAREFAS') addNotification('success', 'Nova tarefa adicionada', 'A tarefa foi criada no fluxo de trabalho.');
