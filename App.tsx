@@ -1197,11 +1197,23 @@ export default function App() {
 
       const tableName = getTableName(tab);
       if (tableName && currentWorkspace) {
+        // Write-ahead: save to localStorage BEFORE sync so task survives any failure or page close
+        const pendingKey = `ekko_pending_tasks_${currentWorkspace.id}`;
+        if (tab === 'TAREFAS') {
+          try {
+            const pending: any[] = JSON.parse(localStorage.getItem(pendingKey) || '[]');
+            if (!pending.find((t: any) => t.id === newItem.id)) {
+              pending.push(newItem);
+              localStorage.setItem(pendingKey, JSON.stringify(pending));
+            }
+          } catch (e) { /* non-critical */ }
+        }
+
         if (!navigator.onLine) {
            const queue = JSON.parse(localStorage.getItem('ekko_offline_queue') || '[]');
            queue.push({ action: 'CREATE', tableName, data: newItem, workspaceId: currentWorkspace.id });
            localStorage.setItem('ekko_offline_queue', JSON.stringify(queue));
-           
+
            if (tab === 'CLIENTES') addNotification('info', 'Salvo Offline', 'Cliente adicionado localmente.');
            else if (tab === 'TAREFAS') addNotification('info', 'Salvo Offline', 'A tarefa foi criada localmente.');
            else addNotification('info', 'Salvo Offline', `Novo item salvo offline.`);
@@ -1211,34 +1223,34 @@ export default function App() {
         try {
           const error = await DatabaseService.syncItem(tableName, newItem, currentWorkspace.id);
           if (error) throw error;
-          
+
+          // Sync succeeded → remove from pending localStorage
+          if (tab === 'TAREFAS') {
+            try {
+              const pending: any[] = JSON.parse(localStorage.getItem(pendingKey) || '[]');
+              const updated = pending.filter((t: any) => t.id !== newItem.id);
+              if (updated.length === 0) localStorage.removeItem(pendingKey);
+              else localStorage.setItem(pendingKey, JSON.stringify(updated));
+            } catch (e) { /* non-critical */ }
+          }
+
           if (tab === 'CLIENTES') addNotification('success', 'Cliente criado com sucesso', 'Um novo perfil de cliente foi adicionado.');
           else if (tab === 'TAREFAS') addNotification('success', 'Nova tarefa adicionada', 'A tarefa foi criada no fluxo de trabalho.');
           else addNotification('success', 'Item Criado', `Novo item adicionado em ${TABLE_LABELS[tab]}.`);
         } catch (error: any) {
           console.error(`[EKKO-SYNC] CREATE_FAILURE | Table: ${tableName} | ID: ${id} | Error:`, error);
-          // Mark as sync-failed but KEEP in local state so user doesn't lose work
+          // Mark as sync-failed but KEEP in local state (already in localStorage via write-ahead)
           const markFailed = (prev: any[]) => prev.map((i: any) => i.id === id ? { ...i, __syncFailed: true } : i);
           if (tab === 'CLIENTES') setClients(markFailed);
           else if (tab === 'FINANCAS') setFinancas(markFailed);
           else if (tab === 'PLANEJAMENTO') setPlanejamento(markFailed);
-          else if (tab === 'TAREFAS') {
-            setTasks(markFailed);
-            // Persist to localStorage so task survives page refresh
-            try {
-              const pendingKey = `ekko_pending_tasks_${currentWorkspace.id}`;
-              const pending: any[] = JSON.parse(localStorage.getItem(pendingKey) || '[]');
-              if (!pending.find((t: any) => t.id === newItem.id)) {
-                pending.push(newItem);
-                localStorage.setItem(pendingKey, JSON.stringify(pending));
-              }
-            } catch (e) { /* non-critical */ }
-          }
+          else if (tab === 'TAREFAS') setTasks(markFailed);
           else if (tab === 'CHECKLISTS') setChecklists(markFailed as any);
           else if (tab === 'COBO') setCobo(markFailed);
           else if (tab === 'MATRIZ') setMatriz(markFailed);
           else if (tab === 'RDC') setRdc(markFailed);
-          addNotification('error', 'Erro ao sincronizar', `Tarefa salva localmente — será sincronizada quando a conexão for restaurada.`);
+          if (tab === 'TAREFAS') addNotification('error', 'Erro ao sincronizar', `Tarefa salva localmente com ⚠ — será re-tentada automaticamente.`);
+          else addNotification('error', 'Erro ao sincronizar', `Item salvo localmente, mas falhou no servidor.`);
         }
       }
     }
