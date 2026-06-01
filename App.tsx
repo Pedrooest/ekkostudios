@@ -1263,7 +1263,7 @@ export default function App() {
     if (tab === 'FINANCAS') setFinancas(prev => prev.filter(f => !ids.includes(f.id)));
     if (tab === 'TAREFAS') {
       setTasks(prev => prev.filter(t => !ids.includes(t.id)));
-      
+    }
     if (tab === 'CHECKLISTS') setChecklists(prev => prev.filter(c => !ids.includes(c.id)));
     if (tab === 'REUNIOES') setReunioes(prev => prev.filter(r => !ids.includes(r.id)));
     if (tab === 'LEMBRETES') setLembretes(prev => prev.filter(l => !ids.includes(l.id)));
