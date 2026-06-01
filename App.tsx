@@ -353,10 +353,17 @@ export default function App() {
           return stillExists || list[0];
         });
       }
-    } catch (error) {
+    } catch (error: any) {
+      // AbortError = network interruption or component unmount — DON'T wipe workspaces
+      // Retry automatically after 2 seconds
+      if (error?.name === 'AbortError' || error?.message?.includes('aborted')) {
+        console.warn('[refreshWorkspaces] Request aborted, retrying in 2s...');
+        setWorkspaceLoading(false);
+        setTimeout(() => refreshWorkspaces(), 2000);
+        return;
+      }
       console.error('Failed to refresh workspaces:', error);
-      // If we are stuck in loading, maybe try one last time or show error
-      setWorkspaces([]);
+      // Don't clear workspaces — keep whatever state we had
     } finally {
       setWorkspaceLoading(false);
     }
