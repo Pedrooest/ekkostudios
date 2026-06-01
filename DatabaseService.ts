@@ -476,18 +476,11 @@ export const DatabaseService = {
         const TABLES_WITHOUT_ARCHIVED_INDEX = ['tasks'];
 
         if (TABLES_WITHOUT_ARCHIVED_INDEX.includes(table)) {
-            // Use explicit columns to avoid fetching large unused columns (e.g. 'Activities')
-            // that inflate the response and can trigger statement timeouts.
-            const TASKS_COLUMNS = [
-                'id','workspace_id','Task_ID','Cliente_ID','Título','Descrição',
-                'Área','Status','Prioridade','Responsável','Data_Entrega','Hora_Entrega',
-                'Checklist','Anexos','Comentarios','Atividades','Criado_Em','updated_at',
-                'Tempo_Gasto_H','Tags','Estimativa_H','Relacionado_A','Relacionado_ID',
-                'Relacionado_Conteudo','__archived','created_at','created_by','updated_by'
-            ].join(',');
+            // Fetch without __archived filter — index will make this fast once created.
+            // See: CREATE INDEX tasks_workspace_id_idx ON tasks (workspace_id);
             const { data, error } = await supabase
                 .from(table)
-                .select(TASKS_COLUMNS)
+                .select('*')
                 .eq('workspace_id', workspaceId);
             if (error) return [];
             return mapToFrontend(data, table);
