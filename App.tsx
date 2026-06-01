@@ -382,7 +382,7 @@ export default function App() {
         return [];
       };
 
-      const parsedClients = (data.clients as Cliente[]).map(c => ({
+      const parsedClients = ((data.clients || []) as Cliente[]).map(c => ({
         ...c,
         links: safeParseArray(c.links),
         log_comunicacao: safeParseArray(c.log_comunicacao),
@@ -392,7 +392,7 @@ export default function App() {
         metas: safeParseArray(c.metas),
       }));
 
-      const parsedTasks = (data.tasks as Tarefa[]).map(t => ({
+      const parsedTasks = ((data.tasks || []) as Tarefa[]).map(t => ({
         ...t,
         Checklist: safeParseArray(t.Checklist),
         Anexos: safeParseArray(t.Anexos),
@@ -400,7 +400,7 @@ export default function App() {
         Atividades: safeParseArray(t.Atividades)
       }));
 
-      const parsedChecklists = (data.checklists as ChecklistShoot[]).map(c => ({
+      const parsedChecklists = ((data.checklists || []) as ChecklistShoot[]).map(c => ({
         ...c,
         itens_levar: safeParseArray(c.itens_levar),
         itens_trazer: safeParseArray(c.itens_trazer),

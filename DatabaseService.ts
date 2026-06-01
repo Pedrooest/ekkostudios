@@ -493,7 +493,7 @@ export const DatabaseService = {
             .eq('workspace_id', workspaceId)
             .or('__archived.is.null,__archived.eq.false');
 
-        if (!error) return mapToFrontend(data, table);
+        if (!error) return Array.isArray(data) ? mapToFrontend(data, table) : [];
 
         // If the __archived filter causes a 500, retry without it
         console.warn(`[fetchData] __archived filter failed for '${table}', retrying without it. Error:`, error.message);
@@ -506,7 +506,7 @@ export const DatabaseService = {
             console.error(`[fetchData] Failed to fetch '${table}':`, error2.message);
             return [];
         }
-        return mapToFrontend(data2, table);
+        return Array.isArray(data2) ? mapToFrontend(data2, table) : [];
     },
 
     async syncItem(tableInput: string, item: any, workspaceId: string) {
