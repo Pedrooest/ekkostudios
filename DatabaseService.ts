@@ -469,7 +469,7 @@ export const DatabaseService = {
         return true;
     },
 
-    // DATA SYNC GENERIC
+    // DATA SYNC GENERIC — v2 (2026-06-01)
     async fetchData(table: string, workspaceId: string) {
         // The tasks table has no index on __archived — the OR filter causes a statement
         // timeout (HTTP 500). Skip the filter entirely and let filterArchived() handle it.
