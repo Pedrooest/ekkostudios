@@ -471,7 +471,20 @@ export const DatabaseService = {
 
     // DATA SYNC GENERIC
     async fetchData(table: string, workspaceId: string) {
-        // Try with archived filter first
+        // The tasks table has no index on __archived — the OR filter causes a statement
+        // timeout (HTTP 500). Skip the filter entirely and let filterArchived() handle it.
+        const TABLES_WITHOUT_ARCHIVED_INDEX = ['tasks'];
+
+        if (TABLES_WITHOUT_ARCHIVED_INDEX.includes(table)) {
+            const { data, error } = await supabase
+                .from(table)
+                .select('*')
+                .eq('workspace_id', workspaceId);
+            if (error) return [];
+            return mapToFrontend(data, table);
+        }
+
+        // For all other tables, try with the __archived filter first
         const { data, error } = await supabase
             .from(table)
             .select('*')
@@ -480,8 +493,7 @@ export const DatabaseService = {
 
         if (!error) return mapToFrontend(data, table);
 
-        // If the __archived filter causes a 500 (column may not exist in this table),
-        // retry without it — the app's filterArchived() handles this on the frontend
+        // If the __archived filter causes a 500, retry without it
         console.warn(`[fetchData] __archived filter failed for '${table}', retrying without it. Error:`, error.message);
         const { data: data2, error: error2 } = await supabase
             .from(table)
