@@ -476,20 +476,24 @@ export const DatabaseService = {
         const TABLES_WITHOUT_ARCHIVED_INDEX = ['tasks'];
 
         if (TABLES_WITHOUT_ARCHIVED_INDEX.includes(table)) {
-            const { data, error } = await supabase
-                .from(table)
-                .select('*')
-                .eq('workspace_id', workspaceId);
-            console.log(`[fetchData:${table}] rows=${Array.isArray(data) ? data.length : 'null'} error=${error?.message || 'none'}`);
-            if (error) {
-                console.error(`[fetchData:${table}] error:`, error);
-                return [];
+            // Fetch tasks without heavy JSONB fields (Anexos can store base64 images = huge)
+            // Anexos are loaded individually when a task is opened
+            const TASKS_COLS = 'id,workspace_id,"Task_ID","Cliente_ID","Título","Descrição","Área","Status","Prioridade","Responsável","Data_Entrega","Hora_Entrega","Tags","Estimativa_H","Tempo_Gasto_H","Relacionado_A","Relacionado_ID","Relacionado_Conteudo","Checklist","Atividades","Comentarios",__archived,created_at,updated_at,created_by,updated_by';
+            const allRows: any[] = [];
+            const PAGE = 50;
+            for (let offset = 0; offset < 500; offset += PAGE) {
+                const { data, error } = await supabase
+                    .from(table)
+                    .select(TASKS_COLS)
+                    .eq('workspace_id', workspaceId)
+                    .range(offset, offset + PAGE - 1);
+                if (error) { console.error(`[fetchData:${table}] page error:`, error.message); break; }
+                if (!data || data.length === 0) break;
+                allRows.push(...data);
+                if (data.length < PAGE) break;
             }
-            if (!Array.isArray(data)) {
-                console.warn(`[fetchData:${table}] data is not array:`, data);
-                return [];
-            }
-            return mapToFrontend(data, table);
+            console.log(`[fetchData:${table}] total rows=${allRows.length}`);
+            return mapToFrontend(allRows, table);
         }
 
         // For all other tables, try with the __archived filter first
