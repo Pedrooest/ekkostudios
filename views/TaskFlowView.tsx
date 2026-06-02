@@ -467,12 +467,12 @@ export function TaskFlowView({
                 </div>
             </div>
 
-            {/* MAIN CONTENT AREA */}
-            <div className="flex-1 overflow-hidden p-4 sm:p-6 bg-zinc-50 dark:bg-zinc-950 flex flex-col min-h-0">
+            {/* MAIN CONTENT AREA — relative so children can use absolute inset */}
+            <div className="flex-1 min-h-0 relative bg-zinc-50 dark:bg-zinc-950">
 
                 {viewType === 'Board' && (
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-                        <div className="flex gap-4 h-full overflow-x-auto pb-4 custom-scrollbar-horizontal">
+                        <div className="absolute inset-4 sm:inset-6 flex gap-4 overflow-x-auto pb-4 custom-scrollbar-horizontal">
                             {DEFAULT_TASK_STATUSES.map(status => {
                                 const columnTasks = filteredTasks.filter(t => t.Status === status.id);
                                 const overdueCount = columnTasks.filter(t => t.Data_Entrega && new Date(t.Data_Entrega) < new Date(new Date().setHours(0,0,0,0))).length;
@@ -551,7 +551,7 @@ export function TaskFlowView({
                 )}
 
                 {viewType === 'List' && (
-                    <div className="flex-1 min-h-0 overflow-hidden flex flex-col bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[20px] shadow-sm relative">
+                    <div className="absolute inset-4 sm:inset-6 overflow-hidden flex flex-col bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[20px] shadow-sm">
                         {/* Header */}
                         <div className="table-responsive overflow-hidden shrink-0 pr-[8px]">
                             <table className="w-full text-left border-collapse table-fixed min-w-[700px]">
@@ -685,7 +685,7 @@ export function TaskFlowView({
                 )}
 
                 {viewType === 'Calendar' && (
-                    <div className="flex-1 min-h-0 flex flex-col overflow-hidden relative">
+                    <div className="absolute inset-4 sm:inset-6 flex flex-col overflow-hidden">
                         {/* CALENDAR HEADER */}
                         <div className="flex items-center justify-between mb-4 shrink-0">
                             <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-2 rounded-xl shadow-sm">
