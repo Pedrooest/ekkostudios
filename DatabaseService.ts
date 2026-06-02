@@ -476,13 +476,19 @@ export const DatabaseService = {
         const TABLES_WITHOUT_ARCHIVED_INDEX = ['tasks'];
 
         if (TABLES_WITHOUT_ARCHIVED_INDEX.includes(table)) {
-            // Fetch without __archived filter — index will make this fast once created.
-            // See: CREATE INDEX tasks_workspace_id_idx ON tasks (workspace_id);
             const { data, error } = await supabase
                 .from(table)
                 .select('*')
                 .eq('workspace_id', workspaceId);
-            if (error) return [];
+            console.log(`[fetchData:${table}] rows=${Array.isArray(data) ? data.length : 'null'} error=${error?.message || 'none'}`);
+            if (error) {
+                console.error(`[fetchData:${table}] error:`, error);
+                return [];
+            }
+            if (!Array.isArray(data)) {
+                console.warn(`[fetchData:${table}] data is not array:`, data);
+                return [];
+            }
             return mapToFrontend(data, table);
         }
 
