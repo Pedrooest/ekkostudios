@@ -428,16 +428,21 @@ export default function App() {
       setLembretes(prev => mergeItems(prev, (data.lembretes || []) as Lembrete[]));
 
       // If server returned no tasks (SELECT broken/500), restore from localStorage snapshot
+      // NOTE: do NOT retry sync here — it would corrupt workspace_id on tasks
       if (parsedTasks.length === 0) {
         try {
           const snap = localStorage.getItem(`ekko_tasks_snap_${wsId}`);
           if (snap) {
             const snapTasks = JSON.parse(snap);
-            if (snapTasks.length > 0) {
-              setTasks(snapTasks);
-              // Retry sync for each task in background
-              snapTasks.forEach(async (item: any) => {
-                await DatabaseService.syncItem('tasks', item, wsId);
+            // Only restore tasks that belong to THIS workspace
+            const matching = snapTasks.filter((t: any) => t.workspace_id === wsId);
+            if (matching.length > 0) {
+              setTasks(prev => {
+                const merged = [...prev];
+                matching.forEach((item: any) => {
+                  if (!merged.find((t: any) => t.id === item.id)) merged.push(item);
+                });
+                return merged;
               });
             }
           }
