@@ -391,7 +391,7 @@ export function TaskFlowView({
     }, []);
 
     return (
-        <div className="view-root flex-1 min-h-0 flex flex-col bg-white dark:bg-zinc-950 overflow-hidden animate-fade-blur">
+        <div className="view-root flex-1 min-h-0 flex flex-col bg-white dark:bg-zinc-950 overflow-hidden">
             {/* HEADER */}
             <div className="shrink-0 flex items-center justify-between flex-wrap gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md sticky top-0 z-10">
                 {/* Left: title + client filter (unified) */}
@@ -584,7 +584,7 @@ export function TaskFlowView({
                             </table>
                         </div>
                         {/* Body */}
-                        <div className="flex-1 min-h-0 overflow-y-scroll overflow-x-auto custom-scrollbar" style={{ scrollbarGutter: 'stable' }}>
+                        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-auto custom-scrollbar">
                             <table className="w-full text-left border-collapse table-fixed min-w-[700px]">
                                 <tbody className="divide-y divide-zinc-100/80 dark:divide-zinc-800/40">
                                     {filteredTasks.map((Tarefa, idx) => {
