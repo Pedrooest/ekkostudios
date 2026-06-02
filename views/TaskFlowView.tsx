@@ -584,7 +584,7 @@ export function TaskFlowView({
                             </table>
                         </div>
                         {/* Body */}
-                        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-auto custom-scrollbar">
+                        <div className="flex-1 min-h-0 overflow-y-scroll overflow-x-auto custom-scrollbar" style={{ scrollbarGutter: 'stable' }}>
                             <table className="w-full text-left border-collapse table-fixed min-w-[700px]">
                                 <tbody className="divide-y divide-zinc-100/80 dark:divide-zinc-800/40">
                                     {filteredTasks.map((Tarefa, idx) => {
