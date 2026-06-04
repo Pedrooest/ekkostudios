@@ -11,6 +11,10 @@ import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
     ResponsiveContainer, BarChart, Bar, ComposedChart, Line
 } from 'recharts';
+import { useCountUp } from '../utils/useCountUp';
+
+// BRL currency formatter (shared) — no decimals for KPI display
+const fmtBRL = (n: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(n);
 
 interface DashboardViewProps {
     clients: any[];
@@ -36,8 +40,15 @@ const LiveClock = () => {
     );
 };
 
+// ─── Animated number (count-up) — Financial Dashboard best practice ──
+const AnimatedValue = ({ value, format }: { value: number; format?: (n: number) => string }) => {
+    const animated = useCountUp(value);
+    const rounded = format ? animated : Math.round(animated);
+    return <>{format ? format(animated) : rounded.toLocaleString('pt-BR')}</>;
+};
+
 // ─── KPI Card ────────────────────────────────────────────────
-const KpiCard = React.memo(({ label, value, sub, icon: Icon, gradient, trend, onClick, badge }: any) => (
+const KpiCard = React.memo(({ label, value, rawValue, format, sub, icon: Icon, gradient, trend, onClick, badge }: any) => (
     <button
         onClick={onClick}
         className="group relative w-full text-left overflow-hidden rounded-[22px] bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] transition-all duration-300 cursor-pointer"
@@ -64,7 +75,9 @@ const KpiCard = React.memo(({ label, value, sub, icon: Icon, gradient, trend, on
         </div>
         <div className="relative">
             <p className="text-[8px] font-black text-zinc-400 uppercase tracking-[0.18em] mb-1 truncate">{label}</p>
-            <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tabular-nums leading-tight tracking-tight">{value}</p>
+            <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tabular-nums leading-tight tracking-tight">
+                {rawValue !== undefined ? <AnimatedValue value={rawValue} format={format} /> : value}
+            </p>
             {sub && <p className="text-[9px] font-bold text-zinc-400 mt-1 truncate">{sub}</p>}
         </div>
     </button>
@@ -273,18 +286,18 @@ export const DashboardView = React.memo(({ clients = [], tasks = [], financas = 
             <div className="space-y-4">
                 <SectionLabel>Operacional</SectionLabel>
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 stagger">
-                    <KpiCard label="Clientes Ativos"       value={operationalStats.activeClients}      icon={Users}        gradient="bg-gradient-to-br from-blue-500 to-indigo-600"     badge="Base ativa"     onClick={() => setActiveTab('CLIENTES')} />
-                    <KpiCard label="Tarefas Pendentes"     value={operationalStats.pendingTasks}       icon={ListChecks}   gradient="bg-gradient-to-br from-amber-500 to-orange-600"    badge="Em aberto"      onClick={() => setActiveTab('TAREFAS')} />
-                    <KpiCard label="Concluídas no Mês"     value={operationalStats.completedThisMonth} icon={CheckCircle2} gradient="bg-gradient-to-br from-emerald-500 to-teal-600"   badge="este mês"       onClick={() => setActiveTab('TAREFAS')} />
-                    <KpiCard label="Posts Publicados"      value={operationalStats.publishedThisMonth} icon={Layers}       gradient="bg-gradient-to-br from-indigo-500 to-purple-600"   badge="este mês"       onClick={() => setActiveTab('PLANEJAMENTO')} />
+                    <KpiCard label="Clientes Ativos"       rawValue={operationalStats.activeClients}      icon={Users}        gradient="bg-gradient-to-br from-blue-500 to-indigo-600"     badge="Base ativa"     onClick={() => setActiveTab('CLIENTES')} />
+                    <KpiCard label="Tarefas Pendentes"     rawValue={operationalStats.pendingTasks}       icon={ListChecks}   gradient="bg-gradient-to-br from-amber-500 to-orange-600"    badge="Em aberto"      onClick={() => setActiveTab('TAREFAS')} />
+                    <KpiCard label="Concluídas no Mês"     rawValue={operationalStats.completedThisMonth} icon={CheckCircle2} gradient="bg-gradient-to-br from-emerald-500 to-teal-600"   badge="este mês"       onClick={() => setActiveTab('TAREFAS')} />
+                    <KpiCard label="Posts Publicados"      rawValue={operationalStats.publishedThisMonth} icon={Layers}       gradient="bg-gradient-to-br from-indigo-500 to-purple-600"   badge="este mês"       onClick={() => setActiveTab('PLANEJAMENTO')} />
                 </div>
 
                 <SectionLabel>Financeiro</SectionLabel>
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 stagger">
-                    <KpiCard label="Receita do Mês"   value={financialStats.revenue.fmt}  icon={TrendingUp}   gradient="bg-gradient-to-br from-emerald-500 to-teal-600"  trend={financialStats.revenue.trend}  onClick={() => setActiveTab('FINANCAS')} />
-                    <KpiCard label="Despesas do Mês"  value={financialStats.expenses.fmt} icon={TrendingDown} gradient="bg-gradient-to-br from-rose-500 to-pink-600"      trend={financialStats.expenses.trend} onClick={() => setActiveTab('FINANCAS')} />
-                    <KpiCard label="Lucro Líquido"    value={financialStats.profit.fmt}   icon={Wallet}       gradient={financialStats.profit.val >= 0 ? "bg-gradient-to-br from-blue-500 to-indigo-600" : "bg-gradient-to-br from-rose-600 to-pink-600"} trend={financialStats.profit.trend} onClick={() => setActiveTab('FINANCAS')} />
-                    <KpiCard label="MRR Operacional"  value={financialStats.mrr.fmt}      icon={Target}       gradient="bg-gradient-to-br from-violet-500 to-purple-600"  sub="Receita recorrente mensal"       onClick={() => setActiveTab('CLIENTES')} />
+                    <KpiCard label="Receita do Mês"   rawValue={financialStats.revenue.val}  format={fmtBRL} icon={TrendingUp}   gradient="bg-gradient-to-br from-emerald-500 to-teal-600"  trend={financialStats.revenue.trend}  onClick={() => setActiveTab('FINANCAS')} />
+                    <KpiCard label="Despesas do Mês"  rawValue={financialStats.expenses.val} format={fmtBRL} icon={TrendingDown} gradient="bg-gradient-to-br from-rose-500 to-pink-600"      trend={financialStats.expenses.trend} onClick={() => setActiveTab('FINANCAS')} />
+                    <KpiCard label="Lucro Líquido"    rawValue={financialStats.profit.val}   format={fmtBRL} icon={Wallet}       gradient={financialStats.profit.val >= 0 ? "bg-gradient-to-br from-blue-500 to-indigo-600" : "bg-gradient-to-br from-rose-600 to-pink-600"} trend={financialStats.profit.trend} onClick={() => setActiveTab('FINANCAS')} />
+                    <KpiCard label="MRR Operacional"  rawValue={financialStats.mrr.val}      format={fmtBRL} icon={Target}       gradient="bg-gradient-to-br from-violet-500 to-purple-600"  sub="Receita recorrente mensal"       onClick={() => setActiveTab('CLIENTES')} />
                 </div>
             </div>
 

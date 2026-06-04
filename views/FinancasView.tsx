@@ -23,6 +23,7 @@ import { ChevronLeft } from 'lucide-react';
 import { StatCard, Badge, Button, InputSelect, Card, PSelectPortal, DatePickerPortal } from '../Components';
 import { generateId } from '../utils/id';
 import { DatabaseService } from '../DatabaseService';
+import { useCountUp } from '../utils/useCountUp';
 
 // ==========================================
 // UTILS
@@ -33,6 +34,12 @@ const tryPlaySound = (type: string) => {
 
 const formatBRL = (value: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+};
+
+// Animated BRL value — count-up for the cash-position hero (Financial Dashboard pattern)
+const AnimatedBRL = ({ value }: { value: number }) => {
+    const animated = useCountUp(value, 1000);
+    return <>{formatBRL(animated)}</>;
 };
 
 const parseNumericValue = (val: string | number): number => {
@@ -1288,7 +1295,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                         </div>
                                     </div>
                                     <p className={`text-5xl font-black tabular-nums tracking-tight mb-2 ${cashPosition >= 0 ? 'text-white' : 'text-rose-400'}`}>
-                                        {formatBRL(cashPosition)}
+                                        <AnimatedBRL value={cashPosition} />
                                     </p>
                                     <div className="flex flex-wrap items-center gap-4 mt-4 pt-4 border-t border-white/8">
                                         <div>
