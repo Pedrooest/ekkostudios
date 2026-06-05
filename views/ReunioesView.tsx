@@ -260,7 +260,7 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5">
           <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-md animate-fade" onClick={() => setIsEditModalOpen(false)} />
 
-          <div className="relative bg-white dark:bg-zinc-900 w-full max-w-4xl max-h-[92vh] rounded-[28px] overflow-hidden shadow-2xl flex flex-col border border-zinc-200 dark:border-white/10 animate-bounce-in">
+          <div className="relative bg-white/97 dark:bg-zinc-900/95 backdrop-blur-2xl w-full max-w-4xl max-h-[92vh] rounded-[28px] overflow-hidden shadow-2xl shadow-black/40 flex flex-col border border-zinc-200 dark:border-white/[0.08] animate-bounce-in">
 
             {/* ── HEADER ── */}
             <div className="px-6 py-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between sticky top-0 bg-white dark:bg-zinc-900 z-10 gap-4">

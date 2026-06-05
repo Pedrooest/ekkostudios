@@ -430,7 +430,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
         <div className="fixed inset-0 z-[2200] flex justify-end pointer-events-auto overflow-hidden">
           <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm animate-fade-blur" onClick={closeDrawer}></div>
 
-          <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 h-full shadow-2xl flex flex-col animate-slide-in-right ring-1 ring-zinc-100/50 dark:ring-zinc-800 rounded-l-3xl overflow-hidden">
+          <div className="relative w-full max-w-md bg-white/97 dark:bg-zinc-950/92 backdrop-blur-2xl h-full shadow-2xl shadow-black/30 flex flex-col animate-slide-in-right ring-1 ring-zinc-100/50 dark:ring-white/[0.06] rounded-l-3xl overflow-hidden">
             {/* Cover + Avatar header */}
             <div className="relative shrink-0">
               {/* Cover — clicável */}

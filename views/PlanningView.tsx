@@ -531,7 +531,7 @@ export function PlanningView({
 
                         {/* Panel */}
                         <div
-                            className="relative w-full sm:w-[480px] bg-white dark:bg-[#0f0f11] shadow-2xl flex flex-col h-full overflow-hidden"
+                            className="relative w-full sm:w-[480px] bg-white/95 dark:bg-zinc-950/90 backdrop-blur-2xl shadow-2xl shadow-black/30 flex flex-col h-full overflow-hidden border-l border-zinc-100 dark:border-white/[0.06]"
                             style={{ animation: 'slideInRight 0.32s cubic-bezier(0.32,0.72,0,1)' }}
                         >
                             {/* Color accent top bar */}
@@ -794,7 +794,7 @@ export function PlanningView({
                             </div>
 
                             {/* Footer */}
-                            <div className="shrink-0 border-t border-zinc-100 dark:border-zinc-800/80 bg-white dark:bg-[#0f0f11]">
+                            <div className="shrink-0 border-t border-zinc-100 dark:border-zinc-800/80 bg-white/95 dark:bg-zinc-950/90 backdrop-blur-xl">
                                 {/* Action buttons row */}
                                 <div className="flex items-center gap-2 px-6 pt-4 pb-2">
                                     <button

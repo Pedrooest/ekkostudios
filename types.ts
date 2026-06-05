@@ -352,6 +352,8 @@ export interface NotificacaoApp {
   lida: boolean;
   actionUrl?: string;
   metadados?: any;
+  /** Error recovery action (ui-ux-pro-max: provide next step on errors) */
+  action?: { label: string; onClick: () => void };
 }
 
 export interface PerfilUsuario {

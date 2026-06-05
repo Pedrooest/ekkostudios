@@ -908,8 +908,16 @@ export default function App() {
   // Deduplication: track which notification keys already fired this session
   const shownNotifKeys = useRef<Set<string>>(new Set());
 
-  const addNotification = useCallback((tipo: NotificacaoApp['tipo'], titulo: string, mensagem: string, dedupKey?: string) => {
-    // If a dedupKey is provided, skip if already shown this session
+  const addNotification = useCallback((
+    tipo: NotificacaoApp['tipo'],
+    titulo: string,
+    mensagem: string,
+    dedupKeyOrAction?: string | { label: string; onClick: () => void },
+    action?: { label: string; onClick: () => void }
+  ) => {
+    const dedupKey = typeof dedupKeyOrAction === 'string' ? dedupKeyOrAction : undefined;
+    const resolvedAction = typeof dedupKeyOrAction === 'object' ? dedupKeyOrAction : action;
+
     if (dedupKey) {
       if (shownNotifKeys.current.has(dedupKey)) return;
       shownNotifKeys.current.add(dedupKey);
@@ -920,12 +928,14 @@ export default function App() {
       titulo,
       mensagem,
       timestamp: new Date().toISOString(),
-      lida: false
+      lida: false,
+      ...(resolvedAction && { action: resolvedAction })
     };
     setNotificacoes(prev => [newNotif, ...prev].slice(0, 50));
-    // Show as toast too
     setToasts(prev => [newNotif, ...prev].slice(0, 3));
-    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== newNotif.id)), 4000);
+    // Error toasts with action stay longer (6s) so user can click
+    const duration = tipo === 'error' && resolvedAction ? 6000 : 4000;
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== newNotif.id)), duration);
   }, []);
 
   useEffect(() => {
@@ -1104,7 +1114,7 @@ export default function App() {
         if (error) {
           console.error(`[EKKO-SYNC] UPDATE_FAILURE | Table: ${tableName} | ID: ${id}`, error);
           setSavingStatus(prev => ({ ...prev, [key]: 'error' }));
-          addNotification('error', 'Falha ao salvar', `Erro: ${error.message || JSON.stringify(error) || 'Não foi possível sincronizar as alterações.'}`);
+          addNotification('error', 'Falha ao salvar', `${error.message || 'Não foi possível sincronizar.'}`, { label: 'Tentar novamente', onClick: () => currentWorkspace && loadWorkspaceData(currentWorkspace.id) });
           // Reverte o snapshot anterior caso o backend falhe
           if (tab === 'CLIENTES') setClients(revertFn);
           else if (tab === 'RDC') setRdc(revertFn);
@@ -1241,8 +1251,8 @@ export default function App() {
           else if (tab === 'COBO') setCobo(markFailed);
           else if (tab === 'MATRIZ') setMatriz(markFailed);
           else if (tab === 'RDC') setRdc(markFailed);
-          if (tab === 'TAREFAS') addNotification('error', 'Erro ao sincronizar', `Tarefa salva localmente com ⚠ — será re-tentada automaticamente.`);
-          else addNotification('error', 'Erro ao sincronizar', `Item salvo localmente, mas falhou no servidor.`);
+          if (tab === 'TAREFAS') addNotification('error', 'Erro ao sincronizar', `Tarefa salva localmente — clique para tentar novamente.`, { label: 'Tentar novamente', onClick: () => currentWorkspace && loadWorkspaceData(currentWorkspace.id) });
+          else addNotification('error', 'Erro ao sincronizar', `Item salvo localmente, mas falhou no servidor.`, { label: 'Recarregar', onClick: () => currentWorkspace && loadWorkspaceData(currentWorkspace.id) });
         }
       }
     }

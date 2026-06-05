@@ -85,6 +85,19 @@ export const NotificationToast: React.FC<Props> = ({ notification, onClose }) =>
                             {notification.mensagem}
                         </p>
                     )}
+                    {/* Error recovery action (ui-ux-pro-max: provide next step) */}
+                    {notification.action && (
+                        <button
+                            onClick={() => { notification.action!.onClick(); handleClose(); }}
+                            className={`mt-2 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg transition-all active:scale-95 ${
+                                notification.tipo === 'error'
+                                    ? 'bg-rose-500/20 text-rose-300 hover:bg-rose-500/30'
+                                    : 'bg-white/10 text-zinc-200 hover:bg-white/20'
+                            }`}
+                        >
+                            {notification.action.label}
+                        </button>
+                    )}
                 </div>
 
                 <button

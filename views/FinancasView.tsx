@@ -2248,7 +2248,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
             {isModalOpen && ReactDOM.createPortal(
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-zinc-950/75 backdrop-blur-lg animate-fade-blur" onClick={() => setIsModalOpen(false)} />
-                    <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-[32px] shadow-2xl shadow-zinc-900/20 flex flex-col overflow-hidden animate-zoom-in max-h-[92vh]">
+                    <div className="relative w-full max-w-2xl bg-white/97 dark:bg-zinc-900/95 backdrop-blur-2xl border border-zinc-200/80 dark:border-white/[0.07] rounded-[32px] shadow-2xl shadow-zinc-900/40 flex flex-col overflow-hidden animate-zoom-in max-h-[92vh]">
 
                         {/* Modal header */}
                         <div className="relative overflow-hidden px-8 py-6 border-b border-zinc-100 dark:border-zinc-800">
@@ -2381,7 +2381,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
             {isWithdrawalModalOpen && ReactDOM.createPortal(
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6">
                     <div className="absolute inset-0 bg-zinc-950/70 backdrop-blur-sm animate-fade-blur" onClick={() => setIsWithdrawalModalOpen(false)} />
-                    <div className="relative w-full max-w-[420px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[28px] shadow-2xl animate-fade-up">
+                    <div className="relative w-full max-w-[420px] bg-white/97 dark:bg-zinc-900/95 backdrop-blur-2xl border border-zinc-200 dark:border-white/[0.07] rounded-[28px] shadow-2xl shadow-black/30 animate-fade-up">
 
                         {/* Header */}
                         <div className="flex items-center justify-between px-7 pt-6 pb-5 border-b border-zinc-100 dark:border-zinc-800">
