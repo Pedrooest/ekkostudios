@@ -278,6 +278,12 @@ export function TaskFlowView({
     const [globalSearch, setGlobalSearch] = useState('');
     const [sortField, setSortField] = useState<string>('Data_Entrega');
     const [sortDesc, setSortDesc] = useState<boolean>(false);
+    // Skeleton: show for 600ms on mount to avoid "blank flash" while tasks load
+    const [isMounting, setIsMounting] = useState(true);
+    React.useEffect(() => {
+        const t = setTimeout(() => setIsMounting(false), 600);
+        return () => clearTimeout(t);
+    }, []);
 
     // LOCAL client filter — doesn't affect global state / other tabs
     const [localClientFilter, setLocalClientFilter] = useState<string>(activeClientId);
@@ -668,7 +674,26 @@ export function TaskFlowView({
                                             </tr>
                                         );
                                     })}
-                                    {filteredTasks.length === 0 && (
+                                    {filteredTasks.length === 0 && isMounting && tasks.length === 0 && (
+                                        /* Skeleton loader — avoids blank flash while tasks fetch (ui-ux-pro-max) */
+                                        <>
+                                            {Array.from({ length: 8 }).map((_, i) => (
+                                                <tr key={`sk-${i}`} className="animate-pulse">
+                                                    <td className="w-10 px-3 py-3"><div className="w-3 h-3 rounded bg-zinc-100 dark:bg-zinc-800 mx-auto" /></td>
+                                                    <td className="px-3 py-3">
+                                                        <div className="h-3 rounded-full bg-zinc-100 dark:bg-zinc-800" style={{ width: `${55 + (i % 3) * 15}%` }} />
+                                                        {i % 3 === 0 && <div className="h-2 rounded-full bg-zinc-50 dark:bg-zinc-800/60 mt-1.5 w-24" />}
+                                                    </td>
+                                                    <td className="w-[140px] px-3 py-3"><div className="h-3 w-20 rounded-full bg-zinc-100 dark:bg-zinc-800" /></td>
+                                                    <td className="w-[130px] px-3 py-3"><div className="h-5 w-16 rounded-lg bg-zinc-100 dark:bg-zinc-800" /></td>
+                                                    <td className="w-[110px] px-3 py-3"><div className="h-5 w-14 rounded-lg bg-zinc-100 dark:bg-zinc-800" /></td>
+                                                    <td className="w-[100px] px-3 py-3"><div className="h-3 w-16 rounded-full bg-zinc-100 dark:bg-zinc-800" /></td>
+                                                    <td className="w-[70px] px-3 py-3"><div className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 mx-auto" /></td>
+                                                </tr>
+                                            ))}
+                                        </>
+                                    )}
+                                    {filteredTasks.length === 0 && !isMounting && (
                                         <tr>
                                             <td colSpan={7} className="py-20 text-center">
                                                 <div className="flex flex-col items-center gap-3 text-zinc-300 dark:text-zinc-700">

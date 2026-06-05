@@ -9,6 +9,25 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+/* ── Accessibility: focus-visible rings (ui-ux-pro-max CRITICAL) ── */
+/* Only show focus ring when navigating via keyboard, not mouse click */
+*:focus { outline: none; }
+*:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.dark *:focus-visible {
+  outline-color: #818cf8;
+}
+
+/* ── OLED Dark Mode depth (ui-ux-pro-max recommendation) ── */
+/* Deeper backgrounds for OLED screens without changing zinc scale */
+@media (prefers-color-scheme: dark) {
+  :root { color-scheme: dark; }
+}
+.dark body { background-color: #09090b; }
+
 .view-root {
     overflow-x: hidden;
     width: 100%;
@@ -800,6 +819,31 @@ video {
 @keyframes slideNavIn {
   from { opacity: 0; transform: translateX(-8px); }
   to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Liquid Glass card effect (ui-ux-pro-max premium SaaS) ── */
+/* Apply .glass-card to any card that should have the liquid glass look */
+.glass-card {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px) saturate(1.6);
+  -webkit-backdrop-filter: blur(16px) saturate(1.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.dark .glass-card {
+  background: rgba(10, 10, 14, 0.55);
+}
+
+/* ── Skeleton pulse animation (ui-ux-pro-max empty state fix) ── */
+/* Uses Tailwind's built-in animate-pulse; this augments the timing */
+@keyframes skeleton-wave {
+  0%   { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+.skeleton-wave {
+  background: linear-gradient(90deg, transparent 0%, rgba(148,163,184,0.12) 50%, transparent 100%);
+  background-size: 200px 100%;
+  animation: skeleton-wave 1.4s ease-in-out infinite;
 }
 
 /* Hide scrollbar utility */
