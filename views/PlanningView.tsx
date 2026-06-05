@@ -322,16 +322,25 @@ export function PlanningView({
 
                 <div className="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/50">
                     <div className="flex flex-wrap items-center gap-1">
-                        {['ALL', 'EM ESPERA', 'AGUARDANDO APROVAÇÃO', 'PRODUÇÃO', 'PUBLICADO', 'CONCLUÍDO'].map((tab) => (
+                        {([
+                            { id: 'ALL',                    label: 'Todos',     dot: 'bg-zinc-400',    active: 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-zinc-600' },
+                            { id: 'EM ESPERA',              label: 'Em Espera', dot: 'bg-slate-400',   active: 'bg-slate-100 dark:bg-slate-700/60 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600' },
+                            { id: 'AGUARDANDO APROVAÇÃO',   label: 'Aprovação', dot: 'bg-blue-500',    active: 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/40' },
+                            { id: 'PRODUÇÃO',               label: 'Produção',  dot: 'bg-amber-500',   active: 'bg-amber-50 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/40' },
+                            { id: 'PUBLICADO',              label: 'Publicado', dot: 'bg-emerald-500', active: 'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/40' },
+                            { id: 'CONCLUÍDO',              label: 'Concluído', dot: 'bg-violet-500',  active: 'bg-violet-50 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-500/40' },
+                        ] as const).map((tab) => (
                             <button
-                                key={tab}
-                                onClick={() => { playUISound('tap'); setActiveStatus(tab); }}
-                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeStatus === tab
-                                    ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-zinc-600'
-                                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
-                                    }`}
+                                key={tab.id}
+                                onClick={() => { playUISound('tap'); setActiveStatus(tab.id); }}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all duration-100 whitespace-nowrap ${
+                                    activeStatus === tab.id
+                                        ? tab.active
+                                        : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-white/60 dark:hover:bg-zinc-700/40'
+                                }`}
                             >
-                                {tab}
+                                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${tab.dot} ${activeStatus === tab.id ? 'opacity-100' : 'opacity-40'}`} />
+                                {tab.label}
                             </button>
                         ))}
                     </div>
@@ -438,7 +447,19 @@ export function PlanningView({
                                             {!diaObj.isNextMonth && !diaObj.isPrevMonth && (
                                                 <button
                                                     onClick={async e => { e.stopPropagation(); await onAdd('PLANEJAMENTO', { Data: diaObj.dateStr }); }}
-                                                    className="w-5 h-5 rounded-md bg-zinc-100 dark:bg-zinc-700 hover:bg-blue-500 dark:hover:bg-blue-500 text-zinc-400 hover:text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all active:scale-90 shrink-0"
+                                                    aria-label={`Adicionar post em ${diaObj.dateStr}`}
+                                                    className="
+                                                        w-6 h-6 sm:w-5 sm:h-5
+                                                        rounded-md bg-zinc-100 dark:bg-zinc-700
+                                                        hover:bg-blue-500 dark:hover:bg-blue-500
+                                                        text-zinc-400 hover:text-white
+                                                        flex items-center justify-center
+                                                        transition-all duration-100
+                                                        active:scale-90 shrink-0
+                                                        [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100
+                                                        opacity-100
+                                                        focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-blue-500
+                                                    "
                                                     title="Adicionar post neste dia"
                                                 >
                                                     <Plus size={10} strokeWidth={3} />
@@ -466,10 +487,19 @@ export function PlanningView({
                                                     <div
                                                         key={evt.id}
                                                         onClick={() => openEditSidebar(evt.id)}
-                                                        className="group relative border px-2 py-1.5 rounded-lg shadow-sm transition-all cursor-pointer overflow-hidden border-opacity-50 hover:shadow-md"
+                                                        role="button"
+                                                        aria-label={`Editar: ${evt.Conteúdo}`}
+                                                        tabIndex={0}
+                                                        onKeyDown={e => e.key === 'Enter' && openEditSidebar(evt.id)}
+                                                        className="group/card relative border px-2 py-1.5 rounded-lg cursor-pointer overflow-hidden
+                                                            transition-all duration-100 ease-out
+                                                            hover:-translate-y-px hover:shadow-[0_4px_14px_rgba(0,0,0,0.10)]
+                                                            active:scale-[0.98] active:duration-75
+                                                            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
                                                         style={{
                                                             backgroundColor: styles.bg,
-                                                            borderColor: styles.border
+                                                            borderColor: styles.border,
+                                                            boxShadow: '0 1px 3px rgba(0,0,0,0.06)'
                                                         }}
                                                     >
                                                         <div className="space-y-1 min-w-0">
