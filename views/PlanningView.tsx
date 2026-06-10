@@ -381,13 +381,13 @@ export function PlanningView({
 
                     <div className="flex items-center justify-between mb-4 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-2 px-4 rounded-xl shadow-sm">
                         <div className="flex items-center gap-4">
-                            <button className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-500 transition-colors" onClick={() => handleMonthNav(-1)}>
+                            <button className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-500 transition-colors" onClick={() => handleMonthNav(-1)} aria-label="Mês anterior">
                                 <ChevronLeft size={18} className="shrink-0" />
                             </button>
                             <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 min-w-[120px] text-center uppercase tracking-tight">
                                 {viewMode === 'month' ? `${MONTH_NAMES_BR[currentDate.getMonth()]} ${currentDate.getFullYear()}` : 'Semana'}
                             </h3>
-                            <button className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-50 text-zinc-500 transition-colors" onClick={() => handleMonthNav(1)}>
+                            <button className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-50 text-zinc-500 transition-colors" onClick={() => handleMonthNav(1)} aria-label="Próximo mês">
                                 <ChevronRight size={18} className="shrink-0" />
                             </button>
                         </div>

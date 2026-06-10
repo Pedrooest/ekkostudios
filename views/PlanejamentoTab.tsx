@@ -745,13 +745,13 @@ export default function PlanejamentoTab({
                     {viewMode === 'calendar' && (
                         <div className="flex items-center gap-6">
                             <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-800/30 px-4 py-2 rounded-2xl border border-zinc-200 dark:border-zinc-800/50">
-                                <button className="p-1.5 rounded-lg hover:bg-white dark:hover:bg-zinc-700 text-zinc-400 hover:text-blue-500 transition-all ios-btn" onClick={() => handleMonthNav(-1)}>
+                                <button className="p-1.5 rounded-lg hover:bg-white dark:hover:bg-zinc-700 text-zinc-400 hover:text-blue-500 transition-all ios-btn" onClick={() => handleMonthNav(-1)} aria-label="Mês anterior">
                                     <ChevronLeft size={20} />
                                 </button>
                                 <h3 className="text-[11px] font-black text-zinc-900 dark:text-white min-w-[140px] text-center uppercase tracking-[0.2em] italic">
                                     {calendarSubMode === 'month' ? currentMonthName : 'Semana'}
                                 </h3>
-                                <button className="p-1.5 rounded-lg hover:bg-white dark:hover:bg-zinc-700 text-zinc-400 hover:text-blue-500 transition-all ios-btn" onClick={() => handleMonthNav(1)}>
+                                <button className="p-1.5 rounded-lg hover:bg-white dark:hover:bg-zinc-700 text-zinc-400 hover:text-blue-500 transition-all ios-btn" onClick={() => handleMonthNav(1)} aria-label="Próximo mês">
                                     <ChevronRight size={20} />
                                 </button>
                             </div>
@@ -952,7 +952,7 @@ export default function PlanejamentoTab({
                                                         </div>
                                                     </td>
                                                     <td className="px-8 py-5 text-right">
-                                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
+                                                        <div className="flex items-center justify-end gap-2 hover-reveal transition-all translate-x-2 group-hover:translate-x-0">
                                                             <button onClick={(e) => { e.stopPropagation(); handleExportToGoogle(post); }} className={`p-2 rounded-xl transition-all shadow-sm ${post.google_event_id ? 'text-emerald-500 bg-emerald-500/5' : 'text-zinc-400 hover:text-emerald-600 hover:bg-white dark:hover:bg-zinc-700'}`} title="Exportar para Google Agenda">
                                                                 {post.google_event_id ? <CalendarCheck size={16} /> : <CalendarPlus size={16} />}
                                                             </button>
@@ -1267,7 +1267,7 @@ export default function PlanejamentoTab({
                                                     <span className="flex-1 text-[10px] font-bold text-zinc-800 dark:text-zinc-200 truncate">{t.Título || t.Titulo || t.Conteúdo || '—'}</span>
                                                     <button
                                                         onClick={() => setActiveTab('TAREFAS')}
-                                                        className="opacity-0 group-hover:opacity-100 text-violet-500 hover:text-violet-700 transition-all text-[8px] font-black uppercase shrink-0"
+                                                        className="hover-reveal text-violet-500 hover:text-violet-700 transition-all text-[8px] font-black uppercase shrink-0"
                                                     >→</button>
                                                 </div>
                                             );

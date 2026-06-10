@@ -401,7 +401,7 @@ export function VhManagementView({
                                                 <td className="px-6 py-4 border-b border-zinc-100 dark:border-zinc-800/50 text-center">
                                                     <button
                                                         onClick={() => setCollaborators((prev: Colaborador[]) => prev.filter(p => p.id !== c.id))}
-                                                        className="w-8 h-8 rounded-lg text-zinc-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center"
+                                                        className="w-8 h-8 rounded-lg text-zinc-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all hover-reveal flex items-center justify-center"
                                                     >
                                                         <Trash2 size={16} className="shrink-0" />
                                                     </button>

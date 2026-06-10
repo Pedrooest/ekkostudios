@@ -452,7 +452,7 @@ export function OrganickIAView({
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {filteredHistory.map((item: any) => (
                             <div key={item.id} className={`p-5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm hover:border-zinc-400 dark:hover:border-zinc-600 transition-all group relative overflow-hidden ${selection.includes(item.id) ? 'border-zinc-900 ring-2 ring-zinc-500/10' : ''}`}>
-                                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all">
+                                <div className="absolute top-2 right-2 hover-reveal transition-all">
                                     <input type="checkbox" checked={selection.includes(item.id)} onChange={() => setSelection(prev => prev.includes(item.id) ? prev.filter(i => i !== item.id) : [...prev, item.id])} className="w-5 h-5 rounded-lg cursor-pointer border-zinc-300" />
                                 </div>
 

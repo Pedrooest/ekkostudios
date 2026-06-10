@@ -460,7 +460,7 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
                               const newSteps = (selectedMeeting.proximos_passos || []).filter((_, i) => i !== idx);
                               onUpdate(selectedMeeting.id, 'REUNIOES', 'proximos_passos', newSteps);
                             }}
-                            className="text-zinc-300 hover:text-red-500 dark:text-zinc-600 dark:hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                            className="text-zinc-300 hover:text-red-500 dark:text-zinc-600 dark:hover:text-red-400 transition-colors hover-reveal"
                           >
                             <Trash2 size={12} />
                           </button>

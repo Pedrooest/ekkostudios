@@ -545,7 +545,7 @@ export default function ChecklistsTab({ clients, data, onAdd, onUpdate, onDelete
                                                 </div>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); handleRemoveItem(activeShoot.id, category.id, item.id); }}
-                                                    className="ml-auto p-1.5 rounded-lg text-zinc-300 hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-500/10 dark:hover:text-rose-500 transition-all flex items-center justify-center shrink-0 mt-0.5 opacity-0 group-hover:opacity-100"
+                                                    className="ml-auto p-1.5 rounded-lg text-zinc-300 hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-500/10 dark:hover:text-rose-500 transition-all flex items-center justify-center shrink-0 mt-0.5 hover-reveal"
                                                     title="Excluir item"
                                                 >
                                                     <X size={13} strokeWidth={2.5} className="shrink-0"/>

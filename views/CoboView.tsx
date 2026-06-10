@@ -341,7 +341,7 @@ export function CoboView({
                   className="absolute top-3 left-3 z-10"
                   onClick={e => { e.stopPropagation(); onSelect(item.id); playUISound('tap'); }}
                 >
-                  <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-blue-500 border-blue-500' : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 opacity-0 group-hover:opacity-100'}`}>
+                  <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-blue-500 border-blue-500' : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 hover-reveal'}`}>
                     {isSelected && <CheckCircle2 size={10} className="text-white" />}
                   </div>
                 </button>
@@ -378,7 +378,7 @@ export function CoboView({
                     </div>
                     <button
                       onClick={e => { e.stopPropagation(); setDrawerItem(item); playUISound('tap'); }}
-                      className="p-1.5 text-zinc-300 hover:text-zinc-700 dark:hover:text-zinc-200 opacity-0 group-hover:opacity-100 transition-all rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                      className="p-1.5 text-zinc-300 hover:text-zinc-700 dark:hover:text-zinc-200 hover-reveal transition-all rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
                     >
                       <Edit2 size={13} />
                     </button>
@@ -491,7 +491,7 @@ export function CoboView({
                       {renderEditableCell(item, 'Formato', 'dl-formato-cobo')}
                       {renderEditableCell(item, 'Público')}
                       <td className="px-5 py-3">
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center gap-1 hover-reveal transition-opacity">
                           <button onClick={e => { e.stopPropagation(); setDrawerItem(item); }} className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all">
                             <Edit2 size={13} />
                           </button>

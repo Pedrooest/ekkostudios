@@ -290,7 +290,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                     <div className="absolute inset-0 opacity-30" style={{ background: `radial-gradient(ellipse at 80% 20%, ${bgHex}40, transparent 70%)` }} />
                     {/* Color swatch btn */}
                     <button onClick={e => { e.stopPropagation(); onOpenColorPicker?.(client.id, bgHex); }}
-                      className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/25 backdrop-blur-md text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-black/45 hover:scale-105 active:scale-95"
+                      className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/25 backdrop-blur-md text-white hover-reveal transition-all hover:bg-black/45 hover:scale-105 active:scale-95"
                       title="Alterar cor">
                       <Palette size={10} />
                     </button>
@@ -795,7 +795,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                                       const newList = selectedClient.links.filter((_: any, i: number) => i !== idx);
                                       handleUpdateField('links', newList);
                                     }}
-                                    className="w-8 h-8 flex items-center justify-center rounded-lg text-rose-500 opacity-0 group-hover:opacity-100 hover:bg-rose-500/10 transition-all"
+                                    className="w-8 h-8 flex items-center justify-center rounded-lg text-rose-500 hover-reveal hover:bg-rose-500/10 transition-all"
                                   >
                                     <Trash2 size={14} />
                                   </button>
@@ -942,7 +942,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                                         const newList = selectedClient.log_comunicacao.filter((_: any, i: number) => i !== idx);
                                         handleUpdateField('log_comunicacao', newList);
                                       }}
-                                      className="self-end text-[8px] font-black uppercase tracking-widest text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity mt-1"
+                                      className="self-end text-[8px] font-black uppercase tracking-widest text-rose-500 hover-reveal transition-opacity mt-1"
                                     >
                                       Excluir Log
                                     </button>
@@ -1073,7 +1073,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
                                         const newList = selectedClient.metas.filter((_: any, i: number) => i !== idx);
                                         handleUpdateField('metas', newList);
                                       }}
-                                      className="text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                                      className="text-rose-500 hover-reveal transition-opacity p-1"
                                     >
                                       <Trash2 size={12} />
                                     </button>

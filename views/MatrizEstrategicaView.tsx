@@ -381,7 +381,7 @@ export function MatrizEstrategicaView({
                     {renderEditableCell(row, 'Tipo de conteúdo', 'dl-tipo-conteudo')}
                     {renderEditableCell(row, 'Resultado esperado')}
                       <td className="px-6 py-3 text-right" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center justify-end gap-2 hover-reveal transition-opacity">
                           <button 
                             onClick={() => handleEdit(row)}
                             className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"

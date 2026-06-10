@@ -714,13 +714,13 @@ export function TaskFlowView({
                         {/* CALENDAR HEADER */}
                         <div className="flex items-center justify-between mb-4 shrink-0">
                             <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-2 rounded-xl shadow-sm">
-                                <button className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors" onClick={() => handleMonthNav(-1)}>
+                                <button className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors" onClick={() => handleMonthNav(-1)} aria-label="Mês anterior">
                                     <ChevronLeft size={20} />
                                 </button>
                                 <h3 className="text-sm font-bold text-zinc-900 dark:text-white min-w-[150px] text-center uppercase tracking-[0.2em]">
                                     {MONTH_NAMES_BR[currentDate.getMonth()]} {currentDate.getFullYear()}
                                 </h3>
-                                <button className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors" onClick={() => handleMonthNav(1)}>
+                                <button className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors" onClick={() => handleMonthNav(1)} aria-label="Próximo mês">
                                     <ChevronRight size={20} />
                                 </button>
                             </div>
@@ -761,7 +761,7 @@ export function TaskFlowView({
                                                 <span className={`text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-lg transition-all ${isToday ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-lg' : 'text-zinc-900 dark:text-zinc-100'}`}>
                                                     {diaObj.day}
                                                 </span>
-                                                <button onClick={() => onAdd('TAREFAS', { Data_Entrega: diaObj.dateStr })} className="opacity-0 group-hover:opacity-100 p-1 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all">
+                                                <button onClick={() => onAdd('TAREFAS', { Data_Entrega: diaObj.dateStr })} className="hover-reveal p-1 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all">
                                                     <Plus size={14} />
                                                 </button>
                                             </div>
@@ -1293,7 +1293,7 @@ export function TaskDetailPanel({
                                 <span className={`text-[10px] font-black uppercase tracking-tight transition-all flex-1 ${item.concluido ? 'text-zinc-300 dark:text-zinc-700 line-through' : 'text-zinc-900 dark:text-zinc-100'}`}>
                                     {item.texto}
                                 </span>
-                                <button onClick={() => updateChecklist(t.Checklist.filter(i => i.id !== item.id))} className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-rose-500 transition-all">
+                                <button onClick={() => updateChecklist(t.Checklist.filter(i => i.id !== item.id))} className="hover-reveal text-zinc-400 hover:text-rose-500 transition-all">
                                     <Trash2 size={14} />
                                 </button>
                             </div>
@@ -1437,7 +1437,7 @@ export function TaskDetailPanel({
                                                     {file.tipoMime?.split('/')[1]?.toUpperCase() || 'FILE'}{sizeStr ? ` · ${sizeStr}` : ''}
                                                 </p>
                                             </div>
-                                            <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="flex items-center gap-1.5 hover-reveal transition-opacity">
                                                 <button
                                                     onClick={() => downloadFile(file)}
                                                     className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-500 text-blue-600 hover:text-white text-[9px] font-black uppercase transition-all"

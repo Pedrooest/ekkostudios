@@ -128,9 +128,9 @@ const CalendarView: React.FC<{
                 <div className="p-8 flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800">
                     <h3 className="text-xl font-black text-zinc-900 dark:text-white tracking-tight">{monthName}</h3>
                     <div className="flex items-center gap-2">
-                        <button onClick={prevMonth} className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-blue-500 transition-all active:scale-90"><ChevronLeft size={18} /></button>
+                        <button onClick={prevMonth} aria-label="Mês anterior" className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-blue-500 transition-all active:scale-90"><ChevronLeft size={18} /></button>
                         <button onClick={() => setCurrentDate(new Date())} className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all">Hoje</button>
-                        <button onClick={nextMonth} className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-blue-500 transition-all active:scale-90"><ChevronRight size={18} /></button>
+                        <button onClick={nextMonth} aria-label="Próximo mês" className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-blue-500 transition-all active:scale-90"><ChevronRight size={18} /></button>
                     </div>
                 </div>
                 
@@ -1705,7 +1705,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                                         <SavingIndicator status={savingStatus[`FINANCAS:${tx.id}:Status`]} />
                                                     </td>
                                                     <td className="px-5 py-3.5 text-center">
-                                                        <div className="flex justify-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-150">
+                                                        <div className="flex justify-center gap-1 hover-reveal transition-all duration-150">
                                                             {tx.tipo === 'entrada' && tx.status !== 'Pago' && (
                                                                 <button onClick={() => handleSendReminder(tx)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-blue-50 dark:hover:bg-blue-500/10 text-zinc-400 hover:text-blue-500 transition-colors">
                                                                     <Bell size={13} />
@@ -1944,7 +1944,7 @@ export default function FinancasTab({ financas = [], onAdd, onUpdate, onDelete, 
                                                                         if (onDelete) await onDelete([r.id]);
                                                                     }
                                                                 }}
-                                                                className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 text-zinc-400 hover:text-rose-500 transition-all opacity-0 group-hover:opacity-100"
+                                                                className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 text-zinc-400 hover:text-rose-500 transition-all hover-reveal"
                                                             >
                                                                 <Trash2 size={12} />
                                                             </button>
