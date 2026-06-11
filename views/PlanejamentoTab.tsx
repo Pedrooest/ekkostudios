@@ -221,6 +221,8 @@ export default function PlanejamentoTab({
     const [currentDate, setCurrentDate] = useState(new Date());
     const [viewMode, setViewMode] = useState<'calendar' | 'list' | 'kanban'>('calendar');
     const [calendarSubMode, setCalendarSubMode] = useState<'month' | 'week'>('month');
+    // Days expanded beyond the 4-event preview (Google Calendar "+N more" pattern)
+    const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({});
 
     const [globalClientFilter, setGlobalClientFilter] = useState('Todos Clientes');
     const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
@@ -790,12 +792,19 @@ export default function PlanejamentoTab({
                             {calendarDays.map((diaObj, idx) => {
                                 const evts = getEventosDoDia(diaObj.dateStr);
                                 const isToday = diaObj.dateStr === new Date().toISOString().split('T')[0];
+                                const isWeekend = idx % 7 === 0 || idx % 7 === 6;
+                                const isExpanded = !!expandedDays[diaObj.dateStr];
+                                const MAX_VISIBLE = 4;
+                                const collapsible = calendarSubMode === 'month' && evts.length > MAX_VISIBLE;
+                                const visibleEvts = collapsible && !isExpanded ? evts.slice(0, MAX_VISIBLE) : evts;
 
                                 return (
                                     <div
                                         key={idx}
                                         className={`p-2 border-r border-b border-zinc-200 dark:border-zinc-800 transition-all relative flex flex-col group/day min-h-[110px] ${diaObj.isNextMonth || diaObj.isPrevMonth ? 'bg-zinc-50/50 dark:bg-zinc-900/20 opacity-30 grayscale-[0.5]' :
-                                                isToday ? 'bg-blue-600/5 dark:bg-blue-900/10' : 'bg-white dark:bg-zinc-900 hover:bg-white dark:hover:bg-zinc-800/50'
+                                                isToday ? 'bg-blue-600/5 dark:bg-blue-900/10'
+                                                : isWeekend ? 'bg-zinc-50/80 dark:bg-zinc-900/60 hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
+                                                : 'bg-white dark:bg-zinc-900 hover:bg-white dark:hover:bg-zinc-800/50'
                                             }`}
                                     >
                                         {/* Day number row */}
@@ -810,9 +819,9 @@ export default function PlanejamentoTab({
                                             )}
                                         </div>
 
-                                        {/* Events — ALL shown, compact single-line pills */}
+                                        {/* Events — max 4 visible, "+N mais" expands (Google Calendar pattern) */}
                                         <div className="space-y-1 flex-1">
-                                            {evts.map(evento => {
+                                            {visibleEvts.map(evento => {
                                                 const redeStyle = getRedeStyle(evento.Rede_Social);
                                                 const Icon = redeStyle.icon;
                                                 const client = clients.find(c => c.id === evento.Cliente_ID);
@@ -847,12 +856,22 @@ export default function PlanejamentoTab({
                                                     </div>
                                                 );
                                             })}
+                                            {collapsible && (
+                                                <button
+                                                    onClick={e => { e.stopPropagation(); setExpandedDays(prev => ({ ...prev, [diaObj.dateStr]: !isExpanded })); }}
+                                                    aria-expanded={isExpanded}
+                                                    className="w-full px-1.5 py-1 rounded-md text-[8px] font-black uppercase tracking-widest text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors duration-100 text-left cursor-pointer"
+                                                >
+                                                    {isExpanded ? '− mostrar menos' : `+${evts.length - MAX_VISIBLE} mais`}
+                                                </button>
+                                            )}
                                         </div>
 
-                                        {/* Hover Add Button */}
+                                        {/* Quick-add — always visible on touch, hover-reveal with mouse */}
                                         <button
                                             onClick={() => handleAddContent(diaObj.dateStr)}
-                                            className="absolute bottom-1 right-1 p-1 rounded-md bg-blue-600 text-white opacity-0 group-hover/day:opacity-100 transition-all hover:scale-110 shadow-md z-10"
+                                            aria-label={`Adicionar conteúdo em ${diaObj.dateStr}`}
+                                            className="absolute bottom-1 right-1 p-1 rounded-md bg-blue-600 text-white opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/day:opacity-100 focus-visible:opacity-100 transition-all hover:scale-110 shadow-md z-10"
                                         >
                                             <Plus size={9} strokeWidth={3} />
                                         </button>
