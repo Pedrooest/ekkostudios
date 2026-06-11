@@ -41,6 +41,8 @@ export function PlanningView({
     const [activeStatus, setActiveStatus] = useState('ALL');
     const [currentDate, setCurrentDate] = useState(new Date());
     const [viewMode, setViewMode] = useState<'month' | 'week' | 'list'>('month');
+    // Days expanded beyond the 3-event preview (Google Calendar "+N more" pattern)
+    const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({});
 
     // Filtros e Sidebars
     const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
@@ -417,10 +419,11 @@ export function PlanningView({
                         </div>
                     </div>
 
-                    {/* CALENDAR GRID */}
-                    <div className="table-responsive bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm overflow-hidden flex flex-col">
+                    {/* CALENDAR GRID — overflow-x only on mobile so sticky header works on desktop */}
+                    <div className="overflow-x-auto md:overflow-x-visible bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm flex flex-col">
                         <div className="min-w-[800px]">
-                        <div className="grid grid-cols-7 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50">
+                        {/* Weekday header — sticks below the top while scrolling weeks */}
+                        <div className="grid grid-cols-7 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 md:sticky md:top-0 md:z-20 rounded-t-xl">
                             {WEEKDAYS_BR_SHORT.map(dia => (
                                 <div key={dia} className="py-3 text-center text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.15em] border-r border-zinc-200 dark:border-zinc-700 last:border-0">
                                     {dia}
@@ -432,12 +435,19 @@ export function PlanningView({
                             {calendarDays.map((diaObj, idx) => {
                                 const evts = getEventosDoDia(diaObj.dateStr);
                                 const isToday = diaObj.dateStr === new Date().toISOString().split('T')[0];
+                                const isWeekend = idx % 7 === 0 || idx % 7 === 6;
+                                const isExpanded = !!expandedDays[diaObj.dateStr];
+                                const MAX_VISIBLE = 3;
+                                const collapsible = viewMode === 'month' && evts.length > MAX_VISIBLE;
+                                const visibleEvts = collapsible && !isExpanded ? evts.slice(0, MAX_VISIBLE) : evts;
 
                                 return (
                                     <div
                                         key={idx}
                                         className={`group p-2 border-r border-b border-zinc-100 dark:border-zinc-700 transition-all relative flex flex-col min-h-0 ${diaObj.isNextMonth || diaObj.isPrevMonth ? 'bg-zinc-50/50 dark:bg-zinc-900/30 opacity-40' :
-                                            isToday ? 'bg-blue-50/50 dark:bg-blue-500/5' : 'bg-white dark:bg-zinc-800'
+                                            isToday ? 'bg-blue-50/50 dark:bg-blue-500/5'
+                                            : isWeekend ? 'bg-zinc-50/80 dark:bg-zinc-900/40'
+                                            : 'bg-white dark:bg-zinc-800'
                                             } hover:bg-zinc-50/80 dark:hover:bg-zinc-700/50`}
                                     >
                                         <div className="flex justify-between items-center mb-2">
@@ -481,7 +491,7 @@ export function PlanningView({
                                                     <p className="text-[8px] font-black text-zinc-300 dark:text-zinc-700 uppercase tracking-widest text-center">Nenhum post</p>
                                                 </div>
                                             )}
-                                            {evts.map(evt => {
+                                            {visibleEvts.map(evt => {
                                                 const styles = getCardStyles(evt.Cliente_ID);
                                                 return (
                                                     <div
@@ -526,6 +536,16 @@ export function PlanningView({
                                                     </div>
                                                 );
                                             })}
+                                            {/* Google Calendar-style overflow: collapse beyond 3, expand inline */}
+                                            {collapsible && (
+                                                <button
+                                                    onClick={e => { e.stopPropagation(); setExpandedDays(prev => ({ ...prev, [diaObj.dateStr]: !isExpanded })); }}
+                                                    aria-expanded={isExpanded}
+                                                    className="w-full px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors duration-100 text-left cursor-pointer"
+                                                >
+                                                    {isExpanded ? '− mostrar menos' : `+${evts.length - MAX_VISIBLE} mais`}
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 );
