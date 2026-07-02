@@ -43,7 +43,10 @@ body {
     overflow-x: hidden;
     width: 100%;
     position: relative;
-    padding-bottom: 80px; /* Safe space for bottom navigations */
+    /* NOTE: no global padding-bottom here — it created an 80px dead strip
+       at the bottom of every tab and compressed the calendars. The mobile
+       FAB is a small fixed corner button (md:hidden); scroll containers
+       provide their own clearance. */
     animation: viewFadeIn 0.25s ease both;
 }
 
