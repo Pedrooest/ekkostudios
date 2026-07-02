@@ -2004,25 +2004,25 @@ export default function App() {
           </div>
         </header>
 
-        {/* Action Controls (Mobile-friendly row) */}
-        {activeTab !== 'WHITEBOARD' && activeTab !== 'PLANEJAMENTO' && activeTab !== 'CHECKLISTS' && (
+        {/* Action Controls (Mobile-friendly row) — hidden where the view owns these controls */}
+        {activeTab !== 'WHITEBOARD' && activeTab !== 'PLANEJAMENTO' && activeTab !== 'CHECKLISTS' && activeTab !== 'DASHBOARD' && (
           <div className="relative group/scroll">
-            <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar px-4 sm:px-8 py-2 border-b border-app-border/40 lg:border-none no-scrollbar snap-x snap-mandatory">
+            <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar px-4 sm:px-8 py-1.5 border-b border-app-border/40 lg:border-none no-scrollbar snap-x snap-mandatory">
               <button
                 ref={clientFilterButtonRef}
                 onClick={() => setIsClientFilterOpen(!isClientFilterOpen)}
-                className={`flex items-center gap-2 text-[10px] font-black uppercase transition-all border px-4 py-2.5 rounded-xl whitespace-nowrap snap-start ${selectedClientIds.length > 0 ? 'bg-blue-600/10 border-blue-600 text-blue-600' : 'text-zinc-500 border-white/10 hover:border-white/20 hover:text-zinc-300'}`}
+                className={`flex items-center gap-2 text-[10px] font-black uppercase transition-all border px-3.5 py-1.5 rounded-xl whitespace-nowrap snap-start ${selectedClientIds.length > 0 ? 'bg-blue-600/10 border-blue-600 text-blue-600' : 'text-zinc-500 border-white/10 hover:border-white/20 hover:text-zinc-300'}`}
               >
                 <Filter size={14} />
                 {selectedClientIds.length > 0 ? `${selectedClientIds.length} Clientes` : <><span className="md:hidden">Todos</span><span className="hidden md:inline">Todos Clientes</span></>}
               </button>
 
-              <button onClick={() => setShowArchived(!showArchived)} className={`shrink-0 text-[10px] font-black uppercase px-4 py-2.5 rounded-xl border transition-all whitespace-nowrap flex items-center gap-2 snap-start ${showArchived ? 'bg-amber-500/10 border-amber-500 text-amber-500' : 'text-zinc-500 border-white/10 hover:border-white/20 hover:text-zinc-300'}`}>
+              <button onClick={() => setShowArchived(!showArchived)} className={`shrink-0 text-[10px] font-black uppercase px-3.5 py-1.5 rounded-xl border transition-all whitespace-nowrap flex items-center gap-2 snap-start ${showArchived ? 'bg-amber-500/10 border-amber-500 text-amber-500' : 'text-zinc-500 border-white/10 hover:border-white/20 hover:text-zinc-300'}`}>
                 {showArchived ? <Eye size={14} /> : <EyeOff size={14} />}
                 {showArchived ? 'Ocultar' : 'Arquivados'}
               </button>
 
-              <Button ref={exportButtonRef} variant="secondary" onClick={() => setIsExportModalOpen(true)} className="!rounded-xl !h-[38px] !px-4 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2 snap-start whitespace-nowrap">
+              <Button ref={exportButtonRef} variant="secondary" onClick={() => setIsExportModalOpen(true)} className="!rounded-xl !h-[30px] !px-3.5 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2 snap-start whitespace-nowrap">
                 <Download size={14} /> <span className="hidden sm:inline">Exportar</span>
               </Button>
 

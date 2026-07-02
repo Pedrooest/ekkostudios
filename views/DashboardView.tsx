@@ -51,12 +51,12 @@ const AnimatedValue = ({ value, format }: { value: number; format?: (n: number) 
 const KpiCard = React.memo(({ label, value, rawValue, format, sub, icon: Icon, gradient, trend, onClick, badge }: any) => (
     <button
         onClick={onClick}
-        className="group relative w-full text-left overflow-hidden rounded-[22px] bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] transition-all duration-300 cursor-pointer"
+        className="group relative w-full text-left overflow-hidden rounded-[22px] bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 p-4 shadow-sm hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] transition-all duration-300 cursor-pointer"
     >
         {/* Gradient glow */}
         <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full blur-2xl opacity-10 group-hover:opacity-20 transition-opacity duration-500 ${gradient}`} />
 
-        <div className="relative flex items-start justify-between mb-4">
+        <div className="relative flex items-start justify-between mb-2.5">
             <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-lg ${gradient}`}>
                 <Icon size={17} strokeWidth={2.5} />
             </div>

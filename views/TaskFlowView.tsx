@@ -439,7 +439,7 @@ export function TaskFlowView({
 
                 {/* Right: views + search + actions */}
                 <div className="flex items-center gap-2 flex-wrap">
-                    <div className="hidden lg:flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl border border-zinc-200 dark:border-zinc-700">
+                    <div className="hidden sm:flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl border border-zinc-200 dark:border-zinc-700">
                         {DEFAULT_TASK_VIEWS.map((v: any) => (
                             <button
                                 key={v.id}
@@ -604,8 +604,10 @@ export function TaskFlowView({
                                         const today = new Date(); today.setHours(0,0,0,0);
                                         const due   = Tarefa.Data_Entrega ? new Date(Tarefa.Data_Entrega + 'T12:00:00') : null;
                                         const days  = due ? Math.ceil((due.getTime() - today.getTime()) / 86400000) : null;
-                                        const overdue = days !== null && days < 0;
-                                        const dueToday = days === 0;
+                                        // A completed task is never "overdue" — suppress the red alarm
+                                        const rowDone = ['done', 'concluido', 'Concluído', 'CONCLUÍDO'].includes(Tarefa.Status);
+                                        const overdue = !rowDone && days !== null && days < 0;
+                                        const dueToday = !rowDone && days === 0;
 
                                         return (
                                             <tr key={Tarefa.id} onClick={() => onSelectTask(Tarefa.id)}
