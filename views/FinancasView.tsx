@@ -140,20 +140,24 @@ const CalendarView: React.FC<{
                     ))}
                 </div>
 
-                <div className="flex-1 grid grid-cols-7 grid-rows-6">
+                <div key={`${year}-${month}`} className="cal-month-in flex-1 grid grid-cols-7 grid-rows-6">
                     {days.map((day, i) => {
                         if (day === null) return <div key={`empty-${i}`} className="border-r border-b border-zinc-50 dark:border-zinc-800/50 bg-zinc-50/30 dark:bg-zinc-900/10"></div>;
-                        
+
                         const dayTxs = getDayTransactions(day);
                         const isToday = new Date().toDateString() === new Date(year, month, day).toDateString();
                         const dateKey = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
                         const isSelected = selectedDay === dateKey;
+                        const isWeekend = i % 7 === 0 || i % 7 === 6;
 
                         return (
-                            <div 
-                                key={day} 
+                            <div
+                                key={day}
                                 onClick={() => setSelectedDay(dateKey)}
-                                className={`group border-r border-b border-zinc-100 dark:border-zinc-800 p-2 min-h-[100px] transition-all cursor-pointer hover:bg-blue-50/30 dark:hover:bg-blue-500/5 ${isSelected ? 'bg-blue-50/50 dark:bg-blue-500/10' : ''}`}
+                                className={`group border-r border-b border-zinc-100 dark:border-zinc-800 p-2 min-h-[100px] transition-all cursor-pointer hover:bg-blue-50/30 dark:hover:bg-blue-500/5 ${
+                                    isSelected ? 'bg-blue-50/50 dark:bg-blue-500/10'
+                                    : isToday ? 'ring-1 ring-inset ring-blue-500/25'
+                                    : isWeekend ? 'bg-zinc-50/60 dark:bg-zinc-900/40' : ''}`}
                             >
                                 <div className="flex justify-between items-start mb-2">
                                     <span className={`text-xs font-black w-7 h-7 flex items-center justify-center rounded-lg transition-all ${isToday ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white'}`}>
@@ -162,9 +166,9 @@ const CalendarView: React.FC<{
                                 </div>
                                 <div className="space-y-1">
                                     {dayTxs.slice(0, 3).map(t => (
-                                        <div 
-                                            key={t.id} 
-                                            className={`truncate px-2 py-1 rounded-md text-[9px] font-bold border ${
+                                        <div
+                                            key={t.id}
+                                            className={`event-pill truncate px-2 py-1 rounded-md text-[9px] font-bold border ${
                                                 t.tipo === 'entrada' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 
                                                 t.tipo === 'saida' ? 'bg-rose-500/10 text-rose-600 border-rose-500/20' : 
                                                 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20'

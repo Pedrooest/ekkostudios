@@ -882,4 +882,39 @@ video {
     transition: none !important;
   }
   .card-hover:hover { transform: none !important; box-shadow: none !important; }
+}
+
+/* ── Calendar month transition (ui-ux-pro-max) ──
+   Pure opacity — NO transform, so it is safe on scroll containers
+   (transform on an overflow ancestor breaks position:sticky/scroll). */
+@keyframes cal-month-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.cal-month-in {
+  animation: cal-month-in 0.25s ease-out forwards;
+}
+
+/* Event pill micro-interaction — 100ms elevation (Micro-interactions pattern) */
+.event-pill {
+  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out, filter 0.1s ease-out;
+}
+.event-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+}
+.event-pill:active {
+  transform: scale(0.98);
+  transition-duration: 0.075s;
+}
+.dark .event-pill:hover {
+  box-shadow: 0 3px 10px rgba(0,0,0,0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cal-month-in { animation: none !important; }
+  .event-pill, .event-pill:hover, .event-pill:active {
+    transform: none !important;
+    transition: none !important;
+  }
 }

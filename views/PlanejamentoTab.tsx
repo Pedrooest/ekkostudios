@@ -788,7 +788,7 @@ export default function PlanejamentoTab({
                             ))}
                         </div>
 
-                        <div className={`grid grid-cols-7 bg-zinc-50 dark:bg-zinc-950 ${calendarSubMode === 'month' ? 'auto-rows-[auto]' : 'auto-rows-[minmax(400px,1fr)]'} overflow-y-auto`} style={{ flex: '1 1 0', minHeight: 0 }}>
+                        <div key={`${currentDate.getFullYear()}-${currentDate.getMonth()}-${calendarSubMode}`} className={`cal-month-in grid grid-cols-7 bg-zinc-50 dark:bg-zinc-950 ${calendarSubMode === 'month' ? 'auto-rows-[auto]' : 'auto-rows-[minmax(400px,1fr)]'} overflow-y-auto`} style={{ flex: '1 1 0', minHeight: 0 }}>
                             {calendarDays.map((diaObj, idx) => {
                                 const evts = getEventosDoDia(diaObj.dateStr);
                                 const isToday = diaObj.dateStr === new Date().toISOString().split('T')[0];
@@ -802,7 +802,7 @@ export default function PlanejamentoTab({
                                     <div
                                         key={idx}
                                         className={`p-2 border-r border-b border-zinc-200 dark:border-zinc-800 transition-all relative flex flex-col group/day min-h-[110px] ${diaObj.isNextMonth || diaObj.isPrevMonth ? 'bg-zinc-50/50 dark:bg-zinc-900/20 opacity-30 grayscale-[0.5]' :
-                                                isToday ? 'bg-blue-600/5 dark:bg-blue-900/10'
+                                                isToday ? 'bg-blue-600/5 dark:bg-blue-900/10 ring-1 ring-inset ring-blue-500/25'
                                                 : isWeekend ? 'bg-zinc-50/80 dark:bg-zinc-900/60 hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
                                                 : 'bg-white dark:bg-zinc-900 hover:bg-white dark:hover:bg-zinc-800/50'
                                             }`}
@@ -829,7 +829,7 @@ export default function PlanejamentoTab({
                                                     <div
                                                         key={evento.id}
                                                         onClick={() => openEditSidebar(evento.id)}
-                                                        className={`group/card relative flex items-center gap-1.5 px-1.5 py-1 rounded-md border-l-[2px] cursor-pointer transition-all hover:translate-x-0.5 active:scale-[0.98] ios-btn overflow-hidden`}
+                                                        className={`group/card event-pill relative flex items-center gap-1.5 px-1.5 py-1 rounded-md border-l-[2px] cursor-pointer overflow-hidden`}
                                                         style={{
                                                             borderLeftColor: client?.['Cor (HEX)'] || '#3B82F6',
                                                             backgroundColor: (client?.['Cor (HEX)'] ? client['Cor (HEX)'] + '12' : '#3B82F612'),

@@ -324,6 +324,8 @@ export function TaskFlowView({
     const viewType = useMemo(() => DEFAULT_TASK_VIEWS.find(v => v.id === activeViewId)?.tipo || 'List', [activeViewId]);
 
     const [currentDate, setCurrentDate] = useState(new Date());
+    // Calendar days expanded beyond the 4-task preview ("+N mais" pattern)
+    const [expandedCalDays, setExpandedCalDays] = useState<Record<string, boolean>>({});
 
     const calendarDays = useMemo(() => {
         return getCalendarDays(currentDate.getFullYear(), currentDate.getMonth());
@@ -743,17 +745,23 @@ export function TaskFlowView({
                             </div>
 
                             <div className="flex-1 overflow-y-auto custom-scrollbar">
-                                <div className="grid grid-cols-7 auto-rows-[minmax(180px,auto)] min-h-full">
+                                <div key={`${currentDate.getFullYear()}-${currentDate.getMonth()}`} className="cal-month-in grid grid-cols-7 auto-rows-[minmax(180px,auto)] min-h-full">
                                     {calendarDays.map((diaObj, idx) => {
                                         const evts = getEventosDoDia(diaObj.dateStr);
                                         const isToday = diaObj.dateStr === new Date().toISOString().split('T')[0];
+                                        const isWeekend = idx % 7 === 0 || idx % 7 === 6;
+                                        const isExpanded = !!expandedCalDays[diaObj.dateStr];
+                                        const MAX_VISIBLE = 4;
+                                        const collapsible = evts.length > MAX_VISIBLE;
+                                        const visibleEvts = collapsible && !isExpanded ? evts.slice(0, MAX_VISIBLE) : evts;
 
                                     return (
                                         <div
                                             key={idx}
                                             className={`p-2 border-r border-b border-zinc-200 dark:border-zinc-800 transition-all relative flex flex-col min-h-[140px] ${diaObj.isNextMonth || diaObj.isPrevMonth ? 'bg-zinc-50/50 dark:bg-zinc-900/20 opacity-40' :
-                                                isToday ? 'bg-blue-50/60 dark:bg-blue-900/10' :
+                                                isToday ? 'bg-blue-50/60 dark:bg-blue-900/10 ring-1 ring-inset ring-blue-500/25' :
                                                 evts.length > 0 ? 'bg-zinc-50/80 dark:bg-zinc-800/20' :
+                                                isWeekend ? 'bg-zinc-50/60 dark:bg-zinc-900/40' :
                                                 'bg-transparent'
                                                 } hover:bg-zinc-50 dark:hover:bg-zinc-900/50 group`}
                                         >
@@ -766,8 +774,8 @@ export function TaskFlowView({
                                                 </button>
                                             </div>
 
-                                            <div className="flex-1 space-y-1 pb-1 overflow-y-auto custom-scrollbar-mini max-h-[160px]">
-                                                {evts.map(Tarefa => {
+                                            <div className="flex-1 space-y-1 pb-1">
+                                                {visibleEvts.map(Tarefa => {
                                                     const Cliente = clients.find((c: any) => c.id === Tarefa.Cliente_ID);
                                                     const clientColor = Cliente?.['Cor (HEX)'] || '#3B82F6';
                                                     const isDone = Tarefa.Status === 'done' || Tarefa.Status === 'concluido';
@@ -778,7 +786,7 @@ export function TaskFlowView({
                                                             key={Tarefa.id}
                                                             onClick={() => onSelectTask(Tarefa.id)}
                                                             title={Tarefa.Título}
-                                                            className={`group relative flex items-center gap-1.5 px-2 py-1 rounded-lg cursor-pointer transition-all hover:brightness-95 active:scale-[0.98] overflow-hidden shadow-sm ${isDone ? 'opacity-40' : ''}`}
+                                                            className={`group event-pill relative flex items-center gap-1.5 px-2 py-1 rounded-lg cursor-pointer overflow-hidden shadow-sm ${isDone ? 'opacity-40' : ''}`}
                                                             style={{
                                                                 backgroundColor: clientColor + '18',
                                                                 borderLeft: `3px solid ${clientColor}`,
@@ -794,6 +802,15 @@ export function TaskFlowView({
                                                         </div>
                                                     );
                                                 })}
+                                                {collapsible && (
+                                                    <button
+                                                        onClick={e => { e.stopPropagation(); setExpandedCalDays(prev => ({ ...prev, [diaObj.dateStr]: !isExpanded })); }}
+                                                        aria-expanded={isExpanded}
+                                                        className="w-full px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors duration-100 text-left cursor-pointer"
+                                                    >
+                                                        {isExpanded ? '− mostrar menos' : `+${evts.length - MAX_VISIBLE} mais`}
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     );
