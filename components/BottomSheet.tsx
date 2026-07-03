@@ -35,10 +35,18 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
         }
     }, [isOpen]);
 
+    // Close on Escape (keyboard-nav: modals must be dismissible via keyboard)
+    useEffect(() => {
+        if (!isOpen) return;
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [isOpen, onClose]);
+
     if (!isRendered) return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-[2500] flex items-end sm:items-center sm:justify-center">
+        <div className="fixed inset-0 z-[2500] flex items-end sm:items-center sm:justify-center" role="dialog" aria-modal="true" aria-label={title || 'Painel'}>
             {/* Backdrop */}
             <div
                 className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${animate ? 'opacity-100' : 'opacity-0'}`}

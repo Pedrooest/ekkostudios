@@ -68,42 +68,48 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
     const DropdownContent = () => (
         <div className="flex flex-col py-2">
 
-            {/* Cabeçalho de Identificação */}
-            <div className="px-4 py-2 mb-1 flex items-center gap-3">
-                <div
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-[10px] shrink-0 ${currentWorkspace?.cor?.startsWith('#') ? '' : currentWorkspace?.cor || 'bg-indigo-600'}`}
-                    style={currentWorkspace?.cor?.startsWith('#') ? { backgroundColor: currentWorkspace.cor } : undefined}
-                >
-                    {currentWorkspace?.avatar_url ? (
-                        <img src={currentWorkspace.avatar_url} alt="Avatar" className="w-full h-full object-cover rounded-lg" />
-                    ) : (
-                        currentWorkspace?.nome ? currentWorkspace.nome.substring(0, 2).toUpperCase() : 'EK'
-                    )}
-                </div>
-                <div className="flex flex-col">
-                    <span className="text-sm font-bold text-gray-900 dark:text-white leading-tight truncate max-w-[180px]">
-                        {currentWorkspace?.nome || 'Meu Workspace'}
-                    </span>
-                    <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mt-0.5">
-                        Ativo Agora
-                    </span>
+            {/* Cabeçalho de Identificação — same px-2 rail + w-8 icon column as every row below */}
+            <div className="px-2 mb-1">
+                <div className="flex items-center gap-3 px-3 py-2">
+                    <div
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-[10px] shrink-0 ${currentWorkspace?.cor?.startsWith('#') ? '' : currentWorkspace?.cor || 'bg-indigo-600'}`}
+                        style={currentWorkspace?.cor?.startsWith('#') ? { backgroundColor: currentWorkspace.cor } : undefined}
+                    >
+                        {currentWorkspace?.avatar_url ? (
+                            <img src={currentWorkspace.avatar_url} alt="Avatar" className="w-full h-full object-cover rounded-lg" />
+                        ) : (
+                            currentWorkspace?.nome ? currentWorkspace.nome.substring(0, 2).toUpperCase() : 'EK'
+                        )}
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-bold text-gray-900 dark:text-white leading-tight truncate max-w-[180px]">
+                            {currentWorkspace?.nome || 'Meu Workspace'}
+                        </span>
+                        <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mt-0.5">
+                            Ativo Agora
+                        </span>
+                    </div>
                 </div>
             </div>
 
-            {/* Opções de Gestão */}
+            {/* Opções de Gestão — icons centered in a w-8 slot to align with the avatar column */}
             <div className="px-2 space-y-1">
                 <button
                     onClick={() => { playUISound('tap'); onManageMembers(); setIsOpen(false); }}
-                    className="ios-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors text-sm font-medium group"
+                    className="ios-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors text-sm font-medium group text-left"
                 >
-                    <Users size={16} className="text-gray-400 dark:text-zinc-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
+                    <span className="w-8 flex justify-center shrink-0">
+                        <Users size={16} className="text-gray-400 dark:text-zinc-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
+                    </span>
                     Gerenciar Membros
                 </button>
                 <button
                     onClick={() => { playUISound('tap'); onSettings(); setIsOpen(false); }}
                     className="ios-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors text-sm font-medium group text-left"
                 >
-                    <Settings size={16} className="text-gray-400 dark:text-zinc-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
+                    <span className="w-8 flex justify-center shrink-0">
+                        <Settings size={16} className="text-gray-400 dark:text-zinc-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
+                    </span>
                     Configurações
                 </button>
             </div>
@@ -124,7 +130,7 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
                             className="ios-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 transition-colors text-left group"
                         >
                             <div
-                                className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-white text-[9px] shrink-0 ${ws?.cor?.startsWith('#') ? '' : ws.cor || 'bg-gray-400'}`}
+                                className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-[9px] shrink-0 ${ws?.cor?.startsWith('#') ? '' : ws.cor || 'bg-gray-400'}`}
                                 style={ws?.cor?.startsWith('#') ? { backgroundColor: ws.cor } : undefined}
                             >
                                 {ws.avatar_url ? (
@@ -153,7 +159,9 @@ export function WorkspaceSelector({ workspaces, currentWorkspace, onSelect, onCr
                     onClick={() => { playUISound('tap'); onCreate(); setIsOpen(false); }}
                     className="ios-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-900 text-gray-700 dark:text-zinc-300 transition-colors text-sm font-medium text-left group"
                 >
-                    <Plus size={16} className="text-gray-400 dark:text-zinc-500 group-hover:text-emerald-500 transition-colors" />
+                    <span className="w-8 flex justify-center shrink-0">
+                        <Plus size={16} className="text-gray-400 dark:text-zinc-500 group-hover:text-emerald-500 transition-colors" />
+                    </span>
                     Novo Workspace
                 </button>
             </div>

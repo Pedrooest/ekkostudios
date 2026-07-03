@@ -107,7 +107,7 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
       </div>
 
       {/* FILTERS */}
-      <div className="px-4 sm:px-8 py-3 sm:py-5 flex flex-col sm:flex-row gap-3 border-b border-zinc-100 dark:border-zinc-800/50 bg-white/40 dark:bg-zinc-900/20 backdrop-blur-sm">
+      <div className="px-4 sm:px-6 py-3 flex flex-col sm:flex-row gap-3 border-b border-zinc-100 dark:border-zinc-800/50 bg-white/40 dark:bg-zinc-900/20 backdrop-blur-sm">
         <div className="relative flex-1 group">
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-zinc-400 group-focus-within:text-zinc-900 dark:group-focus-within:text-zinc-100 transition-colors">
             <Search size={14} />
@@ -139,7 +139,7 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
       </div>
 
       {/* MEETINGS LIST */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-8">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6">
         {filteredReunioes.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-32 border border-zinc-200 dark:border-zinc-800 rounded-[32px] bg-zinc-50/50 dark:bg-zinc-900/20 gap-5">
             <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-zinc-700 to-zinc-900 dark:from-zinc-800 dark:to-zinc-950 flex items-center justify-center shadow-xl shadow-zinc-500/10">
@@ -151,7 +151,7 @@ export const ReunioesView: React.FC<ReunioesViewProps> = ({
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 card-grid stagger">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 card-grid stagger">
             {filteredReunioes.map(r => {
               const client = currentClient(r.cliente_id);
               const clientColor = client?.['Cor (HEX)'] || '#3B82F6';

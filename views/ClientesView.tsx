@@ -258,7 +258,7 @@ export const ClientesView = React.memo(({ clients, onUpdate, onDelete, onAdd, on
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5 card-grid stagger">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5 card-grid stagger">
             {filteredClients.map(client => {
               const bgHex = client['Cor (HEX)'] || '#3B82F6';
               const initial = (client.Nome || '?').charAt(0).toUpperCase();
