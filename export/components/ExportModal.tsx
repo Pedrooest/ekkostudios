@@ -18,7 +18,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in">
-            <div className="bg-[#111118] border border-[#24243A] rounded-2xl w-[95vw] md:w-[500px] overflow-hidden shadow-2xl transform transition-all scale-100">
+            <div className="bg-[#111118] border border-[#24243A] rounded-2xl w-[95vw] md:w-[500px] overflow-hidden shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
 
                 {/* Header */}
                 <div className="p-6 border-b border-[#24243A] flex justify-between items-center bg-[#0B0B0E]">

@@ -6,7 +6,7 @@ import {
   MessageCircle, Send, Globe, Filter, X, ChevronRight,
   Database, Layout, Users, Megaphone, Target, BarChart3, CheckSquare, Zap, Target as TargetIcon, CheckCircle2, AlertCircle
 } from 'lucide-react';
-import { Card, Button, InputSelect, Badge, DeletionBar } from '../Components';
+import { Card, Button, InputSelect, Badge, DeletionBar, PSelectPortal } from '../Components';
 import { 
   OPCOES_FUNCAO_MATRIZ, OPCOES_QUEM_FALA_MATRIZ, 
   OPCOES_PAPEL_ESTRATEGICO_MATRIZ, OPCOES_TIPO_CONTEUDO_MATRIZ, 
@@ -186,7 +186,7 @@ export function MatrizEstrategicaView({
   };
 
   return (
-    <div className="view-root p-4 sm:p-6 space-y-6 animate-fade pb-20 h-full overflow-y-auto custom-scrollbar">
+    <div className="view-root flex-1 min-h-0 p-4 sm:p-6 space-y-5 animate-fade-blur pb-20 sm:pb-6 overflow-y-auto custom-scrollbar">
       <datalist id="dl-papel-estrategico">
         {OPCOES_PAPEL_ESTRATEGICO_MATRIZ.map(opt => <option key={opt} value={opt} />)}
       </datalist>
@@ -194,42 +194,35 @@ export function MatrizEstrategicaView({
         {OPCOES_TIPO_CONTEUDO_MATRIZ.map(opt => <option key={opt} value={opt} />)}
       </datalist>
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm">
-        <div className="flex items-center gap-4 flex-1">
-          <div className="w-12 h-12 bg-zinc-900 dark:bg-zinc-100 rounded-xl flex items-center justify-center text-white dark:text-zinc-900 shadow-lg shadow-zinc-500/10 shrink-0">
-            <Database size={24} />
+      {/* ── Header premium ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[24px] shadow-sm">
+        <div className="flex items-center gap-4 flex-1 min-w-0">
+          <div className="w-12 h-12 bg-gradient-to-br from-violet-600 to-purple-700 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-violet-500/20 shrink-0">
+            <Database size={22} />
           </div>
           <div className="min-w-0">
-            <div className="flex items-center gap-3">
-              <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight truncate">Matriz Estratégica</h2>
-              <Badge color="slate">{filteredData.length} Registros</Badge>
-            </div>
-            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate">
-              Gerenciamento Unificado de Estrutura
+            <h2 className="text-base font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight truncate">Matriz Estratégica</h2>
+            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">
+              Estrutura de conteúdo por canal · {filteredData.length} registros
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg border border-zinc-200 dark:border-zinc-700">
-            <button
-              onClick={() => { playUISound('tap'); setViewMode('table'); }}
-              className={`p-1.5 rounded transition-all ${viewMode === 'table' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
-            >
-              <List size={16} />
+        <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex items-center gap-0.5 p-0.5 bg-zinc-100 dark:bg-zinc-800 rounded-xl">
+            <button onClick={() => { playUISound('tap'); setViewMode('table'); }}
+              className={`p-2 rounded-lg transition-all ${viewMode === 'table' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}>
+              <List size={14} />
             </button>
-            <button
-              onClick={() => { playUISound('tap'); setViewMode('cards'); }}
-              className={`p-1.5 rounded transition-all ${viewMode === 'cards' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
-            >
-              <LayoutGrid size={16} />
+            <button onClick={() => { playUISound('tap'); setViewMode('cards'); }}
+              className={`p-2 rounded-lg transition-all ${viewMode === 'cards' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}>
+              <LayoutGrid size={14} />
             </button>
           </div>
-
-          <Button onClick={() => { playUISound('tap'); onAdd(); }} className="!h-10 !px-5 !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-zinc-900 !rounded-lg !text-[11px] !font-bold !uppercase shadow-lg shadow-zinc-500/10 transition-transform hover:scale-[1.02]">
-            <Plus size={16} className="mr-2 shrink-0" /> Nova Entrada
-          </Button>
+          <button onClick={() => { playUISound('tap'); onAdd(); }}
+            className="flex items-center gap-2 h-9 px-4 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.03] hover:shadow-lg active:scale-[0.97] transition-all shadow-md">
+            <Plus size={13} strokeWidth={3} /> Nova Entrada
+          </button>
         </div>
       </div>
 
@@ -347,7 +340,7 @@ export function MatrizEstrategicaView({
                   return (
                     <tr 
                       key={row.id} 
-                      className={`hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors group cursor-pointer ${selection.includes(row.id) ? 'bg-zinc-900/5 dark:bg-zinc-100/5' : ''}`}
+                      className={`hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all duration-200 group cursor-pointer ${selection.includes(row.id) ? 'bg-zinc-900/5 dark:bg-zinc-100/5' : ''}`}
                       onClick={() => setDrawerItem(row)}
                     >
                       <td className="px-6 py-3 text-center" onClick={e => e.stopPropagation()}>
@@ -364,32 +357,23 @@ export function MatrizEstrategicaView({
                       </td>
                     )}
                     <td className="px-6 py-3 min-w-[120px] relative" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center gap-2">
-                          <select 
-                            value={row['Rede_Social'] || ''}
-                            onChange={e => onUpdate(row.id, 'MATRIZ', 'Rede_Social', e.target.value)}
-                            className="bg-transparent outline-none text-[10px] font-bold text-zinc-700 dark:text-zinc-300 uppercase cursor-pointer hover:text-blue-500 border-b border-dashed border-zinc-300 dark:border-zinc-700 pb-0.5"
-                          >
-                            <option value="">Selecione</option>
-                            <option value="Instagram">Instagram</option>
-                            <option value="TikTok">TikTok</option>
-                            <option value="Youtube">Youtube</option>
-                            <option value="LinkedIn">LinkedIn</option>
-                            <option value="Facebook">Facebook</option>
-                            <option value="WhatsApp">WhatsApp</option>
-                          </select>
-                        </div>
+                        <PSelectPortal
+                          value={row['Rede_Social'] || ''}
+                          onChange={v => onUpdate(row.id, 'MATRIZ', 'Rede_Social', v)}
+                          size="sm"
+                          placeholder="Selecione"
+                          options={['Instagram','TikTok','Youtube','LinkedIn','Facebook','WhatsApp']}
+                        />
                         <SavingIndicator status={savingStatus[`MATRIZ:${row.id}:Rede_Social`]} />
                     </td>
                     <td className="px-6 py-3 min-w-[180px] relative" onClick={e => e.stopPropagation()}>
-                        <select 
+                        <PSelectPortal
                           value={row['Função'] || ''}
-                          onChange={e => onUpdate(row.id, 'MATRIZ', 'Função', e.target.value)}
-                          className="bg-transparent outline-none text-[10px] font-bold text-zinc-700 dark:text-zinc-300 uppercase cursor-pointer hover:text-blue-500 border-b border-dashed border-zinc-300 dark:border-zinc-700 pb-0.5"
-                        >
-                          <option value="">Selecione</option>
-                          {OPCOES_FUNCAO_MATRIZ.map(o => <option key={o} value={o}>{o}</option>)}
-                        </select>
+                          onChange={v => onUpdate(row.id, 'MATRIZ', 'Função', v)}
+                          size="sm"
+                          placeholder="Selecione"
+                          options={OPCOES_FUNCAO_MATRIZ}
+                        />
                         <SavingIndicator status={savingStatus[`MATRIZ:${row.id}:Função`]} />
                     </td>
                     {renderEditableCell(row, 'Quem fala')}
@@ -397,7 +381,7 @@ export function MatrizEstrategicaView({
                     {renderEditableCell(row, 'Tipo de conteúdo', 'dl-tipo-conteudo')}
                     {renderEditableCell(row, 'Resultado esperado')}
                       <td className="px-6 py-3 text-right" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center justify-end gap-2 hover-reveal transition-opacity">
                           <button 
                             onClick={() => handleEdit(row)}
                             className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
@@ -430,7 +414,7 @@ export function MatrizEstrategicaView({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 stagger">
                   {items.map(row => (
                     <div 
                       key={row.id}

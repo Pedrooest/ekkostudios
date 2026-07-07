@@ -203,8 +203,22 @@ import { PortalPopover } from './components/PortalPopover';
 
 // Fallback shown while a lazy-loaded view is being fetched.
 const RouteFallback = () => (
-  <div className="flex items-center justify-center w-full h-full min-h-[300px]">
-    <Loader2 className="w-8 h-8 animate-spin text-app-text-muted" />
+  <div className="w-full h-full p-4 sm:p-6 space-y-4 animate-pulse">
+    {/* Header skeleton */}
+    <div className="h-8 w-64 bg-zinc-200 dark:bg-zinc-800 rounded-xl" />
+    <div className="h-4 w-40 bg-zinc-100 dark:bg-zinc-800/60 rounded-lg" />
+    {/* Metric cards skeleton */}
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+      {[...Array(8)].map((_, i) => (
+        <div key={i} className="h-28 rounded-2xl bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800" />
+      ))}
+    </div>
+    {/* Chart + list skeleton */}
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+      <div className="lg:col-span-2 h-72 rounded-2xl bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800" />
+      <div className="h-72 rounded-2xl bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800" />
+      <div className="h-72 rounded-2xl bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800" />
+    </div>
   </div>
 );
 
@@ -237,6 +251,7 @@ export default function App() {
   const [isLibraryEditorOpen, setIsLibraryEditorOpen] = useState(false);
   const [vhConfig, setVhConfig] = useState<VhConfig>(DEFAULT_VH_CONFIG);
   const [collaborators, setCollaborators] = useState<Colaborador[]>([]);
+  const [workspaceMembers, setWorkspaceMembers] = useState<any[]>([]);
   const [activeTaskViewId, setActiveTaskViewId] = useState<string>(DEFAULT_TASK_VIEWS[0].id);
   const notificationButtonRef = useRef<HTMLButtonElement>(null);
   const clientFilterButtonRef = useRef<HTMLButtonElement>(null);
@@ -292,7 +307,12 @@ export default function App() {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    const handleResize = () => {
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+      // Auto-collapse sidebar when resizing to mobile
+      if (mobile) setSidebarCollapsed(true);
+    };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -333,10 +353,17 @@ export default function App() {
           return stillExists || list[0];
         });
       }
-    } catch (error) {
+    } catch (error: any) {
+      // AbortError = network interruption or component unmount — DON'T wipe workspaces
+      // Retry automatically after 2 seconds
+      if (error?.name === 'AbortError' || error?.message?.includes('aborted')) {
+        console.warn('[refreshWorkspaces] Request aborted, retrying in 2s...');
+        setWorkspaceLoading(false);
+        setTimeout(() => refreshWorkspaces(), 2000);
+        return;
+      }
       console.error('Failed to refresh workspaces:', error);
-      // If we are stuck in loading, maybe try one last time or show error
-      setWorkspaces([]);
+      // Don't clear workspaces — keep whatever state we had
     } finally {
       setWorkspaceLoading(false);
     }
@@ -362,7 +389,7 @@ export default function App() {
         return [];
       };
 
-      const parsedClients = (data.clients as Cliente[]).map(c => ({
+      const parsedClients = ((data.clients || []) as Cliente[]).map(c => ({
         ...c,
         links: safeParseArray(c.links),
         log_comunicacao: safeParseArray(c.log_comunicacao),
@@ -372,7 +399,7 @@ export default function App() {
         metas: safeParseArray(c.metas),
       }));
 
-      const parsedTasks = (data.tasks as Tarefa[]).map(t => ({
+      const parsedTasks = ((data.tasks || []) as Tarefa[]).map(t => ({
         ...t,
         Checklist: safeParseArray(t.Checklist),
         Anexos: safeParseArray(t.Anexos),
@@ -380,7 +407,7 @@ export default function App() {
         Atividades: safeParseArray(t.Atividades)
       }));
 
-      const parsedChecklists = (data.checklists as ChecklistShoot[]).map(c => ({
+      const parsedChecklists = ((data.checklists || []) as ChecklistShoot[]).map(c => ({
         ...c,
         itens_levar: safeParseArray(c.itens_levar),
         itens_trazer: safeParseArray(c.itens_trazer),
@@ -393,13 +420,50 @@ export default function App() {
       setRdc(prev => mergeItems(prev, data.rdc as ItemRdc[]));
       setPlanejamento(prev => mergeItems(prev, data.planning as ItemPlanejamento[]));
       setFinancas(prev => mergeItems(prev, data.financas as LancamentoFinancas[]));
+      // Merge server data
       setTasks(prev => mergeItems(prev, parsedTasks));
       setChecklists(prev => mergeItems(prev, parsedChecklists));
       setCollaborators(prev => mergeItems(prev, data.collaborators as Colaborador[]));
       setReunioes(prev => mergeItems(prev, (data.reunioes || []) as Reuniao[]));
       setLembretes(prev => mergeItems(prev, (data.lembretes || []) as Lembrete[]));
+
+      // If server returned no tasks (SELECT broken/500), restore from localStorage snapshot
+      // NOTE: do NOT retry sync here — it would corrupt workspace_id on tasks
+      if (parsedTasks.length === 0) {
+        try {
+          const snap = localStorage.getItem(`ekko_tasks_snap_${wsId}`);
+          if (snap) {
+            const snapTasks = JSON.parse(snap);
+            // Only restore tasks that belong to THIS workspace
+            const matching = snapTasks.filter((t: any) => t.workspace_id === wsId);
+            if (matching.length > 0) {
+              setTasks(prev => {
+                const merged = [...prev];
+                matching.forEach((item: any) => {
+                  if (!merged.find((t: any) => t.id === item.id)) merged.push(item);
+                });
+                return merged;
+              });
+            }
+          }
+        } catch (e) { /* non-critical */ }
+      }
     }
   }, []);
+
+  // Auto-save tasks snapshot to localStorage on every change
+  // This is the safety net: if Supabase SELECT fails, tasks are restored from here
+  useEffect(() => {
+    if (!currentWorkspace?.id) return;
+    try {
+      const key = `ekko_tasks_snap_${currentWorkspace.id}`;
+      if (tasks.length > 0) {
+        localStorage.setItem(key, JSON.stringify(tasks));
+      } else {
+        // Don't overwrite snapshot with empty — only overwrite with real data
+      }
+    } catch (e) { /* storage full or private browsing */ }
+  }, [tasks, currentWorkspace?.id]);
 
   const generateAutoReminders = useCallback(async () => {
     if (!currentWorkspace || tasks.length === 0) return;
@@ -444,12 +508,13 @@ export default function App() {
 
     // 3. Contas a vencer em 3 dias
     financas.forEach(f => {
-      if (f.Data === in3DaysStr && f.Status === 'Pendente') {
+      const lancNome = f.Lançamento || f.Descrição || f.Categoria || 'Conta';
+      if (f.Data === in3DaysStr && f.Status === 'Pendente' && lancNome) {
         newReminders.push({
-          titulo: `Conta "${f.Lançamento}" vence em 3 dias`,
+          titulo: `"${lancNome}" vence em 3 dias`,
           data: todayStr,
           tipo: 'Pagamento',
-          cliente_id: f.Cliente_ID,
+          cliente_id: f.Cliente_ID || null,
           auto_gerado: true,
           auto_id: `financa_vence_3d:${f.id}`
         });
@@ -461,12 +526,14 @@ export default function App() {
     financas.filter(f => (f.Tipo === 'Assinatura' || f.Tipo === 'Entrada') && f.Dia_Pagamento).forEach(f => {
         const diaPag = Number(f.Dia_Pagamento);
         const diff = (diaPag - dayToday + 31) % 31;
-        if (diff >= 0 && diff <= 5) {
+        const clienteNome = clients.find(c => c.id === f.Cliente_ID)?.Nome;
+        const lancNome = f.Lançamento || f.Descrição || f.Categoria || 'Assinatura';
+        if (diff >= 0 && diff <= 5 && lancNome) {
             newReminders.push({
-                titulo: `Cobrança de cliente em ${diff} dias: ${f.Lançamento}`,
+                titulo: `Cobrança em ${diff} dia${diff !== 1 ? 's' : ''}: ${lancNome}${clienteNome ? ` — ${clienteNome}` : ''}`,
                 data: todayStr,
                 tipo: 'Contrato',
-                cliente_id: f.Cliente_ID,
+                cliente_id: f.Cliente_ID || null,
                 auto_gerado: true,
                 auto_id: `mrr_cobranca_5d:${f.id}:${today.getMonth()}`
             });
@@ -723,58 +790,100 @@ export default function App() {
       if (loadedWorkspaceRef.current === currentWorkspace.id) return;
       loadedWorkspaceRef.current = currentWorkspace.id;
       loadWorkspaceData(currentWorkspace.id);
+      // Load workspace members (authorized people) for Responsável dropdown
+      DatabaseService.getWorkspaceMembers(currentWorkspace.id)
+        .then(members => setWorkspaceMembers(members || []))
+        .catch(() => {/* non-critical */});
     }
   }, [currentWorkspace?.id, loadWorkspaceData]);
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // SMART notificacoes (CHECKS)
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // SMART NOTIFICATIONS — disparam uma única vez por sessão/dia com dedupKey
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   useEffect(() => {
-    console.log('ActiveTab Changed', { activeTab });
-    if (!currentUser || activeTab === 'DASHBOARD') return;
+    if (!currentUser || !currentWorkspace) return;
+    const today = new Date().toISOString().split('T')[0];
 
-    const checkSmart = () => {
-      const today = new Date().toISOString().split('T')[0];
-
-      // 1. Overdue Tasks
-      const lateCount = tasks.filter(t => t.Status !== 'concluido' && t.Data_Entrega && t.Data_Entrega < today).length;
-      if (lateCount > 0) {
-        addNotification('warning', 'Tarefas Atrasadas', `Você tem ${lateCount} tarefas vencidas. Revise o fluxo.`);
+    const runChecks = () => {
+      // 1. Tarefas atrasadas
+      const lateTasks = tasks.filter(t => t.Status !== 'concluido' && t.Data_Entrega && t.Data_Entrega < today);
+      if (lateTasks.length > 0) {
+        addNotification('warning', `${lateTasks.length} tarefa${lateTasks.length > 1 ? 's' : ''} atrasada${lateTasks.length > 1 ? 's' : ''}`,
+          lateTasks.length === 1
+            ? `"${lateTasks[0].Título || 'Sem título'}" está vencida. Revise o fluxo.`
+            : `${lateTasks.length} tarefas vencidas. A mais antiga: "${lateTasks[0].Título || 'Sem título'}".`,
+          `overdue-tasks-${today}`
+        );
       }
 
-      // 2. Planning Check
-      if (activeTab === 'PLANEJAMENTO') {
-        const hasToday = planejamento.some(p => p.Data === today);
-        if (!hasToday) {
-          addNotification('info', 'Aviso de Planejamento', 'Ainda não há conteúdos planejados para hoje.');
-        }
+      // 2. Tarefas urgentes sem responsável
+      const unassigned = tasks.filter(t => t.Status !== 'concluido' && (t.Prioridade === 'Urgente' || t.Prioridade === 'Alta') && !t.Responsável);
+      if (unassigned.length > 0) {
+        addNotification('warning', 'Tarefas sem responsável',
+          `${unassigned.length} tarefa${unassigned.length > 1 ? 's' : ''} de alta prioridade sem responsável atribuído.`,
+          `unassigned-urgent-${today}`
+        );
       }
 
-      // 3. VH Limit (Simple example)
-      if (activeTab === 'VH') {
-        const totalHours = tasks
-          .filter(t => t.Status === 'concluido')
-          .reduce((acc, t) => acc + (Number(t.Tempo_Gasto_H) || 0), 0);
-        if (totalHours > 160) {
-          addNotification('warning', 'Limite VH', 'O volume de horas executadas está acima da média esperada.');
-        }
+      // 3. Reuniões hoje
+      const reunioesHoje = reunioes.filter(r => r.data === today && r.status !== 'Realizada' && r.status !== 'Cancelada');
+      if (reunioesHoje.length > 0) {
+        addNotification('info', `${reunioesHoje.length} reunião${reunioesHoje.length > 1 ? 'ões' : ''} hoje`,
+          reunioesHoje.map(r => `${r.titulo} às ${r.hora || '—'}`).join(' · '),
+          `reunioes-hoje-${today}`
+        );
+      }
+
+      // 4. Conteúdos planejados para hoje sem publicação
+      const postsHoje = planejamento.filter(p => p.Data === today && p["Status do conteúdo"] !== 'Concluído');
+      if (postsHoje.length > 0) {
+        addNotification('info', `${postsHoje.length} post${postsHoje.length > 1 ? 's' : ''} pendente${postsHoje.length > 1 ? 's' : ''} hoje`,
+          postsHoje.map(p => `${p.Rede_Social}: ${(p.Conteúdo || '').substring(0, 40)}`).join(' · '),
+          `posts-hoje-${today}`
+        );
+      }
+
+      // 5. Lembretes vencidos
+      const lembretesVencidos = lembretes.filter(l => !l.concluido && l.data < today);
+      if (lembretesVencidos.length > 0) {
+        addNotification('warning', `${lembretesVencidos.length} lembrete${lembretesVencidos.length > 1 ? 's' : ''} vencido${lembretesVencidos.length > 1 ? 's' : ''}`,
+          lembretesVencidos.slice(0, 2).map(l => l.titulo).join(', ') + (lembretesVencidos.length > 2 ? ` e mais ${lembretesVencidos.length - 2}` : ''),
+          `lembretes-vencidos-${today}`
+        );
+      }
+
+      // 6. Clientes sem conteúdo planejado nos próximos 7 dias
+      const next7 = new Date(); next7.setDate(next7.getDate() + 7);
+      const next7Str = next7.toISOString().split('T')[0];
+      const clientsWithContent = new Set(planejamento.filter(p => p.Data >= today && p.Data <= next7Str).map(p => p.Cliente_ID));
+      const clientsWithoutContent = clients.filter(c => !clientsWithContent.has(c.id));
+      if (clientsWithoutContent.length > 0 && clients.length > 0) {
+        addNotification('info', 'Clientes sem conteúdo esta semana',
+          `${clientsWithoutContent.length} cliente${clientsWithoutContent.length > 1 ? 's' : ''} sem publicações planejadas nos próximos 7 dias.`,
+          `clients-no-content-${today}`
+        );
       }
     };
 
-    // Run after a short delay to avoid spamming on load
-    const timer = setTimeout(checkSmart, 5000);
+    // Roda com delay após a carga inicial dos dados
+    const timer = setTimeout(runChecks, 3000);
     return () => clearTimeout(timer);
-  }, [currentUser, tasks.length, planejamento.length, activeTab]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.id, currentWorkspace?.id, tasks.length, planejamento.length, reunioes.length, lembretes.length, clients.length]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('ekko_os_ui_v17');
+    // Remove chaves antigas para garantir que novas abas apareçam
+    ['ekko_os_ui_v17', 'ekko_os_ui_v16', 'ekko_os_ui_v15'].forEach(k => localStorage.removeItem(k));
+
+    const ALL_TABS: TipoTabela[] = ['DASHBOARD', 'CLIENTES', 'REUNIOES', 'ORGANICKIA', 'RDC', 'MATRIZ', 'COBO', 'PLANEJAMENTO', 'FINANCAS', 'TAREFAS', 'RELATORIOS', 'CHECKLISTS', 'VH', 'WHITEBOARD', 'LEMBRETES'];
+
+    const saved = localStorage.getItem('ekko_os_ui_v18');
     if (saved) {
       const p = JSON.parse(saved);
       if (p.tabOrder) {
-        // Merge saved order with new tabs to ensure missing ones appear
-        const defaultOrder: TipoTabela[] = ['DASHBOARD', 'CLIENTES', 'ORGANICKIA', 'RDC', 'MATRIZ', 'COBO', 'PLANEJAMENTO', 'FINANCAS', 'TAREFAS', 'CHECKLISTS', 'VH', 'WHITEBOARD'];
-        const uniqueTabs = new Set([...p.tabOrder, ...defaultOrder]);
-        setTabOrder(Array.from(uniqueTabs));
+        // ALL_TABS tem prioridade — garante que TODAS as abas apareçam sempre
+        const uniqueTabs = new Set([...ALL_TABS, ...p.tabOrder.filter((t: string) => ALL_TABS.includes(t as TipoTabela))]);
+        setTabOrder(Array.from(uniqueTabs) as TipoTabela[]);
       }
       if (p.vhConfig) setVhConfig(p.vhConfig);
       if (p.BibliotecaConteudo) setContentLibrary(p.BibliotecaConteudo);
@@ -787,7 +896,7 @@ export default function App() {
 
   useEffect(() => {
     // Only persist UI state to LocalStorage
-    localStorage.setItem('ekko_os_ui_v17', JSON.stringify({
+    localStorage.setItem('ekko_os_ui_v18', JSON.stringify({
       tabOrder, vhConfig, BibliotecaConteudo, selectedClientIdIA, iaAudioInsight, iaPdfInsight, iaHistory
     }));
   }, [tabOrder, vhConfig, BibliotecaConteudo, selectedClientIdIA, iaAudioInsight, iaPdfInsight, iaHistory]);
@@ -796,16 +905,37 @@ export default function App() {
     setSelection([]);
   }, [activeTab]);
 
-  const addNotification = useCallback((tipo: NotificacaoApp['tipo'], titulo: string, mensagem: string) => {
+  // Deduplication: track which notification keys already fired this session
+  const shownNotifKeys = useRef<Set<string>>(new Set());
+
+  const addNotification = useCallback((
+    tipo: NotificacaoApp['tipo'],
+    titulo: string,
+    mensagem: string,
+    dedupKeyOrAction?: string | { label: string; onClick: () => void },
+    action?: { label: string; onClick: () => void }
+  ) => {
+    const dedupKey = typeof dedupKeyOrAction === 'string' ? dedupKeyOrAction : undefined;
+    const resolvedAction = typeof dedupKeyOrAction === 'object' ? dedupKeyOrAction : action;
+
+    if (dedupKey) {
+      if (shownNotifKeys.current.has(dedupKey)) return;
+      shownNotifKeys.current.add(dedupKey);
+    }
     const newNotif: NotificacaoApp = {
       id: generateId(),
       tipo,
       titulo,
       mensagem,
       timestamp: new Date().toISOString(),
-      lida: false
+      lida: false,
+      ...(resolvedAction && { action: resolvedAction })
     };
     setNotificacoes(prev => [newNotif, ...prev].slice(0, 50));
+    setToasts(prev => [newNotif, ...prev].slice(0, 3));
+    // Error toasts with action stay longer (6s) so user can click
+    const duration = tipo === 'error' && resolvedAction ? 6000 : 4000;
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== newNotif.id)), duration);
   }, []);
 
   useEffect(() => {
@@ -984,7 +1114,7 @@ export default function App() {
         if (error) {
           console.error(`[EKKO-SYNC] UPDATE_FAILURE | Table: ${tableName} | ID: ${id}`, error);
           setSavingStatus(prev => ({ ...prev, [key]: 'error' }));
-          addNotification('error', 'Falha ao salvar', `Erro: ${error.message || JSON.stringify(error) || 'Não foi possível sincronizar as alterações.'}`);
+          addNotification('error', 'Falha ao salvar', `${error.message || 'Não foi possível sincronizar.'}`, { label: 'Tentar novamente', onClick: () => currentWorkspace && loadWorkspaceData(currentWorkspace.id) });
           // Reverte o snapshot anterior caso o backend falhe
           if (tab === 'CLIENTES') setClients(revertFn);
           else if (tab === 'RDC') setRdc(revertFn);
@@ -1068,7 +1198,7 @@ export default function App() {
     } else if (tab === 'COBO') newItem = { ...defaultProps, Cliente_ID: defaultClientId, Canal: 'Instagram', Frequência: '', Público: '', Voz: '', Zona: '', Intenção: '', Formato: '', ...initial };
     else if (tab === 'MATRIZ') newItem = { ...defaultProps, Cliente_ID: defaultClientId, Rede_Social: 'Instagram', Função: 'Hub', "Quem fala": '', "Papel estratégico": '', "Tipo de conteúdo": '', "Resultado esperado": '', ...initial };
     else if (tab === 'RDC') newItem = { ...defaultProps, Cliente_ID: defaultClientId, "Ideia de Conteúdo": '', Rede_Social: 'Instagram', "Tipo de conteúdo": '', "Resolução (1–5)": 1, "Demanda (1–5)": 1, "Competição (1–5)": 1, "Score (R×D×C)": 1, Decisão: 'Preencha R/D/C', ...initial };
-    else if (tab === 'CHECKLISTS') newItem = { ...defaultProps, titulo: 'Novo Checklist', data: new Date().toISOString().split('T')[0], cliente_id: defaultClientId, local: '', observacoes: '', status: 'Pendente', hora: '10:00', itens_levar: [], itens_trazer: [], itens_gravar: [], ...initial };
+    else if (tab === 'CHECKLISTS') newItem = { ...defaultProps, title: 'Nova Gravação', date: new Date().toISOString().split('T')[0], client: '', location: '', notes: '', status: 'pending', time: '10:00', itens_levar: [], itens_trazer: [], itens_gravar: [], ...initial };
     else if (tab === 'REUNIOES') newItem = { ...defaultProps, cliente_id: initial.cliente_id || defaultClientId, titulo: initial.titulo || 'Nova Reunião', data: initial.data || new Date().toISOString().split('T')[0], hora: initial.hora || '10:00', formato: 'Online', participantes: '', pauta: '', decisoes: '', proximos_passos: [], status: 'Agendada', ...initial };
     else if (tab === 'LEMBRETES') newItem = { ...defaultProps, titulo: 'Novo Lembrete', data: new Date().toISOString().split('T')[0], hora: '09:00', tipo: 'Tarefa', cliente_id: initial.cliente_id || null, descricao: '', concluido: false, auto_gerado: false, ...initial };
 
@@ -1093,7 +1223,7 @@ export default function App() {
            const queue = JSON.parse(localStorage.getItem('ekko_offline_queue') || '[]');
            queue.push({ action: 'CREATE', tableName, data: newItem, workspaceId: currentWorkspace.id });
            localStorage.setItem('ekko_offline_queue', JSON.stringify(queue));
-           
+
            if (tab === 'CLIENTES') addNotification('info', 'Salvo Offline', 'Cliente adicionado localmente.');
            else if (tab === 'TAREFAS') addNotification('info', 'Salvo Offline', 'A tarefa foi criada localmente.');
            else addNotification('info', 'Salvo Offline', `Novo item salvo offline.`);
@@ -1103,25 +1233,26 @@ export default function App() {
         try {
           const error = await DatabaseService.syncItem(tableName, newItem, currentWorkspace.id);
           if (error) throw error;
+
           
+
           if (tab === 'CLIENTES') addNotification('success', 'Cliente criado com sucesso', 'Um novo perfil de cliente foi adicionado.');
           else if (tab === 'TAREFAS') addNotification('success', 'Nova tarefa adicionada', 'A tarefa foi criada no fluxo de trabalho.');
           else addNotification('success', 'Item Criado', `Novo item adicionado em ${TABLE_LABELS[tab]}.`);
         } catch (error: any) {
           console.error(`[EKKO-SYNC] CREATE_FAILURE | Table: ${tableName} | ID: ${id} | Error:`, error);
-          addNotification('error', 'Erro ao sincronizar', `O item foi criado localmente mas não pôde ser salvo no servidor: ${error.message || 'Erro de constraint ou permissão'}`);
-          // Rollback local state
-          const filterFn = (prev: any[]) => prev.filter((i: any) => i.id !== id);
-          if (tab === 'CLIENTES') setClients(filterFn);
-          else if (tab === 'FINANCAS') setFinancas(filterFn);
-          else if (tab === 'PLANEJAMENTO') setPlanejamento(filterFn);
-          else if (tab === 'TAREFAS') setTasks(filterFn);
-          else if (tab === 'CHECKLISTS') setChecklists(filterFn as any);
-          else if (tab === 'COBO') setCobo(filterFn);
-          else if (tab === 'MATRIZ') setMatriz(filterFn);
-          else if (tab === 'RDC') setRdc(filterFn);
-
-          addNotification('error', 'Erro ao salvar', `Erro: ${error.message || JSON.stringify(error) || 'O registro não pôde ser criado no servidor.'}`);
+          // Mark as sync-failed but KEEP in local state (already in localStorage via write-ahead)
+          const markFailed = (prev: any[]) => prev.map((i: any) => i.id === id ? { ...i, __syncFailed: true } : i);
+          if (tab === 'CLIENTES') setClients(markFailed);
+          else if (tab === 'FINANCAS') setFinancas(markFailed);
+          else if (tab === 'PLANEJAMENTO') setPlanejamento(markFailed);
+          else if (tab === 'TAREFAS') setTasks(markFailed);
+          else if (tab === 'CHECKLISTS') setChecklists(markFailed as any);
+          else if (tab === 'COBO') setCobo(markFailed);
+          else if (tab === 'MATRIZ') setMatriz(markFailed);
+          else if (tab === 'RDC') setRdc(markFailed);
+          if (tab === 'TAREFAS') addNotification('error', 'Erro ao sincronizar', `Tarefa salva localmente — clique para tentar novamente.`, { label: 'Tentar novamente', onClick: () => currentWorkspace && loadWorkspaceData(currentWorkspace.id) });
+          else addNotification('error', 'Erro ao sincronizar', `Item salvo localmente, mas falhou no servidor.`, { label: 'Recarregar', onClick: () => currentWorkspace && loadWorkspaceData(currentWorkspace.id) });
         }
       }
     }
@@ -1152,7 +1283,9 @@ export default function App() {
     if (tab === 'COBO') setCobo(prev => prev.filter(c => !ids.includes(c.id)));
     if (tab === 'PLANEJAMENTO') setPlanejamento(prev => prev.filter(p => !ids.includes(p.id)));
     if (tab === 'FINANCAS') setFinancas(prev => prev.filter(f => !ids.includes(f.id)));
-    if (tab === 'TAREFAS') setTasks(prev => prev.filter(t => !ids.includes(t.id)));
+    if (tab === 'TAREFAS') {
+      setTasks(prev => prev.filter(t => !ids.includes(t.id)));
+    }
     if (tab === 'CHECKLISTS') setChecklists(prev => prev.filter(c => !ids.includes(c.id)));
     if (tab === 'REUNIOES') setReunioes(prev => prev.filter(r => !ids.includes(r.id)));
     if (tab === 'LEMBRETES') setLembretes(prev => prev.filter(l => !ids.includes(l.id)));
@@ -1432,8 +1565,18 @@ export default function App() {
 
 
   if (authLoading) return (
-    <div className="fixed inset-0 bg-app-bg flex items-center justify-center">
-      <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+    <div className="fixed inset-0 bg-[#0B0F19] flex flex-col items-center justify-center gap-6">
+      {/* Glow orbs */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-64 h-64 bg-blue-600/15 blur-[80px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-1/3 left-1/2 -translate-x-1/2 w-48 h-48 bg-indigo-600/10 blur-[80px] rounded-full pointer-events-none" />
+      {/* Logo */}
+      <img src="/site-logo.png" alt="EKKO" className="h-16 object-contain relative z-10 animate-pulse" />
+      {/* Spinner */}
+      <div className="relative z-10 w-8 h-8">
+        <div className="absolute inset-0 rounded-full border-2 border-white/5" />
+        <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-blue-500 animate-spin" />
+      </div>
+      <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] relative z-10">Carregando...</p>
     </div>
   );
 
@@ -1459,55 +1602,97 @@ export default function App() {
           <Logo collapsed={sidebarCollapsed} theme={theme} />
         </div>
         
-        <nav className="flex-1 py-4 px-2 space-y-6 overflow-y-auto custom-scrollbar flex flex-col">
-          {/* GRUPOS DE ABAS */}
-          {[
-            { label: 'Visão Geral', tabs: ['DASHBOARD', 'CLIENTES', 'REUNIOES', 'ORGANICKIA'] },
-            { label: 'Estratégia', tabs: ['RDC', 'MATRIZ', 'COBO'] },
-            { label: 'Execução', tabs: ['PLANEJAMENTO', 'TAREFAS', 'CHECKLISTS'] },
-            { label: 'Gestão/Extras', tabs: ['FINANCAS', 'VH', 'RELATORIOS', 'WHITEBOARD'] }
-          ].map((group, gIdx) => (
-            <div key={group.label} className="space-y-1">
-              {!sidebarCollapsed && (
-                <p className="px-4 text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-400 mb-2">
-                  {group.label}
-                </p>
-              )}
-              {group.tabs.filter(t => tabOrder.includes(t as TipoTabela)).map(tab => {
-                const TabIcon = getIcon(tab as TipoTabela);
-                return (
-                  <button
-                    key={`nav-tab-${tab}`}
-                    onClick={() => { playUISound('tap'); setActiveTab(tab as TipoTabela); if (window.innerWidth < 1024) setSidebarCollapsed(true); }}
-                    title={sidebarCollapsed ? TABLE_LABELS[tab as TipoTabela] : undefined}
-                    className={`w-full flex items-center transition-all group rounded-lg h-9 relative
-                      ${activeTab === tab ? 'bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60'}
-                      ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}`}
-                  >
-                    {activeTab === tab && (
-                      <span aria-hidden className="absolute left-0 inset-y-1.5 w-1 rounded-r-full bg-purple-600 dark:bg-purple-400" />
-                    )}
-                    <TabIcon size={18} className="shrink-0 transition-transform group-hover:scale-110" />
-                    {!sidebarCollapsed && <span className="text-[11px] font-bold uppercase tracking-widest truncate min-w-0 flex-1 text-left">{TABLE_LABELS[tab as TipoTabela]}</span>}
-                  </button>
-                );
-              })}
-            </div>
-          ))}
+        <nav className="flex-1 py-3 px-2 space-y-4 overflow-y-auto custom-scrollbar flex flex-col">
+          {/* ── Sidebar badges: compute counts ── */}
+          {(() => {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const overdueTasks    = tasks.filter(t => t.Status !== 'done' && t.Status !== 'arquivado' && t.Data_Entrega && t.Data_Entrega < todayStr).length;
+            const pendingFinancas = financas.filter((f: any) => (f.Status === 'Pendente' || f.Status === 'Atrasado') && !f.__archived).length;
+            const todayMeetings   = reunioes.filter((r: any) => r.data === todayStr && r.status === 'Agendada').length;
+
+            const badges: Record<string, number> = {};
+            if (overdueTasks    > 0) badges['TAREFAS']  = overdueTasks;
+            if (pendingFinancas > 0) badges['FINANCAS']  = pendingFinancas;
+            if (todayMeetings   > 0) badges['REUNIOES']  = todayMeetings;
+
+            return [
+              { label: 'Visão Geral', tabs: ['DASHBOARD', 'CLIENTES', 'REUNIOES', 'ORGANICKIA'] },
+              { label: 'Estratégia',  tabs: ['RDC', 'MATRIZ', 'COBO'] },
+              { label: 'Execução',    tabs: ['PLANEJAMENTO', 'TAREFAS', 'CHECKLISTS'] },
+              { label: 'Gestão',      tabs: ['FINANCAS', 'VH', 'RELATORIOS', 'WHITEBOARD'] }
+            ].map((group, gIdx) => (
+              <div key={group.label} className="space-y-0.5">
+                {!sidebarCollapsed && (
+                  <p className="px-3 text-[8px] font-black uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-600 mb-1.5 mt-0.5 flex items-center gap-2">
+                    {group.label}
+                  </p>
+                )}
+                {sidebarCollapsed && gIdx > 0 && (
+                  <div className="h-px bg-zinc-100 dark:bg-zinc-800 mx-auto w-6 mb-2" />
+                )}
+                {group.tabs.filter(t => tabOrder.includes(t as TipoTabela)).map(tab => {
+                  const TabIcon  = getIcon(tab as TipoTabela);
+                  const isActive = activeTab === tab;
+                  const badge    = badges[tab] || 0;
+                  return (
+                    <button
+                      key={`nav-tab-${tab}`}
+                      onClick={() => { playUISound('tap'); setActiveTab(tab as TipoTabela); if (window.innerWidth < 1024) setSidebarCollapsed(true); }}
+                      title={sidebarCollapsed ? TABLE_LABELS[tab as TipoTabela] : undefined}
+                      className={`w-full flex items-center transition-all duration-200 group rounded-xl h-9 relative overflow-hidden
+                        ${isActive
+                          ? 'bg-zinc-900 dark:bg-white/[0.08] text-white dark:text-white shadow-md shadow-black/10 dark:shadow-black/30'
+                          : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/70'}
+                        ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-2.5'}`}
+                    >
+                      {/* Active left accent bar */}
+                      {isActive && !sidebarCollapsed && (
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-white/50 dark:bg-white/40" />
+                      )}
+                      <div className="relative shrink-0">
+                        <TabIcon size={16} className={`transition-all ${isActive ? '' : 'group-hover:scale-110'}`} strokeWidth={isActive ? 2.5 : 2} />
+                        {badge > 0 && (
+                          <span className={`absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 rounded-full flex items-center justify-center text-[7px] font-black leading-none px-0.5 ${
+                            isActive ? 'bg-white dark:bg-white text-zinc-900 shadow-sm' : 'bg-rose-500 text-white'
+                          }`}>
+                            {badge > 99 ? '99+' : badge}
+                          </span>
+                        )}
+                      </div>
+                      {!sidebarCollapsed && (
+                        <>
+                          <span className={`text-[10px] font-black uppercase tracking-widest truncate min-w-0 flex-1 text-left`}>
+                            {tab === 'ORGANICKIA' ? (
+                              <>EK<span style={{ display: 'inline-block', transform: 'scaleX(-1)' }}>K</span>O IA</>
+                            ) : TABLE_LABELS[tab as TipoTabela]}
+                          </span>
+                          {badge > 0 && !isActive && (
+                            <span className="ml-auto shrink-0 min-w-[18px] h-4 bg-rose-500 text-white rounded-full flex items-center justify-center text-[7px] font-black px-1">
+                              {badge > 99 ? '99+' : badge}
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            ));
+          })()}
         </nav>
 
-        <div className="p-2 border-t border-zinc-100 dark:border-zinc-800 space-y-1 bg-white dark:bg-zinc-900 flex flex-col">
-          <button onClick={() => { playUISound('tap'); setIsLibraryEditorOpen(true); }} title={sidebarCollapsed ? "Configurações Globais" : undefined} className={`w-full flex items-center transition-all group rounded-lg h-9 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60 ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}`}>
-            <Layers size={18} className="shrink-0 transition-transform group-hover:scale-110" />
-            {!sidebarCollapsed && <span className="text-[11px] font-bold uppercase tracking-widest truncate min-w-0 flex-1 text-left">Tipos</span>}
+        <div className="p-2 border-t border-zinc-100 dark:border-zinc-800 space-y-0.5 bg-white dark:bg-zinc-900 flex flex-col">
+          <button onClick={() => { playUISound('tap'); setIsLibraryEditorOpen(true); }} title={sidebarCollapsed ? "Configurações Globais" : undefined} className={`w-full flex items-center transition-all duration-200 group rounded-xl h-9 text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-2.5'}`}>
+            <Layers size={16} className="shrink-0 group-hover:scale-110 transition-transform" strokeWidth={2} />
+            {!sidebarCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest truncate">Tipos</span>}
           </button>
-          <button onClick={() => { playUISound('tap'); setIsReorderOpen(true); }} title={sidebarCollapsed ? "Ordenar Abas" : undefined} className={`w-full flex items-center transition-all group rounded-lg h-9 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60 ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}`}>
-            <Move size={18} className="shrink-0 transition-transform group-hover:scale-110" />
-            {!sidebarCollapsed && <span className="text-[11px] font-bold uppercase tracking-widest truncate min-w-0 flex-1 text-left">Ordem</span>}
+          <button onClick={() => { playUISound('tap'); setIsReorderOpen(true); }} title={sidebarCollapsed ? "Ordenar Abas" : undefined} className={`w-full flex items-center transition-all duration-200 group rounded-xl h-9 text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-2.5'}`}>
+            <Move size={16} className="shrink-0 group-hover:scale-110 transition-transform" strokeWidth={2} />
+            {!sidebarCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest truncate">Ordenar</span>}
           </button>
-          <button onClick={() => { playUISound('tap'); setSidebarCollapsed(!sidebarCollapsed); }} title={sidebarCollapsed ? "Expandir Sidebar" : "Recolher Sidebar"} className={`w-full flex items-center transition-all group rounded-lg h-9 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60 ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}`}>
-            {sidebarCollapsed ? <Maximize2 size={18} className="shrink-0 transition-transform group-hover:scale-110" /> : <ArrowLeft size={18} className="shrink-0 transition-transform group-hover:scale-110" />}
-            {!sidebarCollapsed && <span className="text-[11px] font-bold uppercase tracking-widest truncate min-w-0 flex-1 text-left">{sidebarCollapsed ? 'Expandir' : 'Recolher'}</span>}
+          <button onClick={() => { playUISound('tap'); setSidebarCollapsed(!sidebarCollapsed); }} title={sidebarCollapsed ? "Expandir" : "Recolher"} className={`w-full flex items-center transition-all duration-200 group rounded-xl h-9 text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 ${sidebarCollapsed ? 'justify-center px-0' : 'px-3 gap-2.5'}`}>
+            {sidebarCollapsed ? <Maximize2 size={16} className="shrink-0 group-hover:scale-110 transition-transform" strokeWidth={2} /> : <ArrowLeft size={16} className="shrink-0 group-hover:scale-110 transition-transform" strokeWidth={2} />}
+            {!sidebarCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest truncate">{sidebarCollapsed ? 'Expandir' : 'Recolher'}</span>}
           </button>
         </div>
       </aside>
@@ -1525,11 +1710,11 @@ export default function App() {
 
 
       <main className="flex-1 flex flex-col min-w-0 relative overflow-hidden bg-app-bg transition-colors duration-300">
-        <header className={`sticky top-0 z-[50] px-4 sm:px-8 py-3 lg:h-[72px] border-b transition-colors flex justify-between items-center w-full backdrop-blur-md ${theme === 'dark' ? 'dark bg-[#0a0a0c]/80 border-zinc-800/80 text-zinc-300' : 'bg-white/80 border-gray-200 text-gray-800'}`}>
+        <header className={`sticky top-0 z-[50] px-4 sm:px-6 border-b transition-all flex justify-between items-center w-full backdrop-blur-xl h-[60px] ${theme === 'dark' ? 'bg-zinc-950/85 border-zinc-800/70 text-zinc-300' : 'bg-white/90 border-zinc-200/80 text-gray-800'} shadow-sm`}>
           {/* LEFT: Menu | Workspace */}
-          <div className="flex items-center gap-4">
-            <button className="ios-btn lg:hidden text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all p-2.5 -ml-2 relative z-[2200] bg-zinc-100 dark:bg-white/5 rounded-xl active:scale-90" onClick={() => { playUISound('tap'); setSidebarCollapsed(!sidebarCollapsed); }}>
-              <Menu size={22} />
+          <div className="flex items-center gap-3">
+            <button className="ios-btn lg:hidden text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all p-2 -ml-1 relative z-[2200] bg-zinc-100 dark:bg-white/5 rounded-xl active:scale-90" onClick={() => { playUISound('tap'); setSidebarCollapsed(!sidebarCollapsed); }}>
+              <Menu size={20} />
             </button>
             <WorkspaceSelector
               workspaces={workspaces}
@@ -1586,7 +1771,11 @@ export default function App() {
               >
                 <Bell size={16} />
                 {(notificacoes.some(n => !n.lida) || pendingRemindersCount > 0) && (
-                  <span className={`absolute top-1 right-1 ${pendingRemindersCount > 0 ? 'min-w-[14px] h-[14px] px-0.5 bg-red-500' : 'w-2 h-2 bg-blue-500'} rounded-full text-[8px] font-black text-white flex items-center justify-center`}>
+                  <span className={`absolute top-0.5 right-0.5 flex items-center justify-center rounded-full text-[8px] font-black text-white
+                    ${pendingRemindersCount > 0
+                      ? 'min-w-[16px] h-[16px] px-0.5 bg-red-500 shadow-sm shadow-red-500/40 animate-pulse'
+                      : 'w-2.5 h-2.5 bg-blue-500'
+                    }`}>
                     {pendingRemindersCount > 0 ? pendingRemindersCount : ''}
                   </span>
                 )}
@@ -1621,15 +1810,32 @@ export default function App() {
                     {activeNotifTab === 'notificacoes' ? (
                       <div className="divide-y divide-app-border/50">
                         <div className="p-3 flex justify-between items-center bg-app-bg/30 sticky top-0 z-10 backdrop-blur-md">
-                           <span className="text-[8px] font-bold uppercase text-app-text-muted tracking-widest">Recentes</span>
+                           <span className="text-[8px] font-bold uppercase text-app-text-muted tracking-widest">
+                             Recentes
+                             {notificacoes.filter(n => !n.lida).length > 0 && (
+                               <span className="ml-2 text-[7px] bg-blue-500 text-white px-1.5 py-0.5 rounded-full font-black">
+                                 {notificacoes.filter(n => !n.lida).length} nova{notificacoes.filter(n => !n.lida).length !== 1 ? 's' : ''}
+                               </span>
+                             )}
+                           </span>
                            {notificacoes.length > 0 && (
-                             <button
-                               onClick={() => { playUISound('tap'); setNotificacoes([]); }}
-                               className="text-[8px] font-black uppercase text-rose-500 hover:text-rose-600 transition-colors flex items-center gap-1"
-                               title="Excluir todas as notificações"
-                             >
-                               <Trash2 size={10} /> Limpar tudo
-                             </button>
+                             <div className="flex items-center gap-2">
+                               {notificacoes.some(n => !n.lida) && (
+                                 <button
+                                   onClick={() => { playUISound('tap'); setNotificacoes(prev => prev.map(n => ({ ...n, lida: true }))); }}
+                                   className="text-[8px] font-black uppercase text-blue-500 hover:text-blue-600 transition-colors flex items-center gap-1"
+                                 >
+                                   <CheckIcon size={9} /> Marcar lidas
+                                 </button>
+                               )}
+                               <button
+                                 onClick={() => { playUISound('tap'); setNotificacoes([]); shownNotifKeys.current.clear(); }}
+                                 className="text-[8px] font-black uppercase text-rose-500 hover:text-rose-600 transition-colors flex items-center gap-1"
+                                 title="Limpar todas as notificações"
+                               >
+                                 <Trash2 size={9} /> Limpar
+                               </button>
+                             </div>
                            )}
                         </div>
                         {notificacoes.length === 0 ? (
@@ -1668,8 +1874,38 @@ export default function App() {
                     ) : (
                       <div className="divide-y divide-app-border/50">
                         <div className="p-3 flex justify-between items-center bg-app-bg/30 sticky top-0 z-10 backdrop-blur-md">
-                           <span className="text-[8px] font-bold uppercase text-app-text-muted tracking-widest">Meus Lembretes</span>
-                           <button onClick={() => { playUISound('tap'); setIsLembreteModalOpen(true); setEditingLembrete(null); }} className="text-[8px] font-black uppercase text-app-accent-blue bg-app-accent-blue/10 px-2 py-1 rounded-md hover:bg-app-accent-blue/20 transition-all">+ Criar</button>
+                           <span className="text-[8px] font-bold uppercase text-app-text-muted tracking-widest">
+                             Meus Lembretes
+                             {pendingRemindersCount > 0 && (
+                               <span className="ml-2 text-[7px] bg-red-500 text-white px-1.5 py-0.5 rounded-full font-black">{pendingRemindersCount}</span>
+                             )}
+                           </span>
+                           <div className="flex items-center gap-2">
+                             {lembretes.length > 0 && (() => {
+                               const todayStr = new Date().toISOString().split('T')[0];
+                               // Limpar: concluídos + vencidos + auto-gerados de hoje (que já foram vistos)
+                               const toClean = lembretes.filter(l =>
+                                 l.concluido ||
+                                 (l.data < todayStr && !l.concluido) ||
+                                 (l.auto_gerado && l.data <= todayStr)
+                               );
+                               if (toClean.length === 0) return null;
+                               const autoCount = toClean.filter(l => l.auto_gerado).length;
+                               const label = autoCount > 0 && toClean.length === autoCount
+                                 ? `Limpar automáticos (${autoCount})`
+                                 : `Limpar (${toClean.length})`;
+                               return (
+                                 <button
+                                   onClick={() => { playUISound('tap'); performDelete(toClean.map(l => l.id), 'LEMBRETES'); }}
+                                   className="text-[8px] font-black uppercase text-rose-500 hover:text-rose-600 transition-colors flex items-center gap-1 px-2 py-1 rounded-md hover:bg-rose-50 dark:hover:bg-rose-500/10"
+                                   title={`Remove ${toClean.length} lembrete(s)`}
+                                 >
+                                   <Trash2 size={9} /> {label}
+                                 </button>
+                               );
+                             })()}
+                             <button onClick={() => { playUISound('tap'); setIsLembreteModalOpen(true); setEditingLembrete(null); }} className="text-[8px] font-black uppercase text-app-accent-blue bg-app-accent-blue/10 px-2 py-1 rounded-md hover:bg-app-accent-blue/20 transition-all">+ Criar</button>
+                           </div>
                         </div>
                         
                         {lembretes.length === 0 ? (
@@ -1679,7 +1915,7 @@ export default function App() {
                            </div>
                         ) : (
                           [...lembretes]
-                            .sort((a,b) => b.data.localeCompare(a.data))
+                            .sort((a,b) => new Date(b.data + 'T00:00:00').getTime() - new Date(a.data + 'T00:00:00').getTime())
                             .map(l => {
                                const isToday = l.data === new Date().toISOString().split('T')[0];
                                const isOverdue = l.data < new Date().toISOString().split('T')[0] && !l.concluido;
@@ -1753,37 +1989,40 @@ export default function App() {
                 <ProfilePopover
                   profile={perfilUsuario}
                   tasks={tasks}
+                  planejamento={planejamento}
                   onUpdate={(updates) => {
                     const newProfile = { ...perfilUsuario, ...updates };
                     setPerfilUsuario(newProfile);
                     localStorage.setItem(`profile_${perfilUsuario.id}`, JSON.stringify(newProfile));
                   }}
                   onLogout={() => supabase.auth.signOut()}
+                  isDarkMode={theme === 'dark'}
+                  onToggleDarkMode={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
                 />
               )}
             </div>
           </div>
         </header>
 
-        {/* Action Controls (Mobile-friendly row) */}
-        {activeTab !== 'WHITEBOARD' && activeTab !== 'PLANEJAMENTO' && activeTab !== 'CHECKLISTS' && (
+        {/* Action Controls (Mobile-friendly row) — hidden where the view owns these controls */}
+        {activeTab !== 'WHITEBOARD' && activeTab !== 'PLANEJAMENTO' && activeTab !== 'CHECKLISTS' && activeTab !== 'DASHBOARD' && (
           <div className="relative group/scroll">
-            <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar px-4 sm:px-8 py-2 border-b border-app-border/40 lg:border-none no-scrollbar snap-x snap-mandatory">
+            <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar px-4 sm:px-8 py-1.5 border-b border-app-border/40 lg:border-none no-scrollbar snap-x snap-mandatory">
               <button
                 ref={clientFilterButtonRef}
                 onClick={() => setIsClientFilterOpen(!isClientFilterOpen)}
-                className={`flex items-center gap-2 text-[10px] font-black uppercase transition-all border px-4 py-2.5 rounded-xl whitespace-nowrap snap-start ${selectedClientIds.length > 0 ? 'bg-blue-600/10 border-blue-600 text-blue-600' : 'text-zinc-500 border-white/10 hover:border-white/20 hover:text-zinc-300'}`}
+                className={`flex items-center gap-2 text-[10px] font-black uppercase transition-all border px-3.5 py-1.5 rounded-xl whitespace-nowrap snap-start ${selectedClientIds.length > 0 ? 'bg-blue-600/10 border-blue-600 text-blue-600' : 'text-zinc-500 border-white/10 hover:border-white/20 hover:text-zinc-300'}`}
               >
                 <Filter size={14} />
                 {selectedClientIds.length > 0 ? `${selectedClientIds.length} Clientes` : <><span className="md:hidden">Todos</span><span className="hidden md:inline">Todos Clientes</span></>}
               </button>
 
-              <button onClick={() => setShowArchived(!showArchived)} className={`shrink-0 text-[10px] font-black uppercase px-4 py-2.5 rounded-xl border transition-all whitespace-nowrap flex items-center gap-2 snap-start ${showArchived ? 'bg-amber-500/10 border-amber-500 text-amber-500' : 'text-zinc-500 border-white/10 hover:border-white/20 hover:text-zinc-300'}`}>
+              <button onClick={() => setShowArchived(!showArchived)} className={`shrink-0 text-[10px] font-black uppercase px-3.5 py-1.5 rounded-xl border transition-all whitespace-nowrap flex items-center gap-2 snap-start ${showArchived ? 'bg-amber-500/10 border-amber-500 text-amber-500' : 'text-zinc-500 border-white/10 hover:border-white/20 hover:text-zinc-300'}`}>
                 {showArchived ? <Eye size={14} /> : <EyeOff size={14} />}
                 {showArchived ? 'Ocultar' : 'Arquivados'}
               </button>
 
-              <Button ref={exportButtonRef} variant="secondary" onClick={() => setIsExportModalOpen(true)} className="!rounded-xl !h-[38px] !px-4 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2 snap-start whitespace-nowrap">
+              <Button ref={exportButtonRef} variant="secondary" onClick={() => setIsExportModalOpen(true)} className="!rounded-xl !h-[30px] !px-3.5 !text-[10px] !font-black !uppercase !tracking-widest flex items-center gap-2 snap-start whitespace-nowrap">
                 <Download size={14} /> <span className="hidden sm:inline">Exportar</span>
               </Button>
 
@@ -1802,30 +2041,30 @@ export default function App() {
 
         {/* --- GLOBAL SAVE INDICATOR --- */}
         {Object.keys(savingStatus).length > 0 && (
-          <div className="fixed bottom-4 right-4 z-[9999]">
+          <div className="fixed bottom-5 right-5 z-[9999] animate-in fade-in slide-in-from-bottom-2 duration-300">
             {Object.values(savingStatus).includes('saving') ? (
-              <div className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg text-sm font-medium animate-pulse">
-                <Loader2 className="w-4 h-4 animate-spin" />
+              <div className="flex items-center gap-2.5 bg-zinc-900 dark:bg-zinc-800 text-white px-4 py-2.5 rounded-2xl shadow-2xl shadow-black/30 text-[10px] font-black uppercase tracking-widest border border-white/10">
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-400 shrink-0" />
                 <span>Salvando...</span>
               </div>
             ) : Object.values(savingStatus).includes('error') ? (
-              <div className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-full shadow-lg text-sm font-medium">
-                <X className="w-4 h-4" />
+              <div className="flex items-center gap-2.5 bg-rose-600 text-white px-4 py-2.5 rounded-2xl shadow-2xl shadow-rose-500/30 text-[10px] font-black uppercase tracking-widest">
+                <X className="w-3.5 h-3.5 shrink-0" />
                 <span>Erro ao salvar</span>
               </div>
             ) : (
-              <div className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-full shadow-lg text-sm font-medium">
-                <CheckIcon className="w-4 h-4" />
-                <span>Salvo ✓</span>
+              <div className="flex items-center gap-2.5 bg-emerald-600 text-white px-4 py-2.5 rounded-2xl shadow-2xl shadow-emerald-500/30 text-[10px] font-black uppercase tracking-widest">
+                <CheckIcon className="w-3.5 h-3.5 shrink-0" />
+                <span>Salvo com sucesso</span>
               </div>
             )}
           </div>
         )}
 
-        <div className={`flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar animate-fade bg-app-bg ${(activeTab === 'WHITEBOARD' || activeTab === 'CLIENTES' || activeTab === 'PLANEJAMENTO' || activeTab === 'CHECKLISTS') ? 'p-0 overflow-hidden' : 'p-4 sm:p-6 pb-[calc(100px+env(safe-area-inset-bottom))] sm:pb-6'}`}>
+        <div className={`bg-app-bg ${(activeTab === 'WHITEBOARD' || activeTab === 'CLIENTES' || activeTab === 'PLANEJAMENTO' || activeTab === 'CHECKLISTS' || activeTab === 'DASHBOARD' || activeTab === 'REUNIOES' || activeTab === 'FINANCAS' || activeTab === 'TAREFAS' || activeTab === 'COBO' || activeTab === 'VH' || activeTab === 'ORGANICKIA' || activeTab === 'RELATORIOS' || activeTab === 'RDC' || activeTab === 'MATRIZ') ? 'flex-1 min-h-0 overflow-hidden flex flex-col' : 'flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pb-[calc(72px+env(safe-area-inset-bottom))] sm:pb-0'}`}>
           <Suspense fallback={<RouteFallback />}>
           {activeTab === 'DASHBOARD' && <DashboardView clients={clients} tasks={currentTasks} financas={currentFinancas} planejamento={currentPlanejamento} rdc={currentRdc} setActiveTab={setActiveTab} perfilUsuario={perfilUsuario} />}
-          {activeTab === 'CLIENTES' && <ClientesView clients={filterArchived(clients)} onUpdate={handleUpdate} onDelete={performDelete} onAdd={() => handleAddRow('CLIENTES')} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} savingStatus={savingStatus} />}
+          {activeTab === 'CLIENTES' && <ClientesView clients={filterArchived(clients)} tasks={tasks} planejamento={planejamento} onUpdate={handleUpdate} onDelete={performDelete} onAdd={() => handleAddRow('CLIENTES')} onOpenColorPicker={(id: string, val: string) => setColorPickerTarget({ id, tab: 'CLIENTES', field: 'Cor (HEX)', value: val })} savingStatus={savingStatus} />}
           {activeTab === 'REUNIOES' && <ReunioesView reunioes={reunioes} clients={clients} onUpdate={handleUpdate} onDelete={performDelete} onAdd={() => handleAddRow('REUNIOES')} savingStatus={savingStatus} />}
           {activeTab === 'RDC' && <TableView tab="RDC" data={currentRdc} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('RDC')} library={BibliotecaConteudo} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} savingStatus={savingStatus} />}
           {activeTab === 'MATRIZ' && <MatrizEstrategicaView data={currentMatriz} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('MATRIZ')} clients={clients} activeClient={clients.find((c: any) => c.id === selectedClientIds[0])} onSelectClient={(id: any) => setSelectedClientIds([id])} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} savingStatus={savingStatus} />}
@@ -1848,9 +2087,28 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'PLANEJAMENTO' && <PlanejamentoTab data={currentPlanejamento} clients={clients} onUpdate={handleUpdate} onAdd={handleAddRow} rdc={currentRdc} matriz={matriz} cobo={cobo} tasks={currentTasks} iaHistory={iaHistory} setActiveTab={setActiveTab} performArchive={performArchive} performDelete={performDelete} library={BibliotecaConteudo} activeClientId={selectedClientIds.length === 1 ? selectedClientIds[0] : undefined} showArchived={showArchived} setShowArchived={setShowArchived} setIsClientFilterOpen={setIsClientFilterOpen} savingStatus={savingStatus} />}
+          {activeTab === 'PLANEJAMENTO' && <PlanejamentoTab data={currentPlanejamento} clients={clients} onUpdate={handleUpdate} onAdd={handleAddRow} rdc={currentRdc} matriz={matriz} cobo={cobo} tasks={filterArchived(tasks)} iaHistory={iaHistory} setActiveTab={setActiveTab} performArchive={performArchive} performDelete={performDelete} library={BibliotecaConteudo} activeClientId={selectedClientIds.length === 1 ? selectedClientIds[0] : undefined} showArchived={showArchived} setShowArchived={setShowArchived} setIsClientFilterOpen={setIsClientFilterOpen} savingStatus={savingStatus} />}
           {activeTab === 'FINANCAS' && <FinancasTab financas={currentFinancas} onAdd={(initial: any) => handleAddRow('FINANCAS', initial)} onUpdate={(id: any, field: any, value: any) => handleUpdate(id, 'FINANCAS', field, value)} onDelete={(ids: any) => performDelete(ids, 'FINANCAS')} clients={clients} currentWorkspace={currentWorkspace} savingStatus={savingStatus} />}
-          {activeTab === 'TAREFAS' && <TaskFlowView tasks={currentTasks} clients={clients} collaborators={collaborators} activeViewId={activeTaskViewId} setActiveViewId={setActiveTaskViewId} onUpdate={handleUpdate} onDelete={performDelete} onArchive={performArchive} onAdd={() => handleAddRow('TAREFAS')} onSelectTask={setSelectedTaskId} selection={selection} onSelect={toggleSelection} onClearSelection={() => setSelection([])} savingStatus={savingStatus} />}
+          {activeTab === 'TAREFAS' && <TaskFlowView
+            tasks={filterArchived(tasks)}
+            clients={clients}
+            collaborators={collaborators}
+            workspaceMembers={workspaceMembers}
+            activeViewId={activeTaskViewId}
+            setActiveViewId={setActiveTaskViewId}
+            onUpdate={handleUpdate}
+            onDelete={performDelete}
+            onArchive={performArchive}
+            onAdd={(_table: string, initialData?: any) => handleAddRow('TAREFAS', initialData)}
+            onSelectTask={setSelectedTaskId}
+            selection={selection}
+            onSelect={toggleSelection}
+            onClearSelection={() => setSelection([])}
+            savingStatus={savingStatus}
+            planejamento={filterArchived(planejamento)}
+            activeClientId={selectedClientIds[0] || ''}
+            onClientChange={() => { /* local-only: TaskFlowView manages its own filter */ }}
+          />}
           {activeTab === 'CHECKLISTS' && <ChecklistsTab data={currentChecklists} onAdd={handleAddRow} onUpdate={handleUpdate} onDelete={performDelete} clients={clients} savingStatus={savingStatus} />}
           { activeTab === 'VH' && <VhManagementView clients={clients} collaborators={collaborators} setCollaborators={setCollaborators} onUpdate={handleUpdate} selection={selection} onSelect={toggleSelection} tasks={currentTasks} financas={currentFinancas} savingStatus={savingStatus} /> }
           { activeTab === 'RELATORIOS' && <RelatoriosView clients={clients} planejamento={planejamento} tasks={tasks} financas={financas} rdc={rdc} /> }
@@ -1897,6 +2155,7 @@ export default function App() {
                     tasks={tasks}
                     clients={clients}
                     collaborators={collaborators}
+                    workspaceMembers={workspaceMembers}
                     onClose={() => setSelectedTaskId(null)}
                     onUpdate={handleUpdate}
                     onArchive={performArchive}
@@ -1904,6 +2163,8 @@ export default function App() {
                     onAdd={handleAddRow}
                     viewMode={taskDetailViewMode as any}
                     setViewMode={setTaskDetailViewMode}
+                    setActiveTab={setActiveTab}
+                    planejamento={planejamento}
                   />
                 </Suspense>
               </div>
@@ -2176,15 +2437,6 @@ export default function App() {
             </div>
           </div>
         </div>
-      )}
-
-      {isLembreteModalOpen && (
-        <LembreteModal
-          lembrete={editingLembrete}
-          clients={clients}
-          onClose={() => { setIsLembreteModalOpen(false); setEditingLembrete(null); }}
-          onSave={handleSaveLembrete}
-        />
       )}
 
       {isLembreteModalOpen && (

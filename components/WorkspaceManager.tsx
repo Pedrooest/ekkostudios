@@ -4,6 +4,7 @@ import {
     Link as LinkIcon, Shield, Mail, Clock, Trash2,
     Moon, Sun, Settings, LogOut, Search
 } from 'lucide-react';
+import { PSelectPortal } from '../Components';
 
 export default function WorkspaceManager() {
     const [isDarkMode, setIsDarkMode] = useState(true);
@@ -206,15 +207,17 @@ export default function WorkspaceManager() {
 
                                             <div className="flex items-center gap-3">
                                                 {/* Selector de Cargo (Desativado se for "Você" e for Admin, por exemplo) */}
-                                                <select
+                                                <PSelectPortal
+                                                    value={member.role || 'EDITOR'}
+                                                    onChange={() => {}}
                                                     disabled={member.isMe}
-                                                    defaultValue={member.role}
-                                                    className="bg-gray-50 dark:bg-zinc-900 border border-transparent hover:border-gray-200 dark:hover:border-zinc-700 text-gray-700 dark:text-zinc-300 text-xs font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-                                                >
-                                                    <option value="ADMIN">Admin</option>
-                                                    <option value="EDITOR">Editor</option>
-                                                    <option value="VISUALIZADOR">Visualizador</option>
-                                                </select>
+                                                    size="sm"
+                                                    options={[
+                                                        { value: 'ADMIN', label: 'Admin' },
+                                                        { value: 'EDITOR', label: 'Editor' },
+                                                        { value: 'VISUALIZADOR', label: 'Visualizador' },
+                                                    ]}
+                                                />
 
                                                 {!member.isMe && (
                                                     <button className="p-1.5 text-gray-400 hover:text-rose-600 dark:text-zinc-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-md transition-colors opacity-0 group-hover:opacity-100">
@@ -249,13 +252,17 @@ export default function WorkspaceManager() {
                                             />
                                         </div>
 
-                                        <div className="sm:w-40 relative shrink-0">
-                                            <select className="w-full bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 text-sm font-bold rounded-xl pl-4 pr-8 py-2.5 focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-500 transition-colors appearance-none cursor-pointer">
-                                                <option value="EDITOR">Editor</option>
-                                                <option value="ADMIN">Admin</option>
-                                                <option value="VISUALIZADOR">Visualizador</option>
-                                            </select>
-                                            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 pointer-events-none" />
+                                        <div className="sm:w-40 shrink-0">
+                                            <PSelectPortal
+                                                value="EDITOR"
+                                                onChange={() => {}}
+                                                className="w-full"
+                                                options={[
+                                                    { value: 'EDITOR', label: 'Editor' },
+                                                    { value: 'ADMIN', label: 'Admin' },
+                                                    { value: 'VISUALIZADOR', label: 'Visualizador' },
+                                                ]}
+                                            />
                                         </div>
 
                                         <button className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-500/20 shrink-0">

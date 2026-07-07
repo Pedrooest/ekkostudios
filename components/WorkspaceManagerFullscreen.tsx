@@ -8,6 +8,7 @@ import {
     Smartphone, Lock, Github, Slack, Trello
 } from 'lucide-react';
 import { playUISound } from '../utils/uiSounds';
+import { PSelectPortal } from '../Components';
 
 interface WorkspaceManagerFullscreenProps {
     workspace: Workspace;
@@ -431,12 +432,17 @@ export function WorkspaceManagerFullscreen({
                                                     <span className="text-xs text-gray-400 uppercase tracking-widest">(Novo)</span>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <div className="relative w-40">
-                                                        <select value={inviteRole} onChange={e => setInviteRole(e.target.value)} className="w-full text-sm font-bold rounded-xl pl-4 pr-10 py-2.5 appearance-none cursor-pointer border focus:outline-none transition-colors bg-white border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-[#111114] dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800">
-                                                            <option value="editor">Editor</option>
-                                                            <option value="viewer">Visualizador</option>
-                                                        </select>
-                                                        <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                                    <div className="w-40">
+                                                        <PSelectPortal
+                                                            value={inviteRole}
+                                                            onChange={setInviteRole}
+                                                            size="sm"
+                                                            className="w-full"
+                                                            options={[
+                                                                { value: 'editor', label: 'Editor' },
+                                                                { value: 'viewer', label: 'Visualizador' },
+                                                            ]}
+                                                        />
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">
@@ -471,18 +477,19 @@ export function WorkspaceManagerFullscreen({
                                                             {m.perfis?.email}
                                                         </td>
                                                         <td className="px-6 py-4">
-                                                            <div className="relative w-40">
-                                                                <select
-                                                                    defaultValue={m.papel}
+                                                            <div className="w-40">
+                                                                <PSelectPortal
+                                                                    value={m.papel || 'editor'}
+                                                                    onChange={() => {}}
+                                                                    size="sm"
                                                                     disabled={m.id_usuario === workspace.id_proprietario || m.perfis?.email === currentUser?.email}
-                                                                    className={`w-full text-sm font-bold rounded-xl pl-4 pr-10 py-2.5 appearance-none cursor-pointer border focus:outline-none transition-colors ${m.id_usuario === workspace.id_proprietario ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-500/10 dark:border-indigo-500/30 dark:text-indigo-400' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-[#111114] dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800'}`}
-                                                                >
-                                                                    {m.id_usuario === workspace.id_proprietario && <option value="admin">Proprietário</option>}
-                                                                    <option value="admin">Administrador</option>
-                                                                    <option value="editor">Editor</option>
-                                                                    <option value="viewer">Membro</option>
-                                                                </select>
-                                                                {!(m.id_usuario === workspace.id_proprietario || m.perfis?.email === currentUser?.email) && <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />}
+                                                                    className="w-full"
+                                                                    options={[
+                                                                        { value: 'admin', label: m.id_usuario === workspace.id_proprietario ? 'Proprietário' : 'Administrador' },
+                                                                        { value: 'editor', label: 'Editor' },
+                                                                        { value: 'viewer', label: 'Membro' },
+                                                                    ]}
+                                                                />
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-4">

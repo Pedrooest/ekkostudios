@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Sparkles, AlertTriangle, Loader2 } from 'lucide-react';
-import { Button, Card, Badge } from './Components';
+import { Button, Card, Badge, PSelectPortal } from './Components';
 import { TipoTabela } from './types';
 import { AssistantResponse, AssistantAction } from './ai/types';
 import { buildContext } from './ai/contextBuilder';
@@ -60,11 +60,13 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-y-0 right-0 w-[400px] bg-app-surface border-l border-app-border shadow-2xl z-50 flex flex-col transition-transform duration-300">
+        <div className="fixed inset-y-0 right-0 w-[400px] bg-app-surface border-l border-app-border shadow-2xl z-50 flex flex-col animate-slide-in-right">
             {/* Header */}
             <div className="p-4 border-b border-app-border flex justify-between items-center bg-app-surface-2">
                 <div>
-                    <h2 className="text-app-text-strong font-bold text-sm tracking-widest uppercase">Assistente Organick</h2>
+                    <h2 className="text-app-text-strong font-bold text-sm tracking-widest uppercase">
+                        Assistente EK<span style={{ display: 'inline-block', transform: 'scaleX(-1)' }}>K</span>O
+                    </h2>
                     <span className="text-[10px] text-app-text-muted">Contexto: {activeTab}</span>
                 </div>
                 <button onClick={onClose} className="text-app-text-muted hover:text-app-text-strong transition-colors">
@@ -75,25 +77,29 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
             {/* Controls */}
             <div className="p-4 space-y-3 bg-app-bg/50">
                 <div className="flex gap-2">
-                    <select
+                    <PSelectPortal
                         value={mode}
-                        onChange={(e) => setMode(e.target.value as any)}
-                        className="flex-1 bg-app-input border border-app-border text-app-text-strong text-xs rounded-md p-2 outline-none focus:border-app-accent shadow-sm"
-                    >
-                        <option value="chat">Modo Conversa</option>
-                        <option value="action">Modo Ação</option>
-                    </select>
-                    <select
+                        onChange={v => setMode(v as any)}
+                        size="sm"
+                        className="flex-1"
+                        options={[
+                            { value: 'chat', label: 'Modo Conversa' },
+                            { value: 'action', label: 'Modo Ação' },
+                        ]}
+                    />
+                    <PSelectPortal
                         value={objective}
-                        onChange={(e) => setObjective(e.target.value)}
-                        className="flex-1 bg-app-input border border-app-border text-app-text-strong text-xs rounded-md p-2 outline-none focus:border-app-accent shadow-sm"
-                    >
-                        <option value="Analise o contexto atual">Analisar Contexto</option>
-                        <option value="Otimizar esta aba">Otimizar Aba</option>
-                        <option value="Gerar ideias">Gerar Ideias</option>
-                        <option value="Criar checklist">Criar Checklist</option>
-                        <option value="Revisar e apontar ajustes">Revisar Pontos</option>
-                    </select>
+                        onChange={setObjective}
+                        size="sm"
+                        className="flex-1"
+                        options={[
+                            { value: 'Analise o contexto atual', label: 'Analisar Contexto' },
+                            { value: 'Otimizar esta aba', label: 'Otimizar Aba' },
+                            { value: 'Gerar ideias', label: 'Gerar Ideias' },
+                            { value: 'Criar checklist', label: 'Criar Checklist' },
+                            { value: 'Revisar e apontar ajustes', label: 'Revisar Pontos' },
+                        ]}
+                    />
                 </div>
                 <textarea
                     className="w-full bg-app-input border border-app-border text-app-text-strong text-xs rounded-md p-2 outline-none focus:border-app-accent resize-none h-20 shadow-sm placeholder:text-app-text-muted/50"

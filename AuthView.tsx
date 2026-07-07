@@ -58,10 +58,10 @@ export function AuthView({ onSuccess }: AuthViewProps) {
                     <div className="flex justify-center mb-6">
                         <img src="/site-logo.png" alt="EKKO" className="h-40 object-contain" />
                     </div>
-                    <h2 className="text-3xl font-bold text-white tracking-tight mb-2">
+                    <h2 className="text-3xl font-black text-white tracking-tight mb-2">
                         {isLogin ? 'Bem-vindo de volta' : 'Crie sua conta'}
                     </h2>
-                    <p className="text-sm font-medium text-gray-400">
+                    <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">
                         {isLogin ? 'Acesse o dashboard da EKKO Studios' : 'Junte-se ao time da EKKO Studios'}
                     </p>
                 </div>
@@ -69,7 +69,7 @@ export function AuthView({ onSuccess }: AuthViewProps) {
                 <form onSubmit={handleAuth} className="space-y-5">
                     {!isLogin && (
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold uppercase text-gray-500 tracking-wider ml-4">Nome completo</label>
+                            <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-4">Nome completo</label>
                             <input
                                 type="text"
                                 required
@@ -82,7 +82,7 @@ export function AuthView({ onSuccess }: AuthViewProps) {
                     )}
 
                     <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold uppercase text-gray-500 tracking-wider ml-4">E-mail</label>
+                        <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-4">E-mail</label>
                         <input
                             type="email"
                             required
@@ -94,7 +94,7 @@ export function AuthView({ onSuccess }: AuthViewProps) {
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold uppercase text-gray-500 tracking-wider ml-4">Senha</label>
+                        <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-4">Senha</label>
                         <div className="relative">
                             <input
                                 type={showPassword ? "text" : "password"}
@@ -120,21 +120,21 @@ export function AuthView({ onSuccess }: AuthViewProps) {
                         </div>
                     )}
 
-                    <Button
+                    <button
                         type="submit"
                         disabled={loading}
-                        className="w-full h-14 !bg-blue-600 hover:!bg-blue-700 !rounded-2xl !font-semibold !tracking-wide shadow-xl shadow-blue-600/20 lift"
+                        className="w-full h-14 bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-2xl shadow-blue-500/30 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
-                        {loading ? <Loader2 size={16} className="animate-spin" /> : (isLogin ? 'Entrar' : 'Cadastrar')}
-                    </Button>
+                        {loading ? <Loader2 size={18} className="animate-spin" /> : (isLogin ? 'Entrar na Plataforma' : 'Criar Conta')}
+                    </button>
                 </form>
 
                 <div className="mt-8 text-center">
                     <button
                         onClick={() => setIsLogin(!isLogin)}
-                        className="text-sm font-medium text-gray-400 hover:text-white transition-colors"
+                        className="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors"
                     >
-                        {isLogin ? 'Não tem uma conta? Cadastre-se' : 'Já possui uma conta? Faça login'}
+                        {isLogin ? 'Não tem uma conta? · Cadastre-se' : 'Já possui conta? · Fazer login'}
                     </button>
                 </div>
             </div>

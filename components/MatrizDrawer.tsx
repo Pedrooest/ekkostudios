@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { TipoTabela } from '../types';
 import { Cliente } from '../types';
+import { PSelectPortal } from '../Components';
 
 interface MatrizDrawerProps {
   item: any | null;
@@ -109,19 +110,13 @@ export function MatrizDrawer({ item, cliente, onUpdate, onDelete, onClose }: Mat
             {/* Rede Social */}
             <div>
               <label className="block text-xs font-medium text-zinc-500 mb-1.5">Rede Social</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none">
-                  {getSocialIcon(item.Rede_Social)}
-                </span>
-                <select
-                  value={item.Rede_Social || ''}
-                  onChange={e => onUpdate('Rede_Social', e.target.value)}
-                  className="w-full h-10 pl-9 pr-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
-                >
-                  <option value="">Selecione</option>
-                  {REDES.map(r => <option key={r} value={r}>{r}</option>)}
-                </select>
-              </div>
+              <PSelectPortal
+                value={item.Rede_Social || ''}
+                onChange={v => onUpdate('Rede_Social', v)}
+                placeholder="Selecione"
+                className="w-full"
+                options={REDES.map(r => ({ value: r, label: r, icon: getSocialIcon(r) }))}
+              />
             </div>
 
             {/* Função — Hub / Hero / Help cards */}

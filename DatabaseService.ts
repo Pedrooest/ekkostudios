@@ -83,13 +83,13 @@ const MAPA_COLUNAS: Record<string, Record<string, string>> = {
         cliente_id: 'cliente_id'
     },
     checklists: {
-        titulo: 'titulo',
-        data: 'data',
-        cliente_id: 'cliente_id',
-        local: 'local',
-        observacoes: 'observacoes',
+        client: 'client',
+        title: 'title',
+        date: 'date',
+        time: 'time',
+        location: 'location',
+        notes: 'notes',
         status: 'status',
-        hora: 'hora',
         itens_levar: 'itens_levar',
         itens_trazer: 'itens_trazer',
         itens_gravar: 'itens_gravar'
@@ -169,9 +169,9 @@ const VALID_FIELDS: Record<string, string[]> = {
         '__archived', 'created_at', 'created_by', 'updated_by'
     ],
     checklists: [
-        'id', 'workspace_id', 'titulo', 'data', 'cliente_id', 'local',
-        'observacoes', 'status', 'itens_levar', 'itens_trazer',
-        'itens_gravar', 'updated_at', 'hora',
+        'id', 'workspace_id', 'client', 'title', 'date', 'time',
+        'location', 'notes', 'status', 'itens_levar', 'itens_trazer',
+        'itens_gravar', 'updated_at',
         '__archived', 'created_at', 'created_by', 'updated_by'
     ],
     reunioes: [
@@ -469,16 +469,54 @@ export const DatabaseService = {
         return true;
     },
 
-    // DATA SYNC GENERIC
+    // DATA SYNC GENERIC — v2 (2026-06-01)
     async fetchData(table: string, workspaceId: string) {
+        // The tasks table has no index on __archived — the OR filter causes a statement
+        // timeout (HTTP 500). Skip the filter entirely and let filterArchived() handle it.
+        const TABLES_WITHOUT_ARCHIVED_INDEX = ['tasks'];
+
+        if (TABLES_WITHOUT_ARCHIVED_INDEX.includes(table)) {
+            // Fetch tasks without heavy JSONB fields (Anexos can store base64 images = huge)
+            // Anexos are loaded individually when a task is opened
+            const TASKS_COLS = 'id,workspace_id,"Task_ID","Cliente_ID","Título","Descrição","Área","Status","Prioridade","Responsável","Data_Entrega","Hora_Entrega","Tags","Estimativa_H","Tempo_Gasto_H","Relacionado_A","Relacionado_ID","Relacionado_Conteudo","Checklist","Atividades","Comentarios",__archived,created_at,updated_at,created_by,updated_by';
+            const allRows: any[] = [];
+            const PAGE = 50;
+            for (let offset = 0; offset < 500; offset += PAGE) {
+                const { data, error } = await supabase
+                    .from(table)
+                    .select(TASKS_COLS)
+                    .eq('workspace_id', workspaceId)
+                    .range(offset, offset + PAGE - 1);
+                if (error) { console.error(`[fetchData:${table}] page error:`, error.message); break; }
+                if (!data || data.length === 0) break;
+                allRows.push(...data);
+                if (data.length < PAGE) break;
+            }
+            console.log(`[fetchData:${table}] total rows=${allRows.length}`);
+            return mapToFrontend(allRows, table);
+        }
+
+        // For all other tables, try with the __archived filter first
         const { data, error } = await supabase
             .from(table)
             .select('*')
             .eq('workspace_id', workspaceId)
             .or('__archived.is.null,__archived.eq.false');
 
-        if (error) return [];
-        return mapToFrontend(data, table);
+        if (!error) return Array.isArray(data) ? mapToFrontend(data, table) : [];
+
+        // If the __archived filter causes a 500, retry without it
+        console.warn(`[fetchData] __archived filter failed for '${table}', retrying without it. Error:`, error.message);
+        const { data: data2, error: error2 } = await supabase
+            .from(table)
+            .select('*')
+            .eq('workspace_id', workspaceId);
+
+        if (error2) {
+            console.error(`[fetchData] Failed to fetch '${table}':`, error2.message);
+            return [];
+        }
+        return Array.isArray(data2) ? mapToFrontend(data2, table) : [];
     },
 
     async syncItem(tableInput: string, item: any, workspaceId: string) {

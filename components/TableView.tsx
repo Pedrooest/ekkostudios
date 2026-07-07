@@ -123,7 +123,7 @@ export function TableView({
                 </div>
                 <div className="min-w-0">
                     <div className="flex items-center gap-3">
-                        <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">VALIDAÇÃO RDC</h2>
+                        <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">VALIDAÇÃO RDC</h2>
                         <span className="text-[10px] font-black text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 rounded-lg border border-zinc-200 dark:border-zinc-700">{filteredData.length} registros</span>
                     </div>
                     <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate">
@@ -136,9 +136,9 @@ export function TableView({
                 {onAdd && (
                     <button
                         onClick={() => onAdd(tab)}
-                        className="flex items-center gap-2 h-10 px-5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest shadow-lg shadow-rose-500/20 transition-all hover:scale-[1.02]"
+                        className="flex items-center gap-2 h-10 px-5 bg-gradient-to-br from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-lg shadow-rose-500/20 transition-all hover:scale-[1.02]"
                     >
-                        <Plus size={16} /> Novo Registro
+                        <Plus size={16} strokeWidth={3} /> Novo Registro
                     </button>
                 )}
             </div>

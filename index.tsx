@@ -18,13 +18,23 @@ if (!rootElement) {
   throw new Error("Could not find root element to mount to");
 }
 
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+const AppWithProviders = () => (
+  <AuthProvider>
+    <App />
+  </AuthProvider>
+);
+
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    </GoogleOAuthProvider>
+    {googleClientId ? (
+      <GoogleOAuthProvider clientId={googleClientId}>
+        <AppWithProviders />
+      </GoogleOAuthProvider>
+    ) : (
+      <AppWithProviders />
+    )}
   </React.StrictMode>
 );

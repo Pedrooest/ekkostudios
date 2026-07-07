@@ -9,11 +9,58 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+/* ── Accessibility: focus-visible rings (ui-ux-pro-max CRITICAL) ── */
+/* Only show focus ring when navigating via keyboard, not mouse click */
+*:focus { outline: none; }
+*:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.dark *:focus-visible {
+  outline-color: #818cf8;
+}
+
+/* ── Touch parity: hover-reveal (ui-ux-pro-max CRITICAL) ──
+   Action buttons hidden behind hover are unreachable on touch devices.
+   .hover-reveal = always visible on touch; revealed on hover/focus where a mouse exists. */
+.hover-reveal { opacity: 1; transition: opacity 0.15s ease; }
+@media (hover: hover) {
+  .hover-reveal { opacity: 0; }
+  .group:hover .hover-reveal,
+  .group:focus-within .hover-reveal,
+  .hover-reveal:focus-visible { opacity: 1; }
+}
+
+/* ── OLED Dark Mode depth (ui-ux-pro-max recommendation) ── */
+/* Deeper backgrounds for OLED screens without changing zinc scale */
+@media (prefers-color-scheme: dark) {
+  :root { color-scheme: dark; }
+}
+.dark body { background-color: #09090b; }
+
 .view-root {
     overflow-x: hidden;
     width: 100%;
     position: relative;
-    padding-bottom: 80px; /* Safe space for bottom navigations */
+    /* NOTE: no global padding-bottom here — it created an 80px dead strip
+       at the bottom of every tab and compressed the calendars. The mobile
+       FAB is a small fixed corner button (md:hidden); scroll containers
+       provide their own clearance. */
+    animation: viewFadeIn 0.25s ease both;
+}
+
+/* IMPORTANT: use opacity-only — transform on .view-root breaks position:fixed children
+   (PSelectPortal, modals, etc. render wrong coordinates when parent has transform) */
+@keyframes viewFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* PSelectPortal panel entrance — spring scale from 0.9 to 1 */
+@keyframes pselect-appear {
+    from { opacity: 0; transform: scale(0.92); }
+    to   { opacity: 1; transform: scale(1); }
 }
 
 .table-responsive {
@@ -134,7 +181,7 @@ video {
 }
 
 .toast-progress-bar {
-  animation: toast-progress 3.5s linear forwards;
+  animation: toast-progress 4s linear forwards;
 }
 
 .toast-progress-bar-paused {
@@ -265,15 +312,7 @@ video {
   letter-spacing: 0.05em !important;
 }
 
-/* iOS-style utilities */
-.ios-btn {
-  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-}
-
-
-.ios-btn:active:not(:disabled) {
-  transform: scale(0.95);
-}
+/* iOS-style utilities — defined in premium suite below */
 
 @keyframes iosSpring {
   0% {
@@ -309,14 +348,29 @@ video {
   background-color: #3f3f46;
 }
 
-/* Drawer slide-in animation */
+/* Drawer slide-in animation — Apple spring curve */
 @keyframes slide-in-right {
-  from { transform: translateX(100%); opacity: 0.6; }
-  to   { transform: translateX(0);    opacity: 1; }
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+.animate-slide-in-right {
+  animation: slide-in-right 0.35s cubic-bezier(0.32, 0.72, 0, 1) forwards;
 }
 
-.animate-slide-in-right {
-  animation: slide-in-right 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+@keyframes slide-in-bottom {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+.animate-slide-in-bottom {
+  animation: slide-in-bottom 0.35s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+@keyframes slide-out-right {
+  from { transform: translateX(0); }
+  to   { transform: translateX(100%); }
+}
+.animate-slide-out-right {
+  animation: slide-out-right 0.28s cubic-bezier(0.32, 0, 0.67, 0) forwards;
 }
 
 /* ============================================================
@@ -361,41 +415,509 @@ video {
   animation: pulse-soft 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Card lift on hover — translate + shadow change.
- * Apply via class .lift on any clickable card. */
-.lift {
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+/* .lift and .stagger defined in premium suite below */
+
+/* ═══════════════════════════════════════════════════════════
+ * PREMIUM ANIMATION SUITE — high-quality motion system
+ * Curves: Apple spring (0.32,0.72,0,1) | Expo out (0.16,1,0.3,1)
+ * ═══════════════════════════════════════════════════════════ */
+
+/* Fade + blur — entrance with depth */
+@keyframes fade-in-blur {
+  from { opacity: 0; filter: blur(4px); transform: scale(0.98); }
+  to   { opacity: 1; filter: blur(0px); transform: scale(1); }
 }
-.lift:hover {
-  transform: translateY(-2px);
+.animate-fade-blur {
+  animation: fade-in-blur 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Stagger children — apply to a parent; direct children fade-up
- * with 40ms delay each (capped at 8 children). */
-.stagger > *           { animation: fade-up 0.32s cubic-bezier(0.16, 1, 0.3, 1) both; }
-.stagger > *:nth-child(1) { animation-delay: 0ms;   }
-.stagger > *:nth-child(2) { animation-delay: 40ms;  }
-.stagger > *:nth-child(3) { animation-delay: 80ms;  }
-.stagger > *:nth-child(4) { animation-delay: 120ms; }
-.stagger > *:nth-child(5) { animation-delay: 160ms; }
-.stagger > *:nth-child(6) { animation-delay: 200ms; }
-.stagger > *:nth-child(7) { animation-delay: 240ms; }
-.stagger > *:nth-child(8) { animation-delay: 280ms; }
+/* Bounce-in for modals/dialogs — spring overshoot */
+@keyframes bounce-in {
+  0%   { opacity: 0; transform: scale(0.85) translateY(16px); }
+  60%  { opacity: 1; transform: scale(1.02) translateY(-2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-bounce-in {
+  animation: bounce-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Pop — for tooltips, badges, small elements */
+@keyframes pop {
+  0%   { opacity: 0; transform: scale(0.6); }
+  70%  { transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.animate-pop {
+  animation: pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Shimmer — skeleton loading */
+@keyframes shimmer {
+  from { background-position: -200% center; }
+  to   { background-position: 200% center; }
+}
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(148,163,184,0.08) 25%,
+    rgba(148,163,184,0.18) 37%,
+    rgba(148,163,184,0.08) 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+.dark .shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.03) 25%,
+    rgba(255,255,255,0.08) 37%,
+    rgba(255,255,255,0.03) 63%
+  );
+  background-size: 400% 100%;
+}
+
+/* Glow pulse — status dots, live indicators */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; opacity: 1; }
+  50%       { box-shadow: 0 0 0 6px transparent; opacity: 0.7; }
+}
+.glow-pulse {
+  animation: glow-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Float — subtle levitation for premium cards */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-4px); }
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Ping once — one-time badge attention */
+@keyframes ping-once {
+  0%   { transform: scale(1); opacity: 1; }
+  70%  { transform: scale(1.8); opacity: 0; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+.animate-ping-once {
+  animation: ping-once 0.6s cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+
+/* Slide-fade-up — for list items appearing */
+@keyframes slide-fade-up {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-slide-fade-up {
+  animation: slide-fade-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Stagger — tighter 25ms delays, extended to 16 children */
+.stagger > *           { animation: fade-up 0.36s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.stagger > *:nth-child(1)  { animation-delay:  0ms;  }
+.stagger > *:nth-child(2)  { animation-delay: 25ms;  }
+.stagger > *:nth-child(3)  { animation-delay: 50ms;  }
+.stagger > *:nth-child(4)  { animation-delay: 75ms;  }
+.stagger > *:nth-child(5)  { animation-delay: 100ms; }
+.stagger > *:nth-child(6)  { animation-delay: 125ms; }
+.stagger > *:nth-child(7)  { animation-delay: 150ms; }
+.stagger > *:nth-child(8)  { animation-delay: 175ms; }
+.stagger > *:nth-child(9)  { animation-delay: 200ms; }
+.stagger > *:nth-child(10) { animation-delay: 225ms; }
+.stagger > *:nth-child(11) { animation-delay: 250ms; }
+.stagger > *:nth-child(12) { animation-delay: 275ms; }
+.stagger > *:nth-child(13) { animation-delay: 300ms; }
+.stagger > *:nth-child(14) { animation-delay: 325ms; }
+.stagger > *:nth-child(15) { animation-delay: 350ms; }
+.stagger > *:nth-child(16) { animation-delay: 375ms; }
+
+/* Lift — premium hover elevation */
+.lift {
+  transition:
+    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+.lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06);
+}
+.dark .lift:hover {
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4), 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* iOS press — faster feedback for interactive buttons */
+.ios-btn {
+  transition:
+    transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+  will-change: transform;
+}
+.ios-btn:active:not(:disabled) {
+  transform: scale(0.93);
+}
+
+/* Backdrop — premium blur entrance */
+.backdrop-enter {
+  animation: fade-in 0.2s ease forwards;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .animate-fade,
   .animate-fade-up,
+  .animate-fade-blur,
+  .animate-bounce-in,
+  .animate-pop,
   .animate-scale-in,
   .animate-pulse-soft,
   .animate-ios-spring,
   .animate-slide-in-right,
+  .animate-slide-in-bottom,
+  .animate-slide-out-right,
+  .animate-slide-fade-up,
+  .animate-float,
+  .animate-ping-once,
   .animate-toast-in,
   .animate-toast-out,
   .stagger > * {
     animation: none !important;
   }
-  .lift:hover {
+  .lift:hover,
+  .ios-btn:active {
     transform: none !important;
+    box-shadow: none !important;
+  }
+  .shimmer {
+    animation: none !important;
+  }
+  .view-root {
+    animation: none !important;
+  }
+}
+
+/* ── Premium card interactions ───────────────────────────── */
+/* Cards with lift get a scale + glow ring on focus */
+.lift:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 3px;
+}
+
+/* Smooth sidebar nav item hover */
+.sidebar-item {
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s cubic-bezier(0.32,0.72,0,1);
+}
+.sidebar-item:hover { transform: translateX(2px); }
+.sidebar-item.active { transform: translateX(3px); }
+
+/* Tab switch animation — content fades in */
+.tab-content-enter {
+  animation: tabEnter 0.2s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+@keyframes tabEnter {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Drawer slide — smoother with spring */
+.drawer-enter {
+  animation: drawerSlide 0.35s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+@keyframes drawerSlide {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+/* Modal spring bounce */
+.modal-enter {
+  animation: modalSpring 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes modalSpring {
+  from { transform: scale(0.92) translateY(8px); opacity: 0; }
+  to   { transform: scale(1) translateY(0);       opacity: 1; }
+}
+
+/* Button press ripple effect (for critical actions) */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.1);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.btn-primary:active::after { opacity: 1; }
+
+/* Skeleton loading shimmer — improved */
+.skeleton {
+  background: linear-gradient(90deg,
+    var(--color-surface, #f1f5f9) 25%,
+    var(--color-surface-2, #e2e8f0) 50%,
+    var(--color-surface, #f1f5f9) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmerSkeleton 1.4s ease infinite;
+}
+.dark .skeleton {
+  background: linear-gradient(90deg, #27272a 25%, #3f3f46 50%, #27272a 75%);
+  background-size: 200% 100%;
+}
+@keyframes shimmerSkeleton {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+/* Smooth number counter animation */
+.number-change {
+  animation: numberPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes numberPop {
+  from { transform: scale(0.85); opacity: 0.5; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+/* Card grid — stagger on first render
+   IMPORTANT: opacity-only — transform on card ancestors breaks position:fixed
+   descendants (PSelectPortal inside cards would get wrong coordinates) */
+.card-grid > * {
+  animation: cardReveal 0.35s ease both;
+}
+.card-grid > *:nth-child(1) { animation-delay: 0ms;   }
+.card-grid > *:nth-child(2) { animation-delay: 35ms;  }
+.card-grid > *:nth-child(3) { animation-delay: 70ms;  }
+.card-grid > *:nth-child(4) { animation-delay: 105ms; }
+.card-grid > *:nth-child(5) { animation-delay: 140ms; }
+.card-grid > *:nth-child(6) { animation-delay: 175ms; }
+.card-grid > *:nth-child(7) { animation-delay: 210ms; }
+.card-grid > *:nth-child(8) { animation-delay: 245ms; }
+@keyframes cardReveal {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Pulse dot for live/online indicators */
+.pulse-dot {
+  animation: pulseDot 2s ease infinite;
+}
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.6; transform: scale(0.85); }
+}
+
+/* ════════════════════════════════════════════════════════════
+ * EXTENDED PREMIUM MOTION SYSTEM — v2
+ * All curves follow Apple/Linear design language
+ * ════════════════════════════════════════════════════════════ */
+
+/* fadeInUp — used in task list rows, dashboard activity, etc. */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* zoom-in — modal entrances */
+@keyframes zoom-in {
+  from { opacity: 0; transform: scale(0.93) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-zoom-in {
+  animation: zoom-in 0.32s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+/* fade-down — dropdowns, tooltips appearing downward */
+@keyframes fade-down {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-fade-down {
+  animation: fade-down 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* slide-left — panels sliding in from right */
+@keyframes slide-left {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-left {
+  animation: slide-left 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* counter-up — number/value changes */
+@keyframes counter-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-counter {
+  animation: counter-up 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* rotate-in — icon transitions */
+@keyframes rotate-in {
+  from { opacity: 0; transform: rotate(-90deg) scale(0.6); }
+  to   { opacity: 1; transform: rotate(0deg) scale(1); }
+}
+.animate-rotate-in {
+  animation: rotate-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Premium card hover — enhanced lift with glow */
+.card-hover {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.2s ease;
+  will-change: transform;
+}
+.card-hover:hover {
+  transform: translateY(-4px) scale(1.005);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1), 0 6px 12px rgba(0,0,0,0.05);
+}
+.dark .card-hover:hover {
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 6px 12px rgba(0,0,0,0.3);
+}
+
+/* Stagger slow — for larger grid items */
+.stagger-slow > * {
+  animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.stagger-slow > *:nth-child(1) { animation-delay: 0ms;   }
+.stagger-slow > *:nth-child(2) { animation-delay: 60ms;  }
+.stagger-slow > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-slow > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-slow > *:nth-child(5) { animation-delay: 240ms; }
+.stagger-slow > *:nth-child(6) { animation-delay: 300ms; }
+.stagger-slow > *:nth-child(7) { animation-delay: 360ms; }
+.stagger-slow > *:nth-child(8) { animation-delay: 420ms; }
+
+/* Gradient text animation */
+@keyframes gradient-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animate-gradient-text {
+  background-size: 200% auto;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* Progress bar fill animation */
+@keyframes bar-fill {
+  from { width: 0%; }
+}
+.animate-bar-fill {
+  animation: bar-fill 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Glow ring — for active/focused premium elements */
+@keyframes glow-ring {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.4); }
+  50%       { box-shadow: 0 0 0 8px rgba(99,102,241,0); }
+}
+.glow-ring {
+  animation: glow-ring 2s ease infinite;
+}
+
+/* Sidebar item entrance — stagger on mount */
+.nav-item-enter {
+  animation: slideNavIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes slideNavIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Liquid Glass card effect (ui-ux-pro-max premium SaaS) ── */
+/* Apply .glass-card to any card that should have the liquid glass look */
+.glass-card {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px) saturate(1.6);
+  -webkit-backdrop-filter: blur(16px) saturate(1.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.dark .glass-card {
+  background: rgba(10, 10, 14, 0.55);
+}
+
+/* ── Skeleton pulse animation (ui-ux-pro-max empty state fix) ── */
+/* Uses Tailwind's built-in animate-pulse; this augments the timing */
+@keyframes skeleton-wave {
+  0%   { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+.skeleton-wave {
+  background: linear-gradient(90deg, transparent 0%, rgba(148,163,184,0.12) 50%, transparent 100%);
+  background-size: 200px 100%;
+  animation: skeleton-wave 1.4s ease-in-out infinite;
+}
+
+/* Hide scrollbar utility */
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* custom-scrollbar-horizontal */
+.custom-scrollbar-horizontal::-webkit-scrollbar { height: 4px; }
+.custom-scrollbar-horizontal::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar-horizontal::-webkit-scrollbar-thumb {
+  background-color: rgba(148,163,184,0.3);
+  border-radius: 10px;
+}
+.dark .custom-scrollbar-horizontal::-webkit-scrollbar-thumb {
+  background-color: rgba(255,255,255,0.08);
+}
+
+/* Reduced motion overrides for new animations */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up, .animate-zoom-in, .animate-fade-down,
+  .animate-slide-left, .animate-counter, .animate-rotate-in,
+  .animate-gradient-text, .animate-bar-fill, .glow-ring,
+  .stagger-slow > *, .nav-item-enter {
+    animation: none !important;
+    transition: none !important;
+  }
+  .card-hover:hover { transform: none !important; box-shadow: none !important; }
+}
+
+/* ── Calendar month transition (ui-ux-pro-max) ──
+   Pure opacity — NO transform, so it is safe on scroll containers
+   (transform on an overflow ancestor breaks position:sticky/scroll). */
+@keyframes cal-month-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.cal-month-in {
+  animation: cal-month-in 0.25s ease-out forwards;
+}
+
+/* Event pill micro-interaction — 100ms elevation (Micro-interactions pattern) */
+.event-pill {
+  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out, filter 0.1s ease-out;
+}
+.event-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+}
+.event-pill:active {
+  transform: scale(0.98);
+  transition-duration: 0.075s;
+}
+.dark .event-pill:hover {
+  box-shadow: 0 3px 10px rgba(0,0,0,0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cal-month-in { animation: none !important; }
+  .event-pill, .event-pill:hover, .event-pill:active {
+    transform: none !important;
+    transition: none !important;
   }
 }

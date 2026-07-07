@@ -115,21 +115,21 @@ export function VhManagementView({
     }, [simulator, collaborators]);
 
     return (
-        <div className="view-root flex flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors">
+        <div className="view-root flex-1 min-h-0 flex flex-col w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors animate-fade-blur">
             
             {/* SUB-NAVIGATION HEADER */}
-            <div className="flex items-center justify-between flex-wrap gap-3 px-6 py-4 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900 shadow-sm">
-                        <TrendingUp size={16} className="shrink-0" />
+            <div className="flex items-center justify-between flex-wrap gap-3 px-4 sm:px-6 py-4 sm:py-5 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+                <div className="flex items-center gap-4">
+                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-xl shadow-emerald-500/25 shrink-0">
+                        <TrendingUp size={20} className="shrink-0" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-semibold text-zinc-900 dark:text-white truncate">Gestão VH</h2>
-                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none">Análise de Rentabilidade</p>
+                        <h2 className="text-lg sm:text-xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">Gestão VH</h2>
+                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none opacity-70 hidden sm:block">Análise de Rentabilidade · Valor Hora</p>
                     </div>
                 </div>
 
-                <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg shrink-0">
+                <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800/80 p-1 rounded-xl border border-zinc-200 dark:border-zinc-700 shrink-0">
                     {[
                         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
                         { id: 'clients', label: 'Rentabilidade', icon: TrendingUp },
@@ -138,8 +138,10 @@ export function VhManagementView({
                         <button
                             key={t.id}
                             onClick={() => setSubTab(t.id as any)}
-                            className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all
-                                ${subTab === t.id ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all duration-200
+                                ${subTab === t.id
+                                    ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-md ring-1 ring-black/5 dark:ring-white/5'
+                                    : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-white/50 dark:hover:bg-zinc-700/50'}`}
                         >
                             <t.icon size={12} className="shrink-0" /> {t.label}
                         </button>
@@ -148,20 +150,32 @@ export function VhManagementView({
             </div>
 
             {/* CONTENT */}
-            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar pb-24">
+            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar pb-6">
                 <div className="max-w-7xl mx-auto space-y-6">
                     
                     {subTab === 'dashboard' && (
                         <>
                             {/* KPI row */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                <StatCard label="Faturamento" value={formatBRL(dashboardData.totalFees)} icon={Banknote} color="emerald" />
-                                <StatCard label="Custo Op." value={formatBRL(dashboardData.totalCosts)} icon={Calculator} color="rose" />
-                                <StatCard label="Lucro Bruto" value={formatBRL(dashboardData.profit)} icon={TrendingUp} color="blue" />
-                                <StatCard label="Margem" value={`${dashboardData.margin.toFixed(1)}%`} icon={Percent} color="orange" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 stagger">
+                                {[
+                                    { label: 'Faturamento', value: formatBRL(dashboardData.totalFees), icon: Banknote, from: 'from-emerald-500', to: 'to-teal-600', shadow: 'shadow-emerald-500/20', text: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/5' },
+                                    { label: 'Custo Op.', value: formatBRL(dashboardData.totalCosts), icon: Calculator, from: 'from-rose-500', to: 'to-pink-600', shadow: 'shadow-rose-500/20', text: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-rose-500/5' },
+                                    { label: 'Lucro Bruto', value: formatBRL(dashboardData.profit), icon: TrendingUp, from: 'from-blue-500', to: 'to-indigo-600', shadow: 'shadow-blue-500/20', text: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-500/5' },
+                                    { label: 'Margem', value: `${dashboardData.margin.toFixed(1)}%`, icon: Percent, from: 'from-amber-500', to: 'to-orange-600', shadow: 'shadow-amber-500/20', text: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-500/5' },
+                                ].map((kpi) => (
+                                    <div key={kpi.label} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 flex items-center gap-4 card-hover group">
+                                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${kpi.from} ${kpi.to} flex items-center justify-center text-white shadow-lg ${kpi.shadow} shrink-0 group-hover:scale-105 transition-transform`}>
+                                            <kpi.icon size={20} className="shrink-0" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">{kpi.label}</p>
+                                            <p className={`text-xl font-black ${kpi.text} truncate`}>{kpi.value}</p>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
 
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 stagger">
                                 {/* VH Chart */}
                                 <Card title="Valor Hora por Colaborador">
                                     <div className="h-[250px] w-full pt-4">
@@ -169,18 +183,18 @@ export function VhManagementView({
                                             <AreaChart data={dashboardData.collabData}>
                                                 <defs>
                                                     <linearGradient id="colorVh" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor="#71717a" stopOpacity={0.1} />
-                                                        <stop offset="95%" stopColor="#71717a" stopOpacity={0} />
+                                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15} />
+                                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                                                     </linearGradient>
                                                 </defs>
-                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
-                                                <XAxis dataKey="name" stroke="#a1a1aa" fontSize={10} axisLine={false} tickLine={false} />
-                                                <YAxis stroke="#a1a1aa" fontSize={10} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val}`} />
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(113,113,122,0.1)" />
+                                                <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#71717a', fontWeight: 700 }} axisLine={false} tickLine={false} />
+                                                <YAxis tick={{ fontSize: 11, fill: '#71717a', fontWeight: 700 }} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val}`} />
                                                 <Tooltip
-                                                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e4e4e7', borderRadius: '8px', fontSize: '10px' }}
-                                                    labelStyle={{ fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '4px' }}
+                                                    contentStyle={{ backgroundColor: '#09090b', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', fontSize: '10px', color: '#e4e4e7', fontWeight: 'bold', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }}
+                                                    labelStyle={{ fontWeight: 900, textTransform: 'uppercase', marginBottom: '4px' }}
                                                 />
-                                                <Area type="monotone" dataKey="vh" stroke="#3f3f46" strokeWidth={2} fillOpacity={1} fill="url(#colorVh)" name="R$/h" />
+                                                <Area type="monotone" dataKey="vh" stroke="#6366f1" strokeWidth={2.5} fillOpacity={1} fill="url(#colorVh)" name="R$/h" />
                                             </AreaChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -192,11 +206,11 @@ export function VhManagementView({
                                         <ResponsiveContainer width="100%" height="100%">
                                             <BarChart data={clientMetrics.slice(0, 8)}>
                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.01)" />
-                                                <XAxis dataKey="name" stroke="#a1a1aa" fontSize={10} axisLine={false} tickLine={false} />
-                                                <YAxis stroke="#a1a1aa" fontSize={10} axisLine={false} tickLine={false} tickFormatter={(val) => `${val}%`} />
+                                                <XAxis dataKey="name" stroke="#a1a1aa" fontSize={11} axisLine={false} tickLine={false} />
+                                                <YAxis stroke="#a1a1aa" fontSize={11} axisLine={false} tickLine={false} tickFormatter={(val) => `${val}%`} />
                                                 <Tooltip 
                                                     cursor={{ fill: 'rgba(0,0,0,0.02)' }}
-                                                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e4e4e7', borderRadius: '8px', fontSize: '10px' }} 
+                                                    contentStyle={{ backgroundColor: 'var(--color-surface, #18181b)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', fontSize: '10px', color: '#e4e4e7', fontWeight: 'bold' }} 
                                                 />
                                                 <Bar dataKey="margin" name="Margem" radius={[4, 4, 0, 0]}>
                                                     {clientMetrics.map((entry, index) => (
@@ -233,26 +247,26 @@ export function VhManagementView({
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-left">
                                         <thead>
-                                            <tr className="bg-zinc-50 dark:bg-zinc-800/30 uppercase text-[10px] font-bold text-zinc-500 tracking-wider">
-                                                <th className="px-6 py-4">Cliente</th>
-                                                <th className="px-6 py-4">Fee Mensal</th>
-                                                <th className="px-6 py-4">Custo Ops (H)</th>
-                                                <th className="px-6 py-4">Lucro Bruto</th>
-                                                <th className="px-6 py-4 text-right">Margem</th>
+                                            <tr className="bg-zinc-100/80 dark:bg-zinc-800/60 border-b-2 border-zinc-200 dark:border-zinc-700">
+                                                <th className="px-6 py-3.5 text-left text-[9px] font-black uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-400">Cliente</th>
+                                                <th className="px-6 py-3.5 text-left text-[9px] font-black uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-400">Fee Mensal</th>
+                                                <th className="px-6 py-3.5 text-left text-[9px] font-black uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-400">Custo Ops</th>
+                                                <th className="px-6 py-3.5 text-left text-[9px] font-black uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-400">Lucro Bruto</th>
+                                                <th className="px-6 py-3.5 text-right text-[9px] font-black uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-400">Margem</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                                             {clientMetrics.map(metric => (
-                                                <tr key={metric.id} className="group hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-all font-mono text-xs">
-                                                    <td className="px-6 py-4 font-sans font-bold text-zinc-900 dark:text-white">{metric.name}</td>
-                                                    <td className="px-6 py-4 text-zinc-600 dark:text-zinc-400">{formatBRL(metric.fee)}</td>
-                                                    <td className="px-6 py-4 text-zinc-600 dark:text-zinc-400">
-                                                        <div className="flex flex-col">
+                                                <tr key={metric.id} className="group hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-all">
+                                                    <td className="px-6 py-4 font-bold text-sm text-zinc-900 dark:text-white">{metric.name}</td>
+                                                    <td className="px-6 py-4 text-sm font-mono text-zinc-600 dark:text-zinc-400">{formatBRL(metric.fee)}</td>
+                                                    <td className="px-6 py-4 text-sm font-mono text-zinc-600 dark:text-zinc-400">
+                                                        <div className="flex flex-col gap-0.5">
                                                             <span>{formatBRL(metric.cost)}</span>
-                                                            <span className="text-[9px] font-black uppercase text-zinc-400 flex items-center gap-1"><Clock size={10} /> {metric.hours.toFixed(1)}h</span>
+                                                            <span className="text-[9px] font-black uppercase text-zinc-400 flex items-center gap-1"><Clock size={9} /> {metric.hours.toFixed(1)}h</span>
                                                         </div>
                                                     </td>
-                                                    <td className={`px-6 py-4 font-bold ${metric.profit > 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                                    <td className={`px-6 py-4 text-sm font-bold font-mono ${metric.profit > 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
                                                         {formatBRL(metric.profit)}
                                                     </td>
                                                     <td className="px-6 py-4 text-right">
@@ -269,46 +283,48 @@ export function VhManagementView({
 
                             {/* SIMULATOR PANEL */}
                             <Card title="Simulador de Lucratividade">
-                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 py-2">
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 py-2">
+                                    {/* Inputs */}
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Fee Desejado</label>
-                                            <div className="flex items-center gap-1.5 w-full h-10 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 focus-within:border-zinc-500 transition-all shadow-inner">
-                                                <span className="text-[10px] font-bold text-zinc-400 shrink-0">R$</span>
+                                            <label className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.18em] mb-2 block">Fee Desejado</label>
+                                            <div className="flex items-center gap-2 w-full h-12 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 focus-within:border-emerald-500/50 focus-within:ring-2 focus-within:ring-emerald-500/10 transition-all shadow-sm">
+                                                <span className="text-[10px] font-black text-zinc-400 shrink-0">R$</span>
                                                 <input
                                                     type="number" value={simulator.fee}
                                                     onChange={e => setSimulator(prev => ({ ...prev, fee: Number(e.target.value) }))}
-                                                    className="flex-1 bg-transparent border-none outline-none text-sm font-bold text-zinc-900 dark:text-white min-w-0"
+                                                    className="flex-1 bg-transparent border-none outline-none text-base font-black text-zinc-900 dark:text-white min-w-0"
                                                 />
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Horas Estimadas</label>
+                                            <label className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.18em] mb-2 block">Horas Estimadas</label>
                                             <div className="relative">
-                                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-zinc-400 uppercase">H</span>
+                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-zinc-400 uppercase">h</span>
                                                 <input
                                                     type="number" value={simulator.hours}
                                                     onChange={e => setSimulator(prev => ({ ...prev, hours: Number(e.target.value) }))}
-                                                    className="w-full h-10 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 text-sm font-bold text-zinc-900 dark:text-white focus:border-zinc-500 outline-none transition-all shadow-inner"
+                                                    className="w-full h-12 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 text-base font-black text-zinc-900 dark:text-white focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 outline-none transition-all shadow-sm"
                                                 />
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div className="bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 flex flex-col justify-center gap-1.5">
-                                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest opacity-70">Custo Op.</span>
-                                            <span className="text-lg font-bold text-rose-500">{formatBRL(simResult.cost)}</span>
-                                        </div>
-                                        <div className="bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-200/50 dark:border-emerald-500/20 rounded-xl p-5 flex flex-col justify-center gap-1.5 relative overflow-hidden group">
-                                            <Zap size={32} className="absolute -right-2 -bottom-2 text-emerald-500/10 group-hover:scale-110 transition-transform shrink-0" />
-                                            <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Lucro Est.</span>
-                                            <span className="text-xl font-bold text-emerald-600">{formatBRL(simResult.profit)}</span>
-                                        </div>
-                                        <div className="bg-blue-50 dark:bg-blue-500/5 border border-blue-200/50 dark:border-blue-500/20 rounded-xl p-5 flex flex-col justify-center gap-1.5">
-                                            <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Margem Final</span>
-                                            <span className="text-xl font-bold text-blue-600">{simResult.margin.toFixed(1)}%</span>
-                                        </div>
+                                    {/* Result cards */}
+                                    <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-3">
+                                        {[
+                                            { label: 'Custo Op.', value: formatBRL(simResult.cost), from: 'from-rose-500', to: 'to-pink-600', shadow: 'shadow-rose-500/20', text: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-rose-500/5 border-rose-200/50 dark:border-rose-500/20', icon: Calculator },
+                                            { label: 'Lucro Est.', value: formatBRL(simResult.profit), from: 'from-emerald-500', to: 'to-teal-600', shadow: 'shadow-emerald-500/20', text: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/5 border-emerald-200/50 dark:border-emerald-500/20', icon: Zap },
+                                            { label: 'Margem', value: `${simResult.margin.toFixed(1)}%`, from: 'from-blue-500', to: 'to-indigo-600', shadow: 'shadow-blue-500/20', text: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-500/5 border-blue-200/50 dark:border-blue-500/20', icon: Percent },
+                                        ].map((r) => (
+                                            <div key={r.label} className={`border rounded-2xl p-5 flex flex-col justify-center gap-2 ${r.bg} relative overflow-hidden group`}>
+                                                <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${r.from} ${r.to} flex items-center justify-center text-white shadow-lg ${r.shadow} shrink-0 group-hover:scale-110 transition-transform`}>
+                                                    <r.icon size={15} className="shrink-0" />
+                                                </div>
+                                                <span className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.15em]">{r.label}</span>
+                                                <span className={`text-xl font-black ${r.text} tabular-nums`}>{r.value}</span>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             </Card>
@@ -385,7 +401,7 @@ export function VhManagementView({
                                                 <td className="px-6 py-4 border-b border-zinc-100 dark:border-zinc-800/50 text-center">
                                                     <button
                                                         onClick={() => setCollaborators((prev: Colaborador[]) => prev.filter(p => p.id !== c.id))}
-                                                        className="w-8 h-8 rounded-lg text-zinc-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center"
+                                                        className="w-8 h-8 rounded-lg text-zinc-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all hover-reveal flex items-center justify-center"
                                                     >
                                                         <Trash2 size={16} className="shrink-0" />
                                                     </button>
