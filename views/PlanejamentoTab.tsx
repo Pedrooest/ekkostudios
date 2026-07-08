@@ -20,6 +20,7 @@ import {
     CheckSquare, Link2
 } from 'lucide-react';
 import { playUISound } from '../utils/uiSounds';
+import { DndContext, PointerSensor, useSensor, useSensors, useDraggable, useDroppable, DragOverlay } from '@dnd-kit/core';
 import { getCalendarDays, MONTH_NAMES_BR, WEEKDAYS_BR_SHORT } from '../utils/calendarUtils';
 import { useGoogleCalendar } from '../hooks/useGoogleCalendar';
 import { sendEmail, templates } from '../utils/emailService';
@@ -210,6 +211,40 @@ interface PlanejamentoTabProps {
     savingStatus?: Record<string, 'saving' | 'success' | 'error'>;
 }
 
+// ── Drag-and-drop wrappers (hooks can't live inside .map callbacks) ──
+function DroppableDay({ dateStr, disabled, className, children }: {
+    dateStr: string; disabled?: boolean; className: string; children: React.ReactNode;
+}) {
+    const { setNodeRef, isOver } = useDroppable({ id: dateStr, disabled });
+    return (
+        <div ref={setNodeRef} className={`${className} ${isOver ? 'ring-2 ring-inset ring-blue-500/60 bg-blue-50/70 dark:bg-blue-500/10' : ''}`}>
+            {children}
+        </div>
+    );
+}
+
+function DraggablePill({ evento, className, style, onClick, onMouseEnter, onMouseLeave, children }: {
+    evento: any; className: string; style?: React.CSSProperties;
+    onClick?: () => void; onMouseEnter?: (e: React.MouseEvent) => void; onMouseLeave?: () => void;
+    children: React.ReactNode;
+}) {
+    const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: evento.id, data: { evento } });
+    return (
+        <div
+            ref={setNodeRef}
+            {...attributes}
+            {...listeners}
+            onClick={onClick}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+            className={`${className} ${isDragging ? 'opacity-30' : ''}`}
+            style={style}
+        >
+            {children}
+        </div>
+    );
+}
+
 export default function PlanejamentoTab({
     data = [], clients = [], onUpdate, onAdd, rdc = [], matriz, cobo,
     tasks, iaHistory, setActiveTab, performArchive, performDelete, library,
@@ -223,6 +258,20 @@ export default function PlanejamentoTab({
     const [calendarSubMode, setCalendarSubMode] = useState<'month' | 'week'>('month');
     // Days expanded beyond the 4-event preview (Google Calendar "+N more" pattern)
     const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({});
+
+    // ── Drag-and-drop: move a post to another day ──
+    // distance 6px = clicks still open the sidebar; drags only start after movement
+    const dndSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+    const [activeDragEvento, setActiveDragEvento] = useState<any>(null);
+    const handleCalendarDragEnd = (e: any) => {
+        setActiveDragEvento(null);
+        const { active, over } = e;
+        if (!over) return;
+        const evento = active.data?.current?.evento;
+        if (!evento || evento.Data === over.id) return;
+        onUpdate(evento.id, 'PLANEJAMENTO', 'Data', over.id);
+        tryPlaySound('success');
+    };
 
     const [globalClientFilter, setGlobalClientFilter] = useState('Todos Clientes');
     const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
@@ -825,6 +874,7 @@ export default function PlanejamentoTab({
 
                 {/* MODERN CALENDAR GRID */}
                 {viewMode === 'calendar' && (
+                    <DndContext sensors={dndSensors} onDragStart={(e: any) => setActiveDragEvento(e.active.data?.current?.evento || null)} onDragEnd={handleCalendarDragEnd} onDragCancel={() => setActiveDragEvento(null)}>
                     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-2xl flex flex-col w-full max-w-[1600px] mx-auto flex-1 min-h-0 animate-fade-up overflow-hidden">
                         <div className="grid grid-cols-7 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/80 backdrop-blur-md relative z-10 shrink-0">
                             {WEEKDAYS_BR_SHORT.map(dia => (
@@ -846,8 +896,10 @@ export default function PlanejamentoTab({
                                 const visibleEvts = collapsible && !isExpanded ? evts.slice(0, MAX_VISIBLE) : evts;
 
                                 return (
-                                    <div
+                                    <DroppableDay
                                         key={idx}
+                                        dateStr={diaObj.dateStr}
+                                        disabled={diaObj.isNextMonth || diaObj.isPrevMonth}
                                         className={`p-2 border-r border-b border-zinc-200 dark:border-zinc-800 transition-all relative flex flex-col group/day min-h-[110px] ${diaObj.isNextMonth || diaObj.isPrevMonth ? 'bg-zinc-50/50 dark:bg-zinc-900/20 opacity-30 grayscale-[0.5]' :
                                                 isToday ? 'bg-blue-600/5 dark:bg-blue-900/10 ring-1 ring-inset ring-blue-500/25'
                                                 : isWeekend ? 'bg-zinc-50/80 dark:bg-zinc-900/60 hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
@@ -873,8 +925,9 @@ export default function PlanejamentoTab({
                                                 const Icon = redeStyle.icon;
                                                 const client = clients.find(c => c.id === evento.Cliente_ID);
                                                 return (
-                                                    <div
+                                                    <DraggablePill
                                                         key={evento.id}
+                                                        evento={evento}
                                                         onClick={() => openEditSidebar(evento.id)}
                                                         className={`group/card event-pill relative flex items-center gap-1.5 px-1.5 py-1 rounded-md border-l-[2px] cursor-pointer overflow-hidden`}
                                                         style={{
@@ -900,7 +953,7 @@ export default function PlanejamentoTab({
                                                         {evento.google_event_id && (
                                                             <CalendarCheck size={8} className="text-emerald-500 shrink-0 opacity-0 group-hover/card:opacity-100" />
                                                         )}
-                                                    </div>
+                                                    </DraggablePill>
                                                 );
                                             })}
                                             {collapsible && (
@@ -922,11 +975,28 @@ export default function PlanejamentoTab({
                                         >
                                             <Plus size={9} strokeWidth={3} />
                                         </button>
-                                    </div>
+                                    </DroppableDay>
                                 );
                             })}
                         </div>
                     </div>
+                    {/* Ghost pill following the cursor while dragging */}
+                    <DragOverlay dropAnimation={null}>
+                        {activeDragEvento && (() => {
+                            const c = clients.find(cl => cl.id === activeDragEvento.Cliente_ID);
+                            return (
+                                <div
+                                    className="flex items-center gap-1.5 px-2 py-1.5 rounded-md border-l-[3px] bg-white dark:bg-zinc-800 shadow-2xl shadow-black/30 cursor-grabbing max-w-[220px]"
+                                    style={{ borderLeftColor: c?.['Cor (HEX)'] || '#3B82F6' }}
+                                >
+                                    <span className="text-[10px] font-black text-zinc-800 dark:text-zinc-100 truncate">
+                                        {activeDragEvento.Conteúdo}
+                                    </span>
+                                </div>
+                            );
+                        })()}
+                    </DragOverlay>
+                    </DndContext>
                 )}
 
                 {/* MODERN LIST VIEW */}
