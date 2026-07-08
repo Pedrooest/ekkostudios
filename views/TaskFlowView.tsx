@@ -10,7 +10,7 @@ import {
     ArrowUpDown, Plus, Clock, MessageSquare, Box, ExternalLink,
     X, Trash2, Zap, LayoutDashboard, Image as ImageIcon, CheckCircle2, FileText, ShieldAlert, Eye, History as HistoryIcon, Loader2, User,
     Columns, CalendarDays, ChevronLeft, ChevronRight, CheckSquare, ArrowUp, ArrowDown, Check, Mail, Flag, Paperclip,
-    Film, Music, Archive, Code2, Download
+    Film, Music, Archive, Code2, Download, Play, Square, Timer
 } from 'lucide-react';
 import { sendEmail, templates } from '../utils/emailService';
 import { DatabaseService } from '../DatabaseService';
@@ -868,6 +868,52 @@ export function TaskDetailPanel({
     const [notifyResponsible, setNotifyResponsible] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // ── Task timer — feeds Tempo_Gasto_H (used by Gestão de VH profitability) ──
+    // One global timer, persisted so it survives refresh: { taskId, startedAt }
+    const TIMER_KEY = 'ekko_task_timer';
+    const readTimer = (): { taskId: string; startedAt: number } | null => {
+        try { return JSON.parse(localStorage.getItem(TIMER_KEY) || 'null'); } catch { return null; }
+    };
+    const [timer, setTimer] = useState(readTimer);
+    const [nowTick, setNowTick] = useState(Date.now());
+    const timerActiveHere = timer?.taskId === taskId;
+
+    useEffect(() => {
+        if (!timerActiveHere) return;
+        const iv = setInterval(() => setNowTick(Date.now()), 1000);
+        return () => clearInterval(iv);
+    }, [timerActiveHere]);
+
+    const creditHours = (id: string, startedAt: number) => {
+        const hours = (Date.now() - startedAt) / 3600000;
+        const target = tasks.find((x: any) => x.id === id);
+        const total = Math.round(((Number(target?.Tempo_Gasto_H) || 0) + hours) * 100) / 100;
+        onUpdate(id, 'TAREFAS', 'Tempo_Gasto_H', total);
+        return hours;
+    };
+
+    const startTimer = () => {
+        // If a timer is running on another task, credit that task first
+        if (timer && timer.taskId !== taskId) creditHours(timer.taskId, timer.startedAt);
+        const next = { taskId: taskId!, startedAt: Date.now() };
+        localStorage.setItem(TIMER_KEY, JSON.stringify(next));
+        setTimer(next);
+    };
+
+    const stopTimer = () => {
+        if (!timer) return;
+        creditHours(timer.taskId, timer.startedAt);
+        localStorage.removeItem(TIMER_KEY);
+        setTimer(null);
+    };
+
+    const elapsedLabel = (() => {
+        if (!timerActiveHere || !timer) return '';
+        const s = Math.floor((nowTick - timer.startedAt) / 1000);
+        const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+        return `${h > 0 ? h + ':' : ''}${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+    })();
+
     // ── Download helper: base64 → Blob → sem compressão ──────────
     const downloadFile = (file: AnexoTarefa) => {
         try {
@@ -1260,6 +1306,50 @@ export function TaskDetailPanel({
                         </section>
                     );
                 })()}
+
+                {/* TIMER — feeds Tempo_Gasto_H → Gestão de VH profitability */}
+                <section>
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-md shrink-0">
+                            <Timer size={13} className="shrink-0" />
+                        </div>
+                        <h4 className="text-[10px] font-black uppercase text-zinc-900 dark:text-zinc-100 tracking-[0.18em]">Tempo Trabalhado</h4>
+                        <div className="flex-1 h-px bg-zinc-100 dark:bg-zinc-800" />
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm">
+                        {timerActiveHere ? (
+                            <button
+                                onClick={stopTimer}
+                                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-rose-500/25"
+                            >
+                                <Square size={11} fill="currentColor" /> Parar
+                            </button>
+                        ) : (
+                            <button
+                                onClick={startTimer}
+                                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-emerald-500/25"
+                            >
+                                <Play size={11} fill="currentColor" /> Iniciar
+                            </button>
+                        )}
+                        <div className="flex-1 min-w-0">
+                            {timerActiveHere ? (
+                                <p className="text-lg font-black tabular-nums text-emerald-600 dark:text-emerald-400 leading-none">{elapsedLabel}</p>
+                            ) : (
+                                <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest leading-tight">
+                                    {timer ? 'Timer rodando em outra tarefa — iniciar aqui transfere' : 'Cronometre e alimente a análise de rentabilidade (VH)'}
+                                </p>
+                            )}
+                        </div>
+                        <div className="text-right shrink-0">
+                            <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Total</p>
+                            <p className="relative text-sm font-black tabular-nums text-zinc-900 dark:text-zinc-100">
+                                {(Number(t.Tempo_Gasto_H) || 0).toFixed(2)}h
+                                <SavingIndicator status={savingStatus[`TAREFAS:${t.id}:Tempo_Gasto_H`]} />
+                            </p>
+                        </div>
+                    </div>
+                </section>
 
                 {/* DESCRIPTION */}
                 <section className="relative">
