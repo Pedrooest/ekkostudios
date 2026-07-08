@@ -79,6 +79,7 @@ import { CopilotChat } from './CopilotChat';
 import { PresentationSlide } from './PresentationRenderer';
 import { ContentBankSidebar } from './ContentBankSidebar';
 import { GeminiSidebar } from './GeminiSidebar';
+import { CommandPalette } from './components/CommandPalette';
 import { NotificationToast } from './NotificationToast';
 import { MasterExportSlide } from './MasterExportSlide';
 import { ExportModal } from './export/components/ExportModal';
@@ -263,6 +264,7 @@ export default function App() {
 
   const [isGeminiSidebarOpen, setIsGeminiSidebarOpen] = useState(false);
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
+  const [isCmdPaletteOpen, setIsCmdPaletteOpen] = useState(false);
 
   const [selectedClientIdIA, setSelectedClientIdIA] = useState<string>('');
   const [iaAudioInsight, setIaAudioInsight] = useState<string>('');
@@ -450,6 +452,35 @@ export default function App() {
       }
     }
   }, []);
+
+  // ── Global keyboard shortcuts (desktop) ──
+  // Ctrl/Cmd+K → command palette · 1-9 → switch tab (only when not typing)
+  useEffect(() => {
+    const isTyping = () => {
+      const el = document.activeElement as HTMLElement | null;
+      return !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCmdPaletteOpen(prev => !prev);
+        return;
+      }
+      if (e.ctrlKey || e.metaKey || e.altKey || isTyping()) return;
+      if (e.key === '/') {
+        e.preventDefault();
+        setIsCmdPaletteOpen(true);
+        return;
+      }
+      const digit = parseInt(e.key, 10);
+      if (digit >= 1 && digit <= 9) {
+        const target = tabOrder[digit - 1];
+        if (target) { setActiveTab(target); }
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [tabOrder]);
 
   // Auto-save tasks snapshot to localStorage on every change
   // This is the safety net: if Supabase SELECT fails, tasks are restored from here
@@ -1277,37 +1308,48 @@ export default function App() {
     if (!tab || ids.length === 0) return;
     if (deleteConfirmationText.toUpperCase() !== 'EXCLUIR') return;
 
-    if (tab === 'CLIENTES') setClients(prev => prev.filter(c => !ids.includes(c.id)));
-    if (tab === 'RDC') setRdc(prev => prev.filter(r => !ids.includes(r.id)));
-    if (tab === 'MATRIZ') setMatriz(prev => prev.filter(m => !ids.includes(m.id)));
-    if (tab === 'COBO') setCobo(prev => prev.filter(c => !ids.includes(c.id)));
-    if (tab === 'PLANEJAMENTO') setPlanejamento(prev => prev.filter(p => !ids.includes(p.id)));
-    if (tab === 'FINANCAS') setFinancas(prev => prev.filter(f => !ids.includes(f.id)));
-    if (tab === 'TAREFAS') {
-      setTasks(prev => prev.filter(t => !ids.includes(t.id)));
-    }
-    if (tab === 'CHECKLISTS') setChecklists(prev => prev.filter(c => !ids.includes(c.id)));
-    if (tab === 'REUNIOES') setReunioes(prev => prev.filter(r => !ids.includes(r.id)));
-    if (tab === 'LEMBRETES') setLembretes(prev => prev.filter(l => !ids.includes(l.id)));
-    if (tab === 'IA_HISTORY') setIaHistory(prev => prev.filter(h => !ids.includes(h.id)));
-    setSelection([]);
+    // Setter per tab so we can remove now and restore on Undo
+    const setterMap: Record<string, React.Dispatch<React.SetStateAction<any[]>>> = {
+      CLIENTES: setClients, RDC: setRdc, MATRIZ: setMatriz, COBO: setCobo,
+      PLANEJAMENTO: setPlanejamento, FINANCAS: setFinancas, TAREFAS: setTasks,
+      CHECKLISTS: setChecklists as any, REUNIOES: setReunioes,
+      LEMBRETES: setLembretes, IA_HISTORY: setIaHistory,
+    };
+    const setter = setterMap[tab];
+    if (!setter) return;
 
-    if (currentWorkspace) {
-      const tableName = getTableName(tab as string);
-      if (tableName) {
-        if (!navigator.onLine) {
-           const queue = JSON.parse(localStorage.getItem('ekko_offline_queue') || '[]');
-           ids.forEach(id => queue.push({ action: 'DELETE', tableName, id }));
-           localStorage.setItem('ekko_offline_queue', JSON.stringify(queue));
-           addNotification('info', 'Offline', `${ids.length} item(s) deletado(s) localmente.`);
-        } else {
-           ids.forEach(id => DatabaseService.deleteItem(tableName, id));
-           addNotification('error', 'Item removido', `${ids.length} item(s) excluído(s).`);
-        }
-      }
-    }
-    
+    // Snapshot the removed items (inside the functional update to read fresh state)
+    let removed: any[] = [];
+    setter(prev => {
+      removed = prev.filter((i: any) => ids.includes(i.id));
+      return prev.filter((i: any) => !ids.includes(i.id));
+    });
+    setSelection([]);
     setDeleteModalState({ isOpen: false, ids: [], tab: null });
+
+    const tableName = currentWorkspace ? getTableName(tab as string) : null;
+
+    // Undo grace period — server delete only fires after 8s
+    const UNDO_MS = 8000;
+    const timeout = setTimeout(() => {
+      if (!tableName) return;
+      if (!navigator.onLine) {
+        const queue = JSON.parse(localStorage.getItem('ekko_offline_queue') || '[]');
+        ids.forEach(id => queue.push({ action: 'DELETE', tableName, id }));
+        localStorage.setItem('ekko_offline_queue', JSON.stringify(queue));
+      } else {
+        ids.forEach(id => DatabaseService.deleteItem(tableName, id));
+      }
+    }, UNDO_MS);
+
+    addNotification('error', 'Item removido', `${ids.length} item(s) excluído(s).`, {
+      label: 'Desfazer',
+      onClick: () => {
+        clearTimeout(timeout);
+        setter(prev => [...removed, ...prev]);
+        addNotification('success', 'Restaurado', `${removed.length} item(s) recuperado(s).`);
+      }
+    });
   }, [currentWorkspace, deleteModalState, deleteConfirmationText, addNotification]);
 
   const performArchive = useCallback((ids: string[], tab: TipoTabela | 'IA_HISTORY', archive: boolean = true) => {
@@ -1696,6 +1738,19 @@ export default function App() {
           </button>
         </div>
       </aside>
+
+      {/* COMMAND PALETTE — Ctrl+K */}
+      <CommandPalette
+        isOpen={isCmdPaletteOpen}
+        onClose={() => setIsCmdPaletteOpen(false)}
+        clients={clients}
+        tasks={tasks}
+        planejamento={planejamento}
+        reunioes={reunioes}
+        setActiveTab={setActiveTab}
+        onSelectTask={setSelectedTaskId}
+        onCreate={(tab) => handleAddRow(tab as TipoTabela)}
+      />
 
       {/* APPLE-STYLE NOTIFICATION TOAST OVERLAY (PATCH: BOTTOM-RIGHT) */}
       <div className="fixed bottom-6 z-[9999] pointer-events-none flex flex-col-reverse left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-6 items-center sm:items-end">

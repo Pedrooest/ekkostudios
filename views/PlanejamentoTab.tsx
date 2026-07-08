@@ -474,6 +474,44 @@ export default function PlanejamentoTab({
         }
     };
 
+    // Duplicate every post from the previous month into the month being viewed
+    const handleDuplicateLastMonth = async () => {
+        const y = currentDate.getFullYear(), m = currentDate.getMonth();
+        const prev = new Date(y, m - 1, 1);
+        const prevKey = `${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`;
+        const curKey = `${y}-${String(m + 1).padStart(2, '0')}`;
+        const source = data.filter((p: any) => p.Data?.startsWith(prevKey) && !p.__archived);
+        if (source.length === 0) {
+            alert(`${MONTH_NAMES_BR[prev.getMonth()]} não tem posts para duplicar.`);
+            return;
+        }
+        const curCount = data.filter((p: any) => p.Data?.startsWith(curKey) && !p.__archived).length;
+        const msg = `Duplicar ${source.length} post(s) de ${MONTH_NAMES_BR[prev.getMonth()]} para ${MONTH_NAMES_BR[m]}?` +
+            (curCount > 0 ? `\n\n(${MONTH_NAMES_BR[m]} já tem ${curCount} post(s) — os novos serão adicionados junto.)` : '');
+        if (!window.confirm(msg)) return;
+
+        const daysInCur = new Date(y, m + 1, 0).getDate();
+        for (const p of source) {
+            const day = Math.min(parseInt(p.Data.slice(8, 10), 10), daysInCur);
+            await onAdd('PLANEJAMENTO', {
+                Data: `${curKey}-${String(day).padStart(2, '0')}`,
+                Hora: p.Hora || '09:00',
+                Conteúdo: p.Conteúdo,
+                Cliente_ID: p.Cliente_ID,
+                Função: p.Função,
+                Rede_Social: p.Rede_Social,
+                "Tipo de conteúdo": p["Tipo de conteúdo"],
+                Intenção: p.Intenção,
+                Canal: p.Canal,
+                Formato: p.Formato,
+                Zona: p.Zona,
+                "Quem fala": p["Quem fala"],
+                "Status do conteúdo": 'EM ESPERA'
+            });
+        }
+        tryPlaySound('success');
+    };
+
     const handleDuplicateEvent = async () => {
         if (!selectedEvent) return;
         tryPlaySound('success');
@@ -758,6 +796,15 @@ export default function PlanejamentoTab({
                                 </button>
                             </div>
                             
+                            <button
+                                onClick={handleDuplicateLastMonth}
+                                title="Duplicar todos os posts do mês anterior para este mês"
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700/50 bg-zinc-50 dark:bg-zinc-800/30 text-[9px] font-black uppercase tracking-widest text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-700 transition-all ios-btn"
+                            >
+                                <Copy size={12} className="shrink-0" />
+                                <span className="hidden lg:inline">Duplicar mês</span>
+                            </button>
+
                             <div className="flex bg-zinc-100 dark:bg-zinc-800/50 rounded-2xl p-1 border border-zinc-200/50 dark:border-zinc-700/30">
                                 <button
                                     onClick={() => setCalendarSubMode('month')}
