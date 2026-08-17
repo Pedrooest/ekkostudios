@@ -8,6 +8,7 @@ interface AuthContextValue {
   perfilUsuario: PerfilUsuario | null;
   setPerfilUsuario: (profile: PerfilUsuario | null) => void;
   authLoading: boolean;
+  connectionError: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -16,15 +17,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [perfilUsuario, setPerfilUsuario] = useState<PerfilUsuario | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [connectionError, setConnectionError] = useState(false);
 
   useEffect(() => {
+    // Safety timeout: if Supabase is unreachable (e.g. free-tier project paused),
+    // getSession can hang. After 12s, stop the spinner and flag a connection error.
+    const timeout = setTimeout(() => {
+      setAuthLoading(prev => {
+        if (prev) setConnectionError(true);
+        return false;
+      });
+    }, 12000);
+
     supabase.auth.getSession()
       .then(({ data: { session } }) => {
+        clearTimeout(timeout);
         setCurrentUser(session?.user ?? null);
         setAuthLoading(false);
       })
       .catch((err) => {
+        clearTimeout(timeout);
         console.error('Supabase getSession Error:', err);
+        setConnectionError(true);
         setAuthLoading(false);
       });
 
@@ -67,6 +81,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       perfilUsuario,
       setPerfilUsuario,
       authLoading,
+      connectionError,
     }}>
       {children}
     </AuthContext.Provider>

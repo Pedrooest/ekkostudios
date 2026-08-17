@@ -16,7 +16,7 @@ import {
   Plus, X, User, Target, Lightbulb, Radio, FolderOpen,
   Box, Eye, EyeOff, Search, LayoutGrid, List, Filter, ArrowUpDown, Archive, Briefcase, TrendingUp, TrendingDown, Receipt, CreditCard, Wallet, Activity, DollarSign, ArrowRight, LayoutDashboard, AlertTriangle, Calculator, Info, Users, CheckSquare, MoreVertical, Database,
   Menu, Sun, Moon, Download, Bell, BellOff, Layers, FileSpreadsheet, FileVideo, Palette, Info as InfoIcon, X as XIcon, Check as CheckIcon,
-  Bot, Castle, Antenna, CalendarDays, Coins, ListTodo, Presentation, Hourglass, ArrowLeft, ChevronRight as ChevronRightIcon, WifiOff,
+  Bot, Castle, Antenna, CalendarDays, Coins, ListTodo, Presentation, Hourglass, ArrowLeft, ChevronRight as ChevronRightIcon, WifiOff, RefreshCw,
   Contact, Handshake, ClipboardCheck, Move, Maximize2, Banknote, FilePen, Wand2
 } from 'lucide-react';
 import { AssistantDrawer } from './AssistantDrawer';
@@ -225,7 +225,7 @@ const RouteFallback = () => (
 
 export default function App() {
 
-  const { currentUser, setCurrentUser, perfilUsuario, setPerfilUsuario, authLoading } = useAuth();
+  const { currentUser, setCurrentUser, perfilUsuario, setPerfilUsuario, authLoading, connectionError } = useAuth();
 
   const [activeTab, setActiveTab] = useState<TipoTabela>('DASHBOARD');
   const [theme, setTheme] = useState<'dark' | 'light'>(() => (localStorage.getItem('theme') as 'dark' | 'light') || 'dark');
@@ -1605,6 +1605,31 @@ export default function App() {
   }, [sidebarCollapsed]);
 
 
+
+  // Connection failure (e.g. Supabase project paused / unreachable) — clear message, not an infinite spinner
+  if (connectionError) return (
+    <div className="fixed inset-0 bg-[#0B0F19] flex flex-col items-center justify-center gap-5 px-6 text-center">
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-64 h-64 bg-rose-600/10 blur-[80px] rounded-full pointer-events-none" />
+      <img src="/site-logo.png" alt="EKKO" className="h-14 object-contain relative z-10 opacity-90" />
+      <div className="relative z-10 w-12 h-12 rounded-2xl bg-rose-500/15 border border-rose-500/25 flex items-center justify-center">
+        <WifiOff size={22} className="text-rose-400" />
+      </div>
+      <div className="relative z-10 space-y-2 max-w-sm">
+        <h1 className="text-lg font-black text-white uppercase tracking-tight">Sem conexão com o servidor</h1>
+        <p className="text-[11px] font-bold text-zinc-400 leading-relaxed">
+          Não foi possível conectar ao banco de dados. Se o projeto Supabase estiver
+          pausado (plano gratuito pausa após 7 dias), acesse o painel do Supabase e
+          clique em <span className="text-zinc-200">Restore project</span>. Seus dados estão seguros.
+        </p>
+      </div>
+      <button
+        onClick={() => window.location.reload()}
+        className="relative z-10 mt-1 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-zinc-900 text-[10px] font-black uppercase tracking-widest hover:scale-[1.03] active:scale-95 transition-transform shadow-lg"
+      >
+        <RefreshCw size={13} /> Tentar novamente
+      </button>
+    </div>
+  );
 
   if (authLoading) return (
     <div className="fixed inset-0 bg-[#0B0F19] flex flex-col items-center justify-center gap-6">
